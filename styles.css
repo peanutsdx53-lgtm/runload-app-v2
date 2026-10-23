@@ -760,3 +760,40 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .home-head .lead{display:none}
  .home-head>a.btn{padding:5px 10px;min-height:27px;font-size:.67rem}
 }
+
+/* PC visual reconciliation at 1440x900: keep the 12-region story and support charts in one initial view. */
+@media(min-width:1200px){
+ .main-content{padding-top:13px;gap:10px}
+ .result-top{padding:11px 16px}
+ .result-heading{margin-bottom:8px}
+ .result-heading h1{font-size:1.65rem}
+ .result-top .run-facts{min-height:34px}
+ .result-top .run-facts>span{padding:6px 12px}
+ .result-primary .card{padding:11px 13px}
+ .result-primary .section-title{margin-bottom:6px}
+ .result-primary .body-map-row{margin:5px 0}
+ .result-primary .body-view svg{height:213px}
+ .result-primary .body-view figcaption{margin:1px 0 3px}
+ .result-primary .region-grid{gap:5px;margin-top:5px}
+ .result-primary .region-tile{min-height:64px;padding:6px 8px;gap:3px}
+ .result-primary .region-tile.is-selected{padding:5px 7px}
+ .result-primary .region-tile .value{font-size:1.05rem}
+ .result-primary .region-tile .name{min-height:1.6em;font-size:.68rem}
+ .result-primary .region-tile .baseline{font-size:.63rem}
+ .result-primary .chart-caption{margin-top:5px}
+ .result-lower{gap:10px}
+ .result-lower .region-detail-card{padding:11px 13px;gap:6px}
+ .result-lower .section-title{margin-bottom:3px}
+ .result-lower .detail-metrics>div{min-height:59px;padding:7px 8px}
+ .result-lower .detail-metrics .highlight-detail strong{font-size:1.45rem}
+ .result-lower .detail-chart-title{margin-top:2px}
+ .result-lower .chart-card{padding:5px 7px}
+ .result-lower .spark-chart{height:103px}
+ .result-lower .reference-note{padding:8px 10px;line-height:1.4}
+ .result-lower .support-stack{gap:8px}
+ .result-lower .support-stack>.card{padding:10px 12px!important}
+ .result-lower .fatigue-cell{padding:6px 7px}
+ .result-lower .radar-panel .radar-chart{height:142px}
+ .result-lower .radar-panel .chart-caption{margin-top:0}
+ .result-lower .result-actions .btn{min-height:39px;padding:8px}
+}
