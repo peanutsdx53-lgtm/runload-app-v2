@@ -124,48 +124,65 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
  return `<section class="home-head"><div><div class="eyebrow">RUNNING HISTORY</div><h1>履歴</h1><p class="lead">これまでの記録を、日付や条件から振り返る。</p></div>${buttonLink("record","記録する",true)}</section><section class="card"><div class="section-title"><h2>記録を探す</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([k,n])=>`<button data-history-mode="${k}" class="${state.historyMode===k?"is-active":""}">${n}</button>`).join("")}</div></div><div class="history-layout"><div class="history-calendar"><h3>2026年10月</h3><div class="mini-calendar">${["日","月","火","水","木","金","土",...Array.from({length:31},(_,i)=>String(i+1))].map(day=>`<span class="${day==="22"?"calendar-today":""}">${day}</span>`).join("")}</div></div><div class="history-records"><h3>最近の記録</h3><div class="timeline">${shown.map(([date,distance,type])=>`<a class="timeline-item" href="#/${type==="休養"?"history":"result"}"><span class="history-row-mark">${type==="走行"?"↗":"◌"}</span><span><strong>${date}</strong><p class="lead">${distance}</p></span><span class="badge">${type}</span><span>›</span></a>`).join("")}</div></div></div></section><section class="grid-2"><a class="card home-shortcut" href="#/exploration-tree"><span class="shortcut-icon">✧</span><span><strong>探究の足跡</strong><p>興味を持ったテーマや問いを振り返る。</p></span><span>↗</span></a><a class="card home-shortcut" href="#/result"><span class="shortcut-icon">▥</span><span><strong>身体の推移</strong><p>12部位の過去の参考値を確かめる。</p></span><span>↗</span></a></section>`;
 }
     function treeOverview(){
-  const positions=[["01",150,96],["02",408,72],["03",729,100],["04",784,271],["05",674,389],["06",392,385],["07",138,304]];
-  const paths=positions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id);const selected=state.category===id;
-    return `<path d="M450,228 Q${Math.round((450+x)/2)},${Math.round((228+y)/2-22)} ${x},${y}" fill="none" stroke="${c.color}" stroke-opacity="${selected?".6":".3"}" stroke-width="${selected?4:2.4}" stroke-linecap="round"/>`;
+ const graphPositions=[
+ ["01",160,175,[[65,95],[150,78],[44,245],[172,276]]],
+ ["02",500,80,[[367,38],[475,16],[606,33],[664,94]]],
+ ["03",855,166,[[896,50],[1003,122],[952,237],[1004,284]]],
+ ["04",871,385,[[977,326],[1001,396],[952,473],[1009,523]]],
+ ["05",690,531,[[618,623],[731,623],[837,568],[839,626]]],
+ ["06",389,535,[[223,606],[331,624],[458,628],[538,587]]],
+ ["07",143,404,[[43,334],[33,423],[74,497],[195,550]]]
+ ];
+ const xcenter=516,ycenter=314;
+ const line=(x1,y1,x2,y2,color,thick=2,opacity=.5)=>`<path d="M${x1} ${y1} Q${(x1+x2)/2} ${(y1+y2)/2-12} ${x2} ${y2}" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${thick}" stroke-linecap="round" fill="none"/>`;
+ const drawDesktop=graphPositions.map(([id,x,y,leaves])=>{
+  const c=CATEGORIES.find(item=>item.id===id),active=state.category===id;
+  const branches=leaves.map(([tx,ty])=>line(x,y,tx,ty,c.color,active?3:2,active?.68:.35)).join("");
+  const nodes=leaves.map(([tx,ty],i)=>{
+   const name=c.topics[i],sel=state.category===id&&state.topic===name;
+   const align=tx<=100?"start":tx>=940?"end":"middle";
+   const labelY=ty<62?ty+23:ty>585?ty-13:ty-13;
+   return `<g class="tree-leaf ${sel?"is-selected":""}" data-topic="${id}|${esc(name)}" role="button" tabindex="0" aria-label="${esc(name)}" aria-pressed="${sel}">
+     ${sel?`<circle cx="${tx}" cy="${ty}" r="16" fill="${c.color}" fill-opacity=".11"/>`:""}
+     <circle cx="${tx}" cy="${ty}" r="${sel?9:7}" fill="${c.color}" stroke="#fff" stroke-width="3"/>
+     <text x="${tx}" y="${labelY}" text-anchor="${align}" font-size="12.5" font-weight="${sel?800:590}" fill="#476273">${esc(name)}</text>
+   </g>`;
   }).join("");
-  const nodes=positions.map(([id,x,y])=>{
-    const c=CATEGORIES.find(a=>a.id===id),sel=state.category===id;
-    return `<g data-tree-category="${id}" class="tree-node ${sel?"is-selected":""}" role="button" tabindex="0" aria-label="${esc(c.name)}のテーマを表示" aria-pressed="${sel}"><rect x="${x-84}" y="${y-28}" width="168" height="56" rx="19" fill="#fff" stroke="${c.color}" stroke-width="${sel?3:1.5}"/><circle cx="${x-60}" cy="${y}" r="8" fill="${c.color}"/><text x="${x+8}" y="${y+5}" text-anchor="middle" fill="#1a354a" font-size="15" font-weight="700">${esc(c.name)}</text>${sel?`<rect x="${x-90}" y="${y-34}" width="180" height="68" rx="23" fill="none" stroke="${c.color}" stroke-opacity=".20" stroke-width="7"/>`:""}</g>`;
-  }).join("");
-  const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 920 470" role="group" aria-label="中心から7分野に枝分かれする探究ツリー。各分野を選択できます"><g>${paths}</g><circle cx="450" cy="228" r="65" fill="#e9f7f7"/><circle cx="450" cy="228" r="53" fill="#007e96"/><text x="450" y="221" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">RunLoad</text><text x="450" y="241" text-anchor="middle" font-size="13" fill="#ddf7f8">探究ツリー</text>${nodes}</svg>`;
-  const mobilePositions=[["01",100,120],["02",260,172],["03",100,225],["04",260,278],["05",100,332],["06",260,385],["07",100,439]];
-  const mobilePaths=mobilePositions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id);return `<path d="M180,77 L180,${y} L${x},${y}" stroke="${c.color}" stroke-width="${state.category===id?3:1.7}" stroke-opacity="${state.category===id?".65":".27"}" fill="none"/>`}).join("");
-  const mobileNodes=mobilePositions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id),sel=state.category===id;return `<g data-tree-category="${id}" class="tree-node ${sel?"is-selected":""}" role="button" tabindex="0" aria-label="${esc(c.name)}のテーマを表示" aria-pressed="${sel}"><rect x="${x-81}" y="${y-21}" width="162" height="43" rx="15" fill="#fff" stroke="${c.color}" stroke-width="${sel?3:1.6}"/><circle cx="${x-60}" cy="${y}" r="6" fill="${c.color}"/><text x="${x+8}" y="${y+4}" text-anchor="middle" font-size="13" font-weight="750" fill="#233b4b">${esc(c.name)}</text></g>`}).join("");
-  const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 483" role="group" aria-label="7分野の探究ツリー。分野の選択で下のテーマが変わります"><path d="M180,76 L180,439" fill="none" stroke="#a8d3dc" stroke-width="2" stroke-dasharray="5 5"/>${mobilePaths}<circle cx="180" cy="45" r="37" fill="#007e96"/><text x="180" y="41" text-anchor="middle" font-size="14" font-weight="800" fill="white">探究</text><text x="180" y="56" text-anchor="middle" font-size="11" fill="#ecfbfd">ツリー</text>${mobileNodes}</svg>`;
-  return `<div class="tree-overview"><div class="tree-overview__decor" aria-hidden="true"></div>${desktop}${mobile}</div>`;
+  const textColor=active?"#fff":c.color;
+  const glow=active?`<circle cx="${x}" cy="${y}" r="66" fill="${c.color}" fill-opacity=".15"/>`:"";
+  return `${line(xcenter,ycenter,x,y,c.color,active?7:5,active?.7:.52)}${branches}${glow}<g class="tree-hub ${active?"is-selected":""}" data-tree-category="${id}" tabindex="0" role="button" aria-pressed="${active}" aria-label="${esc(c.name)}の分野を開く"><rect x="${x-79}" y="${y-23}" width="158" height="46" rx="21" fill="${active?c.color:"#fff"}" stroke="${c.color}" stroke-width="${active?3:2}"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="800" font-size="17" fill="${textColor}">${esc(c.name)}</text></g>${nodes}`;
+ }).join("");
+ const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 1040 650" role="group" aria-label="7分野28テーマからなる探究ツリー。枝とテーマを選択できます"><circle cx="${xcenter}" cy="${ycenter}" r="85" fill="#dcecff" fill-opacity=".48"/><circle cx="${xcenter}" cy="${ycenter}" r="66" fill="#1d79c9"/><circle cx="${xcenter}" cy="${ycenter}" r="55" fill="#236bd4"/><g fill="#fff" text-anchor="middle"><text x="${xcenter}" y="${ycenter-4}" font-size="29">♙</text><text x="${xcenter}" y="${ycenter+22}" font-size="15" font-weight="800">今回の走り</text></g>${drawDesktop}</svg>`;
+ const centers=[[111,110],[267,110],[73,228],[267,228],[97,340],[268,346],[179,432]];
+ const mobileLines=centers.map(([x,y],i)=>line(179,260,x,y,CATEGORIES[i].color,6,.35)).join("");
+ const mobileNodes=centers.map(([x,y],i)=>{
+  const c=CATEGORIES[i],active=state.category===c.id;
+  const short=c.name==="走る前後の工夫"?"走る前後の工夫":c.name;
+  let first=short.length>6?short.slice(0,Math.ceil(short.length/2)):short;
+  let second=short.length>6?short.slice(Math.ceil(short.length/2)):"";
+  return `<g class="tree-hub tree-bubble" data-tree-category="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}" aria-pressed="${active}"><circle cx="${x}" cy="${y}" r="${active?68:61}" fill="${c.color}" fill-opacity=".09" stroke="${c.color}" stroke-opacity=".28" stroke-width="${active?6:3}"/><circle cx="${x}" cy="${y}" r="53" fill="#fff" fill-opacity=".92" stroke="${c.color}" stroke-width="2"/><circle cx="${x}" cy="${y-24}" r="10" fill="${c.color}" fill-opacity=".9"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="820" font-size="14" fill="#27465b">${esc(first)}</text>${second?`<text x="${x}" y="${y+22}" text-anchor="middle" font-weight="780" font-size="14" fill="#27465b">${esc(second)}</text>`:""}${active?`<circle cx="${x}" cy="${y}" r="68" stroke="${c.color}" stroke-opacity=".24" fill="none" stroke-width="8"/>`:""}</g>`;
+ }).join("");
+ const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 515" role="group" aria-label="7分野を選べる探究ツリー">${mobileLines}<circle cx="179" cy="260" r="57" fill="#d5e8ff" fill-opacity=".8"/><circle cx="179" cy="260" r="48" fill="#256bcd"/><text x="179" y="254" font-size="20" fill="#fff" font-weight="800" text-anchor="middle">走る</text><text x="179" y="274" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">自分の探究</text>${mobileNodes}</svg>`;
+ return `<div class="tree-overview"><div class="tree-overview__decor" aria-hidden="true"></div>${desktop}${mobile}</div>`;
 }
   function explore(){
-  const c=CATEGORIES.find(c=>c.id===state.category)||CATEGORIES[0];
-  const selectTopics=c.topics.map(topic=>`<button type="button" data-topic="${c.id}|${esc(topic)}" class="topic-choice ${state.topic===topic?"is-selected":""}" aria-pressed="${state.topic===topic}">${esc(topic)} <span aria-hidden="true">›</span></button>`).join("");
-  const hint=state.mode==="today"?"今日の記録に関連した発光は、実際のデータと照合できるようになってから有効になります。":state.mode==="free"?"自分が関心を持った枝から自由に探せます。":"本人が保存した問いは、正式な保存機能の接続後に表示します。";
-  return header("探究ツリー","走るたび、自分への理解が育つ。",badge("7分野・28テーマ"))+
-    `<section class="card explore-toolbar"><div class="section-title"><h2>どこから探しますか？</h2><div class="segmented">${[["today","今回の走り"],["free","自由探索"],["questions","過去の問い"]].map(([mode,label])=>`<button data-explore-mode="${mode}" class="${state.mode===mode?"is-active":""}">${label}</button>`).join("")}</div></div><p class="lead">${hint}</p></section>
-    <section class="topic-layout">
-      <div class="card tree-panel">
-        <div class="section-title"><div><div class="eyebrow">EXPLORE THE RUN</div><h2>気になる枝を選ぶ</h2></div>${badge("操作できるツリー")}</div>
-        <p class="lead">7つの分野から一つ選ぶと、関連する4つのテーマが開きます。</p>
-        ${treeOverview()}
-        <div class="tree-selected-head"><div><small>現在の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div>${badge("4テーマ")}</div>
-        <div class="tree-topics">${selectTopics}</div>
-      </div>
-      <div class="card tree-detail-panel">
-        <div class="eyebrow">SELECTED TOPIC</div>
-        <h2>${esc(state.topic)}</h2>
-        <p class="lead">記録・知識・自分の問いをつなぐための探究テーマです。</p>
-        <div class="topic-detail feature-insight"><strong>今回の記録との接点</strong><p>この試作版では科学計算・記録連携を行っていません。関係が確認できない情報を推測で補完しません。</p><span class="badge ghost">実データ未接続</span></div>
-        <div class="tree-detail-step"><span class="step-num">01</span><div><strong>自分の記録を確かめる</strong><p>12部位の参考値や過去の走行と照らし合わせます。</p></div>${buttonLink("result","結果へ")}</div>
-        <div class="tree-detail-step"><span class="step-num">02</span><div><strong>知識を探す</strong><p>出典のある関連コラムを統合する予定です。</p></div><span class="badge ghost">準備中</span></div>
-        <div class="tree-detail-step"><span class="step-num">03</span><div><strong>自分の問いを残す</strong><p>本人が選んだ場合だけ記録し、次回も確かめられます。</p></div><span class="badge ghost">準備中</span></div>
-        <div class="tree-next"><strong>次にできること</strong><p class="lead">知識を読む、記録を振り返る、何も選ばず終了する。いずれも本人の自由です。</p><div class="btn-row">${buttonLink("history","履歴へ")}${buttonLink("record","記録へ")}</div></div>
-      </div>
-    </section>`;
+ const c=CATEGORIES.find(c=>c.id===state.category)||CATEGORIES[0];
+ const topicButtons=c.topics.map((name,i)=>`<button data-topic="${c.id}|${esc(name)}" class="topic-choice ${state.topic===name?"is-selected":""}" aria-pressed="${state.topic===name}"><span class="topic-index">${String(i+1).padStart(2,"0")}</span>${esc(name)}<span>›</span></button>`).join("");
+ const hero=`<section class="explore-heading"><div><h1>探究ツリー</h1><p class="lead">今回の走りを起点に、気になるテーマから自由に探究できます。</p></div></section>`;
+ const tabs=`<section class="explore-tabs">${[["today","今回の走りから探す"],["questions","過去の問いに戻る"],["free","自由に探す"]].map(([m,n])=>`<button class="explore-tab ${state.mode===m?"is-active":""}" data-explore-mode="${m}" type="button">${n}</button>`).join("")}</section>`;
+ const summary=state.mode==="today"?`<section class="explore-run-snapshot"><div class="small-route"><span aria-hidden="true">⌁</span></div><div><small>最近の走行</small><strong>10月22日</strong></div><div><small>距離</small><strong>8.20 <em>km</em></strong></div><div><small>時間</small><strong>45 <em>分</em></strong></div><a href="#/result" class="btn soft">結果を見る →</a></section>`:"";
+ const right=`<aside class="explore-aside">
+ <div class="explore-aside-hero"><div class="nature-header" aria-hidden="true"><span>⛰</span></div><h2>${state.mode==="free"?"自由探索のはじめ方":state.mode==="questions"?"過去の問い":"はじめに"}</h2><p>あなたの関心に合わせて、記録や知識を行き来できます。答えを決めるのは、あなた自身です。</p></div>
+ <div class="insight-card rose"><div class="aside-title"><span>✧</span><h3>${state.mode==="today"?"今日の接点":"関連する知識"}</h3></div><strong>${esc(c.name)}</strong><p>選択した分野から、4つのテーマを確かめましょう。</p></div>
+ <div class="insight-card blue"><div class="aside-title"><span>⌑</span><h3>続けている問い</h3></div><p>保存した問いは、いつでも見返せます。</p><div class="empty-inline">まだ問いはありません</div></div>
+ <div class="insight-card green"><div class="aside-title"><span>✦</span><h3>次にできること</h3></div><a href="#/result" class="aside-action">今回の結果を振り返る　→</a><a href="#/history" class="aside-action">過去の記録を確かめる　→</a></div></aside>`;
+ return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div>${treeOverview()}
+ <div class="explore-topic-detail"><div class="explore-topic-header"><div><small>選択中の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div><span class="badge">4つのテーマ</span></div>
+ <div class="tree-topics">${topicButtons}</div>
+ <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
+ </div>${right}</section>`;
 }
-  function settings(){
+    function settings(){
 return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
 <section class="settings-grid">${[["◈","表示とアクセシビリティ",[["文字と表示","読みやすい表示方法を選ぶ"],["動きの設定","アニメーションを抑える"]]],["♧","プライバシーとデータ",[["記録の管理","保存した記録の確認"],["位置情報","GPS利用時の取り扱い"]]],["?","ヘルプとアプリ",[["使い方","各機能の使い方を確認"],["RunLoadについて","アプリの情報"]]]].map(([icon,title,options])=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc])=>`<div class="settings-row"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></div>`).join("")}</div>`).join("")}<div class="card settings-card install-settings"><div class="settings-title"><span>↗</span><h2>アプリをインストール</h2></div><p class="lead">ホーム画面からすぐにRunLoadを開けます。</p><button class="btn primary" data-install-app type="button">ホーム画面に追加する　→</button></div></section>`;
 }
@@ -198,7 +215,7 @@ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h
     if(event.target.closest("[data-demo-save]")){state.toast="";location.hash="#/result";window.scrollTo(0,0)}
   });
   app.addEventListener("keydown",(event)=>{
-    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
+    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   window.addEventListener("hashchange",()=>{state.toast="";render();window.scrollTo(0,0)});
   render();
