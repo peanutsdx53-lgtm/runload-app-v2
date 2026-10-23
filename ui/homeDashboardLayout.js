@@ -62,3 +62,13 @@ export function editHomeDashboardLayout(layout,command,id){
  }else if(command==="size"){copy.sizes[id]=copy.sizes[id]==="half"?"full":"half"}
  return copy;
 }
+
+/** Insert a widget before/after another. No storage writes happen during dragging. */
+export function moveHomeDashboardWidget(layout,sourceId,targetId,after=false){
+ if(!isValidHomeDashboardLayout(layout)||!IS_ID.has(sourceId)||!IS_ID.has(targetId)||sourceId===targetId)return layout;
+ const next=copyHomeDashboardLayout(layout);
+ next.order=next.order.filter(id=>id!==sourceId);
+ const index=next.order.indexOf(targetId);
+ next.order.splice(index+(after?1:0),0,sourceId);
+ return next;
+}
