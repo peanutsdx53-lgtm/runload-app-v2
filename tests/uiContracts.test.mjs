@@ -48,3 +48,21 @@ test("install UI offers manual iOS steps",()=>{
  assert.ok(js.includes("data-install-app"));
  assert.ok(!js.includes('class="install-backdrop" data-install-dismiss'),"overlay should not dismiss all inner clicks");
 });
+
+test("only registered locally produced or approved visual assets are shipped",()=>{
+ const register=read("assets/ASSET_REGISTER.md");
+ const required=["bodyRegionVisuals.js","icon.svg","icon-192.png","icon-512.png","clip-path","外部素材"];
+ for(const name of required)assert.ok(register.includes(name),"asset register missing "+name);
+ for(const f of ["app.js","styles.css","pwa.js","index.html"]){
+   const src=read(f);
+   assert.ok(!/<img[^>]+src=["']https?:/i.test(src),"external runtime image in "+f);
+   assert.ok(!/url\(\s*["']?https?:/i.test(src),"remote CSS background in "+f);
+   assert.ok(!/data:image\/(?:jpeg|webp|png);base64,/i.test(src),"embedded unknown raster in "+f);
+ }
+ const fs=(await import("node:fs"));
+ for(const directory of ["assets","icons"]){
+   const files=fs.readdirSync(new URL("../"+directory+"/",import.meta.url));
+   const allowed=directory==="assets"?["ASSET_REGISTER.md","bodyRegionVisuals.js"]:["icon.svg","icon-192.png","icon-512.png"];
+   for(const filename of files)assert.ok(allowed.includes(filename),"unregistered artwork: "+directory+"/"+filename);
+ }
+});
