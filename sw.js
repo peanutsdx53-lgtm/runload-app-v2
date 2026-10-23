@@ -1,8 +1,8 @@
 // RunLoad UI Next: only publicly served static resources are cached.
 // Network-first prevents installed devices from being pinned to outdated UI files.
-const CACHE="runload-ui-next-shell-2026-10-23-05";
+const CACHE="runload-ui-next-shell-2026-10-23-home-edit-01";
 const BASE=new URL("./",self.location.href);
-const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
+const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./ui/homeDashboardLayout.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
 const shellURL=new URL("./index.html",BASE).href;
 self.addEventListener("install",event=>event.waitUntil(
  caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(name=>new URL(name,BASE).href))).then(()=>self.skipWaiting())
