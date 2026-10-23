@@ -1674,3 +1674,36 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .record-rof-j .rof-entry-grid{grid-template-columns:1fr}
  .record-rof-j .rof-anchor-card{flex-basis:91px}
 }
+
+/* Original RunLoad record UX: a compact fatigue summary that expands into
+   the approved five illustrations and independent 0-10 selectors only on demand. */
+.record-rof-j{padding:11px 12px;gap:7px}
+.rof-editor-details{min-width:0;border:1px solid #d2e7ef;border-radius:12px;background:#fff;overflow:hidden}
+.rof-editor-summary{display:grid;grid-template-columns:35px minmax(0,1fr) 18px;gap:9px;align-items:center;min-height:64px;padding:10px 12px;cursor:pointer;list-style:none}
+.rof-editor-summary::-webkit-details-marker{display:none}
+.rof-summary-mark{display:grid;place-items:center;width:35px;height:35px;border-radius:10px;color:#168ba2;background:#e3f5f8;font-size:1.1rem}
+.rof-summary-text{display:grid;gap:5px;min-width:0}
+.rof-summary-text strong{font-size:.83rem;color:#244d64;line-height:1.4}
+.rof-summary-text small{font-size:.74rem;color:#617f90;line-height:1.5}
+.rof-summary-text b{color:#07889d;font-size:.89rem;font-variant-numeric:tabular-nums}
+.rof-summary-chevron{color:#648da0;transition:transform .2s ease;font-size:1rem}
+.rof-editor-details[open] .rof-summary-chevron{transform:rotate(180deg)}
+.rof-editor-details[open] .rof-editor-summary{border-bottom:1px solid #dcebf0;background:#f6fbfd}
+.rof-editor-body{display:grid;gap:10px;padding:11px}
+.rof-editor-body .rof-anchor-guide{margin:0}
+.rof-editor-body .rof-rights{padding-top:8px}
+.rof-editor-body .rof-intro{font-size:.73rem;line-height:1.5}
+.record-save-actions>.btn{width:100%;max-width:420px;min-height:42px}
+@media(max-width:800px){
+ .record-rof-j{gap:5px;padding:9px 8px}
+ .rof-editor-summary{padding:9px 10px;gap:7px;grid-template-columns:32px minmax(0,1fr) 15px;min-height:59px}
+ .rof-summary-mark{width:32px;height:32px}
+ .rof-summary-text strong{font-size:.76rem}
+ .rof-summary-text small{font-size:.67rem;line-height:1.45}
+ .rof-editor-body{padding:9px 6px;gap:9px}
+ .record-save-actions>.btn{max-width:none}
+}
+@media(max-width:355px){
+ .rof-summary-text strong{font-size:.71rem}
+ .rof-summary-text small{font-size:.61rem}
+}
