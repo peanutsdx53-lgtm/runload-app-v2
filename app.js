@@ -33,6 +33,11 @@
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
+  const onboardingKey="runload-v2-introduction-preview-v1";
+  const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
+  const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
+  const introStored=loadIntro();
+  const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:String(introStored?.nickname||""),purpose:String(introStored?.purpose||"")};
   const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -191,6 +196,17 @@
  <p>図：Micklewright et al. (2017)（CC BY 4.0）。旧RunLoadに採用された切り抜き画像を変更せず利用。<a href="${rofScale.ROF_J_RIGHTS.scaleUrl}" target="_blank" rel="noopener">日本語尺度の原文</a> ／ <a href="${rofScale.ROF_J_RIGHTS.imagesUrl}" target="_blank" rel="noopener">図の出典</a> ／ <a href="${rofScale.ROF_J_RIGHTS.scaleLicense}" target="_blank" rel="noopener">日本語資料のライセンス</a> ／ <a href="${rofScale.ROF_J_RIGHTS.imagesLicense}" target="_blank" rel="noopener">図のライセンス</a></p>
  </details><p class="rof-unsaved-note">このv2では入力中の表示のみです。正式な走行記録にはまだ保存されません。</p>
  </section>`;
+}
+  function onboardingView(){
+ const steps=[
+  {title:"RunLoadへようこそ",eyebrow:"WELCOME",body:"走行・休養の記録と、身体の参考値を振り返るアプリです。現在のv2は画面と操作の検証段階です。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>ROF-Jの疲労感</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
+  {title:"言語を選ぶ",eyebrow:"LANGUAGE",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
+  {title:"利用規約とデータの扱い",eyebrow:"PRIVACY",body:"正式な利用規約・プライバシーポリシーはまだ確定していません。以下はUI確認用の案内であり、法的な同意の取得・記録ではありません。",html:`<div class="onboard-legal"><strong>現在のv2で扱う内容</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。現在のv2ではGPS測定・走行記録の正式保存は接続されていません。</p><p>位置情報の許可は、正式なGPS測定を開始する操作に合わせて確認する設計です。実装前に文面と導線を確定します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
+  {title:"共有用プロフィール（任意）",eyebrow:"YOUR PROFILE",body:"旧アプリの共有用プロフィールを参考に、最初の設定を用意しました。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>RunLoadを使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><p>性別・年齢帯・身長・体重など旧版の追加項目は、必要性と共有条件を確認した後に移植します。</p></div>`},
+  {title:"始め方を確認",eyebrow:"QUICK TOUR",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究ツリーはスクロールとズームで自由に見られます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS測定は旧版エンジン接続後に利用可能</small></span></div><div><b>2</b><span><strong>ROF-Jの疲労感を記入</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・6軸レーダー・探究ツリー</small></span></div></div>`}
+ ];
+ const current=steps[onboardingState.step];
+ return `<div class="onboard-overlay" data-onboard-overlay><section class="onboard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboard-title"><div class="onboard-top"><strong>RunLoad</strong><span>初回案内・試作版</span><button type="button" data-onboard-close aria-label="案内を閉じる">×</button></div><div class="onboard-progress" aria-label="${onboardingState.step+1} / ${steps.length}">${steps.map((_,i)=>`<span class="${i<=onboardingState.step?"is-active":""}"></span>`).join("")}</div><div class="onboard-main"><p class="eyebrow">${current.eyebrow}</p><h2 id="onboard-title">${current.title}</h2><p class="onboard-description">${current.body}</p>${current.html}</div><div class="onboard-footer"><button type="button" class="btn" data-onboard-back ${onboardingState.step===0?"disabled":""}>戻る</button><span>${onboardingState.step+1} / ${steps.length}</span><button type="button" class="btn primary" data-onboard-next>${onboardingState.step===steps.length-1?"試用を始める":"次へ"}</button></div></section></div>`;
 }
   function recordStart(){
  return `<section class="record-choose-head"><span class="eyebrow">START YOUR RUN</span><h1>記録の方法を選ぶ</h1><p class="lead">GPSで測定するか、あとから手入力するか選べます。</p></section>
@@ -352,7 +368,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  <section class="settings-grid">${sections.map(([icon,title,options],idx)=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc],j)=>{
    const route=name==="記録の振り返り"?"history":name==="身体の参考値について"?"result":name==="各画面の使い方"?"exploration-tree":null;
    const install=name==="ホーム画面への追加";
+   const intro=name==="記録者の情報"||name==="文字と表示"||name==="各画面の使い方";
    return route?`<a href="#/${route}" class="settings-row settings-row-link"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></a>`:
+   intro?`<button type="button" class="settings-row settings-row-link" data-onboard-open><div><strong>${name}</strong><p>${desc}・初期案内を開く</p></div><span>›</span></button>`:
    install?`<button class="settings-row settings-row-link" data-install-app type="button"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></button>`:
    `<div class="settings-row"><div><strong>${name}</strong><p>${desc}</p></div></div>`;
   }).join("")}</div>`).join("")}</section>`;
@@ -374,7 +392,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>`;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="exploration-tree"){
   const viewport=app.querySelector(".tree-pan-viewport");
   if(viewport){
@@ -400,8 +418,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   });
  }
 }
+  app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
   app.addEventListener("input",(event)=>{
     if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value;
+    if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
     if(event.target.matches("[data-rof-input]")){
       const key=event.target.dataset.rofInput,value=Number(event.target.value);
       if(!rofScale.isValidRofJ(value))return;
@@ -416,6 +436,15 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   });
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
   app.addEventListener("click",(event)=>{
+    if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.step=0;render();return}
+    if(event.target.closest("[data-onboard-close]")){onboardingState.open=false;render();return}
+    if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(0,onboardingState.step-1);render();return}
+    if(event.target.closest("[data-onboard-next]")){
+      if(onboardingState.step<4){onboardingState.step+=1;render();return}
+      onboardingState.open=false;
+      try{onboardStorage?.setItem(onboardingKey,JSON.stringify({completed:true,language:"ja",nickname:onboardingState.nickname,purpose:onboardingState.purpose,formalTermsAccepted:false}))}catch{}
+      render();return;
+    }
     const homeEdit=event.target.closest("[data-home-edit]");
     if(homeEdit){homeEditState.notice="";if(homeEditState.editing){homeEditState.editing=false;homeEditState.draft=null}else{homeEditState.editing=true;homeEditState.draft=dashboardPrefs.copyHomeDashboardLayout(homePreferenceState.layout)}render();return}
     if(event.target.closest("[data-home-cancel]")){homeEditState.editing=false;homeEditState.draft=null;homeEditState.notice="";render();return}
