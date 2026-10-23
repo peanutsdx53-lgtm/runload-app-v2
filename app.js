@@ -223,8 +223,22 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  </div>${right}</section>${sheetBody}`;
 }
     function settings(){
-return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
-<section class="settings-grid">${[["◈","表示とアクセシビリティ",[["文字と表示","読みやすい表示方法を選ぶ"],["動きの設定","アニメーションを抑える"]]],["♧","プライバシーとデータ",[["記録の管理","保存した記録の確認"],["位置情報","GPS利用時の取り扱い"]]],["?","ヘルプとアプリ",[["使い方","各機能の使い方を確認"],["RunLoadについて","アプリの情報"]]]].map(([icon,title,options])=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc])=>`<div class="settings-row"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></div>`).join("")}</div>`).join("")}<div class="card settings-card install-settings"><div class="settings-title"><span>↗</span><h2>アプリをインストール</h2></div><p class="lead">ホーム画面からすぐにRunLoadを開けます。</p><button class="btn primary" data-install-app type="button">ホーム画面に追加する　→</button></div></section>`;
+ const sections=[
+  ["♙","利用者情報",[["記録者の情報","自分の記録を管理"],["記録の振り返り","これまでの走行を見る"]]],
+  ["◈","表示と操作",[["文字と表示","自分に合う見た目で利用"],["動きの設定","画面演出の強さを調整"]]],
+  ["♧","通知",[["記録のリマインダー","記録を続けるための通知"],["お知らせ","アプリに関する情報"]]],
+  ["▤","プライバシー・データ",[["記録の管理","保存した記録を確認"],["位置情報","GPS利用時の取り扱い"]]],
+  ["?","ヘルプ",[["各画面の使い方","RunLoadの機能を確認"],["身体の参考値について","12部位比較の見方"]]],
+  ["▦","アプリ情報",[["RunLoadについて","研究・アプリの情報"],["ホーム画面への追加","アプリとしてすぐに開く"]]]
+ ];
+ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
+ <section class="settings-grid">${sections.map(([icon,title,options],idx)=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc],j)=>{
+   const route=name==="記録の振り返り"?"history":name==="身体の参考値について"?"result":name==="各画面の使い方"?"exploration-tree":null;
+   const install=name==="ホーム画面への追加";
+   return route?`<a href="#/${route}" class="settings-row settings-row-link"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></a>`:
+   install?`<button class="settings-row settings-row-link" data-install-app type="button"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></button>`:
+   `<div class="settings-row"><div><strong>${name}</strong><p>${desc}</p></div></div>`;
+  }).join("")}</div>`).join("")}</section>`;
 }
     function secondary(page){
  const title=pageLabels[page]||"その他";
