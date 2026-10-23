@@ -720,3 +720,35 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .home-dashboard .latest-run-content .btn{font-size:.67rem;min-height:28px}
  .home-dashboard .home-metrics strong{font-size:.98rem}
 }
+
+/* History calendar: actual recorded dates, selective filter, and compact monthly pulse. */
+.history-layout{align-items:start}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.calendar-header h3{margin:0}
+.history-calendar{display:grid;gap:6px}
+.history-calendar .mini-calendar{gap:4px}
+.calendar-day{border:none;border-radius:9px;background:transparent;color:#72849c;position:relative;padding:7px 2px;min-height:33px;font-size:.77rem}
+.calendar-day.has-entry{color:#175fbc;font-weight:850}
+.calendar-day.has-entry::after{content:"";position:absolute;bottom:2px;left:calc(50% - 2px);width:4px;height:4px;background:#2882e1;border-radius:50%}
+.calendar-day.is-selected{background:#ddecff;color:#1d67ca}
+.calendar-day:hover{background:#eaf4ff}
+.calendar-weekday{text-align:center;color:#8394aa;font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.calendar-legend{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:.7rem;color:#687e96}
+.calendar-legend button{border:0;background:transparent;color:#2472da;font-size:.71rem;cursor:pointer}
+.calendar-dot{display:inline-block;width:7px;height:7px;background:#2783e8;border-radius:50%;margin-right:4px}
+.month-summary{border-top:1px solid #e7edf4;padding-top:10px;display:grid;gap:8px}
+.month-summary>strong{font-size:.82rem}
+.month-summary>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.month-summary>div>span{border:1px solid #e4edf8;background:#f7faff;border-radius:9px;padding:8px;text-align:center;display:grid;gap:4px}
+.month-summary b{font-size:1.12rem;color:#1a78dc}
+.month-summary small{font-size:.68rem;color:#778aa0}
+@media(max-width:800px){
+ .calendar-day{min-height:31px;font-size:.75rem}
+ .history-calendar{padding:11px 13px}
+ .history-records{padding:11px}
+ .history-layout{gap:9px}
+ .month-summary{display:none}
+ .history-calendar .mini-calendar{gap:2px}
+ .history-records .timeline-item{padding:11px 9px}
+ .history-records .history-row-mark{width:35px;min-width:35px;height:35px;font-size:1.13rem}
+}
