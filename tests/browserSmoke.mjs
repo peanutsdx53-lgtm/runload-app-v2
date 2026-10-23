@@ -294,7 +294,8 @@ try{
   await page.locator(".install-dialog [data-install-dismiss]").click();
   assert.equal(await page.locator(".install-dialog").count(),0);
   await page.goto(host+"#/record",{waitUntil:"networkidle"});
-  assert.equal(await page.locator("[data-activity-type]").count(),4,"four record activity categories");
+  assert.equal(await page.locator("[data-record-type]").count(),2,"original RunLoad run/rest modes only");
+  assert.equal(await page.locator("[data-activity-type]").count(),0,"unsupported cycle/other activity modes must not appear");
   assert.equal(await page.locator("[data-feeling]").count(),5,"five visual mood options");
   assert.equal(await page.locator(".rof-anchor-card").count(),5,"five author-confirmed ROF diagrams");
   const imageRefs=await page.locator(".rof-anchor-card img").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("src")));
@@ -336,8 +337,10 @@ try{
     await page.locator('[data-record-section="course"] summary').scrollIntoViewIfNeeded();
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-course-expanded.png"),fullPage:false});
   }
-  await page.locator("[data-activity-type=walk]").click();
-  assert.equal(await page.locator("[data-activity-type=walk]").getAttribute("aria-pressed"),"true");
+  assert.equal(await page.locator("[data-rof-editor]").getAttribute("open"),null,"ROF guide should be compact until needed");
+  await page.locator("[data-rof-editor] summary").first().click();
+  assert.ok(await page.locator(".rof-anchor-guide").isVisible(),"approved fatigue diagram opens on demand");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-rof-expanded.png"),fullPage:false});
   await page.locator("[data-draft=distance]").fill("7.25");
   await page.locator("[data-draft=minutes]").fill("45");
   await page.locator("[data-draft=memo]").fill("自分のペースで走った");
@@ -377,6 +380,8 @@ try{
   await page.locator('[data-record-section="course"] summary').click();
   await page.locator('[data-record-section="compare"] summary').click();
   await page.locator('[data-record-section="reflection"] summary').click();
+  await page.locator("[data-rof-editor] summary").first().click();
+  assert.equal(await page.locator("[data-rof-editor]").getAttribute("open"),null,"compact fatigue summary restored after entering values");
   await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-active.png"),fullPage:true});
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
