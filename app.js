@@ -370,7 +370,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const topic=event.target.closest("[data-topic]");
     if(topic){const y=window.scrollY;const [c,t]=topic.dataset.topic.split("|");state.category=c;state.topic=t;render();window.scrollTo(0,y);return}
     if(event.target.closest("[data-demo-save]")){state.recordPreviewOpen=true;render();return}
-    if(event.target.closest("[data-close-preview]")){state.recordPreviewOpen=false;render();return}
+    if(event.target.matches(".record-preview-overlay")||event.target.closest(".record-preview-dialog button[data-close-preview]")){state.recordPreviewOpen=false;render();return}
   });
   app.addEventListener("keydown",(event)=>{
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
