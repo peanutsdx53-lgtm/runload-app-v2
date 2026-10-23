@@ -30,7 +30,7 @@ try{
   assert.match(await page.locator("h1").innerText(),/ホーム/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
-  await page.locator(".region-tile").first().waitFor();
+  await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
   assert.equal(await page.locator(".region-tile").count(),12);
   assert.equal(await page.locator(".body-view").count(),3);
   if(mode.name==="desktop"){
