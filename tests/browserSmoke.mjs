@@ -55,6 +55,30 @@ try{
     await page.locator("[data-expand-regions]").click();
   }
   assert.match(await page.locator("#selected-detail .selected-name").innerText(),/ふくらはぎ/);
+  if(mode.name!=="desktop"){
+    const layout=await page.evaluate(()=>{
+      const rect=sel=>{const e=document.querySelector(sel);if(!e)throw Error("missing "+sel);const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+      const overlaps=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
+      const heading=rect("#selected-detail .detail-head h2");
+      const region=rect("#selected-detail .selected-name");
+      const action=rect("#selected-detail>.section-title>a.btn");
+      const score=rect("#selected-detail .mobile-big-value");
+      const delta=rect("#selected-detail .mobile-baseline-chip");
+      const fatigue=rect(".fatigue-panel");
+      const arrow=rect(".fatigue-arrow");
+      const before=rect(".fatigue-panel .fatigue-cell:first-child strong");
+      const after=rect(".fatigue-panel .fatigue-cell:nth-of-type(2) strong");
+      const labels=[...document.querySelectorAll(".radar-panel .radar-label")].map(e=>e.getBoundingClientRect().height);
+      return {headingVsRegion:overlaps(heading,region),headingVsButton:overlaps(heading,action),regionVsButton:overlaps(region,action),scoreVsDelta:overlaps(score,delta),arrowVsBefore:overlaps(arrow,before),arrowVsAfter:overlaps(arrow,after),radarLabelHeights:labels,bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,fatigueWidth:fatigue.width};
+    });
+    for(const key of ["headingVsRegion","headingVsButton","regionVsButton","scoreVsDelta","arrowVsBefore","arrowVsAfter"]){
+      assert.equal(layout[key],false,mode.name+" overlapping result elements: "+key+" "+JSON.stringify(layout));
+    }
+    assert.equal(layout.radarLabelHeights.length,6,"all six radar axes must be present");
+    assert.ok(layout.radarLabelHeights.every(h=>h>=10),mode.name+" radar labels are too small: "+JSON.stringify(layout.radarLabelHeights));
+    assert.ok(layout.bodyWidth-layout.viewportWidth<=3,mode.name+" result horizontal overflow");
+    console.log("PASS",mode.name,"non-overlap and legible radar",JSON.stringify(layout));
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
