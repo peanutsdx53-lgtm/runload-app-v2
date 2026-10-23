@@ -59,7 +59,7 @@
       const selected=state.region===id?" is-selected":"";
       return `<path d="${d}" data-region="${esc(id)}" class="region-path ${status(r.value)}${selected}" role="button" tabindex="0" aria-label="${esc(r.friendly)}の詳細を表示"><title>${esc(r.name)}：${valid(r.value)?r.value.toFixed(1):"未取得"}</title></path>`;
     }).join("");
-    return `<figure class="body-view"><figcaption>${esc(view.title)}</figcaption><svg viewBox="70 10 160 430" aria-label="${esc(view.title)}の部位図" role="group"><defs><clipPath id="${cid}">${view.silhouette}</clipPath></defs><g class="body-silhouette">${view.silhouette}</g><g clip-path="url(#${cid})">${paths}</g></svg></figure>`;
+    return `<figure class="body-view"><figcaption>${esc(view.title)}</figcaption><svg viewBox="70 10 160 430" aria-label="${esc(view.title)}の部位図" role="group"><defs><linearGradient id="body-neutral-${cid}" x1="0" y1="0" x2="1" y2=".65"><stop offset="0" stop-color="#f5f9fb"/><stop offset=".48" stop-color="#dfe9f1"/><stop offset="1" stop-color="#cbdde9"/></linearGradient><clipPath id="${cid}">${view.silhouette}</clipPath></defs><g class="body-silhouette" style="fill:url(#body-neutral-${cid});stroke:#cad9e3;stroke-width:.35">${view.silhouette}</g><g clip-path="url(#${cid})">${paths}</g></svg></figure>`;
   };
   const legend=()=>`<div class="map-legend"><span><i class="dot above"></i>高め（110超）</span><span><i class="dot"></i>基準付近</span><span><i class="dot below"></i>低め（90未満）</span><span><i class="dot missing"></i>未取得</span></div>`;
   const regionTiles=()=>REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1).map(r=>{
