@@ -60,7 +60,15 @@ try{
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
   assert.equal(await page.locator(".install-dialog").count(),0);
-  for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
+  await page.goto(host+"#/record",{waitUntil:"networkidle"});
+  assert.equal(await page.locator("[data-activity-type]").count(),4,"four record activity categories");
+  assert.equal(await page.locator("[data-feeling]").count(),5,"five visual mood options");
+  await page.locator("[data-activity-type=walk]").click();
+  assert.equal(await page.locator("[data-activity-type=walk]").getAttribute("aria-pressed"),"true");
+  await page.locator("[data-feeling=regular]").click();
+  assert.equal(await page.locator("[data-feeling=regular]").getAttribute("aria-pressed"),"true");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-active.png"),fullPage:true});
+    for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
