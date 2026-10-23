@@ -752,3 +752,11 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .history-records .timeline-item{padding:11px 9px}
  .history-records .history-row-mark{width:35px;min-width:35px;height:35px;font-size:1.13rem}
 }
+
+/* Keep the Home heading visible and accessible; compact it rather than display:none. */
+@media(max-width:800px){
+ .home-head{display:flex;min-height:29px;padding:0 3px;margin:0}
+ .home-head h1{font-size:1.02rem;line-height:1.15}
+ .home-head .lead{display:none}
+ .home-head>a.btn{padding:5px 10px;min-height:27px;font-size:.67rem}
+}
