@@ -21,5 +21,6 @@ jobs:
           node --check assets/bodyRegionVisuals.js
           node --check ui/homeDashboardLayout.js
           node --check ui/rofJScale.js
+          node --check ui/recordDraftReview.js
       - name: UI and installability contracts
-        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/rofJScale.test.mjs
+        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/rofJScale.test.mjs tests/recordDraftReview.test.mjs
