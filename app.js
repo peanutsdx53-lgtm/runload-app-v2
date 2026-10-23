@@ -66,6 +66,14 @@
     const delta=valid(r.value)?r.value-100:null;
     return `<button type="button" class="region-tile ${state.region===r.id?"is-selected":""}" data-region="${r.id}" aria-pressed="${state.region===r.id}"><span class="name">${esc(r.friendly)}</span><span class="value">${valid(r.value)?r.value.toFixed(1):"—"}</span><span class="baseline ${status(r.value)}">${valid(delta)?"基準差 "+pct(delta):"数値なし"}</span></button>`;
   }).join("");
+  function regionPictogram(id,value){
+ const view=BODY_REGION_VIEWS.find(v=>v.paths.some(p=>p[0]===id));
+ if(!view)return `<span class="region-picto-fallback" aria-hidden="true">◍</span>`;
+ const found=view.paths.find(p=>p[0]===id);
+ const color=status(value)==="above"?"#ed9651":status(value)==="below"?"#65aade":status(value)==="near"?"#6cc4af":"#ced8e1";
+ const crop=view.key==="sole"?"75 80 150 330":"90 145 120 285";
+ return `<svg aria-hidden="true" focusable="false" class="region-picto" viewBox="${crop}"><g fill="#d9e4eb" opacity=".9">${view.silhouette}</g><path d="${found[1]}" fill="${color}" stroke="#fff" stroke-width=".8"/></svg>`;
+}
   function mobileRegionRows(){
  const base=REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1);
  const preview=[...base].sort((a,b)=>Number(b.id===state.region)-Number(a.id===state.region)||Math.abs((b.value??100)-100)-Math.abs((a.value??100)-100));
@@ -73,7 +81,7 @@
  return `<div class="mobile-region-list">${listing.map(r=>{
  const v=r.value,d=valid(v)?v-100:null,prev=valid(v)&&valid(r.prev)?v-r.prev:null,active=r.id===state.region;
  return `<button type="button" data-region="${r.id}" aria-pressed="${active}" class="mobile-region-row ${active?"is-selected":""}">
-   <span class="mobile-region-symbol ${status(v)}" aria-hidden="true">◍</span>
+   ${regionPictogram(r.id,v)}
    <span class="mobile-region-name">${esc(r.friendly)}</span>
    <strong class="mobile-region-value">${valid(v)?v.toFixed(1):"—"}</strong>
    <span class="mobile-region-diff ${status(v)}">${valid(d)?`基準差 ${pct(d)}`:"未取得"}</span>
@@ -181,7 +189,7 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  <div class="card anatomy-card"><div class="section-title"><h2>身体の部位から見る</h2><a href="#/body-part-detail" class="help-link">部位の見方　ⓘ</a></div><div class="body-map-row">${BODY_REGION_VIEWS.map(svgBody).join("")}</div>${legend()}<p class="chart-caption">色は各部位自身の基準100との関係を示します。</p></div>
  <div class="card regions-card"><div class="section-title"><h2>12部位を見渡す</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div>${mobileRegionRows()}<p class="chart-caption regions-guidance">部位を選ぶと、人体図と詳細が連動します。</p></div>
  </section>
- <section class="result-lower"><div class="card region-detail-card" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細</h2><span class="selected-name"><i class="detail-icon">◍</i>${esc(current.friendly)}</span></div>${buttonLink("body-part-detail","部位の詳細")}</div><div class="detail-metrics"><div class="highlight-detail"><small>今回の数値</small><strong>${valid(v)?v.toFixed(1):"—"}</strong></div><div><small>基準値</small><strong>100</strong></div><div><small>基準からの差</small><strong class="${status(v)}">${valid(v)?pct(v-100):"—"}</strong></div><div><small>前回の数値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回からの変化</small><strong class="${status(v)}">${comparison}</strong></div></div>
+ <section class="result-lower"><div class="card region-detail-card" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細</h2><span class="selected-name">${regionPictogram(current.id,current.value)}${esc(current.friendly)}</span></div>${buttonLink("body-part-detail","部位の詳細")}</div><div class="detail-metrics"><div class="highlight-detail"><small>今回の数値</small><strong>${valid(v)?v.toFixed(1):"—"}</strong></div><div><small>基準値</small><strong>100</strong></div><div><small>基準からの差</small><strong class="${status(v)}">${valid(v)?pct(v-100):"—"}</strong></div><div><small>前回の数値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回からの変化</small><strong class="${status(v)}">${comparison}</strong></div></div>
  ${mobileDetail}<h3 class="detail-chart-title">${esc(current.friendly)}の推移</h3><div class="chart-card">${historyChart(current)}</div>
  <p class="reference-note">ⓘ 各部位自身の基準を100とする文献由来の参考値です。実測した筋負荷・健康状態・傷害リスクを表すものではありません。</p></div>
  <div class="support-stack">
