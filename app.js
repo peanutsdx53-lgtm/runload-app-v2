@@ -26,7 +26,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
   const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -66,7 +66,22 @@
     const delta=valid(r.value)?r.value-100:null;
     return `<button type="button" class="region-tile ${state.region===r.id?"is-selected":""}" data-region="${r.id}" aria-pressed="${state.region===r.id}"><span class="name">${esc(r.friendly)}</span><span class="value">${valid(r.value)?r.value.toFixed(1):"—"}</span><span class="baseline ${status(r.value)}">${valid(delta)?"基準差 "+pct(delta):"数値なし"}</span></button>`;
   }).join("");
-  function historyChart(region){
+  function mobileRegionRows(){
+ const base=REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1);
+ const ordered=[...base].sort((a,b)=>Number(b.id===state.region)-Number(a.id===state.region));
+ const listing=state.mobileRegionsExpanded?ordered:ordered.slice(0,5);
+ return `<div class="mobile-region-list">${listing.map(r=>{
+ const v=r.value,d=valid(v)?v-100:null,prev=valid(v)&&valid(r.prev)?v-r.prev:null,active=r.id===state.region;
+ return `<button type="button" data-region="${r.id}" aria-pressed="${active}" class="mobile-region-row ${active?"is-selected":""}">
+   <span class="mobile-region-symbol ${status(v)}" aria-hidden="true">◍</span>
+   <span class="mobile-region-name">${esc(r.friendly)}</span>
+   <strong class="mobile-region-value">${valid(v)?v.toFixed(1):"—"}</strong>
+   <span class="mobile-region-diff ${status(v)}">${valid(d)?`基準差 ${pct(d)}`:"未取得"}</span>
+   <span class="mobile-region-prev">${valid(prev)?`前回差 ${pct(prev)}`:"比較なし"}</span><span class="mobile-chevron">›</span>
+ </button>`}).join("")}</div>
+ <button type="button" class="mobile-region-more" data-expand-regions aria-expanded="${state.mobileRegionsExpanded}">${state.mobileRegionsExpanded?"一部だけ表示":"全12部位を見る"} <span aria-hidden="true">${state.mobileRegionsExpanded?"⌃":"⌄"}</span></button>`;
+}
+    function historyChart(region){
     // Demo only: values are derived from a mock selected region to keep the chart consistent with the card.
     if(!Number.isFinite(region?.value))return `<div class="empty-state">この部位の推移は表示できません。</div>`;
     const v=region.value;
@@ -135,7 +150,7 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  <div class="run-facts"><span>◫　10月22日</span><span>◇　<strong>8.20</strong> km</span><span>◷　<strong>45</strong> 分</span><span>◉　<strong>5:29</strong> /km</span><span>⌁　コース情報なし</span></div></section>
  <section class="result-primary">
  <div class="card anatomy-card"><div class="section-title"><h2>身体の部位から見る</h2><a href="#/body-part-detail" class="help-link">部位の見方　ⓘ</a></div><div class="body-map-row">${BODY_REGION_VIEWS.map(svgBody).join("")}</div>${legend()}<p class="chart-caption">色は各部位自身の基準100との関係を示します。</p></div>
- <div class="card regions-card"><div class="section-title"><h2>12部位を見渡す</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div><p class="chart-caption">部位を選ぶと、人体図と詳細が連動します。</p></div>
+ <div class="card regions-card"><div class="section-title"><h2>12部位を見渡す</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div>${mobileRegionRows()}<p class="chart-caption regions-guidance">部位を選ぶと、人体図と詳細が連動します。</p></div>
  </section>
  <section class="result-lower"><div class="card region-detail-card" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細</h2><span class="selected-name"><i class="detail-icon">◍</i>${esc(current.friendly)}</span></div>${buttonLink("body-part-detail","部位の詳細")}</div><div class="detail-metrics"><div class="highlight-detail"><small>今回の数値</small><strong>${valid(v)?v.toFixed(1):"—"}</strong></div><div><small>基準値</small><strong>100</strong></div><div><small>基準からの差</small><strong class="${status(v)}">${valid(v)?pct(v-100):"—"}</strong></div><div><small>前回の数値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回からの変化</small><strong class="${status(v)}">${comparison}</strong></div></div>
  <h3 class="detail-chart-title">${esc(current.friendly)}の推移</h3><div class="chart-card">${historyChart(current)}</div>
@@ -269,6 +284,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const category=event.target.closest("[data-tree-category]");
     if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0]}render();window.scrollTo(0,y);return}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
+    const expandRegions=event.target.closest("[data-expand-regions]");
+    if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
