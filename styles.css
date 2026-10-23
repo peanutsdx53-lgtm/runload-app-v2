@@ -256,3 +256,11 @@ body{background:#f4f8fc}
  .explore-run-snapshot .small-route{width:37px;min-width:37px}
  .explore-run-snapshot strong{font-size:.73rem}
 }
+
+.tree-leaf text{paint-order:stroke fill;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round}
+.tree-leaf.is-selected text{fill:#123e62;font-weight:830}
+.tree-hub text{paint-order:stroke fill;stroke:#fff;stroke-width:0}
+@media(max-width:800px){
+ .exploration-stage .tree-mobile{max-height:560px}
+ .exploration-stage .tree-overview__decor{top:25%;opacity:.65}
+}
