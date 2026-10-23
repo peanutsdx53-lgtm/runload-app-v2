@@ -30,7 +30,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
@@ -189,13 +189,13 @@
  }).join("");
  return `<section class="record-rof-j" aria-label="ROF-J主観的疲労感">
  <div class="record-rof-header"><div><p class="eyebrow">RATING OF FATIGUE</p><h2>ROF-J｜運動前後の疲労感 <span>任意</span></h2></div><span class="rof-label">0–10</span></div>
- <p class="rof-intro">今感じている疲れを数字で選びます。運動前と運動後は別々に入力してください。医学的な診断や走行可否の判断ではありません。</p>
+ <details class="rof-editor-details" data-rof-editor><summary class="rof-editor-summary"><span class="rof-summary-mark" aria-hidden="true">◉</span><span class="rof-summary-text"><strong>運動前後の疲労感を入力・確認</strong><small>運動前 <b data-rof-summary-before>${rofScale.isValidRofJ(state.recordDraft.rofBefore)?state.recordDraft.rofBefore:"—"}</b> ／ 運動後 <b data-rof-summary-after>${rofScale.isValidRofJ(state.recordDraft.rofAfter)?state.recordDraft.rofAfter:"—"}</b> （各0〜10）</small></span><span class="rof-summary-chevron" aria-hidden="true">⌄</span></summary><div class="rof-editor-body"><p class="rof-intro">今感じている疲れを数字で選びます。運動前と運動後は別々に入力してください。医学的な診断や走行可否の判断ではありません。</p>
  <div class="rof-anchor-guide" role="group" aria-label="著者確認済みROF-Jの5つの尺度目安">${anchors}</div>
  <div class="rof-entry-grid">${fields}</div>
  <details class="rof-rights"><summary>尺度・イラストの出典と利用条件</summary>
  <p>日本語の尺度表現：Suzuki &amp; Arai (2026)（CC BY-NC-ND 4.0）。配置は責任著者への確認に基づき原版ROFと同じ目安位置を使用。2と3の間・7と8の間は選択できる追加点数ではありません。</p>
  <p>図：Micklewright et al. (2017)（CC BY 4.0）。旧RunLoadに採用された切り抜き画像を変更せず利用。<a href="${rofScale.ROF_J_RIGHTS.scaleUrl}" target="_blank" rel="noopener">日本語尺度の原文</a> ／ <a href="${rofScale.ROF_J_RIGHTS.imagesUrl}" target="_blank" rel="noopener">図の出典</a> ／ <a href="${rofScale.ROF_J_RIGHTS.scaleLicense}" target="_blank" rel="noopener">日本語資料のライセンス</a> ／ <a href="${rofScale.ROF_J_RIGHTS.imagesLicense}" target="_blank" rel="noopener">図のライセンス</a></p>
- </details><p class="rof-unsaved-note">このv2では入力中の表示のみです。正式な走行記録にはまだ保存されません。</p>
+ </details><p class="rof-unsaved-note">このv2では入力中の表示のみです。正式な走行記録にはまだ保存されません。</p></div></details>
  </section>`;
 }
   function onboardingView(){
@@ -253,18 +253,18 @@ function recordExtras(){
   function record(){
  const draft=state.recordDraft,active=state.recordType==="run";
  const review=reviewDraft.checkRecordDraft(draft,active);
- const activities=[["run","♙","ラン"],["walk","♧","ウォーキング"],["cycle","♢","バイク"],["other","···","その他"]];
+ 
  const moods=[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]];
  return `<section class="record-page-head"><div><h1>記録をつけましょう</h1><p>ランニングや休養、その日の気分を記録する。</p></div></section>
  <section class="record-editor card">
  <div class="record-segments" aria-label="記録の種類">${[["run","ラン"],["rest","休養"]].map(([id,label])=>`<button type="button" data-record-type="${id}" class="${state.recordType===id?"is-active":""}" aria-pressed="${state.recordType===id}">${label}</button>`).join("")}</div>
- ${active?`<div class="record-area"><h2>アクティビティの種類</h2><div class="record-activity-list">${activities.map(([id,icon,name])=>`<button type="button" class="record-activity ${state.activityType===id?"is-active":""}" data-activity-type="${id}" aria-pressed="${state.activityType===id}"><span class="activity-icon">${icon}</span><span>${name}</span></button>`).join("")}</div></div>`:`<div class="record-rest-note"><span aria-hidden="true">☾</span><div><strong>休養日の記録</strong><p>身体を休めた日も、気づきを残せます。</p></div></div>`}
+ ${active?"":`<div class="record-rest-note"><span aria-hidden="true">☾</span><div><strong>休養日の記録</strong><p>身体を休めた日も、気づきを残せます。</p></div></div>`}
  <div class="record-area record-measurements">${active?`<div class="record-distance"><h2>距離</h2><label class="record-number"><input aria-label="距離（km）" data-draft="distance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.0" value="${esc(draft.distance)}"><span>km</span></label></div><div class="record-duration"><h2>時間</h2><div class="duration-inputs">${[["hours","時"],["minutes","分"],["seconds","秒"]].map(([id,unit])=>`<label><input aria-label="時間・${unit}" data-draft="${id}" type="number" inputmode="numeric" min="0" ${id==="hours"?"":'max="59"'} placeholder="00" value="${esc(draft[id])}"><span>${unit}</span></label>`).join("")}</div></div>`:""}<div class="record-date"><h2>日付</h2><input aria-label="記録日" type="date" data-draft="date" value="${esc(draft.date)}"></div></div>
  ${active?rofPanel():""}
  ${active?recordExtras():""}
  <div class="record-area"><h2>気分の記録 <small>任意・本人が選択</small></h2><div class="feelings-choice">${moods.map(([id,icon,label])=>`<button type="button" data-feeling="${id}" aria-label="${label}" aria-pressed="${state.feeling===id}" class="feeling-choice ${state.feeling===id?"is-active":""}"><span class="mood-symbol">${icon}</span><small>${label}</small></button>`).join("")}</div></div>
  ${active?"":`<div class="record-area"><label class="field record-memo"><span>休養日のメモ <small>任意</small></span><textarea data-draft="memo" rows="2" placeholder="休養日の気づき">${esc(draft.memo)}</textarea></label></div>`}
- <div class="record-save-actions"><button class="btn primary" type="button" data-demo-save>入力内容を確認する <span aria-hidden="true">→</span></button><a href="#/history">履歴を見る</a></div>
+ <div class="record-save-actions"><button class="btn primary" type="button" data-demo-save>入力内容を確認する <span aria-hidden="true">→</span></button></div>
  </section>
  ${state.recordPreviewOpen?`<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2><p>この画面ではまだ正式な記録保存を行いません。</p><dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(draft.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(draft.distance||"未入力")} km</dd>`:""}${active?`<dt>ROF-J 運動前</dt><dd>${rofScale.isValidRofJ(draft.rofBefore)?draft.rofBefore:"未入力"}</dd><dt>ROF-J 運動後</dt><dd>${rofScale.isValidRofJ(draft.rofAfter)?draft.rofAfter:"未入力"}</dd>`:""}${active?`<dt>歩数</dt><dd>${esc(draft.steps||"未入力")}</dd><dt>歩数の取得方法</dt><dd>${esc({DEVICE_MEASURED:"端末・時計で計測",ESTIMATED:"手入力・おおよそ",UNKNOWN:"不明・未設定"}[draft.stepsProvenance]||"不明・未設定")}</dd><dt>走り方</dt><dd>${esc({RUN_WALK:"走歩混在",CONTINUOUS_RUN:"連続走行",UNKNOWN:"不明・未設定"}[draft.runningFormat]||"不明・未設定")}</dd><dt>コース</dt><dd>${esc(draft.courseName||"未入力")}</dd><dt>坂・路面</dt><dd>${esc({UNKNOWN:"不明・未設定",FLAT:"ほぼ平坦",SUMMARY:"割合で入力",SECTIONS:"区間ごとに入力"}[draft.gradeMode]||"不明・未設定")} ／ ${esc({UNKNOWN:"不明・未設定",SINGLE:"単一路面",MIXED:"複数路面の割合"}[draft.surfaceMode]||"不明・未設定")}</dd><dt>気温</dt><dd>${esc(draft.temperatureC||"未入力")}</dd><dt>身体の気づき</dt><dd>${esc(draft.bodyObservation||"未入力")}</dd><dt>シューズ</dt><dd>${esc(draft.shoeName||"未入力")}</dd>`:""}<dt>メモ</dt><dd>${esc(draft.memo||"未入力")}</dd></dl>${review.errors.length||review.warnings.length?`<div class="record-review-alert" role="alert"><strong>入力内容の確認事項</strong>${review.errors.map(t=>`<p class="is-error">${esc(t)}</p>`).join("")}${review.warnings.map(t=>`<p>${esc(t)}</p>`).join("")}</div>`:`<p class="record-review-success">入力項目の形式上の問題は検出されませんでした。正式保存・科学計算の検証ではありません。</p>`}<button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`:""}`;
 }
@@ -426,6 +426,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     let stopHomeDrag=null;
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
+      const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
@@ -434,6 +435,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="record"){
+  const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
  }
  if(page==="exploration-tree"){
@@ -474,6 +476,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
         box.querySelector("[data-rof-output]").textContent=String(value);
         box.querySelector("[data-rof-description]").textContent=rofScale.guidanceForRofJ(value);
         box.querySelector("[data-rof-clear]").disabled=false;
+        const summary=app.querySelector('[data-rof-summary-'+(key==="rofBefore"?"before":"after")+'"]');if(summary)summary.textContent=String(value);
       }
     }
   });
@@ -543,8 +546,6 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
     if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";state.sheetVisible=true;location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
-    const activity=event.target.closest("[data-activity-type]");
-    if(activity){const y=window.scrollY;state.activityType=activity.dataset.activityType;render();window.scrollTo(0,y);return}
     const rofClear=event.target.closest("[data-rof-clear]");
     if(rofClear){const y=window.scrollY;state.recordDraft[rofClear.dataset.rofClear]=null;render();window.scrollTo(0,y);return}
     const feeling=event.target.closest("[data-feeling]");
