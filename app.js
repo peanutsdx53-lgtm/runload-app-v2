@@ -135,9 +135,24 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
  ];
  const xcenter=516,ycenter=314;
  const line=(x1,y1,x2,y2,color,thick=2,opacity=.5)=>`<path d="M${x1} ${y1} Q${(x1+x2)/2} ${(y1+y2)/2-12} ${x2} ${y2}" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${thick}" stroke-linecap="round" fill="none"/>`;
- const drawDesktop=graphPositions.map(([id,x,y,leaves])=>{
+ // Original UI decoration drawn from geometry; no downloaded or AI-rendered imagery.
+ const decorativeLeaf=(px,py,angle,scale=1,shade="#8bcbb3")=>`<g class="tree-decoration" transform="translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${angle.toFixed(1)}) scale(${scale.toFixed(2)})"><path d="M0 0 Q -5 -17 -22 -20 Q -19 -4 0 0Z" fill="${shade}" opacity=".82"/><path d="M0 0 Q 6 11 19 13 Q 17 1 0 0Z" fill="#bcd8a0" opacity=".85"/></g>`;
+ const branchLeaves=(x0,y0,x1,y1,index=0)=>{
+   const vx=x1-x0,vy=y1-y0;
+   const base=Math.atan2(vy,vx)*180/Math.PI;
+   const colors=["#9fd5c2","#a7cfbb","#bcd6aa","#96caba"];
+   return [0.38,0.62,0.79].map((t,k)=>decorativeLeaf(
+     x0+vx*t + Math.sin((index+1)*(k+1))*4,
+     y0+vy*t + Math.cos((index+1)*(k+2))*4,
+     base+(k%2===0?-17:23),
+     0.67+(k===1?0.17:0),
+     colors[(index+k)%colors.length]
+   )).join("");
+ };
+ const branchPath=(x0,y0,x1,y1,color,weight,opacity)=>`<path class="tree-branch-line" d="M${x0} ${y0} C${(x0*2+x1)/3} ${(y0*2+y1)/3-19} ${(x0+x1*2)/3} ${(y0+y1*2)/3+17} ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="${weight}" stroke-linecap="round" stroke-opacity="${opacity}"/>`;
+  const drawDesktop=graphPositions.map(([id,x,y,leaves])=>{
   const c=CATEGORIES.find(item=>item.id===id),active=state.category===id;
-  const branches=leaves.map(([tx,ty])=>line(x,y,tx,ty,c.color,active?3:2,active?.68:.35)).join("");
+  const branches=leaves.map(([tx,ty],i)=>branchPath(x,y,tx,ty,c.color,active?3:2,active?.64:.37)+decorativeLeaf(x+(tx-x)*.63,y+(ty-y)*.63,(Math.atan2(ty-y,tx-x)*180/Math.PI)+8,.53)).join("");
   const nodes=leaves.map(([tx,ty],i)=>{
    const name=c.topics[i],sel=state.category===id&&state.topic===name;
    const align=tx<=100?"start":tx>=940?"end":"middle";
@@ -150,20 +165,20 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
   }).join("");
   const textColor=active?"#fff":c.color;
   const glow=active?`<circle cx="${x}" cy="${y}" r="66" fill="${c.color}" fill-opacity=".15"/>`:"";
-  return `${line(xcenter,ycenter,x,y,c.color,active?7:5,active?.7:.52)}${branches}${glow}<g class="tree-hub ${active?"is-selected":""}" data-tree-category="${id}" tabindex="0" role="button" aria-pressed="${active}" aria-label="${esc(c.name)}の分野を開く"><rect x="${x-79}" y="${y-23}" width="158" height="46" rx="21" fill="${active?c.color:c.tint}" stroke="${c.color}" stroke-width="${active?3:2}"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="800" font-size="17" fill="${textColor}">${esc(c.name)}</text></g>${nodes}`;
+  return `${branchPath(xcenter,ycenter,x,y,c.color,active?9:6,active?.77:.53)}${branchLeaves(xcenter,ycenter,x,y,Number(id))}${branches}${glow}<g class="tree-hub ${active?"is-selected":""}" data-tree-category="${id}" tabindex="0" role="button" aria-pressed="${active}" aria-label="${esc(c.name)}の分野を開く"><rect x="${x-79}" y="${y-23}" width="158" height="46" rx="21" fill="${active?c.color:c.tint}" stroke="${c.color}" stroke-width="${active?3:2}"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="800" font-size="17" fill="${textColor}">${esc(c.name)}</text></g>${nodes}`;
  }).join("");
- const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 1040 650" role="group" aria-label="7分野28テーマからなる探究ツリー。枝とテーマを選択できます"><circle cx="${xcenter}" cy="${ycenter}" r="85" fill="#dcecff" fill-opacity=".48"/><circle cx="${xcenter}" cy="${ycenter}" r="66" fill="#1d79c9"/><circle cx="${xcenter}" cy="${ycenter}" r="55" fill="#236bd4"/><g fill="#fff" text-anchor="middle"><text x="${xcenter}" y="${ycenter-4}" font-size="29">♙</text><text x="${xcenter}" y="${ycenter+22}" font-size="15" font-weight="800">今回の走り</text></g>${drawDesktop}</svg>`;
+ const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 1040 650" role="group" aria-label="7分野28テーマからなる探究ツリー。枝とテーマを選択できます"><defs><radialGradient id="tree-core-glow"><stop offset="0" stop-color="#e5f5ff" stop-opacity=".96"/><stop offset=".65" stop-color="#cfecff" stop-opacity=".54"/><stop offset="1" stop-color="#d8f2f8" stop-opacity="0"/></radialGradient><linearGradient id="tree-core"><stop offset="0" stop-color="#4395e8"/><stop offset="1" stop-color="#146ad0"/></linearGradient></defs><circle cx="${xcenter}" cy="${ycenter}" r="108" fill="url(#tree-core-glow)"/><circle cx="${xcenter}" cy="${ycenter}" r="66" fill="#1d79c9"/><circle cx="${xcenter}" cy="${ycenter}" r="56" fill="url(#tree-core)"/><g fill="#fff" text-anchor="middle"><text x="${xcenter}" y="${ycenter-4}" font-size="29">♙</text><text x="${xcenter}" y="${ycenter+22}" font-size="15" font-weight="800">今回の走り</text></g>${drawDesktop}</svg>`;
  const centers=[[90,99],[270,99],[75,224],[285,224],[90,357],[270,357],[180,470]];
- const mobileLines=centers.map(([x,y],i)=>line(179,260,x,y,CATEGORIES[i].color,6,.35)).join("");
- const mobileLeaves=centers.map(([x,y],i)=>{const dx=x-179,dy=y-260;const px=179+dx*.50,py=260+dy*.50;const angle=Math.atan2(dy,dx)*180/Math.PI;return `<g opacity=".63"><ellipse cx="${px-13}" cy="${py-8}" rx="14" ry="6" transform="rotate(${angle-34},${px-13},${py-8})" fill="#95cbb8"/><ellipse cx="${px+14}" cy="${py+9}" rx="12" ry="6" transform="rotate(${angle+35},${px+14},${py+9})" fill="#c3db9d"/></g>`}).join("");
+ const mobileLines=centers.map(([x,y],i)=>branchPath(179,260,x,y,CATEGORIES[i].color,8,.44)).join("");
+ const mobileLeaves=centers.map(([x,y],i)=>branchLeaves(179,260,x,y,i)).join("");
  const mobileNodes=centers.map(([x,y],i)=>{
   const c=CATEGORIES[i],active=state.category===c.id;
   const short=c.name==="走る前後の工夫"?"走る前後の工夫":c.name;
   let first=short.length>6?short.slice(0,Math.ceil(short.length/2)):short;
   let second=short.length>6?short.slice(Math.ceil(short.length/2)):"";
-  return `<g class="tree-hub tree-bubble" data-tree-category="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}" aria-pressed="${active}"><circle cx="${x}" cy="${y}" r="${active?68:61}" fill="${c.color}" fill-opacity=".09" stroke="${c.color}" stroke-opacity=".28" stroke-width="${active?6:3}"/><circle cx="${x}" cy="${y}" r="53" fill="${c.tint}" fill-opacity=".98" stroke="${c.color}" stroke-width="2"/><circle cx="${x}" cy="${y-24}" r="10" fill="${c.color}" fill-opacity=".9"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="820" font-size="14" fill="#27465b">${esc(first)}</text>${second?`<text x="${x}" y="${y+22}" text-anchor="middle" font-weight="780" font-size="14" fill="#27465b">${esc(second)}</text>`:""}${active?`<circle cx="${x}" cy="${y}" r="68" stroke="${c.color}" stroke-opacity=".24" fill="none" stroke-width="8"/>`:""}</g>`;
+  return `<g class="tree-hub tree-bubble" data-tree-category="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}" aria-pressed="${active}"><circle cx="${x}" cy="${y}" r="${active?68:61}" fill="${c.color}" fill-opacity=".09" stroke="${c.color}" stroke-opacity=".28" stroke-width="${active?6:3}"/><circle cx="${x}" cy="${y}" r="53" fill="${c.tint}" fill-opacity=".98" stroke="${c.color}" stroke-width="2"/><circle cx="${x}" cy="${y-24}" r="15" fill="${c.color}" fill-opacity=".15"/><text x="${x}" y="${y-18}" font-size="19" text-anchor="middle" font-weight="850" fill="${c.color}">${esc(c.icon)}</text><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="820" font-size="14" fill="#27465b">${esc(first)}</text>${second?`<text x="${x}" y="${y+22}" text-anchor="middle" font-weight="780" font-size="14" fill="#27465b">${esc(second)}</text>`:""}${active?`<circle cx="${x}" cy="${y}" r="68" stroke="${c.color}" stroke-opacity=".24" fill="none" stroke-width="8"/>`:""}</g>`;
  }).join("");
- const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 540" role="group" aria-label="7分野を選べる探究ツリー">${mobileLines}${mobileLeaves}<circle cx="179" cy="260" r="57" fill="#d5e8ff" fill-opacity=".8"/><circle cx="179" cy="260" r="48" fill="#256bcd"/><text x="179" y="254" font-size="20" fill="#fff" font-weight="800" text-anchor="middle">走る</text><text x="179" y="274" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">自分の探究</text>${mobileNodes}</svg>`;
+ const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 540" role="group" aria-label="7分野を選べる探究ツリー">${mobileLines}${mobileLeaves}<defs><radialGradient id="tree-mobile-core"><stop offset="0" stop-color="#398de4"/><stop offset="1" stop-color="#1466bd"/></radialGradient></defs><circle cx="179" cy="260" r="66" fill="#d5e8ff" fill-opacity=".64"/><circle cx="179" cy="260" r="48" fill="url(#tree-mobile-core)"/><text x="179" y="254" font-size="20" fill="#fff" font-weight="800" text-anchor="middle">走る</text><text x="179" y="274" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">自分の探究</text>${mobileNodes}</svg>`;
  return `<div class="tree-overview"><div class="tree-overview__decor" aria-hidden="true"></div>${desktop}${mobile}</div>`;
 }
   function explore(){
