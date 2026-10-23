@@ -54,7 +54,7 @@ try{
   await page.evaluate(()=>{
     const target=document.querySelector('[data-home-dashboard-id="latest"]');
     const t=target.getBoundingClientRect();
-    const x=t.left+t.width/2,y=t.top+t.height*.75;
+    const x=t.left+t.width/2,y=t.top+Math.min(35,t.height*.18);
     window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
     window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
   });
