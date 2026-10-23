@@ -28,7 +28,10 @@ try{
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
   assert.match(await page.locator("h1").innerText(),/ホーム/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-viewport.png"),fullPage:false});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
   assert.equal(await page.locator(".region-tile").count(),12);
@@ -109,7 +112,20 @@ try{
     assert.ok(await page.locator(".mobile-sheet-insight").isVisible(),"reopen theme bottom sheet");
   }
   assert.match(await page.locator(".explore-topic-header").innerText(),/疲れと回復/);
+  if(mode.name!=="desktop"){
+    const fit=await page.locator(".explore-topic-detail .topic-index").evaluateAll(nodes=>nodes.every(el=>getComputedStyle(el).whiteSpace==="nowrap"&&el.scrollWidth<=el.clientWidth+1));
+    assert.ok(fit,mode.name+" exploration topic numbers must not wrap");
+  }
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree-viewport.png"),fullPage:false});
+  if(mode.name!=="desktop"){
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
+    await page.locator(".mobile-explore-sheet").evaluate(el=>{el.style.position="static";el.style.inset="auto";el.style.transform="none"});
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree.png"),fullPage:true});
+  if(mode.name!=="desktop"){
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
+    await page.locator(".mobile-explore-sheet").evaluate(el=>{el.style.position="";el.style.inset="";el.style.transform=""});
+  }
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
