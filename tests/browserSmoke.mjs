@@ -69,9 +69,11 @@ try{
     assert.equal(await page.locator(".mobile-start-controls a").count(),2,"GPS first and manual record choices");
     assert.match(await page.locator(".mobile-gps-start").innerText(),/GPSで測定/);
     await page.locator(".mobile-nav a[href='#/record-start']").click();
-    assert.match(await page.locator("h1").first().innerText(),/記録の方法を選ぶ/);
+    await page.locator(".record-choose-head h1").waitFor();
+    assert.match(await page.locator(".record-choose-head h1").innerText(),/記録の方法を選ぶ/);
     assert.equal(await page.locator(".record-choose-grid a").count(),2);
     await page.locator(".record-choose-primary").click();
+    await page.locator(".measurement-layout").waitFor();
     assert.match(await page.locator("h1").first().innerText(),/測定/);
     assert.ok(await page.locator(".measurement-controls .btn.primary").isDisabled(),"no fake GPS recording before engine bridge");
     await page.goto(host+"#/home",{waitUntil:"networkidle"});
