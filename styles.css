@@ -1163,3 +1163,6 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
     height:48px;font-size:1.2rem;
   }
 }
+
+/* Maintain the warm post-run value on desktop after inserting the explicit arrow element. */
+.fatigue-panel .fatigue-cell:nth-of-type(2) strong{color:#ee842d}
