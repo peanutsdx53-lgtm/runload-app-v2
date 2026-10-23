@@ -41,6 +41,10 @@ try{
   await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
   if(mode.name!=="desktop"){
     assert.ok(await page.locator(".mobile-explore-sheet").isVisible(),"mobile theme bottom sheet");
+    await page.locator("[data-sheet-expand]").click();
+    assert.ok(await page.locator(".mobile-explore-sheet.is-expanded").isVisible(),"expanded panel");
+    await page.locator("[data-sheet-expand]").click();
+    assert.ok(await page.locator(".mobile-explore-sheet:not(.is-expanded)").isVisible(),"preview panel");
     await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
     assert.ok(await page.locator(".mobile-explore-sheet.is-hidden").isVisible(),"close theme bottom sheet");
     await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
