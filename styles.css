@@ -538,3 +538,37 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .body-view svg{height:155px}
  .home-head .lead{font-size:.7rem}
 }
+
+/* Activity / mood controls match the high-density record layout, without claims of storage. */
+.record-layout{grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr);align-items:start}
+.record-layout>.card{min-width:0}
+.record-activity-block,.record-feelings{display:grid;gap:9px}
+.record-activity-block>strong,.record-feelings>strong{font-size:.85rem}
+.record-activity-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.record-activity{border:1px solid #e4ecf6;background:#f9fbff;border-radius:12px;padding:10px 4px;display:grid;justify-items:center;align-content:center;gap:6px;min-height:81px;color:#59738e;font-size:.74rem;font-weight:700}
+.record-activity .activity-icon{font-size:1.65rem;color:#7b9cc6;display:grid;place-items:center;width:34px;height:34px}
+.record-activity.is-active{border:2px solid #277bf0;padding:9px 3px;background:#eff7ff;color:#1d6ddd}
+.record-activity.is-active .activity-icon{color:#207af0}
+.feelings-choice{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.feeling-choice{display:grid;justify-items:center;align-content:center;gap:4px;background:#f8fbff;border:1px solid #e4ebf5;border-radius:11px;padding:5px 2px;min-height:57px;color:#647e98}
+.feeling-choice>span{color:#2bb88e;font-size:1.38rem}
+.feeling-choice:nth-child(2)>span{color:#83bc51}
+.feeling-choice:nth-child(3)>span{color:#f5ae49}
+.feeling-choice:nth-child(4)>span{color:#e3a45d}
+.feeling-choice:nth-child(5)>span{color:#dc8d93}
+.feeling-choice small{font-size:.66rem;color:inherit;white-space:nowrap}
+.feeling-choice.is-active{border:2px solid #2b7bea;background:#edf5ff;padding:4px 1px}
+@media(max-width:1050px){.record-layout{grid-template-columns:1fr}}
+@media(max-width:800px){
+ .record-layout{grid-template-columns:1fr;gap:9px}
+ .record-activity-list{gap:6px}
+ .record-activity{min-height:70px;padding:7px 2px;font-size:.67rem}
+ .record-activity.is-active{padding:6px 1px}
+ .record-activity .activity-icon{width:27px;height:27px;font-size:1.35rem}
+ .feeling-choice{min-height:55px}
+ .feeling-choice small{font-size:.59rem}
+}
+@media(max-width:355px){
+ .record-activity{font-size:.6rem}
+ .feeling-choice small{font-size:.53rem}
+}
