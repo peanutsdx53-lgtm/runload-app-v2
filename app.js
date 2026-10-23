@@ -71,7 +71,18 @@
  if(!view)return `<span class="region-picto-fallback" aria-hidden="true">◍</span>`;
  const found=view.paths.find(p=>p[0]===id);
  const color=status(value)==="above"?"#ed9651":status(value)==="below"?"#65aade":status(value)==="near"?"#6cc4af":"#ced8e1";
- const crop=view.key==="sole"?"75 80 150 330":"90 145 120 285";
+ const cropByRegion={
+  "BA-DISP-014":"92 128 116 160",
+  "BA-DISP-015":"92 155 116 155",
+  "BA-DISP-016":"92 207 116 166",
+  "BA-DISP-018":"92 207 116 166",
+  "BA-DISP-019":"92 260 116 145",
+  "BA-DISP-021":"92 278 116 145",
+  "BA-DISP-023":"92 278 116 145",
+  "BA-DISP-024":"92 305 116 132",
+  "BA-DISP-025":"92 305 116 132"
+ };
+ const crop=view.key==="sole"?"72 65 156 330":cropByRegion[id]||"90 145 120 285";
  return `<svg aria-hidden="true" focusable="false" class="region-picto" viewBox="${crop}"><g fill="#d9e4eb" opacity=".9">${view.silhouette}</g><path d="${found[1]}" fill="${color}" stroke="#fff" stroke-width=".8"/></svg>`;
 }
   function mobileRegionRows(){
