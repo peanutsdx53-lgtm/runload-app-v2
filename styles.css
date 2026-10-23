@@ -943,15 +943,15 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .main-frame:has(.result-top) .anatomy-card .section-title h2,
  .main-frame:has(.result-top) .regions-card .section-title h2{color:#1c384b}
  .main-frame:has(.result-top) .body-view{background:radial-gradient(ellipse at 50% 45%,#fff,#eff6f8)}
- ..main-frame:has(.result-top) .body-view .region-path.is-selected{stroke:#0095b7;stroke-width:3.5}
+ .main-frame:has(.result-top) .body-view .region-path.is-selected{stroke:#0095b7;stroke-width:3.5}
  .main-frame:has(.result-top) .body-view .region-path.above{fill:#efa052}
  .main-frame:has(.result-top) .body-view .region-path.near{fill:#65c1ad}
  .main-frame:has(.result-top) .body-view .region-path.below{fill:#78b6dc}
  .main-frame:has(.result-top) .body-view .region-path.missing{fill:#cdd7df}
  .main-frame:has(.result-top) .anatomy-card .map-legend{background:#f7fafb}
  .main-frame:has(.result-top) .mobile-region-row.is-selected{border-left-color:#00a0b4;background:#eafbfd}
- ..main-frame:has(.result-top) .regions-card .segmented button.is-active{background:#008fa4}
- ..main-frame:has(.result-top) .mobile-region-more{background:#eef9fb;color:#008aa3;border-color:#cbeaf0}
+ .main-frame:has(.result-top) .regions-card .segmented button.is-active{background:#008fa4}
+ .main-frame:has(.result-top) .mobile-region-more{background:#eef9fb;color:#008aa3;border-color:#cbeaf0}
  .main-frame:has(.result-top) .mobile-inline-trend .mobile-mini-trend polyline{stroke:#009abc}
  .main-frame:has(.result-top) .mobile-inline-trend .mobile-mini-trend circle{stroke:#009abc}
  .main-frame:has(.result-top) .mobile-big-value.above{color:#f07c39}
