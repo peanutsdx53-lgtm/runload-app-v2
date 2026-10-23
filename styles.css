@@ -1166,3 +1166,146 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
 
 /* Maintain the warm post-run value on desktop after inserting the explicit arrow element. */
 .fatigue-panel .fatigue-cell:nth-of-type(2) strong{color:#ee842d}
+
+/* Whole-app visual reconciliation, non-result screens, 2026-10-23. All artwork is code-drawn. */
+.record-page-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 3px 5px}
+.record-page-head h1{font-size:1.4rem;letter-spacing:-.03em;color:#18365b}
+.record-page-head p{color:#6d849d;font-size:.81rem;margin-top:3px}
+.record-editor{display:grid;gap:14px;max-width:980px;padding:18px 20px}
+.record-segments{display:grid;grid-template-columns:1fr 1fr;gap:4px;border-radius:10px;background:#edf4fc;padding:3px;max-width:450px}
+.record-segments button{border:0;background:transparent;border-radius:8px;min-height:40px;color:#627b98;font-weight:760}
+.record-segments button.is-active{background:linear-gradient(105deg,#3087fb,#2871df);box-shadow:0 3px 10px #357fdf20;color:#fff}
+.record-area{display:grid;gap:7px;min-width:0}
+.record-area>h2,.record-memo>span{font-weight:800;font-size:.85rem;color:#294361}
+.record-area>h2 small,.record-memo small{font-size:.7rem;font-weight:500;color:#8798ad}
+.record-editor .record-activity-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.record-editor .record-activity{min-width:0;min-height:83px;background:#f9fcff;border:1px solid #dce8f6;border-radius:11px;display:grid;justify-items:center;align-content:center;gap:5px;padding:7px 2px}
+.record-editor .record-activity.is-active{border:2px solid #348afa;background:#eaf5ff;padding:6px 1px}
+.record-editor .record-activity .activity-icon{font-size:1.6rem;color:#588fca;width:auto;height:auto}
+.record-editor .record-activity span:last-child{font-size:.77rem;font-weight:700;white-space:nowrap}
+.record-editor .record-rest-note{display:flex;gap:11px;align-items:center;background:#f3f7fc;border-radius:11px;padding:12px}
+.record-rest-note>span{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#e9efff;color:#7488c3;font-size:1.5rem}
+.record-rest-note strong{font-size:.87rem}
+.record-rest-note p{color:#74899e;font-size:.73rem;margin-top:4px}
+.record-measurements{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.2fr) minmax(0,1fr);gap:10px}
+.record-measurements>div{min-width:0}
+.record-measurements h2{font-size:.8rem;font-weight:760;margin-bottom:6px}
+.record-number,.duration-inputs label{display:flex;align-items:center;border:1px solid #dce7f5;border-radius:9px;background:#fff;min-height:43px;gap:4px;padding:0 7px}
+.record-number input,.duration-inputs input{color:#26405c;font:750 .97rem inherit;min-width:0;width:100%;border:0;outline:none;background:transparent;padding:0}
+.record-number span,.duration-inputs label span{color:#788ca5;font-size:.69rem;white-space:nowrap}
+.duration-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.duration-inputs input{text-align:center;font-size:.83rem}
+.record-date input{box-sizing:border-box;width:100%;min-height:43px;border:1px solid #dce7f5;border-radius:9px;background:#fff;padding:7px;font:inherit;font-size:.81rem;color:#37516a}
+.record-editor .feelings-choice{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.record-editor .feeling-choice{min-height:74px;min-width:0;display:grid;align-content:center;justify-items:center;gap:5px;padding:6px 1px;background:#fafcff;border:1px solid #e1eaf6;border-radius:11px}
+.record-editor .feeling-choice.is-active{background:#eef6ff;border:2px solid #307ff0;padding:5px 0}
+.record-editor .mood-symbol{font-size:1.6rem;line-height:1.1}
+.record-editor .feeling-choice small{font-size:.70rem;text-align:center;line-height:1.25;white-space:normal}
+.record-editor .record-memo textarea{box-sizing:border-box;min-height:66px;width:100%;resize:vertical;background:#fff;border:1px solid #dce7f5;border-radius:10px;padding:10px 12px;font:inherit;font-size:.88rem;color:#244366}
+.record-save-actions{display:flex;align-items:center;gap:15px}
+.record-save-actions .btn{min-width:190px;justify-content:center;font-weight:760}
+.record-save-actions a{color:#287cdc;font-size:.82rem;font-weight:700}
+.record-related{display:grid;gap:10px;max-width:980px}
+.record-related>h2{font-size:.92rem;margin-left:4px}
+.record-related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.record-related-item{display:flex;gap:10px;align-items:center;border:1px solid #e3edf8;background:#fff;border-radius:12px;padding:10px 11px;color:inherit;min-width:0}
+.record-related-icon{display:grid;place-items:center;flex:0 0 39px;height:39px;border-radius:11px;font-size:1.45rem}
+.record-related-icon.cyan{background:#e4f7f9;color:#209cb8}
+.record-related-icon.blue{background:#e8f2ff;color:#327ade}
+.record-related-icon.violet{background:#f1edff;color:#8469d0}
+.record-related-item>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}
+.record-related-item strong{font-size:.82rem}
+.record-related-item small{font-size:.70rem;color:#748ba3;line-height:1.4}
+.record-related-item>span:last-child{color:#7895b3;font-size:1.3rem}
+.record-preview-overlay{position:fixed;inset:0;z-index:260;background:#182f4e85;display:grid;place-items:center;padding:15px}
+.record-preview-dialog{box-sizing:border-box;max-width:450px;width:100%;padding:22px;background:#fff;border-radius:17px;box-shadow:0 22px 55px #1b335060;display:grid;gap:12px}
+.record-preview-dialog h2{font-size:1.15rem}
+.record-preview-dialog p{font-size:.83rem;color:#68809a;line-height:1.5}
+.record-preview-dialog dl{display:grid;grid-template-columns:86px 1fr;gap:7px 9px;font-size:.82rem}
+.record-preview-dialog dt{color:#6a819a}.record-preview-dialog dd{margin:0;overflow-wrap:anywhere;font-weight:700}
+.record-preview-dialog button{justify-self:end;min-width:110px}
+/* History: readable rows and aligned date filters */
+.history-calendar,.history-records{background:#fff;border-color:#e2edf7;min-width:0}
+.history-records .timeline{display:grid;gap:8px}
+.history-records .timeline-item{box-sizing:border-box;align-items:center;gap:9px;min-width:0;padding:10px 12px;border:1px solid #e5edf7;background:#fcfdff;border-radius:11px}
+.calendar-day.is-selected{outline:2px solid #4d96e4;outline-offset:-2px}
+.calendar-day{font-variant-numeric:tabular-nums}
+/* Settings and Home: eliminate unnecessary empty space while preserving sections */
+.settings-card{min-width:0}
+.settings-row strong{font-size:.83rem;color:#274362}
+.settings-row p{line-height:1.4}
+.home-dashboard>.card{min-width:0}
+.home-topic>span:nth-child(2){min-width:0}
+.home-welcome{border-color:#deebf7;box-shadow:0 3px 15px #597fb011}
+.explore-topic-detail .tree-topics button{overflow-wrap:anywhere}
+@media(max-width:1050px){
+ .record-measurements{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+ .record-date{grid-column:1/-1}
+ .record-related-grid{grid-template-columns:1fr}
+}
+@media(max-width:800px){
+ .record-page-head{margin:0 2px;gap:8px}
+ .record-page-head h1{font-size:1.15rem}
+ .record-page-head p{font-size:.69rem}
+ .record-page-head>.btn{font-size:.70rem;padding:6px 9px;min-height:33px;flex:0 0 auto}
+ .record-editor{padding:10px 12px;gap:11px;border-radius:13px}
+ .record-segments{max-width:none;min-height:36px}
+ .record-segments button{min-height:34px;font-size:.8rem}
+ .record-area{gap:5px}
+ .record-area>h2,.record-memo>span{font-size:.78rem}
+ .record-editor .record-activity{min-height:64px;gap:3px;border-radius:10px;padding:5px 1px}
+ .record-editor .record-activity.is-active{padding:4px 0}
+ .record-editor .record-activity .activity-icon{font-size:1.4rem}
+ .record-editor .record-activity span:last-child{font-size:.68rem}
+ .record-measurements{grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);gap:9px}
+ .record-measurements h2{font-size:.74rem;margin-bottom:4px}
+ .record-number,.duration-inputs label{min-height:37px;padding:0 5px}
+ .record-number input{font-size:.91rem}
+ .duration-inputs input{font-size:.78rem}
+ .duration-inputs label span{font-size:.58rem}
+ .duration-inputs{gap:3px}
+ .record-date input{min-height:37px;font-size:.8rem;padding:5px 8px}
+ .record-editor .feelings-choice{gap:5px}
+ .record-editor .feeling-choice{min-height:57px;gap:3px;padding:4px 0;border-radius:9px}
+ .record-editor .feeling-choice.is-active{padding:3px 0}
+ .record-editor .mood-symbol{font-size:1.35rem}
+ .record-editor .feeling-choice small{font-size:.59rem}
+ .record-editor .record-memo textarea{min-height:51px;padding:6px 9px;font-size:.83rem;resize:none}
+ .record-save-actions{gap:9px}
+ .record-save-actions .btn{flex:1;min-width:0;min-height:38px;font-size:.78rem}
+ .record-save-actions a{font-size:.71rem;white-space:nowrap}
+ .record-related{gap:5px}
+ .record-related>h2{font-size:.82rem}
+ .record-related-grid{gap:5px}
+ .record-related-item{gap:9px;padding:7px 10px;border-radius:10px}
+ .record-related-icon{flex-basis:32px;height:32px;font-size:1.16rem;border-radius:9px}
+ .record-related-item strong{font-size:.76rem}
+ .record-related-item small{font-size:.65rem}
+ .history-calendar{padding:10px 12px}
+ .history-layout{gap:9px}
+ .history-calendar .mini-calendar{gap:2px}
+ .history-records .timeline{gap:6px}
+ .history-records .timeline-item{padding:8px 9px;min-height:53px}
+ .history-records .timeline-item strong{font-size:.82rem}
+ .history-records .timeline-item .lead{font-size:.73rem}
+ .settings-grid{gap:8px}
+ .settings-card{padding:9px 12px;gap:1px}
+ .settings-title{gap:9px;padding-bottom:3px}
+ .settings-title>span{width:34px;height:34px;border-radius:10px;font-size:1.2rem}
+ .settings-title h2{font-size:.9rem}
+ .settings-row{min-height:45px;padding:6px 4px}
+ .settings-row strong{font-size:.76rem}
+ .settings-row p{font-size:.66rem}
+ .home-feature .quick-run-facts{gap:5px}
+ .home-feature .quick-run-facts span{padding:5px 7px;font-size:.69rem}
+}
+@media(max-width:355px){
+ .record-page-head h1{font-size:1.03rem}
+ .record-page-head p{font-size:.64rem}
+ .record-page-head>.btn{font-size:.64rem;padding:5px 7px}
+ .record-editor{padding:9px 10px}
+ .record-measurements{grid-template-columns:1fr;gap:8px}
+ .record-date{grid-column:1}
+ .duration-inputs input{font-size:.92rem}
+ .record-editor .feeling-choice small{font-size:.52rem}
+}
