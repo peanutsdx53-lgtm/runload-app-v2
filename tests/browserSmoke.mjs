@@ -1,0 +1,53 @@
+import { createServer } from "node:http";
+import { readFile, mkdir } from "node:fs/promises";
+import { resolve, extname, dirname, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import assert from "node:assert/strict";
+import { chromium } from "playwright";
+const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
+const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
+const server=createServer(async(req,res)=>{
+ try{
+  const name=decodeURIComponent(new URL(req.url,"http://127.0.0.1").pathname);
+  const file=resolve(root,"."+name.replace(/^\//,"/")); // normalize within project root
+  if(!(file===root||file.startsWith(root+sep)))throw new Error("outside root");
+  const real=file===root?resolve(root,"index.html"):file;
+  const bytes=await readFile(real);
+  res.setHeader("Content-Type",mime[extname(real)]||"application/octet-stream");
+  res.end(bytes);
+ }catch(e){res.statusCode=404;res.end("Not found")}
+});
+await new Promise(resolve=>server.listen(4173,"127.0.0.1",resolve));
+const browser=await chromium.launch({headless:true});
+try{
+ await mkdir(resolve(root,"screenshots"),{recursive:true});
+ const host="http://127.0.0.1:4173/";
+ for(const mode of [{name:"desktop",width:1440,height:900},{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740}]){
+  const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:1,reducedMotion:"reduce"});
+  page.on("pageerror",error=>{throw new Error(mode.name+" page error: "+error.message)});
+  await page.goto(host+"#/home",{waitUntil:"networkidle"});
+  await page.locator("h1").waitFor();
+  assert.match(await page.locator("h1").innerText(),/ホーム/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
+  await page.goto(host+"#/result",{waitUntil:"networkidle"});
+  await page.locator(".region-tile").first().waitFor();
+  assert.equal(await page.locator(".region-tile").count(),12);
+  assert.equal(await page.locator(".body-view").count(),3);
+  await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
+  assert.match(await page.locator("#selected-detail h2").innerText(),/太ももの前/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
+  await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
+  await page.locator(".tree-panel").waitFor();
+  await page.locator(mode.name==="desktop"?".tree-desktop .tree-node[data-tree-category='04']":".tree-mobile .tree-node[data-tree-category='04']").click();
+  assert.match(await page.locator(".tree-selected-head").innerText(),/疲れと回復/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree.png"),fullPage:true});
+  await page.locator("[data-install-app]").first().click();
+  assert.ok(await page.locator(".install-dialog").isVisible());
+  await page.locator(".install-dialog [data-install-dismiss]").click();
+  assert.equal(await page.locator(".install-dialog").count(),0);
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+  assert.ok(overflow<=3,mode.name+" horizontal overflow: "+overflow);
+  await page.close();
+  console.log("PASS",mode.name,"home / 12-regions / body maps / tree / install dialog / overflow");
+ }
+}finally{await browser.close();server.close()}

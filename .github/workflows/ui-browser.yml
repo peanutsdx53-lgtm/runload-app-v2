@@ -1,0 +1,39 @@
+name: UI browser visual smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'styles.css'
+      - 'index.html'
+      - 'pwa.js'
+      - 'sw.js'
+      - 'assets/**'
+      - 'tests/browserSmoke.mjs'
+      - '.github/workflows/ui-browser.yml'
+permissions:
+  contents: read
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test tooling
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Desktop and smartphone UI interactions
+        run: node tests/browserSmoke.mjs
+      - name: Upload visual inspection screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-ui-next-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
