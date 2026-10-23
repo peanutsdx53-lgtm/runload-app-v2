@@ -44,6 +44,12 @@ try{
     assert.equal(await page.locator(".mobile-region-row").count(),5,"compact list can be collapsed");
   }
   assert.match(await page.locator("#selected-detail .selected-name").innerText(),/太ももの前/);
+  if(mode.name==="desktop"){
+    await page.locator(".region-tile[data-region='BA-DISP-023']").click();
+  }else{
+    await page.locator(".mobile-region-row[data-region='BA-DISP-023']").click();
+  }
+  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/ふくらはぎ/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
