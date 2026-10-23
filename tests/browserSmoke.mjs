@@ -47,7 +47,9 @@ try{
   if(mode.name==="desktop"){
     await page.locator(".region-tile[data-region='BA-DISP-023']").click();
   }else{
+    await page.locator("[data-expand-regions]").click();
     await page.locator(".mobile-region-row[data-region='BA-DISP-023']").click();
+    await page.locator("[data-expand-regions]").click();
   }
   assert.match(await page.locator("#selected-detail .selected-name").innerText(),/ふくらはぎ/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
