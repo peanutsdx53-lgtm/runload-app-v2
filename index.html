@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f3f8fb">
+  <meta name="theme-color" content="#007e96">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="RunLoad">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
   <meta name="description" content="RunLoad UI Next — 仮データで確認する次世代画面の試作版">
   <title>RunLoad UI Next — 試作版</title>
   <link rel="stylesheet" href="./styles.css">
@@ -12,5 +18,6 @@
   <div id="app"><p class="boot">RunLoad UI Next を読み込んでいます…</p></div>
   <noscript><p>画面を利用するにはJavaScriptを有効にしてください。</p></noscript>
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./pwa.js"></script>
 </body>
 </html>
