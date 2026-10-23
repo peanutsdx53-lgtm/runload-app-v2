@@ -98,6 +98,11 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  <div class="latest-run-content"><span class="badge">10月22日</span><h3>今日の走行記録</h3><div class="home-metrics"><div><strong>8.20</strong><small>km</small><p>距離</p></div><div><strong>45</strong><small>分</small><p>時間</p></div><div><strong>5:29</strong><small>/km</small><p>ペース</p></div></div><a class="btn primary" href="#/result">結果を見る →</a></div></div>
 </div>
 </section>
+<section class="card home-topics"><div class="section-title"><h2>気になるテーマから</h2><a class="text-link" href="#/exploration-tree">すべて見る →</a></div><div class="home-topic-grid">
+ <button class="home-topic red" type="button" data-open-topic="04|疲れの感じ方"><span class="home-topic-icon">♡</span><span><strong>疲れと回復</strong><small>身体のサインを振り返る</small></span><span>›</span></button>
+ <button class="home-topic blue" type="button" data-open-topic="01|過去の走りとの比較"><span class="home-topic-icon">⌁</span><span><strong>走りの記録</strong><small>前回との違いを見つける</small></span><span>›</span></button>
+ <button class="home-topic purple" type="button" data-open-topic="05|睡眠"><span class="home-topic-icon">☾</span><span><strong>睡眠</strong><small>暮らしと走りを考える</small></span><span>›</span></button>
+ </div></section>
 <section class="grid-3 dashboard-bottom">
 <a class="card home-shortcut home-shortcut-explore" href="#/exploration-tree"><div class="shortcut-icon">✧</div><div><strong>探究ツリー</strong><p>気になる枝から、自分の走りを探究する。</p></div><span>↗</span></a>
 <a class="card home-shortcut" href="#/measurement"><div class="shortcut-icon">◷</div><div><strong>走行を測定</strong><p>GPSで走行を記録する。</p></div><span>↗</span></a>
@@ -266,6 +271,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
+    const openTopic=event.target.closest("[data-open-topic]");
+    if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
     const activity=event.target.closest("[data-activity-type]");
     if(activity){const y=window.scrollY;state.activityType=activity.dataset.activityType;render();window.scrollTo(0,y);return}
     const feeling=event.target.closest("[data-feeling]");
