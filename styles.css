@@ -991,7 +991,7 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
 }
 
 /* All region pictograms are cropped views of the approved body SVG, not generated imagery. */
-.region-picto{display:inline-block;width:20px;height:29px;max-width:100%;vertical-align:middle;overflow:visible;object-fit:contain;justify-self:center}
+.region-picto{display:inline-block;width:20px;height:29px;max-width:100%;vertical-align:middle;overflow:hidden;object-fit:contain;justify-self:center}
 .region-picto-fallback{display:inline-grid;place-items:center;color:#91aabf}
 .selected-name .region-picto{width:27px;height:30px;flex-shrink:0}
 @media(max-width:800px){
