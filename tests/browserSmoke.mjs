@@ -300,6 +300,8 @@ try{
   assert.equal(await page.locator(".rof-anchor-card").count(),5,"five author-confirmed ROF diagrams");
   const imageRefs=await page.locator(".rof-anchor-card img").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("src")));
   assert.ok(imageRefs.every(src=>src.startsWith("https://raw.githubusercontent.com/peanutsdx53-lgtm/runload-app/main/assets/rof/rof-visual-")));
+  await page.locator("[data-rof-editor] summary").first().click();
+  assert.ok(await page.locator(".rof-anchor-guide").isVisible(),"source guide opens before editing");
   await page.locator('[data-rof-input="rofBefore"]').evaluate(el=>{el.value="2";el.dispatchEvent(new Event("input",{bubbles:true}))});
   await page.locator('[data-rof-input="rofAfter"]').evaluate(el=>{el.value="8";el.dispatchEvent(new Event("input",{bubbles:true}))});
   assert.equal(await page.locator('[data-rof-output="rofBefore"]').innerText(),"2");
@@ -337,9 +339,7 @@ try{
     await page.locator('[data-record-section="course"] summary').scrollIntoViewIfNeeded();
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-course-expanded.png"),fullPage:false});
   }
-  assert.equal(await page.locator("[data-rof-editor]").getAttribute("open"),null,"ROF guide should be compact until needed");
-  await page.locator("[data-rof-editor] summary").first().click();
-  assert.ok(await page.locator(".rof-anchor-guide").isVisible(),"approved fatigue diagram opens on demand");
+  assert.ok(await page.locator(".rof-anchor-guide").isVisible(),"authorized ROF guide stays visible during editing");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-rof-expanded.png"),fullPage:false});
   await page.locator("[data-draft=distance]").fill("7.25");
   await page.locator("[data-draft=minutes]").fill("45");
