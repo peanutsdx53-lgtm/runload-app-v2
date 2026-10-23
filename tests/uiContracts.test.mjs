@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync,existsSync} from "node:fs";
+import {readFileSync,existsSync,readdirSync} from "node:fs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 test("HTML has installable PWA assets and correct viewport",()=>{
  const html=read("index.html");
@@ -59,9 +59,9 @@ test("only registered locally produced or approved visual assets are shipped",()
    assert.ok(!/url\(\s*["']?https?:/i.test(src),"remote CSS background in "+f);
    assert.ok(!/data:image\/(?:jpeg|webp|png);base64,/i.test(src),"embedded unknown raster in "+f);
  }
- const fs=(await import("node:fs"));
+
  for(const directory of ["assets","icons"]){
-   const files=fs.readdirSync(new URL("../"+directory+"/",import.meta.url));
+   const files=readdirSync(new URL("../"+directory+"/",import.meta.url));
    const allowed=directory==="assets"?["ASSET_REGISTER.md","bodyRegionVisuals.js"]:["icon.svg","icon-192.png","icon-512.png"];
    for(const filename of files)assert.ok(allowed.includes(filename),"unregistered artwork: "+directory+"/"+filename);
  }
