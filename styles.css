@@ -348,3 +348,54 @@ body{background:#f4f8fc}
 .sheet-expand-hint{position:absolute;right:5px;top:8px;font-size:1rem;color:#617c90}
 .mobile-explore-sheet.is-hidden .sheet-expand-hint{display:none}
 }
+/* Vector-only RunLoad landscape. These are CSS shapes, not third-party or AI-rendered art. */
+.exploration-stage .tree-overview,
+.tree-overview{
+ isolation:isolate;
+ background:
+   radial-gradient(ellipse at 47% 44%,rgba(191,224,251,.52) 0,rgba(242,249,254,.55) 40%,transparent 64%),
+   linear-gradient(175deg,#fbfdff 0%,#f3fafe 66%,#edf8f6 100%);
+}
+.exploration-stage .tree-overview::before{
+ content:"";
+ position:absolute;
+ inset:auto -1% 0;
+ height:20%;
+ z-index:-1;
+ pointer-events:none;
+ background:linear-gradient(180deg,#dff2e9 0,#e9f7f3 100%);
+ clip-path:polygon(0 63%,7% 54%,14% 62%,23% 45%,34% 60%,45% 50%,57% 63%,70% 45%,78% 55%,89% 34%,100% 58%,100% 100%,0 100%);
+ opacity:.72;
+}
+.exploration-stage .tree-overview::after{
+ content:"";
+ position:absolute;
+ inset:auto 0 0;
+ height:13%;
+ z-index:-1;
+ pointer-events:none;
+ background:linear-gradient(180deg,#d5ebec,#e8f6f1);
+ clip-path:polygon(0 47%,8% 34%,20% 53%,31% 42%,45% 56%,60% 37%,73% 53%,86% 37%,100% 50%,100% 100%,0 100%);
+ opacity:.42;
+}
+.tree-canvas{position:relative;z-index:1}
+.tree-decoration{pointer-events:none}
+.tree-branch-line{filter:drop-shadow(0 1px 3px rgba(68,148,145,.17))}
+.tree-hub,.tree-leaf{transition:opacity .16s ease}
+.tree-leaf text{font-weight:660;fill:#3b5368}
+.tree-hub.is-selected rect,.tree-bubble[aria-pressed="true"] circle{
+ filter:drop-shadow(0 0 8px rgba(38,146,192,.2));
+}
+.tree-leaf.is-selected circle{filter:drop-shadow(0 0 6px rgba(22,143,186,.34))}
+.tree-overview__decor{opacity:.52}
+@media(max-width:800px){
+ .exploration-stage .tree-overview{
+   background:
+     radial-gradient(ellipse at 48% 50%,rgba(186,229,250,.7),transparent 59%),
+     linear-gradient(180deg,#fcfdff 0%,#f1fbff 52%,#e6f6ee 100%);
+ }
+ .exploration-stage .tree-overview::before{height:30%;opacity:.7}
+ .exploration-stage .tree-overview::after{height:22%}
+ .tree-overview__decor{opacity:.42}
+ .tree-bubble text{font-weight:770}
+}
