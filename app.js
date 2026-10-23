@@ -476,7 +476,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
         box.querySelector("[data-rof-output]").textContent=String(value);
         box.querySelector("[data-rof-description]").textContent=rofScale.guidanceForRofJ(value);
         box.querySelector("[data-rof-clear]").disabled=false;
-        const summary=app.querySelector('[data-rof-summary-'+(key==="rofBefore"?"before":"after")+'"]');if(summary)summary.textContent=String(value);
+        const summary=app.querySelector('[data-rof-summary-'+(key==="rofBefore"?"before":"after")+']');if(summary)summary.textContent=String(value);
       }
     }
   });
