@@ -4,6 +4,7 @@
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const rofScale=await import("./ui/rofJScale.js");
+  const reviewDraft=await import("./ui/recordDraftReview.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -29,7 +30,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
@@ -251,6 +252,7 @@ function recordExtras(){
 }
   function record(){
  const draft=state.recordDraft,active=state.recordType==="run";
+ const review=reviewDraft.checkRecordDraft(draft,active);
  const activities=[["run","♙","ラン"],["walk","♧","ウォーキング"],["cycle","♢","バイク"],["other","···","その他"]];
  const moods=[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]];
  return `<section class="record-page-head"><div><h1>記録をつけましょう</h1><p>ランニングや休養、その日の気分を記録する。</p></div>${buttonLink("measurement","GPSで測定")}</section>
@@ -265,7 +267,7 @@ function recordExtras(){
  <div class="record-save-actions"><button class="btn primary" type="button" data-demo-save>入力内容を確認する <span aria-hidden="true">→</span></button><a href="#/history">履歴を見る</a></div>
  </section>
  <section class="record-related"><h2>関連する機能</h2><div class="record-related-grid"><a class="record-related-item" href="#/course"><span class="record-related-icon blue">△</span><span><strong>コース設計</strong><small>距離・坂・路面を整理</small></span><span>›</span></a><a class="record-related-item" href="#/exploration-tree"><span class="record-related-icon violet">✦</span><span><strong>探究ツリー</strong><small>気になるテーマを探す</small></span><span>›</span></a></div></section>
- ${state.recordPreviewOpen?`<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2><p>この画面ではまだ正式な記録保存を行いません。</p><dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(draft.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(draft.distance||"未入力")} km</dd>`:""}${active?`<dt>ROF-J 運動前</dt><dd>${rofScale.isValidRofJ(draft.rofBefore)?draft.rofBefore:"未入力"}</dd><dt>ROF-J 運動後</dt><dd>${rofScale.isValidRofJ(draft.rofAfter)?draft.rofAfter:"未入力"}</dd>`:""}<dt>メモ</dt><dd>${esc(draft.memo||"未入力")}</dd></dl><button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`:""}`;
+ ${state.recordPreviewOpen?`<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2><p>この画面ではまだ正式な記録保存を行いません。</p><dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(draft.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(draft.distance||"未入力")} km</dd>`:""}${active?`<dt>ROF-J 運動前</dt><dd>${rofScale.isValidRofJ(draft.rofBefore)?draft.rofBefore:"未入力"}</dd><dt>ROF-J 運動後</dt><dd>${rofScale.isValidRofJ(draft.rofAfter)?draft.rofAfter:"未入力"}</dd>`:""}${active?`<dt>歩数</dt><dd>${esc(draft.steps||"未入力")}</dd><dt>歩数の取得方法</dt><dd>${esc({DEVICE_MEASURED:"端末・時計で計測",ESTIMATED:"手入力・おおよそ",UNKNOWN:"不明・未設定"}[draft.stepsProvenance]||"不明・未設定")}</dd><dt>走り方</dt><dd>${esc({RUN_WALK:"走歩混在",CONTINUOUS_RUN:"連続走行",UNKNOWN:"不明・未設定"}[draft.runningFormat]||"不明・未設定")}</dd><dt>コース</dt><dd>${esc(draft.courseName||"未入力")}</dd><dt>坂・路面</dt><dd>${esc(draft.gradeMode||"UNKNOWN")} ／ ${esc(draft.surfaceMode||"UNKNOWN")}</dd><dt>気温</dt><dd>${esc(draft.temperatureC||"未入力")}</dd><dt>身体の気づき</dt><dd>${esc(draft.bodyObservation||"未入力")}</dd><dt>シューズ</dt><dd>${esc(draft.shoeName||"未入力")}</dd>`:""}<dt>メモ</dt><dd>${esc(draft.memo||"未入力")}</dd></dl>${review.errors.length||review.warnings.length?`<div class="record-review-alert" role="alert"><strong>入力内容の確認事項</strong>${review.errors.map(t=>`<p class="is-error">${esc(t)}</p>`).join("")}${review.warnings.map(t=>`<p>${esc(t)}</p>`).join("")}</div>`:`<p class="record-review-success">入力項目の形式上の問題は検出されませんでした。正式保存・科学計算の検証ではありません。</p>`}<button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`:""}`;
 }
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
@@ -425,11 +427,16 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     let stopHomeDrag=null;
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
+      const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
+      if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ if(page==="record"){
+  for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
+ }
  if(page==="exploration-tree"){
   const viewport=app.querySelector(".tree-pan-viewport");
   if(viewport){
@@ -471,7 +478,14 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       }
     }
   });
-  app.addEventListener("change",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
+  app.addEventListener("change",(event)=>{
+    if(!event.target.matches("[data-draft]"))return;
+    const key=event.target.dataset.draft,value=event.target.value;state.recordDraft[key]=value;
+    const container=event.target.closest(".record-editor");
+    if(!container||!["gradeMode","surfaceMode","runningFormat"].includes(key))return;
+    const attr=key==="gradeMode"?"data-grade-submode":key==="surfaceMode"?"data-surface-submode":"data-running-format";
+    container.querySelectorAll("["+attr+"]").forEach(node=>node.hidden=node.getAttribute(attr)!==value);
+  });
   app.addEventListener("click",(event)=>{
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.step=0;render();return}
     if(event.target.closest("[data-onboard-close]")){onboardingState.open=false;render();return}
