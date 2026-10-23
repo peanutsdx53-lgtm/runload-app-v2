@@ -965,3 +965,27 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .main-frame:has(.result-top) .fatigue-panel .fatigue-cell .scale.blue{background:linear-gradient(90deg,#10a7ba 60%,#dceaf4 60%)}
  .main-frame:has(.result-top) .fatigue-panel .fatigue-cell .scale.orange{background:linear-gradient(90deg,#f19a5c 80%,#f7e6d6 80%)}
 }
+
+/* Result visual pass 4 — reference-style ROF-J circles and legible radar, valid ROF-J values only. */
+@media(max-width:800px){
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-flex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;align-items:center;margin:6px 0 5px}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell{position:relative;display:grid;align-items:center;justify-items:center;gap:4px;min-width:0;padding:0!important;border:0;background:transparent}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell small{font-size:.57rem;color:#7890a5;text-align:center;white-space:nowrap;font-weight:740}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell strong{
+  display:grid;place-items:center;width:45px;height:45px;border-radius:50%;
+  background:#e3f5fc;color:#057ca5;font-size:1.35rem;font-weight:850;margin:0
+ }
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell:nth-child(2) strong{background:#fff0e4;color:#e67b38}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell.difference strong{background:transparent;color:#ec7d3a;width:auto;height:45px}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell:nth-child(2)::before{content:"→";position:absolute;left:-7px;top:27px;color:#a1b5c7;font-size:.89rem}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell .scale{display:none}
+ .main-frame:has(.result-top) .radar-panel svg.radar-chart{background:radial-gradient(ellipse at center,#f0faff 0%,transparent 75%);border-radius:9px}
+ .main-frame:has(.result-top) .radar-panel svg.radar-chart polygon[fill-opacity=".16"]{fill-opacity:.29;stroke-width:3;stroke:#00a0ba}
+ .main-frame:has(.result-top) .radar-panel svg.radar-chart polygon[fill-opacity=".14"]{fill-opacity:.11}
+ .main-frame:has(.result-top) .radar-panel .map-legend{display:flex;align-items:center;justify-content:center;gap:8px}
+}
+@media(max-width:355px){
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell strong{width:37px;height:37px;font-size:1.12rem}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell.difference strong{height:37px}
+ .main-frame:has(.result-top) .fatigue-panel .fatigue-cell:nth-child(2)::before{top:25px}
+}
