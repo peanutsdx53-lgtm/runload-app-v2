@@ -32,6 +32,40 @@ try{
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
+  // v2 phase-one My Dashboard: edit, reorder, hide, resize, cancel and persist.
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"six dashboard modules exist");
+  await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
+  await page.locator("[data-home-edit]").click();
+  assert.equal(await page.locator("[data-widget-action=toggle]").count(),6,"editing controls on six modules");
+  await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
+  await page.locator("[data-widget-id=condition][data-widget-action=down]").click();
+  await page.locator("[data-widget-id=topics][data-widget-action=toggle]").click();
+  assert.ok(await page.locator("[data-home-dashboard-id=topics]").isVisible(),"hidden module must remain editable");
+  await page.locator("[data-home-cancel]").click();
+  assert.equal(await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")?.then(s=>s.includes("dashboard-widget--wide")),false,"cancel restores default size");
+  assert.equal(await page.locator("[data-home-dashboard-id=topics]").getAttribute("class")?.then(s=>s.includes("dashboard-widget--hidden")),false,"cancel restores visibility");
+  await page.locator("[data-home-edit]").click();
+  await page.locator("[data-widget-id=condition][data-widget-action=down]").click();
+  await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
+  await page.locator("[data-widget-id=topics][data-widget-action=toggle]").click();
+  await page.locator("[data-home-save]").click();
+  const saved=await page.evaluate(()=>({
+    pref:JSON.parse(localStorage.getItem("runload-v2-home-dashboard-layout-v1")),
+    legacy:localStorage.getItem("running-record-mobile-home-layout-v1")
+  }));
+  assert.equal(saved.pref.order[0],"latest");
+  assert.equal(saved.pref.sizes.condition,"full");
+  assert.ok(!saved.pref.visible.includes("topics"));
+  assert.equal(saved.legacy,"legacy-original-must-stay","must never overwrite authoritative app prefs");
+  await page.reload({waitUntil:"networkidle"});
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),5,"hide persisted after reload");
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest","reorder persisted");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-customized.png"),fullPage:true});
+  await page.locator("[data-home-edit]").click();
+  await page.locator("[data-home-reset]").click();
+  await page.locator("[data-home-save]").click();
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"reset restores widgets");
+  // Keep the rest of this test based on a normal home composition.
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
   assert.equal(await page.locator(".region-tile").count(),12);
