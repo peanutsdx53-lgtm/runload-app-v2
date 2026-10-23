@@ -26,7 +26,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:""},recordPreviewOpen:false,historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
   const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -166,22 +166,20 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
 <section class="grid-2 dashboard-bottom"><div class="card"><div class="section-title"><h2>記録の移り変わり</h2><a href="#/history" class="text-link">詳細を見る ↗</a></div><div class="home-trend">${historyChart(regionData("BA-DISP-023"))}</div></div><div class="card"><div class="section-title"><h2>探究の続きを見る</h2><a href="#/exploration-tree" class="text-link">開く ↗</a></div><div class="home-question"><div class="question-leaf">✦</div><div><strong>自分が感じた疲れ</strong><p class="lead">走行記録を見比べながら、気になるテーマを探してみましょう。</p></div></div></div></section>`;
 }
     function record(){
- return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h1>記録</h1><p class="lead">その日の走りと感じたことを、無理なく残す。</p></div>${buttonLink("measurement","GPS測定へ",true)}</section>
-<section class="grid-2 record-layout">
- <div class="card stack">
-  <div class="section-title"><h2>今日の記録をつける</h2><div class="segmented"><button data-record-type="run" class="${state.recordType==="run"?"is-active":""}">走行</button><button data-record-type="rest" class="${state.recordType==="rest"?"is-active":""}">休養</button></div></div>
-  ${state.recordType==="run"?`<div class="record-activity-block"><strong>アクティビティの種類</strong><div class="record-activity-list">
-    ${[["run","♙","ラン"],["walk","♧","ウォーキング"],["hike","△","ハイキング"],["other","···","その他"]].map(([id,icon,name])=>`<button type="button" class="record-activity ${state.activityType===id?"is-active":""}" data-activity-type="${id}" aria-pressed="${state.activityType===id}"><span class="activity-icon">${icon}</span><span>${name}</span></button>`).join("")}
-    </div></div>`:"<div class='record-form-hero'><span class='record-form-icon'>☾</span><div><strong>休養日の記録</strong><p class='lead'>休養中の気づきを残すこともできます。</p></div></div>"}
-  <div class="form-grid">${state.recordType==="run"?`<label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label>`:""}<label class="field">記録日<input type="date" value="2026-10-22"></label><label class="field">今日の調子（任意）<select><option>選択しない</option><option>とても良い</option><option>良い</option><option>いつもどおり</option><option>あまり良くない</option><option>分からない</option></select></label></div>
-  <div class="record-feelings"><strong>気分（任意）</strong><div class="feelings-choice">
-    ${[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]].map(([id,icon,label])=>`<button type="button" data-feeling="${id}" aria-pressed="${state.feeling===id}" class="feeling-choice ${state.feeling===id?"is-active":""}"><span>${icon}</span><small>${label}</small></button>`).join("")}
-   </div></div>
-  <label class="field">感じたこと・気づいたこと（任意）<textarea placeholder="今日の気づきを自由に"></textarea></label>
-  <div class="record-bottom-actions"><button class="btn primary" type="button" data-demo-save>記録を確認する　→</button><a class="text-link" href="#/history">過去の記録を見る</a></div>
- </div>
- <div class="card stack"><div class="section-title"><h2>走る前の準備</h2></div><a href="#/measurement" class="feature-entry"><span class="entry-icon cyan">◷</span><span><strong>GPSで測定</strong><small>走行ルートと時間を記録</small></span><span class="entry-arrow">›</span></a><a href="#/course" class="feature-entry"><span class="entry-icon blue">△</span><span><strong>コース設計</strong><small>距離・坂・路面を整理</small></span><span class="entry-arrow">›</span></a><a href="#/exploration-tree" class="feature-entry"><span class="entry-icon violet">✦</span><span><strong>探究ツリー</strong><small>記録を振り返り、理解を深める</small></span><span class="entry-arrow">›</span></a></div>
-</section>`;
+ const draft=state.recordDraft,active=state.recordType==="run";
+ const activities=[["run","♙","ラン"],["walk","♧","ウォーキング"],["cycle","♢","バイク"],["other","···","その他"]];
+ const moods=[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]];
+ return `<section class="record-page-head"><div><h1>記録をつけましょう</h1><p>ランニングや休養、その日の気分を記録する。</p></div>${buttonLink("measurement","GPSで測定")}</section>
+ <section class="record-editor card">
+ <div class="record-segments" aria-label="記録の種類">${[["run","ラン"],["rest","休養"]].map(([id,label])=>`<button type="button" data-record-type="${id}" class="${state.recordType===id?"is-active":""}" aria-pressed="${state.recordType===id}">${label}</button>`).join("")}</div>
+ ${active?`<div class="record-area"><h2>アクティビティの種類</h2><div class="record-activity-list">${activities.map(([id,icon,name])=>`<button type="button" class="record-activity ${state.activityType===id?"is-active":""}" data-activity-type="${id}" aria-pressed="${state.activityType===id}"><span class="activity-icon">${icon}</span><span>${name}</span></button>`).join("")}</div></div>`:`<div class="record-rest-note"><span aria-hidden="true">☾</span><div><strong>休養日の記録</strong><p>身体を休めた日も、気づきを残せます。</p></div></div>`}
+ <div class="record-area record-measurements">${active?`<div class="record-distance"><h2>距離</h2><label class="record-number"><input aria-label="距離（km）" data-draft="distance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.0" value="${esc(draft.distance)}"><span>km</span></label></div><div class="record-duration"><h2>時間</h2><div class="duration-inputs">${[["hours","時"],["minutes","分"],["seconds","秒"]].map(([id,unit])=>`<label><input aria-label="時間・${unit}" data-draft="${id}" type="number" inputmode="numeric" min="0" ${id==="hours"?"":'max="59"'} placeholder="00" value="${esc(draft[id])}"><span>${unit}</span></label>`).join("")}</div></div>`:""}<div class="record-date"><h2>日付</h2><input aria-label="記録日" type="date" data-draft="date" value="${esc(draft.date)}"></div></div>
+ <div class="record-area"><h2>コンディション・気分 <small>任意</small></h2><div class="feelings-choice">${moods.map(([id,icon,label])=>`<button type="button" data-feeling="${id}" aria-label="${label}" aria-pressed="${state.feeling===id}" class="feeling-choice ${state.feeling===id?"is-active":""}"><span class="mood-symbol">${icon}</span><small>${label}</small></button>`).join("")}</div></div>
+ <div class="record-area"><label class="field record-memo"><span>メモ <small>任意</small></span><textarea data-draft="memo" rows="2" placeholder="走りや体調で気づいたことを記入">${esc(draft.memo)}</textarea></label></div>
+ <div class="record-save-actions"><button class="btn primary" type="button" data-demo-save>入力内容を確認する <span aria-hidden="true">→</span></button><a href="#/history">履歴を見る</a></div>
+ </section>
+ <section class="record-related"><h2>関連する機能</h2><div class="record-related-grid"><a class="record-related-item" href="#/measurement"><span class="record-related-icon cyan">◷</span><span><strong>GPSで測定</strong><small>走行ルートと時間を確認</small></span><span>›</span></a><a class="record-related-item" href="#/course"><span class="record-related-icon blue">△</span><span><strong>コース設計</strong><small>距離・坂・路面を整理</small></span><span>›</span></a><a class="record-related-item" href="#/exploration-tree"><span class="record-related-icon violet">✦</span><span><strong>探究ツリー</strong><small>気になるテーマを探す</small></span><span>›</span></a></div></section>
+ ${state.recordPreviewOpen?`<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2><p>この画面ではまだ正式な記録保存を行いません。</p><dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(draft.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(draft.distance||"未入力")} km</dd>`:""}<dt>メモ</dt><dd>${esc(draft.memo||"未入力")}</dd></dl><button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`:""}`;
 }
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
@@ -339,6 +337,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  const navPage=page==="result"?"result":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>`;
 }
+  app.addEventListener("input",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
+  app.addEventListener("change",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
   app.addEventListener("click",(event)=>{
     const region=event.target.closest("[data-region]");
     const sheetExpand=event.target.closest("[data-sheet-expand]");
@@ -369,7 +369,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(em){const y=window.scrollY;state.mode=em.dataset.exploreMode;render();window.scrollTo(0,y);return}
     const topic=event.target.closest("[data-topic]");
     if(topic){const y=window.scrollY;const [c,t]=topic.dataset.topic.split("|");state.category=c;state.topic=t;render();window.scrollTo(0,y);return}
-    if(event.target.closest("[data-demo-save]")){state.toast="";location.hash="#/result";window.scrollTo(0,0)}
+    if(event.target.closest("[data-demo-save]")){state.recordPreviewOpen=true;render();return}
+    if(event.target.closest("[data-close-preview]")){state.recordPreviewOpen=false;render();return}
   });
   app.addEventListener("keydown",(event)=>{
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
