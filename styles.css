@@ -684,3 +684,39 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .region-tile{min-height:73px}
  .result-primary .body-view svg{height:clamp(180px,20vw,269px)}
 }
+
+/* Home overview: match the reference's greeting, compact summary and four equal entry cards. */
+.home-welcome{display:flex;align-items:center;gap:11px;padding:10px 14px;background:linear-gradient(115deg,#fff 30%,#eff7ff);border:1px solid #e4ecf5;border-radius:12px;min-height:61px}
+.welcome-mark{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#eaf3ff;color:#3983d3;font-size:1.45rem}
+.home-welcome>div{flex:1;display:grid;gap:3px}
+.home-welcome strong{font-size:.95rem}
+.home-welcome p{font-size:.77rem;color:#667b97}
+.home-welcome>a{font-size:1.25rem;color:#3974bd}
+.home-quick-access{padding:15px}
+.home-quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.quick-access-item{display:grid;place-items:center;gap:6px;min-height:91px;text-align:center;border:1px solid #e1eaf6;border-radius:12px;background:#fbfdff;font-weight:760;font-size:.84rem;color:#31547d}
+.quick-access-item:hover{background:#eff7ff;border-color:#a8cefb;transform:translateY(-1px)}
+.quick-icon{display:grid;place-items:center;width:41px;height:41px;border-radius:13px;background:#e7f1ff;color:#2877d7;font-size:1.55rem}
+.home-quick-access>.section-title{margin-bottom:12px}
+.home-quick-access .section-title h2{font-size:1rem}
+@media(max-width:800px){
+ .home-welcome{min-height:48px;padding:7px 10px;gap:9px}
+ .welcome-mark{width:32px;height:32px;font-size:1.2rem}
+ .home-welcome strong{font-size:.79rem}
+ .home-welcome p{font-size:.67rem}
+ .home-quick-access{padding:10px}
+ .home-quick-access>.section-title{margin-bottom:7px}
+ .home-quick-grid{gap:5px}
+ .quick-access-item{min-height:64px;padding:5px 1px;border-radius:10px;font-size:.67rem;gap:4px}
+ .quick-icon{width:29px;height:29px;font-size:1.2rem;border-radius:9px}
+ .home-head{display:none}
+ .home-dashboard .card{padding:10px 11px}
+ .home-dashboard .card h2{font-size:.93rem}
+ .home-dashboard .condition-ring{height:65px;width:65px;min-width:65px}
+ .home-dashboard .condition-profile{padding:8px;margin:3px 0 7px}
+ .home-dashboard .latest-run-top{min-height:126px;grid-template-columns:95px minmax(0,1fr)}
+ .home-dashboard .latest-run-top .route-placeholder{min-height:126px}
+ .home-dashboard .latest-run-content{gap:5px}
+ .home-dashboard .latest-run-content .btn{font-size:.67rem;min-height:28px}
+ .home-dashboard .home-metrics strong{font-size:.98rem}
+}
