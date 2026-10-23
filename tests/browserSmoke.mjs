@@ -34,17 +34,23 @@ try{
   assert.equal(await page.locator(".region-tile").count(),12);
   assert.equal(await page.locator(".body-view").count(),3);
   await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
-  assert.match(await page.locator("#selected-detail h2").innerText(),/太ももの前/);
+  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/太ももの前/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
-  await page.locator(".tree-panel").waitFor();
-  await page.locator(mode.name==="desktop"?".tree-desktop .tree-node[data-tree-category='04']":".tree-mobile .tree-node[data-tree-category='04']").click();
-  assert.match(await page.locator(".tree-selected-head").innerText(),/疲れと回復/);
+  await page.locator(".exploration-stage").waitFor();
+  await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
+  assert.match(await page.locator(".explore-topic-header").innerText(),/疲れと回復/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree.png"),fullPage:true});
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
   assert.equal(await page.locator(".install-dialog").count(),0);
+  for(const route of ["record","history","settings"]){
+   await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
+   await page.locator("h1").waitFor();
+   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
+   assert.ok((await page.locator("main").innerText()).length>60,route);
+  }
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+" horizontal overflow: "+overflow);
   await page.close();

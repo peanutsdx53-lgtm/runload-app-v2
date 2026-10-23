@@ -46,7 +46,7 @@
     const paths=view.paths.map(([id,d])=>{
       const r=regionData(id);
       const selected=state.region===id?" is-selected":"";
-      return `<path d="${d}" data-region="${esc(id)}" class="region-path ${status(r.value)}${selected}" role="button" tabindex="0" aria-label="${esc(r.friendly)}の詳細を表示"><title>${esc(r.name)}：${valid(r.value)?r.value.toFixed(1):"未取得"}（デモ）</title></path>`;
+      return `<path d="${d}" data-region="${esc(id)}" class="region-path ${status(r.value)}${selected}" role="button" tabindex="0" aria-label="${esc(r.friendly)}の詳細を表示"><title>${esc(r.name)}：${valid(r.value)?r.value.toFixed(1):"未取得"}</title></path>`;
     }).join("");
     return `<figure class="body-view"><figcaption>${esc(view.title)}</figcaption><svg viewBox="70 10 160 430" aria-label="${esc(view.title)}の部位図" role="group"><defs><clipPath id="${cid}">${view.silhouette}</clipPath></defs><g class="body-silhouette">${view.silhouette}</g><g clip-path="url(#${cid})">${paths}</g></svg></figure>`;
   };
@@ -57,7 +57,7 @@
   }).join("");
   function historyChart(region){
     // Demo only: values are derived from a mock selected region to keep the chart consistent with the card.
-    if(!Number.isFinite(region?.value))return `<div class="empty-state">この部位の推移は表示できません（仮データ未設定）。</div>`;
+    if(!Number.isFinite(region?.value))return `<div class="empty-state">この部位の推移は表示できません。</div>`;
     const v=region.value;
     const vals=[v-9.5,v-7.1,v-8.0,v-5.1,Number.isFinite(region.prev)?region.prev:v-2.8,v];
     const lo=Math.min(...vals,100)-6,hi=Math.max(...vals,100)+6;
@@ -65,7 +65,7 @@
     const coord=(val,i)=>[(x1+(x2-x1)*i/(vals.length-1)).toFixed(1),(y2-(val-lo)/(hi-lo)*(y2-y1)).toFixed(1)];
     const pts=vals.map((val,i)=>coord(val,i).join(",")).join(" ");
     const base=(y2-(100-lo)/(hi-lo)*(y2-y1)).toFixed(1);
-    return `<svg class="spark-chart" viewBox="0 0 540 155" role="img" aria-label="${region.friendly}の仮の推移。実記録ではありません"><line x1="18" x2="520" y1="${base}" y2="${base}" stroke="#819eae" stroke-dasharray="5 4"/><text x="22" y="${Math.max(12,Number(base)-5)}" fill="#708895" font-size="11">基準100</text><polyline points="${pts}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((val,i)=>{const [x,y]=coord(val,i);return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#008a9c" stroke-width="2.4"/>`}).join("")}<text x="516" y="16" text-anchor="end" fill="#007589" font-size="12" font-weight="800">デモ ${v.toFixed(1)}</text></svg>`;
+    return `<svg class="spark-chart" viewBox="0 0 540 155" role="img" aria-label="${region.friendly}の参考値の推移"><line x1="18" x2="520" y1="${base}" y2="${base}" stroke="#819eae" stroke-dasharray="5 4"/><text x="22" y="${Math.max(12,Number(base)-5)}" fill="#708895" font-size="11">基準100</text><polyline points="${pts}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((val,i)=>{const [x,y]=coord(val,i);return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#008a9c" stroke-width="2.4"/>`}).join("")}<text x="516" y="16" text-anchor="end" fill="#007589" font-size="12" font-weight="800">${v.toFixed(1)}</text></svg>`;
 }
   function radarChart(){
     const labels=["距離","平均速度","ペース変動","上り密度","推定歩調","疲労変化"],a=[.63,.58,.42,.28,.5,.6],b=[.5,.51,.35,.22,.42,.47],cx=150,cy=115;
@@ -189,8 +189,8 @@ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h
     function secondary(page){
     const title=pageLabels[page]||"付属機能";
     const details={measurement:"GPS測定画面の配置・操作を検討中です。位置情報は取得・保存していません。",course:"コース名・路面・上り下りなどの条件を入力する画面です。",simulation:"条件を変えた場合の表示領域。計算モデルや結果を実行していません。",consultation:"相談・共有のための画面。安全案内と共有範囲を別途確認します。","body-part-detail":"選択した部位の正式名称、本人の記録、比較できる過去の値を確認する詳細領域です。"};
-    return header(title,"主要6領域から利用する付属機能です。",badge("配置・動線の試作"))+
-    `<section class="card stack"><div class="empty-state"><strong>${title}</strong><p class="lead">${details[page]||""}</p><span class="badge warn">まだ機能連携はありません</span></div><div class="btn-row">${buttonLink("record","記録へ")}${buttonLink("result","結果へ")}${buttonLink("exploration-tree","探究ツリーへ")}</div></section>`;
+    return header(title,"主要6領域から利用する付属機能です。",badge("関連機能"))+
+    `<section class="card stack"><div class="empty-state"><strong>${title}</strong><p class="lead">${details[page]||""}</p></div><div class="btn-row">${buttonLink("record","記録へ")}${buttonLink("result","結果へ")}${buttonLink("exploration-tree","探究ツリーへ")}</div></section>`;
   }
   function render(){
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings}[page]?.()||secondary(page);

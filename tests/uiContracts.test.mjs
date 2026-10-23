@@ -37,7 +37,7 @@ test("main navigation and prototype restrictions",()=>{
  const js=read("app.js");
  for(const page of ['home','record','result','history','exploration-tree','settings'])assert.ok(js.includes(page));
  assert.ok(js.includes("mobileNav=["));
- assert.ok(js.includes("科学計算・本人の履歴・GPSは未接続です"));
+ assert.ok(!/デモ専用|UI 試作版|配置・動線の試作/.test(js),"do not display developer-only labels in product screens");
  assert.ok(js.includes("historyChart(current)"),"selected region chart responds to region selection");
  assert.ok(js.includes('data-tree-category'),"tree choices are interactive");
 });
