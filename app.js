@@ -146,20 +146,7 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
  ];
  const xcenter=516,ycenter=314;
  const line=(x1,y1,x2,y2,color,thick=2,opacity=.5)=>`<path d="M${x1} ${y1} Q${(x1+x2)/2} ${(y1+y2)/2-12} ${x2} ${y2}" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${thick}" stroke-linecap="round" fill="none"/>`;
- // Original UI decoration drawn from geometry; no downloaded or AI-rendered imagery.
- const decorativeLeaf=(px,py,angle,scale=1,shade="#8bcbb3")=>`<g class="tree-decoration" transform="translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${angle.toFixed(1)}) scale(${scale.toFixed(2)})"><path d="M0 0 Q -5 -17 -22 -20 Q -19 -4 0 0Z" fill="${shade}" opacity=".82"/><path d="M0 0 Q 6 11 19 13 Q 17 1 0 0Z" fill="#bcd8a0" opacity=".85"/></g>`;
- const branchLeaves=(x0,y0,x1,y1,index=0)=>{
-   const vx=x1-x0,vy=y1-y0;
-   const base=Math.atan2(vy,vx)*180/Math.PI;
-   const colors=["#9fd5c2","#a7cfbb","#bcd6aa","#96caba"];
-   return [0.38,0.62,0.79].map((t,k)=>decorativeLeaf(
-     x0+vx*t + Math.sin((index+1)*(k+1))*4,
-     y0+vy*t + Math.cos((index+1)*(k+2))*4,
-     base+(k%2===0?-17:23),
-     0.67+(k===1?0.17:0),
-     colors[(index+k)%colors.length]
-   )).join("");
- };
+ // Tree structure is intentionally kept diagrammatic until a separately approved visual asset exists.
  const branchPath=(x0,y0,x1,y1,color,weight,opacity)=>`<path class="tree-branch-line" d="M${x0} ${y0} C${(x0*2+x1)/3} ${(y0*2+y1)/3-19} ${(x0+x1*2)/3} ${(y0+y1*2)/3+17} ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="${weight}" stroke-linecap="round" stroke-opacity="${opacity}"/>`;
   const drawDesktop=graphPositions.map(([id,x,y,leaves])=>{
   const c=CATEGORIES.find(item=>item.id===id),active=state.category===id;
