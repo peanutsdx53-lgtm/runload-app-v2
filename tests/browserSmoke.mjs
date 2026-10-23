@@ -50,26 +50,25 @@ try{
     const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
     h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
   });
-  await page.waitForTimeout(405);
-  console.log("HOME-DRAG-ARM",mode.name,await page.evaluate(()=>({
-    pressed:!!document.querySelector(".widget-drag-handle.is-long-pressed"),
-    first:document.querySelector("[data-home-dashboard-id]")?.dataset.homeDashboardId,
-    scrollY:window.scrollY
-  })));
-  const dragDebug=await page.evaluate(()=>{
+  await page.waitForTimeout(385);
+  // Move the scroller while the long-press gesture is armed, as the real edge
+  // auto-scroll does when the user drags a tall card towards the bottom.
+  await page.evaluate(()=>{
+    const box=document.querySelector('[data-home-dashboard-id="latest"]').getBoundingClientRect();
+    const desiredBottom=innerHeight-115;
+    if(box.bottom>desiredBottom)window.scrollBy(0,box.bottom-desiredBottom);
+  });
+  const dragProbe=await page.evaluate(()=>{
     const target=document.querySelector('[data-home-dashboard-id="latest"]');
     const t=target.getBoundingClientRect();
-    const x=t.left+t.width/2,y=t.top+Math.min(35,t.height*.18);
+    const x=t.left+t.width/2,y=t.top+t.height*.77;
     window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
-    const debug={mode:window.innerWidth,point:[x,y],viewport:[window.innerWidth,window.innerHeight],top:document.elementFromPoint(x,y)?.tagName,
-      widget:document.elementFromPoint(x,y)?.closest?.("[data-home-dashboard-id]")?.dataset.homeDashboardId,
-      ghost:!!document.querySelector(".dashboard-drag-ghost"),
-      over:document.querySelector(".dashboard-widget--drop-before,.dashboard-widget--drop-after")?.dataset.homeDashboardId,
-      root:!!document.querySelector(".dashboard-custom-grid--dragging")};
+    const dropTarget=document.querySelector(".dashboard-widget--drop-after");
+    const selected=dropTarget?.dataset.homeDashboardId||null;
     window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
-    return debug;
+    return {selected,x,y,viewport:innerHeight};
   });
-  console.log("HOME-DRAG-BEFORE-UP",mode.name,dragDebug);
+  assert.equal(dragProbe.selected,"latest",mode.name+" drag drop should show an after-target marker: "+JSON.stringify(dragProbe));
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest","long press drag must reorder in draft");
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-home-dashboard-layout-v1")),null,"drag must not silently write preferences");
   await page.locator("[data-home-cancel]").click();
