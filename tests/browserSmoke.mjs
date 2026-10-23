@@ -23,7 +23,36 @@ try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  const host="http://127.0.0.1:4173/";
  for(const mode of [{name:"desktop",width:1440,height:900},{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740},{name:"wide-phone",width:430,height:932}]){
+  if(mode.name==="mobile"){
+    const intro=await browser.newPage({viewport:{width:390,height:844},reducedMotion:"reduce"});
+    await intro.goto(host+"#/home",{waitUntil:"networkidle"});
+    assert.equal(await intro.locator(".onboard-dialog").count(),1,"first run tutorial should appear");
+    assert.match(await intro.locator("#onboard-title").innerText(),/ようこそ/);
+    await intro.screenshot({path:resolve(root,"screenshots","mobile-onboarding-welcome.png"),fullPage:false});
+    await intro.locator("[data-onboard-next]").click();
+    assert.equal(await intro.locator("input[name=onboard-language]:checked").inputValue(),"ja");
+    assert.ok(await intro.locator("input[value=en]").isDisabled(),"English is not misleadingly claimed available");
+    await intro.locator("[data-onboard-next]").click();
+    assert.match(await intro.locator(".onboard-legal").innerText(),/同意の取得・記録ではありません|同意済みの扱いになりません/);
+    await intro.screenshot({path:resolve(root,"screenshots","mobile-onboarding-privacy.png"),fullPage:false});
+    await intro.locator("[data-onboard-next]").click();
+    await intro.locator("[data-onboard-nickname]").fill("検証用");
+    await intro.locator("[data-onboard-purpose]").selectOption("learn");
+    await intro.locator("[data-onboard-next]").click();
+    assert.match(await intro.locator("#onboard-title").innerText(),/始め方/);
+    await intro.locator("[data-onboard-next]").click();
+    const pref=await intro.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-introduction-preview-v1")));
+    assert.deepEqual({completed:pref.completed,nickname:pref.nickname,purpose:pref.purpose,formalTermsAccepted:pref.formalTermsAccepted},{completed:true,nickname:"検証用",purpose:"learn",formalTermsAccepted:false});
+    assert.equal(await intro.locator(".onboard-dialog").count(),0);
+    await intro.reload({waitUntil:"networkidle"});
+    assert.equal(await intro.locator(".onboard-dialog").count(),0);
+    await intro.goto(host+"#/settings",{waitUntil:"networkidle"});
+    await intro.locator("[data-onboard-open]").first().click();
+    assert.equal(await intro.locator(".onboard-dialog").count(),1,"tutorial can be reopened in Settings");
+    await intro.close();
+  }
   const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:1,reducedMotion:"reduce"});
+  await page.addInitScript(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja",formalTermsAccepted:false}))});
   page.on("pageerror",error=>{throw new Error(mode.name+" page error: "+error.message)});
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
@@ -36,6 +65,17 @@ try{
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
+  if(mode.name!=="desktop"){
+    assert.equal(await page.locator(".mobile-start-controls a").count(),2,"GPS first and manual record choices");
+    assert.match(await page.locator(".mobile-gps-start").innerText(),/GPSで測定/);
+    await page.locator(".mobile-nav a[href='#/record-start']").click();
+    assert.match(await page.locator("h1").first().innerText(),/記録の方法を選ぶ/);
+    assert.equal(await page.locator(".record-choose-grid a").count(),2);
+    await page.locator(".record-choose-primary").click();
+    assert.match(await page.locator("h1").first().innerText(),/測定/);
+    assert.ok(await page.locator(".measurement-controls .btn.primary").isDisabled(),"no fake GPS recording before engine bridge");
+    await page.goto(host+"#/home",{waitUntil:"networkidle"});
+  }
   // v2 phase-one My Dashboard: edit, reorder, hide, resize, cancel and persist.
   assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"six dashboard modules exist");
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
@@ -207,6 +247,15 @@ try{
   assert.equal(await page.locator(".tree-desktop .tree-leaf").count(),28,"desktop tree has 28 topic leaves");
   assert.equal(await page.locator(".tree-mobile .tree-bubble").count(),7,"mobile tree has 7 selectable domains");
   assert.equal(await page.locator(".tree-decoration").count(),0,"ornamental tree leaves are deferred");
+  const beforeZoom=await page.locator(".tree-pan-viewport").evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,height:el.scrollHeight,viewHeight:el.clientHeight}));
+  assert.ok(beforeZoom.scroll>beforeZoom.client&&beforeZoom.height>beforeZoom.viewHeight,mode.name+" both directions must be scrollable");
+  await page.locator("[data-tree-zoom=in]").click();
+  assert.match(await page.locator("[data-tree-zoom-value]").innerText(),/120%/);
+  const afterZoom=await page.locator(".tree-pan-viewport").evaluate(el=>el.scrollWidth);
+  assert.ok(afterZoom>beforeZoom.scroll,mode.name+" zoom increases map width");
+  await page.locator("[data-tree-zoom=reset]").click();
+  assert.match(await page.locator("[data-tree-zoom-value]").innerText(),/100%/);
+
   await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
   if(mode.name!=="desktop"){
     assert.ok(await page.locator(".mobile-explore-sheet").isVisible(),"mobile theme bottom sheet");
@@ -241,6 +290,16 @@ try{
   await page.goto(host+"#/record",{waitUntil:"networkidle"});
   assert.equal(await page.locator("[data-activity-type]").count(),4,"four record activity categories");
   assert.equal(await page.locator("[data-feeling]").count(),5,"five visual mood options");
+  assert.equal(await page.locator(".rof-anchor-card").count(),5,"five author-confirmed ROF diagrams");
+  const imageRefs=await page.locator(".rof-anchor-card img").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("src")));
+  assert.ok(imageRefs.every(src=>src.startsWith("https://raw.githubusercontent.com/peanutsdx53-lgtm/runload-app/main/assets/rof/rof-visual-")));
+  await page.locator('[data-rof-input="rofBefore"]').evaluate(el=>{el.value="2";el.dispatchEvent(new Event("input",{bubbles:true}))});
+  await page.locator('[data-rof-input="rofAfter"]').evaluate(el=>{el.value="8";el.dispatchEvent(new Event("input",{bubbles:true}))});
+  assert.equal(await page.locator('[data-rof-output="rofBefore"]').innerText(),"2");
+  assert.equal(await page.locator('[data-rof-output="rofAfter"]').innerText(),"8");
+  assert.match(await page.locator('[data-rof-description="rofBefore"]').innerText(),/少し疲れている/);
+  assert.match(await page.locator('[data-rof-description="rofAfter"]').innerText(),/とても疲れている/);
+
   await page.locator("[data-activity-type=walk]").click();
   assert.equal(await page.locator("[data-activity-type=walk]").getAttribute("aria-pressed"),"true");
   await page.locator("[data-draft=distance]").fill("7.25");
@@ -257,6 +316,9 @@ try{
   await page.locator("[data-demo-save]").click();
   assert.ok(await page.locator(".record-preview-dialog").isVisible(),"review dialog is opened, not a fictitious saved result");
   assert.match(await page.locator(".record-preview-dialog").innerText(),/まだ正式な記録保存を行いません/);
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/ROF-J 運動前/);
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/ROF-J 運動後/);
+
   await page.locator(".record-preview-dialog [data-close-preview]").click();
   assert.equal(await page.locator(".record-preview-dialog").count(),0);
   if(mode.name!=="desktop"){
