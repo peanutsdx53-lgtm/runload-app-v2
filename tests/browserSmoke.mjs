@@ -104,6 +104,7 @@ try{
 
 
   if(mode.name!=="desktop"){
+    await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing-viewport.png"),fullPage:false});
     await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing.png"),fullPage:true});
