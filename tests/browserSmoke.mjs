@@ -256,7 +256,11 @@ try{
   const afterZoom=await page.locator(".tree-pan-viewport").evaluate(el=>el.scrollWidth);
   assert.ok(afterZoom>beforeZoom.scroll,mode.name+" zoom increases map width");
   await page.locator("[data-tree-zoom=reset]").click();
-  assert.match(await page.locator("[data-tree-zoom-value]").innerText(),/100%/);
+  const fitted=await page.locator(".tree-pan-viewport").evaluate(el=>({width:el.scrollWidth,clientWidth:el.clientWidth,height:el.scrollHeight,clientHeight:el.clientHeight}));
+  const fittedLabel=await page.locator("[data-tree-zoom-value]").innerText();
+  assert.ok(fitted.width<=fitted.clientWidth+3&&fitted.height<=fitted.clientHeight+3,mode.name+" fit-to-map must show complete diagram "+JSON.stringify({fitted,fittedLabel}));
+  assert.ok(Number.parseInt(fittedLabel)>=40&&Number.parseInt(fittedLabel)<=100,mode.name+" fit magnification should stay valid");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree-fit.png"),fullPage:false});
 
   await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
   if(mode.name!=="desktop"){
