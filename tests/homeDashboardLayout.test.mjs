@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
  HOME_DASHBOARD_KEY,HOME_DASHBOARD_WIDGETS,defaultHomeDashboardLayout,
  isValidHomeDashboardLayout,copyHomeDashboardLayout,loadHomeDashboardLayout,
- saveHomeDashboardLayout,editHomeDashboardLayout
+ saveHomeDashboardLayout,editHomeDashboardLayout,moveHomeDashboardWidget
 } from "../ui/homeDashboardLayout.js";
 function mockStore(seed={}){
  const map=new Map(Object.entries(seed));
@@ -68,4 +68,16 @@ test("invalid IDs, duplicates, sizes and versions do not mutate storage",()=>{
  ];
  for(const entry of cases){assert.equal(isValidHomeDashboardLayout(entry),false);assert.equal(saveHomeDashboardLayout(storage,entry).ok,false)}
  assert.equal(storage.getItem(HOME_DASHBOARD_KEY),null);
+});
+
+test("drag reorder inserts strictly before or after a target",()=>{
+ const original=defaultHomeDashboardLayout();
+ const below=moveHomeDashboardWidget(original,"condition","latest",true);
+ assert.deepEqual(below.order.slice(0,2),["latest","condition"]);
+ const above=moveHomeDashboardWidget(original,"discovery","condition",false);
+ assert.equal(above.order[0],"discovery");
+ assert.deepEqual(original.order,defaultHomeDashboardLayout().order,"reorder leaves original unchanged");
+ assert.equal(moveHomeDashboardWidget(original,"condition","condition"),original,"self-drop is a no-op");
+ assert.equal(moveHomeDashboardWidget(original,"condition","invalid-id"),original,"invalid target is ignored");
+ assert.ok(isValidHomeDashboardLayout(below));
 });
