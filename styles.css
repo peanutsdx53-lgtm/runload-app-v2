@@ -1336,3 +1336,57 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
   .explore-topic-detail .topic-choice{grid-template-columns:24px minmax(0,1fr) 8px;gap:3px;font-size:.68rem}
   .explore-topic-detail .topic-choice .topic-index{min-width:22px;font-size:.88rem}
 }
+
+/* Home dashboard stage 1: independent RunLoad v2 layout control.
+   Defaults match the existing two-column home presentation.
+   Data values, recordings and authoritative mobile-home keys are never changed. */
+.home-heading-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.dashboard-edit-trigger{border-color:#b7d4ed;background:#f5fbff;color:#2c6eae;font-weight:750}
+.dashboard-custom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+.dashboard-widget{min-width:0;min-height:0;position:relative;display:flex;flex-direction:column}
+.dashboard-widget--half{grid-column:span 1}
+.dashboard-widget--wide{grid-column:1 / -1}
+.dashboard-widget-content{flex:1;min-width:0;min-height:0}
+.dashboard-widget-content>.card{height:100%;box-sizing:border-box;min-width:0}
+.dashboard-custom-grid .home-topics,.dashboard-custom-grid .home-quick-access{margin:0}
+.dashboard-custom-grid .home-trend svg{max-width:100%}
+.dashboard-widget--hidden .dashboard-widget-content{opacity:.35;filter:grayscale(.75);pointer-events:none}
+.dashboard-custom-grid--editing .dashboard-widget{border:1px dashed #9bc5e9;border-radius:13px;background:#f7fbff;overflow:hidden}
+.dashboard-custom-grid--editing .dashboard-widget-content{padding:7px;min-width:0}
+.dashboard-custom-grid--editing .dashboard-widget-content>.card{box-shadow:none}
+.dashboard-widget-controls{background:#e8f3ff;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 9px;min-height:36px}
+.widget-edit-label{color:#235a97;font-size:.77rem;font-weight:850;min-width:0}
+.widget-edit-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.widget-edit-actions button{min-height:29px;padding:5px 8px;border-radius:7px;border:1px solid #bed9f3;color:#225e9e;background:#fff;font-size:.72rem;font-weight:750;cursor:pointer}
+.widget-edit-actions button:hover:not(:disabled){background:#f0f8ff}
+.widget-edit-actions button:disabled{opacity:.35;cursor:not-allowed}
+.dashboard-edit-toolbar{border:1px solid #cce3f9;border-radius:12px;background:#edf6ff;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 15px}
+.dashboard-edit-toolbar strong{font-size:.95rem;color:#1b5487}
+.dashboard-edit-toolbar p{font-size:.72rem;color:#657f9b;line-height:1.5;margin-top:4px}
+.dashboard-edit-buttons{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.dashboard-edit-buttons .btn{white-space:nowrap}
+.dashboard-edit-notice{padding:9px 12px;border-radius:9px;background:#eaf8f6;border:1px solid #cce7e3;color:#1c756e;font-size:.79rem;font-weight:740}
+.dashboard-storage-warning{color:#99452f;border:1px solid #f4d6cd;border-radius:9px;background:#fff6f1;padding:9px 12px;font-size:.76rem;line-height:1.5}
+@media(max-width:1050px){
+ .dashboard-edit-toolbar{align-items:flex-start;flex-direction:column;gap:9px}
+}
+@media(max-width:800px){
+ .home-heading-actions{gap:5px;justify-content:flex-end;flex-wrap:nowrap}
+ .home-heading-actions>.btn{min-height:32px;font-size:.69rem;padding:6px 9px}
+ .home-heading-actions>.dashboard-edit-trigger{font-size:.69rem;white-space:nowrap}
+ .dashboard-custom-grid{grid-template-columns:minmax(0,1fr);gap:9px}
+ .dashboard-widget--half,.dashboard-widget--wide{grid-column:1 / -1}
+ .dashboard-widget-controls{display:grid;grid-template-columns:1fr;gap:5px;padding:7px 9px}
+ .widget-edit-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .widget-edit-actions button{font-size:.65rem;padding:5px 2px;min-width:0}
+ .dashboard-edit-toolbar{padding:10px 11px}
+ .dashboard-edit-toolbar strong{font-size:.84rem}
+ .dashboard-edit-buttons{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .dashboard-edit-buttons .btn{min-width:0;min-height:35px;padding:5px 3px;font-size:.65rem}
+ .dashboard-custom-grid--editing .dashboard-widget-content{padding:5px}
+}
+@media(max-width:355px){
+ .home-heading-actions>.btn{font-size:.62rem;padding:5px 6px}
+ .widget-edit-label{font-size:.72rem}
+ .dashboard-edit-buttons .btn{font-size:.59rem}
+}
