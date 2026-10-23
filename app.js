@@ -26,7 +26,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
   const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -167,9 +167,25 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  </section>`;
 }
     function history(){
- const data=[["10月22日","8.20 km　・　45分","走行"],["10月12日","5.40 km　・　31分","走行"],["10月5日","休養日の記録","休養"]];
- const shown=data.filter(x=>state.historyMode==="all"||x[2]===state.historyMode);
- return `<section class="home-head"><div><div class="eyebrow">RUNNING HISTORY</div><h1>履歴</h1><p class="lead">これまでの記録を、日付や条件から振り返る。</p></div>${buttonLink("record","記録する",true)}</section><section class="card"><div class="section-title"><h2>記録を探す</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([k,n])=>`<button data-history-mode="${k}" class="${state.historyMode===k?"is-active":""}">${n}</button>`).join("")}</div></div><div class="history-layout"><div class="history-calendar"><h3>2026年10月</h3><div class="mini-calendar">${["日","月","火","水","木","金","土",...Array(4).fill(""),...Array.from({length:31},(_,i)=>String(i+1))].map(day=>`<span class="${day==="22"?"calendar-today":""}">${day}</span>`).join("")}</div></div><div class="history-records"><h3>最近の記録</h3><div class="timeline">${shown.map(([date,distance,type])=>`<a class="timeline-item" href="#/${type==="休養"?"history":"result"}"><span class="history-row-mark">${type==="走行"?"↗":"◌"}</span><span><strong>${date}</strong><p class="lead">${distance}</p></span><span class="badge">${type}</span><span>›</span></a>`).join("")}</div></div></div></section><section class="grid-2"><a class="card home-shortcut" href="#/exploration-tree"><span class="shortcut-icon">✧</span><span><strong>探究の足跡</strong><p>興味を持ったテーマや問いを振り返る。</p></span><span>↗</span></a><a class="card home-shortcut" href="#/result"><span class="shortcut-icon">▥</span><span><strong>身体の推移</strong><p>12部位の過去の参考値を確かめる。</p></span><span>↗</span></a></section>`;
+ const data=[{day:22,label:"10月22日",detail:"8.20 km　・　45分",type:"走行",distance:8.2},{day:12,label:"10月12日",detail:"5.40 km　・　31分",type:"走行",distance:5.4},{day:5,label:"10月5日",detail:"休養日の記録",type:"休養",distance:0}];
+ const shown=data.filter(x=>(state.historyMode==="all"||x.type===state.historyMode)&&(state.historyDate===null||x.day===state.historyDate));
+ const recorded=new Set(data.map(x=>x.day));
+ const sum=data.filter(x=>x.type==="走行").reduce((n,x)=>n+x.distance,0);
+ const days=["日","月","火","水","木","金","土",...Array(4).fill(""),...Array.from({length:31},(_,i)=>String(i+1))];
+ return `<section class="home-head"><div><div class="eyebrow">RUNNING HISTORY</div><h1>履歴</h1><p class="lead">これまでの記録を、日付や条件から振り返る。</p></div>${buttonLink("record","記録する",true)}</section>
+ <section class="card">
+  <div class="section-title"><h2>記録を探す</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([key,label])=>`<button type="button" data-history-mode="${key}" class="${state.historyMode===key?"is-active":""}">${label}</button>`).join("")}</div></div>
+  <div class="history-layout">
+   <div class="history-calendar">
+    <div class="calendar-header"><h3>2026年10月</h3><span class="badge">記録 ${data.length}件</span></div>
+    <div class="mini-calendar">${days.map((d,i)=>i<7?`<span class="calendar-weekday">${d}</span>`:d===""?`<span aria-hidden="true"></span>`:`<button type="button" data-history-day="${d}" aria-pressed="${Number(d)===state.historyDate}" class="calendar-day ${recorded.has(Number(d))?"has-entry":""} ${Number(d)===state.historyDate?"is-selected":""}">${d}</button>`).join("")}</div>
+    <div class="calendar-legend"><span><i class="calendar-dot"></i>記録した日</span>${state.historyDate!==null?`<button type="button" data-history-clear>日付の絞り込みを解除</button>`:""}</div>
+    <div class="month-summary"><strong>今月のまとめ</strong><div><span><b>${data.filter(x=>x.type==="走行").length}</b><small>走行</small></span><span><b>${sum.toFixed(2)}</b><small>km</small></span><span><b>${data.filter(x=>x.type==="休養").length}</b><small>休養</small></span></div></div>
+   </div>
+   <div class="history-records"><h3>${state.historyDate!==null?`10月${state.historyDate}日の記録`:"最近の記録"}</h3><div class="timeline">${shown.length?shown.map(entry=>`<a class="timeline-item" href="#/${entry.type==="休養"?"history":"result"}"><span class="history-row-mark">${entry.type==="走行"?"↗":"◌"}</span><span><strong>${entry.label}</strong><p class="lead">${entry.detail}</p></span><span class="badge">${entry.type}</span><span>›</span></a>`).join(""):`<div class="empty-state"><strong>この条件の記録はありません</strong><p>別の日付や種類を選択できます。</p></div>`}</div></div>
+  </div>
+ </section>
+ <section class="grid-2"><a class="card home-shortcut" href="#/exploration-tree"><span class="shortcut-icon">✧</span><span><strong>探究の足跡</strong><p>興味を持ったテーマや問いを振り返る。</p></span><span>↗</span></a><a class="card home-shortcut" href="#/result"><span class="shortcut-icon">▥</span><span><strong>身体の推移</strong><p>12部位の過去の参考値を確かめる。</p></span><span>↗</span></a></section>`;
 }
     function treeOverview(){
  const graphPositions=[
@@ -301,6 +317,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(feeling){const y=window.scrollY;state.feeling=feeling.dataset.feeling;render();window.scrollTo(0,y);return}
     const type=event.target.closest("[data-record-type]");
     if(type){const y=window.scrollY;state.recordType=type.dataset.recordType;render();window.scrollTo(0,y);return}
+    const day=event.target.closest("[data-history-day]");
+    if(day){const y=window.scrollY;const n=Number(day.dataset.historyDay);state.historyDate=state.historyDate===n?null:n;render();window.scrollTo(0,y);return}
+    if(event.target.closest("[data-history-clear]")){const y=window.scrollY;state.historyDate=null;render();window.scrollTo(0,y);return}
     const filter=event.target.closest("[data-history-mode]");
     if(filter){const y=window.scrollY;state.historyMode=filter.dataset.historyMode;render();window.scrollTo(0,y);return}
     const em=event.target.closest("[data-explore-mode]");
