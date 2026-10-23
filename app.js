@@ -195,7 +195,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  <div class="explore-topic-detail"><div class="explore-topic-header"><div><small>選択中の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div><span class="badge">4つのテーマ</span></div>
  <div class="tree-topics">${topicButtons}</div>
  <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
- </div>${right}</section>`;
+ </div>${right}</section>${sheetBody}`;
 }
     function settings(){
 return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
