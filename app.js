@@ -29,7 +29,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null},recordPreviewOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null},recordPreviewOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
@@ -485,14 +485,14 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       return;
     }
     const category=event.target.closest("[data-tree-category]");
-    if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0]}render();window.scrollTo(0,y);return}
+    if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0];state.sheetVisible=true}render();window.scrollTo(0,y);return}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const expandRegions=event.target.closest("[data-expand-regions]");
     if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
-    if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
+    if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";state.sheetVisible=true;location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
     const activity=event.target.closest("[data-activity-type]");
     if(activity){const y=window.scrollY;state.activityType=activity.dataset.activityType;render();window.scrollTo(0,y);return}
     const rofClear=event.target.closest("[data-rof-clear]");
@@ -509,7 +509,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const em=event.target.closest("[data-explore-mode]");
     if(em){const y=window.scrollY;state.mode=em.dataset.exploreMode;render();window.scrollTo(0,y);return}
     const topic=event.target.closest("[data-topic]");
-    if(topic){const y=window.scrollY;const [c,t]=topic.dataset.topic.split("|");state.category=c;state.topic=t;render();window.scrollTo(0,y);return}
+    if(topic){const y=window.scrollY;const [c,t]=topic.dataset.topic.split("|");state.category=c;state.topic=t;state.sheetVisible=true;render();window.scrollTo(0,y);return}
     if(event.target.closest("[data-demo-save]")){state.recordPreviewOpen=true;render();return}
     if(event.target.matches(".record-preview-overlay")||event.target.closest(".record-preview-dialog button[data-close-preview]")){state.recordPreviewOpen=false;render();return}
   });
