@@ -24,8 +24,20 @@
 ## ローカル確認
 静的サイトとして `index.html` を開く。JavaScriptモジュールを利用するため、ローカルでは `python3 -m http.server 8000` 等のHTTPサーバーを推奨。
 
-## 実機プレビュー
-GitHub Pages を有効化できる場合、リポジトリの **Settings → Pages → Deploy from a branch → main / (root)** で公開できます。Pagesを有効にする操作はリポジトリ管理者が行います。
+## インストール・実機プレビュー
+
+公開URL: https://peanutsdx53-lgtm.github.io/runload-app-v2/
+
+このサイトは **PWA（インストール可能なWebアプリ）** として構成しています。iPhoneでApp Store配布のIPA、AndroidでAPKを提供するものではありません。
+
+- **iPhone / iPad**: Safariで公開URLを開く → 共有 → ホーム画面に追加 → 追加
+- **Android (Chrome)**: 公開URLを開く → 「＋ アプリを入れる」またはChromeメニュー → アプリをインストール
+- **PC (Chrome / Edge等)**: ページの「＋ アプリを入れる」からブラウザの案内へ
+
+インストール後はホーム画面などから起動できます。初回のオンライン閲覧後、主要画面をオフラインで開けるように設計していますが、利用端末での動作は別途確認が必要です。
+
+詳細は [インストールガイド](docs/INSTALL.md) を参照してください。
+
 
 ## 完了条件
 画面と遷移を試作 → 画面統合・廃止候補を整理 → PC/スマホで視覚と操作を検証 → 本番との連携仕様を確定。既存の `main` への移植は別工程。
