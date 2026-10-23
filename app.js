@@ -2,6 +2,7 @@
   "use strict";
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
+  const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -155,10 +156,10 @@
   const visible=current.visible.includes(id);
   if(!w||(!visible&&!editing))return "";
   const idx=current.order.indexOf(id);
-  const editingControls=editing?`<div class="dashboard-widget-controls" role="group" aria-label="${esc(w.title)}の編集"><span class="widget-edit-label">${esc(w.title)} ${!visible?"（非表示）":""}</span><div class="widget-edit-actions"><button type="button" data-widget-action="up" data-widget-id="${id}" ${idx===0?"disabled":""} aria-label="${esc(w.title)}を上へ">↑</button><button type="button" data-widget-action="down" data-widget-id="${id}" ${idx===current.order.length-1?"disabled":""} aria-label="${esc(w.title)}を下へ">↓</button><button type="button" data-widget-action="size" data-widget-id="${id}" aria-label="${esc(w.title)}のサイズ変更">${current.sizes[id]==="full"?"小さく":"横幅いっぱい"}</button><button type="button" data-widget-action="toggle" data-widget-id="${id}" aria-label="${esc(w.title)}を${visible?"隠す":"表示"}">${visible?"非表示":"追加"}</button></div></div>`:"";
+  const editingControls=editing?`<div class="dashboard-widget-controls" role="group" aria-label="${esc(w.title)}の編集"><div class="widget-drag-title"><button type="button" class="widget-drag-handle" data-home-drag-handle aria-label="${esc(w.title)}を長押しして並べ替える" title="長押しして移動">⠿</button><span class="widget-edit-label">${esc(w.title)} ${!visible?"（非表示）":""}</span></div><div class="widget-edit-actions"><button type="button" data-widget-action="up" data-widget-id="${id}" ${idx===0?"disabled":""} aria-label="${esc(w.title)}を上へ">↑</button><button type="button" data-widget-action="down" data-widget-id="${id}" ${idx===current.order.length-1?"disabled":""} aria-label="${esc(w.title)}を下へ">↓</button><button type="button" data-widget-action="size" data-widget-id="${id}" aria-label="${esc(w.title)}のサイズ変更">${current.sizes[id]==="full"?"小さく":"横幅いっぱい"}</button><button type="button" data-widget-action="toggle" data-widget-id="${id}" aria-label="${esc(w.title)}を${visible?"隠す":"表示"}">${visible?"非表示":"追加"}</button></div></div>`:"";
   return `<div data-home-dashboard-id="${id}" class="dashboard-widget ${current.sizes[id]==="full"?"dashboard-widget--wide":"dashboard-widget--half"} ${!visible?"dashboard-widget--hidden":""}" ${editing?`data-home-editable="true"`:""}>${editingControls}<div class="dashboard-widget-content">${cards[id]||""}</div></div>`;
  }).join("");
- const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="マイダッシュボードの編集"><div><strong>マイダッシュボードを編集</strong><p>上下移動・表示切替・サイズ変更は保存するまで反映されません。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
+ const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="マイダッシュボードの編集"><div><strong>マイダッシュボードを編集</strong><p>ハンドルを長押しして移動できます。上下ボタン・表示・サイズ変更も使えます。変更の保存は手動です。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
  return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE</div><h1>ホーム</h1><p class="lead">走る日も、休む日も。自分のペースで続けよう。</p></div><div class="home-heading-actions"><a href="#/record" class="btn primary">＋ 記録する</a><button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を中止":"マイダッシュボードを編集"}</button></div></section>
  <section class="home-welcome"><span class="welcome-mark" aria-hidden="true">☀</span><div><strong>今日も、自分らしい一日を。</strong><p>走りも休養も、あなたのペースで。</p></div><a href="#/exploration-tree" aria-label="探究ツリーへ">↗</a></section>
  ${homeEditState.notice?`<div class="dashboard-edit-notice" role="status">${esc(homeEditState.notice)}</div>`:""}
@@ -333,10 +334,27 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  const cur=regionData(state.region);
  return top+`<section class="grid-2"><div class="card stack"><h2>${esc(cur.name)}（${esc(cur.friendly)}）</h2><div class="detail-value">${valid(cur.value)?cur.value.toFixed(1):"—"}</div><div class="info-note">この部位自身の文献基準を100とした参考値であり、実測した身体負荷・傷害リスクではありません。</div><div class="chart-card">${historyChart(cur)}</div></div><div class="card stack"><h2>ほかの部位を見る</h2><div class="region-grid">${regionTiles()}</div>${buttonLink("result","全12部位へ戻る")}</div></section>`;
 }
+    let stopHomeDrag=null;
     function render(){
+      if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>`;
+ if(page==="home"&&homeEditState.editing){
+  stopHomeDrag=dashboardDrag.bindHomeDashboardDrag(app.querySelector(".dashboard-custom-grid"),{
+   onDrop:({sourceId,targetId,after})=>{
+    if(!homeEditState.editing||!homeEditState.draft)return;
+    const oldOrder=homeEditState.draft.order.join("|");
+    homeEditState.draft=dashboardPrefs.moveHomeDashboardWidget(homeEditState.draft,sourceId,targetId,after);
+    if(homeEditState.draft.order.join("|")!==oldOrder){
+      const y=window.scrollY;
+      homeEditState.notice="";
+      render();
+      window.scrollTo(0,y);
+    }
+   }
+  });
+ }
 }
   app.addEventListener("input",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value});
