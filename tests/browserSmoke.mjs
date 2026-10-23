@@ -33,7 +33,16 @@ try{
   await page.locator(".region-tile").first().waitFor();
   assert.equal(await page.locator(".region-tile").count(),12);
   assert.equal(await page.locator(".body-view").count(),3);
-  await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
+  if(mode.name==="desktop"){
+    await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
+  }else{
+    assert.equal(await page.locator(".mobile-region-row").count(),5,"mobile result shows a compact five-row preview");
+    await page.locator("[data-expand-regions]").click();
+    assert.equal(await page.locator(".mobile-region-row").count(),12,"all official regions remain accessible");
+    await page.locator(".mobile-region-row").filter({hasText:"太ももの前"}).click();
+    await page.locator("[data-expand-regions]").click();
+    assert.equal(await page.locator(".mobile-region-row").count(),5,"compact list can be collapsed");
+  }
   assert.match(await page.locator("#selected-detail .selected-name").innerText(),/太ももの前/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
