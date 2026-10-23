@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{
  }catch(e){res.statusCode=404;res.end("Not found")}
 });
 await new Promise(resolve=>server.listen(4173,"127.0.0.1",resolve));
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}: {})});
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  const host="http://127.0.0.1:4173/";
