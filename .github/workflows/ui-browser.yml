@@ -52,9 +52,12 @@ jobs:
           fi
       - name: Install Japanese glyphs for faithful UI screenshots
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y fonts-noto-cjk
-          fc-cache -f
+          if fc-list :lang=ja | grep -qi 'Noto'; then
+            echo "Japanese Noto fonts already present"
+          else
+            sudo timeout 150s apt-get install -y --no-install-recommends fonts-noto-cjk
+            fc-cache -f
+          fi
           fc-match :lang=ja
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
