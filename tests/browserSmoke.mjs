@@ -28,6 +28,10 @@ try{
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
   assert.match(await page.locator("h1").innerText(),/ホーム/);
+  if(mode.name!=="desktop"){
+    const button=await page.locator(".home-heading-actions>a.btn").boundingBox();
+    assert.ok(button&&button.width>=65&&button.height<=46,mode.name+" record button must remain horizontal: "+JSON.stringify(button));
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-viewport.png"),fullPage:false});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
@@ -37,6 +41,13 @@ try{
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
   assert.equal(await page.locator("[data-widget-action=toggle]").count(),6,"editing controls on six modules");
+  if(mode.name!=="desktop"){
+    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing-viewport.png"),fullPage:false});
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
+    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing.png"),fullPage:true});
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
+  }
+
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
   await page.locator("[data-widget-id=condition][data-widget-action=down]").click();
   await page.locator("[data-widget-id=topics][data-widget-action=toggle]").click();
