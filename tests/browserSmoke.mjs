@@ -83,6 +83,25 @@ try{
     window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x+20,clientY:y+25}));
   });
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","early swipe must not reorder");
+  if(mode.name!=="desktop"){
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.evaluate(()=>{
+      const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
+      const r=h.getBoundingClientRect();
+      h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerType:"touch",pointerId:75,button:0,isPrimary:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2}));
+    });
+    await page.waitForTimeout(370);
+    await page.evaluate(()=>{
+      window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:75,button:0,isPrimary:true,clientX:140,clientY:innerHeight-78}));
+    });
+    await page.waitForTimeout(150);
+    const scrolled=await page.evaluate(()=>window.scrollY);
+    assert.ok(scrolled>0,mode.name+" long drag near bottom should auto-scroll, got "+scrolled);
+    await page.evaluate(()=>window.dispatchEvent(new PointerEvent("pointercancel",{bubbles:true,pointerType:"touch",pointerId:75,isPrimary:true})));
+    assert.equal(await page.locator(".dashboard-drag-ghost").count(),0,"cancel must remove drag ghost");
+    assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","cancel must preserve draft order");
+  }
+
 
   if(mode.name!=="desktop"){
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing-viewport.png"),fullPage:false});
