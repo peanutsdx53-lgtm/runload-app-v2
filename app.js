@@ -61,7 +61,7 @@
     }).join("");
     return `<figure class="body-view"><figcaption>${esc(view.title)}</figcaption><svg viewBox="70 10 160 430" aria-label="${esc(view.title)}の部位図" role="group"><defs><clipPath id="${cid}">${view.silhouette}</clipPath></defs><g class="body-silhouette">${view.silhouette}</g><g clip-path="url(#${cid})">${paths}</g></svg></figure>`;
   };
-  const legend=()=>`<div class="map-legend"><span><i class="dot above"></i>100より上</span><span><i class="dot"></i>100付近</span><span><i class="dot below"></i>100より下</span><span><i class="dot missing"></i>未取得</span></div>`;
+  const legend=()=>`<div class="map-legend"><span><i class="dot above"></i>高め（110超）</span><span><i class="dot"></i>基準付近</span><span><i class="dot below"></i>低め（90未満）</span><span><i class="dot missing"></i>未取得</span></div>`;
   const regionTiles=()=>REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1).map(r=>{
     const delta=valid(r.value)?r.value-100:null;
     return `<button type="button" class="region-tile ${state.region===r.id?"is-selected":""}" data-region="${r.id}" aria-pressed="${state.region===r.id}"><span class="name">${esc(r.friendly)}</span><span class="value">${valid(r.value)?r.value.toFixed(1):"—"}</span><span class="baseline ${status(r.value)}">${valid(delta)?"基準差 "+pct(delta):"数値なし"}</span></button>`;
@@ -151,6 +151,14 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
  const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
+ const mobileDetail=`<div class="mobile-detail-feature">
+   <div class="mobile-detail-headline">
+      <div class="mobile-big-value ${status(v)}">${valid(v)?v.toFixed(1):"—"}</div>
+      <div class="mobile-baseline-chip">基準比 <b>${valid(v)?pct(v-100):"—"}</b></div>
+      <div class="mobile-past-stats"><div><small>前回の値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回から</small><strong class="${status(v)}">${comparison}</strong></div></div>
+   </div>
+   <div class="mobile-inline-trend"><h3>最近の推移</h3>${historyChart(current)}</div>
+ </div>`;
  return `<section class="result-top card"><div class="result-heading"><div><div class="eyebrow">RUN REPORT</div><h1>結果</h1><p class="lead">走りを振り返り、自分のペースで次へつなげる。</p></div><div class="result-top-signals"><div class="signal-box"><span class="signal-icon">▥</span><span><small>数値あり</small><strong>11/12</strong></span></div><div class="signal-box"><span class="signal-icon">⇄</span><span><small>前回の参考値</small><strong>あり</strong></span></div><div class="signal-box warm"><span class="signal-icon">⌁</span><span><small>疲労感の変化</small><strong>+2</strong></span></div></div></div>
  <div class="run-facts"><span>◫　10月22日</span><span>◇　<strong>8.20</strong> km</span><span>◷　<strong>45</strong> 分</span><span>◉　<strong>5:29</strong> /km</span><span>⌁　コース情報なし</span></div></section>
  <section class="result-primary">
@@ -158,7 +166,7 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  <div class="card regions-card"><div class="section-title"><h2>12部位を見渡す</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div>${mobileRegionRows()}<p class="chart-caption regions-guidance">部位を選ぶと、人体図と詳細が連動します。</p></div>
  </section>
  <section class="result-lower"><div class="card region-detail-card" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細</h2><span class="selected-name"><i class="detail-icon">◍</i>${esc(current.friendly)}</span></div>${buttonLink("body-part-detail","部位の詳細")}</div><div class="detail-metrics"><div class="highlight-detail"><small>今回の数値</small><strong>${valid(v)?v.toFixed(1):"—"}</strong></div><div><small>基準値</small><strong>100</strong></div><div><small>基準からの差</small><strong class="${status(v)}">${valid(v)?pct(v-100):"—"}</strong></div><div><small>前回の数値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回からの変化</small><strong class="${status(v)}">${comparison}</strong></div></div>
- <h3 class="detail-chart-title">${esc(current.friendly)}の推移</h3><div class="chart-card">${historyChart(current)}</div>
+ ${mobileDetail}<h3 class="detail-chart-title">${esc(current.friendly)}の推移</h3><div class="chart-card">${historyChart(current)}</div>
  <p class="reference-note">ⓘ 各部位自身の基準を100とする文献由来の参考値です。実測した筋負荷・健康状態・傷害リスクを表すものではありません。</p></div>
  <div class="support-stack">
  <div class="card fatigue-panel"><div class="section-title"><h2>運動前後の疲労感 <small>(ROF-J)</small></h2></div><div class="fatigue-flex"><div class="fatigue-cell"><small>運動前</small><strong>6</strong><span class="scale blue"></span></div><div class="fatigue-cell"><small>運動後</small><strong>8</strong><span class="scale orange"></span></div><div class="fatigue-cell difference"><small>変化</small><strong>+2</strong></div></div><p class="chart-caption">本人が回答した0〜10の主観的な疲労感。</p></div>
