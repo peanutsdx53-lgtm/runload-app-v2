@@ -1599,3 +1599,78 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .onboard-legal{padding:11px;gap:7px}
  .onboard-legal p{font-size:.72rem}
 }
+
+/* v2 Record complete-input hierarchy: optional sections retain the original
+   RunLoad science-facing field meanings without creating fictitious observations. */
+.record-optional-stack{display:grid;gap:9px;min-width:0}
+.record-extra-section{background:#fff;border:1px solid #dbe8f1;border-radius:12px;min-width:0;overflow:hidden}
+.record-extra-section>summary{list-style:none;display:grid;grid-template-columns:29px minmax(0,1fr) 17px;gap:11px;align-items:center;padding:12px 14px;cursor:pointer;min-height:57px}
+.record-extra-section>summary::-webkit-details-marker{display:none}
+.record-extra-section>summary>span:nth-child(2){display:grid;gap:3px;min-width:0}
+.record-extra-section>summary strong{font-size:.87rem;color:#294d66;line-height:1.35}
+.record-extra-section>summary small{font-size:.69rem;color:#778a9b;line-height:1.4}
+.record-extra-step{width:29px;height:29px;border-radius:9px;background:#e8f3f8;color:#218ba5;font-size:.88rem;font-weight:850;display:grid;place-items:center}
+.record-extra-chevron{color:#648aa0;text-align:center;transition:transform .18s ease;font-size:1rem}
+.record-extra-section[open] .record-extra-chevron{transform:rotate(180deg)}
+.record-extra-section[open]>summary{border-bottom:1px solid #e2edf3;background:#f8fbfd}
+.record-extra-content{display:grid;gap:12px;padding:14px;min-width:0}
+.record-extra-content [hidden]{display:none!important}
+.record-extra-content>div:not(.record-extra-grid):not(.record-course-section){display:grid;gap:9px}
+.record-extra-content h3{font-size:.83rem;color:#225a76;line-height:1.4;margin:0}
+.record-extra-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0}
+.record-extra-field{min-width:0;display:grid;gap:5px;font-size:.74rem;font-weight:720;color:#4b6678;line-height:1.35}
+.record-extra-field input,.record-extra-field select,.record-extra-field textarea{min-width:0;width:100%;box-sizing:border-box;border:1px solid #d4e3ed;border-radius:9px;background:#fff;min-height:41px;padding:7px 10px;font:inherit;font-size:.85rem;font-weight:500;color:#29435a}
+.record-extra-field textarea{min-height:66px;resize:vertical}
+.record-extra-field input:focus-visible,.record-extra-field textarea:focus-visible,.record-extra-field select:focus-visible{outline:2px solid #65b7d0;outline-offset:1px}
+.record-extra-help{font-size:.71rem;line-height:1.6;color:#6e8295;min-width:0}
+.record-course-section{display:grid;gap:7px;background:#f7fafc;border:1px solid #e4edf2;border-radius:10px;padding:9px 10px}
+.record-course-section>strong{font-size:.76rem;color:#3e6a80}
+.record-runwalk-fields{background:#f3fafc;padding:11px;border:1px solid #d4e8ef;border-radius:10px}
+.record-preview-dialog dl{max-height:38dvh;overflow-y:auto;padding:2px 6px 2px 0;line-height:1.45}
+.record-review-alert{display:grid;gap:5px;border:1px solid #e9d4ad;background:#fff9ed;border-radius:10px;padding:10px}
+.record-review-alert strong{font-size:.78rem;color:#99682a}
+.record-review-alert p{font-size:.71rem;line-height:1.45;color:#805f31}
+.record-review-alert .is-error{color:#a74737}
+.record-review-success{color:#657f89;font-size:.72rem;line-height:1.5}
+.record-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* ROF-J retains all five source anchors, but avoids making a gallery
+   occupy most of the smartphone's record entry screen. */
+.record-rof-j{gap:8px;padding:12px}
+.record-rof-header h2{font-size:.9rem;line-height:1.4}
+.record-rof-j .rof-intro{font-size:.72rem;line-height:1.48}
+.record-rof-j .rof-anchor-card img{height:58px}
+.record-rof-j .rof-anchor-card{padding:4px;gap:3px}
+.record-rof-j .rof-anchor-card strong{font-size:.72rem}
+.record-rof-j .rof-anchor-card>span{font-size:.61rem;line-height:1.4}
+.record-rof-j .rof-entry-grid{gap:8px}
+.record-rof-j .rof-entry{padding:8px 9px;gap:5px}
+.record-rof-j .rof-entry output{font-size:1.55rem}
+.record-rof-j .rof-endpoints{line-height:1.35}
+@media(max-width:800px){
+ .record-editor{gap:10px}
+ .record-optional-stack{gap:7px}
+ .record-extra-section>summary{grid-template-columns:27px minmax(0,1fr) 16px;padding:9px 10px;gap:8px;min-height:55px}
+ .record-extra-section>summary strong{font-size:.79rem}
+ .record-extra-section>summary small{font-size:.63rem}
+ .record-extra-step{width:27px;height:27px}
+ .record-extra-content{padding:11px;gap:10px}
+ .record-extra-grid{gap:8px}
+ .record-extra-field{font-size:.7rem;gap:5px}
+ .record-extra-field input,.record-extra-field select,.record-extra-field textarea{font-size:.8rem;min-height:39px;padding:7px 8px}
+ .record-related-grid{grid-template-columns:1fr}
+ .record-rof-j{padding:10px 9px;gap:7px}
+ .record-rof-j .rof-anchor-card{flex-basis:98px}
+ .record-rof-j .rof-anchor-card img{height:52px}
+ .record-rof-j .rof-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .record-rof-j .rof-entry{padding:7px 6px}
+ .record-rof-j .rof-entry>label strong{font-size:.7rem}
+ .record-rof-j .rof-entry output{font-size:1.35rem}
+ .record-rof-j .rof-endpoints{font-size:.53rem}
+ .record-rof-j .rof-selection-description{font-size:.63rem;min-height:31px}
+ .record-rof-j .rof-clear{font-size:.62rem}
+}
+@media(max-width:355px){
+ .record-extra-grid{grid-template-columns:1fr}
+ .record-rof-j .rof-entry-grid{grid-template-columns:1fr}
+ .record-rof-j .rof-anchor-card{flex-basis:91px}
+}
