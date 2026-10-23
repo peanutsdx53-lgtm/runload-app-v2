@@ -201,7 +201,7 @@
  const steps=[
   {title:"RunLoadへようこそ",eyebrow:"WELCOME",body:"走行・休養の記録と、身体の参考値を振り返るアプリです。現在のv2は画面と操作の検証段階です。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>ROF-Jの疲労感</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
   {title:"言語を選ぶ",eyebrow:"LANGUAGE",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
-  {title:"利用規約とデータの扱い",eyebrow:"PRIVACY",body:"正式な利用規約・プライバシーポリシーはまだ確定していません。以下はUI確認用の案内であり、法的な同意の取得・記録ではありません。",html:`<div class="onboard-legal"><strong>現在のv2で扱う内容</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。現在のv2ではGPS測定・走行記録の正式保存は接続されていません。</p><p>位置情報の許可は、正式なGPS測定を開始する操作に合わせて確認する設計です。実装前に文面と導線を確定します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
+  {title:"利用規約とデータの扱い",eyebrow:"PRIVACY",body:"正式な利用規約・プライバシーポリシーはまだ確定していません。以下はUI確認用の案内であり、法的な同意の取得・記録ではありません。",html:`<div class="onboard-legal"><strong>現在のv2で扱う内容</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。現在のv2ではGPS測定・走行記録の正式保存は接続されていません。ROF-Jの既存イラストを表示する際には、旧RunLoadが管理するGitHub公開画像への通信が発生します。</p><p>位置情報の許可は、正式なGPS測定を開始する操作に合わせて確認する設計です。実装前に文面と導線を確定します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
   {title:"共有用プロフィール（任意）",eyebrow:"YOUR PROFILE",body:"旧アプリの共有用プロフィールを参考に、最初の設定を用意しました。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>RunLoadを使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><p>性別・年齢帯・身長・体重など旧版の追加項目は、必要性と共有条件を確認した後に移植します。</p></div>`},
   {title:"始め方を確認",eyebrow:"QUICK TOUR",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究ツリーはスクロールとズームで自由に見られます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS測定は旧版エンジン接続後に利用可能</small></span></div><div><b>2</b><span><strong>ROF-Jの疲労感を記入</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・6軸レーダー・探究ツリー</small></span></div></div>`}
  ];
@@ -469,8 +469,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const zoom=event.target.closest("[data-tree-zoom]");
     if(zoom){
       const dir=zoom.dataset.treeZoom;
-      state.treeZoom=dir==="reset"?1:Math.min(2.25,Math.max(.8,Math.round((state.treeZoom+(dir==="in"?.2:-.2))*100)/100));
       const viewport=app.querySelector(".tree-pan-viewport");
+      const mobile=window.matchMedia("(max-width:800px)").matches;
+      const fit=viewport?Math.min(1,(viewport.clientWidth-4)/(mobile?470:1040),(viewport.clientHeight-4)/(mobile?705:650)):1;
+      state.treeZoom=dir==="reset"?Math.max(.4,Math.round(fit*100)/100):Math.min(2.25,Math.max(.4,Math.round((state.treeZoom+(dir==="in"?.2:-.2))*100)/100));
       if(viewport){
         const centerX=(viewport.scrollLeft+viewport.clientWidth/2)/Math.max(.01,viewport.scrollWidth);
         const centerY=(viewport.scrollTop+viewport.clientHeight/2)/Math.max(.01,viewport.scrollHeight);
