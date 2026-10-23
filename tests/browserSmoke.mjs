@@ -41,6 +41,38 @@ try{
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
   assert.equal(await page.locator("[data-widget-action=toggle]").count(),6,"editing controls on six modules");
+  assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"all widgets have accessible drag handles");
+  // Simulate a genuine pointer-stream after a 350ms long hold. The root uses
+  // elementFromPoint, so coordinates pass through browser layout and CSS.
+  await page.evaluate(()=>{
+    const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
+    const rect=h.getBoundingClientRect();
+    const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+    h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
+  });
+  await page.waitForTimeout(355);
+  await page.evaluate(()=>{
+    const target=document.querySelector('[data-home-dashboard-id="latest"]');
+    const t=target.getBoundingClientRect();
+    const x=t.left+t.width/2,y=t.top+t.height*.75;
+    window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
+    window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
+  });
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest","long press drag must reorder in draft");
+  assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-home-dashboard-layout-v1")),null,"drag must not silently write preferences");
+  await page.locator("[data-home-cancel]").click();
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","cancel must restore drag edits");
+  await page.locator("[data-home-edit]").click();
+  // A stray early swipe before the long-press threshold must leave the order unchanged.
+  await page.evaluate(()=>{
+    const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
+    const rect=h.getBoundingClientRect(),x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+    h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x,clientY:y}));
+    window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x+20,clientY:y+25}));
+    window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x+20,clientY:y+25}));
+  });
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","early swipe must not reorder");
+
   if(mode.name!=="desktop"){
     await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing-viewport.png"),fullPage:false});
     await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
