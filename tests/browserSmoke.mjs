@@ -306,12 +306,46 @@ try{
   assert.match(await page.locator('[data-rof-description="rofBefore"]').innerText(),/少し疲れている/);
   assert.match(await page.locator('[data-rof-description="rofAfter"]').innerText(),/とても疲れている/);
 
+  assert.equal(await page.locator(".record-extra-section").count(),3,"three optional legacy input sections");
+  await page.locator('[data-record-section="course"] summary').click();
+  await page.locator('[data-draft="courseName"]').fill("川沿い往復");
+  await page.locator('[data-draft="gradeMode"]').selectOption("SUMMARY");
+  assert.ok(await page.locator('[data-grade-submode="SUMMARY"]').isVisible(),"slope proportion fields expand");
+  await page.locator('[data-draft="upPercent"]').fill("55");
+  await page.locator('[data-draft="downPercent"]').fill("50");
+  await page.locator('[data-draft="surfaceMode"]').selectOption("MIXED");
+  assert.ok(await page.locator('[data-surface-submode="MIXED"]').isVisible(),"surface proportions expand");
+  await page.locator('[data-draft="surfacepaved"]').fill("70");
+  await page.locator('[data-draft="surfacetrail"]').fill("30");
+  await page.locator("[data-demo-save]").click();
+  assert.match(await page.locator(".record-review-alert").innerText(),/上り・下りの割合/,"do not silently accept invalid slope shares");
+  await page.locator(".record-preview-dialog [data-close-preview]").click();
+  await page.locator('[data-draft="downPercent"]').fill("45");
+  await page.locator('[data-record-section="compare"] summary').click();
+  await page.locator('[data-draft="steps"]').fill("6120");
+  await page.locator('[data-draft="stepsProvenance"]').selectOption("DEVICE_MEASURED");
+  await page.locator('[data-draft="runningFormat"]').selectOption("RUN_WALK");
+  assert.ok(await page.locator(".record-runwalk-fields").isVisible(),"run/walk requires running-only fields");
+  await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill("5.2");
+  await page.locator('[data-draft="runWalkRunningDurationMinutes"]').fill("32");
+  await page.locator('[data-draft="temperatureC"]').fill("21.5");
+  await page.locator('[data-record-section="reflection"] summary').click();
+  await page.locator('[data-draft="shoeName"]').fill("検証用シューズ");
+  await page.locator('[data-draft="bodyObservation"]').fill("左ふくらはぎの違和感に気づいた");
+  if(mode.name!=="desktop"){
+    await page.locator('[data-record-section="course"] summary').scrollIntoViewIfNeeded();
+    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-course-expanded.png"),fullPage:false});
+  }
   await page.locator("[data-activity-type=walk]").click();
   assert.equal(await page.locator("[data-activity-type=walk]").getAttribute("aria-pressed"),"true");
   await page.locator("[data-draft=distance]").fill("7.25");
   await page.locator("[data-draft=minutes]").fill("45");
   await page.locator("[data-draft=memo]").fill("自分のペースで走った");
   await page.locator("[data-feeling=regular]").click();
+  assert.ok(await page.locator('[data-record-section="course"]').getAttribute("open")!==null,"course section survives rerender");
+  assert.equal(await page.locator('[data-draft="steps"]').inputValue(),"6120","steps retained after mood selection");
+  assert.equal(await page.locator('[data-draft="stepsProvenance"]').inputValue(),"DEVICE_MEASURED","measured-vs-estimated provenance retained");
+  assert.equal(await page.locator('[data-draft="courseName"]').inputValue(),"川沿い往復","course selection retained");
   assert.equal(await page.locator("[data-feeling=regular]").getAttribute("aria-pressed"),"true");
   assert.equal(await page.locator("[data-draft=distance]").inputValue(),"7.25","distance retained across mood rerender");
   assert.equal(await page.locator("[data-draft=memo]").inputValue(),"自分のペースで走った","notes retained across mood rerender");
@@ -324,6 +358,10 @@ try{
   assert.match(await page.locator(".record-preview-dialog").innerText(),/まだ正式な記録保存を行いません/);
   assert.match(await page.locator(".record-preview-dialog").innerText(),/ROF-J 運動前/);
   assert.match(await page.locator(".record-preview-dialog").innerText(),/ROF-J 運動後/);
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/6120/);
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/端末・時計で計測/);
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/川沿い往復/);
+  assert.equal(await page.locator(".record-review-alert").count(),0,"valid course and steps must have no errors");
 
   await page.locator(".record-preview-dialog [data-close-preview]").click();
   assert.equal(await page.locator(".record-preview-dialog").count(),0);
@@ -336,6 +374,10 @@ try{
     assert.ok(bounds.bodyWidth-bounds.viewport<=3,mode.name+" record overflows horizontally");
     assert.ok(bounds.moodLabels.every(h=>h>=10),mode.name+" mood labels unreadable");
   }
+  await page.locator('[data-record-section="course"] summary').click();
+  await page.locator('[data-record-section="compare"] summary').click();
+  await page.locator('[data-record-section="reflection"] summary').click();
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-active.png"),fullPage:true});
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".calendar-day").count(),31,"calendar days in October");
