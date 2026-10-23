@@ -7,11 +7,29 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
  if(!root||typeof onDrop!=="function")return ()=>{};
  const win=root.ownerDocument.defaultView;
  let active=null;
+ let scrollFrame=null;
+ const stopAutoScroll=()=>{
+  if(scrollFrame!==null)win.cancelAnimationFrame(scrollFrame);
+  scrollFrame=null;
+ };
+ const scrollWhileDragging=()=>{
+  scrollFrame=null;
+  if(!active?.dragging)return;
+  const y=active.y;
+  const delta=y<78?-11:y>win.innerHeight-100?11:0;
+  if(delta){
+   const previous=win.scrollY;
+   win.scrollBy(0,delta);
+   if(win.scrollY!==previous)updateTarget(active.x,active.y);
+  }
+  scrollFrame=win.requestAnimationFrame(scrollWhileDragging);
+ };
  const HOLD_MS=320,TOUCH_SLOP=13,MOUSE_START=6;
  const clearHover=()=>{
   root.querySelectorAll(".dashboard-widget--drag-source,.dashboard-widget--drop-before,.dashboard-widget--drop-after").forEach(node=>node.classList.remove("dashboard-widget--drag-source","dashboard-widget--drop-before","dashboard-widget--drop-after"));
  };
  const stop=()=>{
+  stopAutoScroll();
   if(!active)return;
   if(active.timer!==null)win.clearTimeout(active.timer);
   active.ghost?.remove();
@@ -33,6 +51,7 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
   root.ownerDocument.body.appendChild(ghost);
   active.ghost=ghost;
   positionGhost(active.x,active.y);
+  scrollFrame=win.requestAnimationFrame(scrollWhileDragging);
  }
  const positionGhost=(x,y)=>{
   if(!active?.ghost)return;
@@ -86,8 +105,6 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
   e.preventDefault();
   positionGhost(e.clientX,e.clientY);
   // Auto-scroll in deliberate drags only; never on an ordinary tap.
-  if(e.clientY<67)win.scrollBy(0,-14);
-  else if(e.clientY>win.innerHeight-98)win.scrollBy(0,14);
   updateTarget(e.clientX,e.clientY);
  }
  function onUp(e){
