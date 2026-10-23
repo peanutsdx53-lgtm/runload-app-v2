@@ -1,5 +1,5 @@
 // RunLoad UI Next — app shell only; no personal records are cached.
-const CACHE="runload-ui-next-shell-2026-10-23-03";
+const CACHE="runload-ui-next-shell-2026-10-23-04";
 const BASE=new URL("./",self.location.href);
 const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(p=>new URL(p,BASE).href))).then(()=>self.skipWaiting())));

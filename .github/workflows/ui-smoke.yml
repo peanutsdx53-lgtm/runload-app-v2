@@ -1,0 +1,23 @@
+name: UI Next smoke
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  static-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check app.js
+          node --check pwa.js
+          node --check sw.js
+          node --check assets/bodyRegionVisuals.js
+      - name: UI and installability contracts
+        run: node --test tests/uiContracts.test.mjs

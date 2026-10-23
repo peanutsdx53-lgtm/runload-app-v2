@@ -1,0 +1,50 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync,existsSync} from "node:fs";
+const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
+test("HTML has installable PWA assets and correct viewport",()=>{
+ const html=read("index.html");
+ for(const s of ['rel="manifest"','manifest.webmanifest','apple-touch-icon','pwa.js','viewport-fit=cover'])assert.ok(html.includes(s),s);
+});
+test("manifest stays within GitHub Pages project scope",()=>{
+ const m=JSON.parse(read("manifest.webmanifest"));
+ assert.equal(m.display,"standalone");assert.equal(m.start_url,"./#/home");assert.equal(m.scope,"./");
+ assert.deepEqual(m.icons.filter(i=>i.type==="image/png").map(i=>i.sizes),["192x192","512x512"]);
+ for(const icon of m.icons)assert.ok(existsSync(new URL("../"+icon.src,import.meta.url)),icon.src);
+});
+test("PWA PNG icons have valid signatures and dimensions",()=>{
+ for(const n of [192,512]){
+ const file=readFileSync(new URL("../icons/icon-"+n+".png",import.meta.url));
+ assert.equal(file.subarray(0,8).toString("hex"),"89504e470d0a1a0a");
+ assert.equal(file.subarray(12,16).toString("ascii"),"IHDR");
+ assert.equal(file.readUInt32BE(16),n);assert.equal(file.readUInt32BE(20),n);
+ }
+});
+test("SW precaches all offline-critical resources",()=>{
+ const sw=read("sw.js");
+ for(const file of ["index.html","styles.css","app.js","pwa.js","assets/bodyRegionVisuals.js","manifest.webmanifest","icon-192.png","icon-512.png"])
+ assert.ok(sw.includes(file),file);
+ assert.ok(sw.includes("mode===\"navigate\""),"offline navigation fallback");
+});
+test("12 official region IDs remain present",()=>{
+ const js=read("app.js");
+ const ids=[...js.matchAll(/id:"(BA-DISP-\d{3})"/g)].map(m=>m[1]);
+ assert.equal(ids.length,12);assert.equal(new Set(ids).size,12);
+ assert.ok(read("assets/bodyRegionVisuals.js").includes("BODY_REGION_VIEWS"));
+ for(const id of ids)assert.ok(read("assets/bodyRegionVisuals.js").includes(id),id);
+});
+test("main navigation and prototype restrictions",()=>{
+ const js=read("app.js");
+ for(const page of ['home','record','result','history','exploration-tree','settings'])assert.ok(js.includes(page));
+ assert.ok(js.includes("mobileNav=["));
+ assert.ok(js.includes("科学計算・本人の履歴・GPSは未接続です"));
+ assert.ok(js.includes("historyChart(current)"),"selected region chart responds to region selection");
+ assert.ok(js.includes('data-tree-category'),"tree choices are interactive");
+});
+test("install UI offers manual iOS steps",()=>{
+ const js=read("pwa.js");
+ assert.ok(js.includes("ホーム画面に追加"));
+ assert.ok(js.includes("beforeinstallprompt"));
+ assert.ok(js.includes("data-install-app"));
+ assert.ok(!js.includes('class="install-backdrop" data-install-dismiss'),"overlay should not dismiss all inner clicks");
+});
