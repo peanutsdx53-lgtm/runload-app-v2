@@ -989,3 +989,18 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .main-frame:has(.result-top) .fatigue-panel .fatigue-cell.difference strong{height:37px}
  .main-frame:has(.result-top) .fatigue-panel .fatigue-cell:nth-child(2)::before{top:25px}
 }
+
+/* All region pictograms are cropped views of the approved body SVG, not generated imagery. */
+.region-picto{display:inline-block;width:20px;height:29px;max-width:100%;vertical-align:middle;overflow:visible;object-fit:contain;justify-self:center}
+.region-picto-fallback{display:inline-grid;place-items:center;color:#91aabf}
+.selected-name .region-picto{width:27px;height:30px;flex-shrink:0}
+@media(max-width:800px){
+ .main-frame:has(.result-top) .mobile-region-row{grid-template-columns:24px minmax(0,1.15fr) 44px minmax(57px,.92fr) minmax(58px,.87fr) 12px}
+ .main-frame:has(.result-top) .mobile-region-row .region-picto{width:22px;height:27px}
+ .main-frame:has(.result-top) .selected-name .region-picto{width:25px;height:27px}
+ .main-frame:has(.result-top) .mobile-region-row{min-height:31px}
+}
+@media(max-width:355px){
+ .main-frame:has(.result-top) .mobile-region-row{grid-template-columns:18px minmax(0,1.1fr) 40px minmax(50px,1fr) minmax(49px,.93fr) 10px}
+ .main-frame:has(.result-top) .mobile-region-row .region-picto{width:17px;height:24px}
+}
