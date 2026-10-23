@@ -68,8 +68,8 @@
   }).join("");
   function mobileRegionRows(){
  const base=REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1);
- const ordered=[...base].sort((a,b)=>Number(b.id===state.region)-Number(a.id===state.region));
- const listing=state.mobileRegionsExpanded?ordered:ordered.slice(0,5);
+ const preview=[...base].sort((a,b)=>Number(b.id===state.region)-Number(a.id===state.region)||Math.abs((b.value??100)-100)-Math.abs((a.value??100)-100));
+ const listing=state.mobileRegionsExpanded?base:preview.slice(0,5);
  return `<div class="mobile-region-list">${listing.map(r=>{
  const v=r.value,d=valid(v)?v-100:null,prev=valid(v)&&valid(r.prev)?v-r.prev:null,active=r.id===state.region;
  return `<button type="button" data-region="${r.id}" aria-pressed="${active}" class="mobile-region-row ${active?"is-selected":""}">
