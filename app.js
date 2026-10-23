@@ -29,7 +29,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null},recordPreviewOpen:false,historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null},recordPreviewOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:true,sheetExpanded:false};
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
@@ -331,7 +331,9 @@ function record(){
     <a href="#/history" class="mobile-sheet-next"><span>✧</span><div><strong>次にできること</strong><small>以前の記録を見返す</small></div><span>›</span></a>
    </div>`:""}
  </div>`;
-return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div>${treeOverview()}
+return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div><div class="tree-zoom-head"><span>図をスクロールして探索</span><div class="tree-zoom-actions" role="group" aria-label="探究ツリーの拡大縮小"><button type="button" data-tree-zoom="out" aria-label="縮小">−</button><output data-tree-zoom-value>100%</output><button type="button" data-tree-zoom="in" aria-label="拡大">＋</button><button type="button" data-tree-zoom="reset">全体表示</button></div></div>
+ <div class="tree-pan-viewport" tabindex="0" role="region" aria-label="上下左右に移動できる探究ツリー" style="--tree-zoom:${state.treeZoom}">${treeOverview()}</div>
+ <div class="tree-pan-hint">上下左右に移動できます。＋／−で文字やテーマを拡大して確認できます。</div>
  <div class="explore-topic-detail"><div class="explore-topic-header"><div><small>選択中の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div><span class="badge">4つのテーマ</span></div>
  <div class="tree-topics">${topicButtons}</div>
  <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
@@ -368,9 +370,20 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     let stopHomeDrag=null;
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
+      const previousTreeViewport=app.querySelector(".tree-pan-viewport");
+      if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>`;
+ if(page==="exploration-tree"){
+  const viewport=app.querySelector(".tree-pan-viewport");
+  if(viewport){
+    viewport.scrollLeft=state.treeScroll?.left??Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2);
+    viewport.scrollTop=state.treeScroll?.top??Math.max(0,(viewport.scrollHeight-viewport.clientHeight)/2);
+    const display=app.querySelector("[data-tree-zoom-value]");
+    if(display)display.textContent=Math.round(state.treeZoom*100)+"%";
+  }
+ }
  if(page==="home"&&homeEditState.editing){
   stopHomeDrag=dashboardDrag.bindHomeDashboardDrag(app.querySelector(".dashboard-custom-grid"),{
    onDrop:({sourceId,targetId,after})=>{
@@ -424,6 +437,22 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(sheetExpand){const y=window.scrollY;state.sheetExpanded=!state.sheetExpanded;render();window.scrollTo(0,y);return}
     const sheetToggle=event.target.closest("[data-sheet-toggle]");
     if(sheetToggle){const y=window.scrollY;state.sheetVisible=!state.sheetVisible;render();window.scrollTo(0,y);return}
+    const zoom=event.target.closest("[data-tree-zoom]");
+    if(zoom){
+      const dir=zoom.dataset.treeZoom;
+      state.treeZoom=dir==="reset"?1:Math.min(2.25,Math.max(.8,Math.round((state.treeZoom+(dir==="in"?.2:-.2))*100)/100));
+      const viewport=app.querySelector(".tree-pan-viewport");
+      if(viewport){
+        const centerX=(viewport.scrollLeft+viewport.clientWidth/2)/Math.max(.01,viewport.scrollWidth);
+        const centerY=(viewport.scrollTop+viewport.clientHeight/2)/Math.max(.01,viewport.scrollHeight);
+        viewport.style.setProperty("--tree-zoom",state.treeZoom);
+        viewport.scrollLeft=centerX*viewport.scrollWidth-viewport.clientWidth/2;
+        viewport.scrollTop=centerY*viewport.scrollHeight-viewport.clientHeight/2;
+        state.treeScroll={left:viewport.scrollLeft,top:viewport.scrollTop};
+        const o=app.querySelector("[data-tree-zoom-value]");if(o)o.textContent=Math.round(state.treeZoom*100)+"%";
+      }
+      return;
+    }
     const category=event.target.closest("[data-tree-category]");
     if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0]}render();window.scrollTo(0,y);return}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
