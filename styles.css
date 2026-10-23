@@ -264,3 +264,28 @@ body{background:#f4f8fc}
  .exploration-stage .tree-mobile{max-height:560px}
  .exploration-stage .tree-overview__decor{top:25%;opacity:.65}
 }
+
+/* Richer pastel hierarchy while preserving semantic region colors. */
+.exploration-stage .tree-overview{
+ background:
+ radial-gradient(ellipse at 17% 32%,#ffebf122 0,transparent 40%),
+ radial-gradient(ellipse at 82% 29%,#d7f5f033 0,transparent 43%),
+ radial-gradient(ellipse at 35% 83%,#fff1d736 0,transparent 45%),
+ radial-gradient(ellipse at 72% 80%,#eff0ff40 0,transparent 43%),
+ #fff;
+}
+.exploration-stage .tree-canvas{filter:drop-shadow(0 2px 3px #8fb3ca14)}
+.tree-hub.is-selected>rect{filter:drop-shadow(0 0 9px #9ecce6)}
+.tree-hub:hover>rect{filter:drop-shadow(0 1px 6px #bfdde8)}
+.tree-leaf.is-selected circle{filter:drop-shadow(0 0 8px #9ecad9)}
+.explore-aside .nature-header{background:
+ linear-gradient(165deg,transparent 58%,#cee8e6 58%,#eff8f5 86%),
+ linear-gradient(30deg,transparent 52%,#c0ddeb 52%,#e4f1f7 78%),
+ linear-gradient(#e8f5fa,#dbeff6)}
+@media(max-width:800px){
+ .exploration-stage .tree-overview{background:
+  radial-gradient(ellipse at 50% 100%,#c5eddd90 0,transparent 53%),
+  radial-gradient(ellipse at 45% 45%,#e6f3ffbb 0,transparent 55%),
+  #fff}
+ .tree-bubble.is-selected circle{filter:drop-shadow(0 0 12px #c3e0ed)}
+}
