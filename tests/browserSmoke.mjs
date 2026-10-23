@@ -37,6 +37,9 @@ try{
     await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
   }else{
     assert.equal(await page.locator(".mobile-region-row").count(),5,"mobile result shows a compact five-row preview");
+    assert.equal(await page.locator(".mobile-region-row .region-picto").count(),5,"each shown region uses official body-vector artwork");
+    const iconsClipped=await page.locator(".mobile-region-row .region-picto").evaluateAll(icons=>icons.every(icon=>getComputedStyle(icon).overflow==="hidden"));
+    assert.ok(iconsClipped,"SVG icons must crop artwork inside their row bounds");
     await page.locator("[data-expand-regions]").click();
     assert.equal(await page.locator(".mobile-region-row").count(),12,"all official regions remain accessible");
     await page.locator(".mobile-region-row").filter({hasText:"太ももの前"}).click();
