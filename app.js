@@ -182,7 +182,7 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
    <div class="mobile-sheet-bar"></div>
    <div class="mobile-sheet-title">
      <div class="mobile-sheet-title-icon" style="background:${c.tint};color:${c.color}">✦</div>
-     <div class="mobile-sheet-title-label"><small>${esc(c.name)}</small><h2>${esc(state.topic)}</h2></div>
+     <button class="mobile-sheet-title-label" type="button" data-sheet-expand aria-expanded="${state.sheetExpanded}"><small>${esc(c.name)}</small><h2>${esc(state.topic)}</h2><span class="sheet-expand-hint">${state.sheetExpanded?"⌃":"⌄"}</span></button>
      <button class="sheet-toggle" type="button" data-sheet-toggle aria-label="${state.sheetVisible?"詳細シートを閉じる":"詳細シートを開く"}">${state.sheetVisible?"×":"⌃"}</button>
    </div>
    ${state.sheetVisible?`<div class="mobile-sheet-content">
@@ -218,6 +218,8 @@ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h
 }
   app.addEventListener("click",(event)=>{
     const region=event.target.closest("[data-region]");
+    const sheetExpand=event.target.closest("[data-sheet-expand]");
+    if(sheetExpand){const y=window.scrollY;state.sheetExpanded=!state.sheetExpanded;render();window.scrollTo(0,y);return}
     const sheetToggle=event.target.closest("[data-sheet-toggle]");
     if(sheetToggle){const y=window.scrollY;state.sheetVisible=!state.sheetVisible;render();window.scrollTo(0,y);return}
     const category=event.target.closest("[data-tree-category]");
