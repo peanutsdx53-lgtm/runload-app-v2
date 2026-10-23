@@ -26,7 +26,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",activityType:"run",feeling:"",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
   const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -106,10 +106,22 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
 <section class="grid-2 dashboard-bottom"><div class="card"><div class="section-title"><h2>記録の移り変わり</h2><a href="#/history" class="text-link">詳細を見る ↗</a></div><div class="home-trend">${historyChart(regionData("BA-DISP-023"))}</div></div><div class="card"><div class="section-title"><h2>探究の続きを見る</h2><a href="#/exploration-tree" class="text-link">開く ↗</a></div><div class="home-question"><div class="question-leaf">✦</div><div><strong>自分が感じた疲れ</strong><p class="lead">走行記録を見比べながら、気になるテーマを探してみましょう。</p></div></div></div></section>`;
 }
     function record(){
-return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h1>記録</h1><p class="lead">その日の走りと感じたことを、無理なく残す。</p></div>${buttonLink("measurement","GPS測定へ",true)}</section>
-<section class="grid-2"><div class="card stack"><div class="section-title"><h2>今日の記録をつける</h2><div class="segmented"><button data-record-type="run" class="${state.recordType==="run"?"is-active":""}">走行</button><button data-record-type="rest" class="${state.recordType==="rest"?"is-active":""}">休養</button></div></div>
-<div class="record-form-hero"><span class="record-form-icon">✎</span><div><strong>${state.recordType==="run"?"走った内容を記録する":"休養の内容を記録する"}</strong><p class="lead">入力する項目は必要なものだけで構いません。</p></div></div><div class="form-grid">${state.recordType==="run"?`<label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label>`:""}<label class="field">記録日<input type="date" value="2026-10-22"></label><label class="field">今の調子（任意）<select><option>選択しない</option><option>とても良い</option><option>良い</option><option>いつもどおり</option><option>あまり良くない</option><option>分からない</option></select></label></div><label class="field">感じたこと・気づいたこと（任意）<textarea placeholder="今日の気づきを自由に"></textarea></label><div class="record-bottom-actions"><button class="btn primary" type="button" data-demo-save>記録を確認する　→</button><a class="text-link" href="#/history">過去の記録を見る</a></div></div>
-<div class="card stack"><div class="section-title"><h2>走る前の準備</h2></div><a href="#/measurement" class="feature-entry"><span class="entry-icon cyan">◷</span><span><strong>GPSで測定</strong><small>走行ルートと時間を記録</small></span><span class="entry-arrow">›</span></a><a href="#/course" class="feature-entry"><span class="entry-icon blue">△</span><span><strong>コース設計</strong><small>距離・坂・路面を整理</small></span><span class="entry-arrow">›</span></a><a href="#/exploration-tree" class="feature-entry"><span class="entry-icon violet">✦</span><span><strong>探究ツリー</strong><small>記録を振り返り、理解を深める</small></span><span class="entry-arrow">›</span></a></div></section>`;
+ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h1>記録</h1><p class="lead">その日の走りと感じたことを、無理なく残す。</p></div>${buttonLink("measurement","GPS測定へ",true)}</section>
+<section class="grid-2 record-layout">
+ <div class="card stack">
+  <div class="section-title"><h2>今日の記録をつける</h2><div class="segmented"><button data-record-type="run" class="${state.recordType==="run"?"is-active":""}">走行</button><button data-record-type="rest" class="${state.recordType==="rest"?"is-active":""}">休養</button></div></div>
+  ${state.recordType==="run"?`<div class="record-activity-block"><strong>アクティビティの種類</strong><div class="record-activity-list">
+    ${[["run","♙","ラン"],["walk","♧","ウォーキング"],["hike","△","ハイキング"],["other","···","その他"]].map(([id,icon,name])=>`<button type="button" class="record-activity ${state.activityType===id?"is-active":""}" data-activity-type="${id}" aria-pressed="${state.activityType===id}"><span class="activity-icon">${icon}</span><span>${name}</span></button>`).join("")}
+    </div></div>`:"<div class='record-form-hero'><span class='record-form-icon'>☾</span><div><strong>休養日の記録</strong><p class='lead'>休養中の気づきを残すこともできます。</p></div></div>"}
+  <div class="form-grid">${state.recordType==="run"?`<label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label>`:""}<label class="field">記録日<input type="date" value="2026-10-22"></label><label class="field">今日の調子（任意）<select><option>選択しない</option><option>とても良い</option><option>良い</option><option>いつもどおり</option><option>あまり良くない</option><option>分からない</option></select></label></div>
+  <div class="record-feelings"><strong>気分（任意）</strong><div class="feelings-choice">
+    ${[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]].map(([id,icon,label])=>`<button type="button" data-feeling="${id}" aria-pressed="${state.feeling===id}" class="feeling-choice ${state.feeling===id?"is-active":""}"><span>${icon}</span><small>${label}</small></button>`).join("")}
+   </div></div>
+  <label class="field">感じたこと・気づいたこと（任意）<textarea placeholder="今日の気づきを自由に"></textarea></label>
+  <div class="record-bottom-actions"><button class="btn primary" type="button" data-demo-save>記録を確認する　→</button><a class="text-link" href="#/history">過去の記録を見る</a></div>
+ </div>
+ <div class="card stack"><div class="section-title"><h2>走る前の準備</h2></div><a href="#/measurement" class="feature-entry"><span class="entry-icon cyan">◷</span><span><strong>GPSで測定</strong><small>走行ルートと時間を記録</small></span><span class="entry-arrow">›</span></a><a href="#/course" class="feature-entry"><span class="entry-icon blue">△</span><span><strong>コース設計</strong><small>距離・坂・路面を整理</small></span><span class="entry-arrow">›</span></a><a href="#/exploration-tree" class="feature-entry"><span class="entry-icon violet">✦</span><span><strong>探究ツリー</strong><small>記録を振り返り、理解を深める</small></span><span class="entry-arrow">›</span></a></div>
+</section>`;
 }
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
@@ -240,6 +252,10 @@ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
+    const activity=event.target.closest("[data-activity-type]");
+    if(activity){const y=window.scrollY;state.activityType=activity.dataset.activityType;render();window.scrollTo(0,y);return}
+    const feeling=event.target.closest("[data-feeling]");
+    if(feeling){const y=window.scrollY;state.feeling=feeling.dataset.feeling;render();window.scrollTo(0,y);return}
     const type=event.target.closest("[data-record-type]");
     if(type){const y=window.scrollY;state.recordType=type.dataset.recordType;render();window.scrollTo(0,y);return}
     const filter=event.target.closest("[data-history-mode]");
