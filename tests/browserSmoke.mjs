@@ -22,7 +22,7 @@ const browser=await chromium.launch({headless:true});
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  const host="http://127.0.0.1:4173/";
- for(const mode of [{name:"desktop",width:1440,height:900},{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740}]){
+ for(const mode of [{name:"desktop",width:1440,height:900},{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740},{name:"wide-phone",width:430,height:932}]){
   const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:1,reducedMotion:"reduce"});
   page.on("pageerror",error=>{throw new Error(mode.name+" page error: "+error.message)});
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
@@ -79,7 +79,17 @@ try{
     assert.ok(layout.bodyWidth-layout.viewportWidth<=3,mode.name+" result horizontal overflow");
     console.log("PASS",mode.name,"non-overlap and legible radar",JSON.stringify(layout));
   }
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result-viewport.png"),fullPage:false});
+  if(mode.name!=="desktop"){
+    // The real fixed bottom nav appears naturally in the viewport capture.
+    // For a full-document review, place it after the document so it cannot mask sections.
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
+  if(mode.name!=="desktop"){
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
+  }
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
   assert.equal(await page.locator(".tree-desktop .tree-hub").count(),7,"desktop tree has 7 domains");
