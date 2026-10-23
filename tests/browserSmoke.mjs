@@ -45,11 +45,15 @@ try{
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
   assert.equal(await page.locator(".install-dialog").count(),0);
-  for(const route of ["record","history","settings"]){
+  for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
    assert.ok((await page.locator("main").innerText()).length>60,route);
+   const textContent=await page.locator("main").innerText();
+   assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用/.test(textContent),route+" developer-only text found");
+   const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+   assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+" horizontal overflow: "+overflow);
