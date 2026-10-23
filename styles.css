@@ -289,3 +289,19 @@ body{background:#f4f8fc}
   #fff}
  .tree-bubble.is-selected circle{filter:drop-shadow(0 0 12px #c3e0ed)}
 }
+
+/* Narrow-phone measurement controls: tested at 320px CSS viewport. */
+@media(max-width:800px){
+ .measurement-controls{display:flex;flex-wrap:wrap;gap:8px}
+ .measurement-controls .btn{min-width:0;flex:1 1 120px;padding:10px 6px}
+ .measurement-numbers{gap:18px;flex-wrap:wrap}
+ .measurement-numbers>div{min-width:80px}
+ .measurement-main,.measurement-layout,.card{min-width:0}
+}
+@media(max-width:355px){
+ .measurement-controls{display:grid;grid-template-columns:1fr}
+ .measurement-controls .btn{width:100%;min-width:0}
+ .measurement-display{padding:16px}
+ .measurement-clock{font-size:2.4rem}
+ .measurement-numbers{justify-content:space-between;gap:8px}
+}
