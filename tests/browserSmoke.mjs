@@ -39,6 +39,13 @@ try{
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
   await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
+  if(mode.name!=="desktop"){
+    assert.ok(await page.locator(".mobile-explore-sheet").isVisible(),"mobile theme bottom sheet");
+    await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
+    assert.ok(await page.locator(".mobile-explore-sheet.is-hidden").isVisible(),"close theme bottom sheet");
+    await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
+    assert.ok(await page.locator(".mobile-sheet-insight").isVisible(),"reopen theme bottom sheet");
+  }
   assert.match(await page.locator(".explore-topic-header").innerText(),/疲れと回復/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree.png"),fullPage:true});
   await page.locator("[data-install-app]").first().click();

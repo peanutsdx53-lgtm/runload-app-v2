@@ -26,13 +26,13 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",historyMode:"all",toast:""};
+  const state={region:"BA-DISP-023",resultMode:"all",mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",historyMode:"all",toast:"",sheetVisible:true,sheetExpanded:false};
   const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
   const navHtml=(items,page,mobile)=>items.map(([path,icon,label])=>`<a class="${mobile?"mobile-link":"side-link"} ${page===path?"is-active":""}" href="#/${path}" ${page===path?'aria-current="page"':""}><span class="nav-icon">${icon}</span>${label}</a>`).join("");
-  const header=(name,description,right="")=>`<section class="card page-hero"><div><div class="eyebrow">RUNLOAD UI NEXT</div><h1>${name}</h1><p class="lead">${description}</p></div>${right}</section>`;
+  const header=(name,description,right="")=>`<section class="card page-hero"><div><div class="eyebrow">RUNLOAD UI NEXT</div><h1>${name}</h1><p class="lead">${description}</p></div>${right}</section>${sheetBody}`;
   const badge=(text,style="")=>`<span class="badge ${style}">${esc(text)}</span>`;
   const buttonLink=(page,text,primary=false)=>`<a class="btn ${primary?"primary":""}" href="#/${page}">${text}<span aria-hidden="true">→</span></a>`;
   const metric=(title,value,unit="")=>`<div class="metric"><label>${title}</label><strong>${value}</strong><em>${unit}</em></div>`;
@@ -177,7 +177,21 @@ return `<section class="home-head"><div><div class="eyebrow">RUNNING LOG</div><h
  <div class="insight-card rose"><div class="aside-title"><span>✧</span><h3>${state.mode==="today"?"今日の接点":"関連する知識"}</h3></div><strong>${esc(c.name)}</strong><p>選択した分野から、4つのテーマを確かめましょう。</p></div>
  <div class="insight-card blue"><div class="aside-title"><span>⌑</span><h3>続けている問い</h3></div><p>保存した問いは、いつでも見返せます。</p><div class="empty-inline">まだ問いはありません</div></div>
  <div class="insight-card green"><div class="aside-title"><span>✦</span><h3>次にできること</h3></div><a href="#/result" class="aside-action">今回の結果を振り返る　→</a><a href="#/history" class="aside-action">過去の記録を確かめる　→</a></div></aside>`;
- return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div>${treeOverview()}
+ 
+ const sheetBody=`<div class="mobile-explore-sheet ${state.sheetExpanded?"is-expanded":""} ${state.sheetVisible?"":"is-hidden"}">
+   <div class="mobile-sheet-bar"></div>
+   <div class="mobile-sheet-title">
+     <div class="mobile-sheet-title-icon" style="background:${c.tint};color:${c.color}">✦</div>
+     <div class="mobile-sheet-title-label"><small>${esc(c.name)}</small><h2>${esc(state.topic)}</h2></div>
+     <button class="sheet-toggle" type="button" data-sheet-toggle aria-label="${state.sheetVisible?"詳細シートを閉じる":"詳細シートを開く"}">${state.sheetVisible?"×":"⌃"}</button>
+   </div>
+   ${state.sheetVisible?`<div class="mobile-sheet-content">
+    <div class="mobile-sheet-insight"><span>⌁</span><div><strong>自分の記録と照らし合わせる</strong><p>このテーマについて、今までの記録を確かめられます。</p></div><a href="#/result" aria-label="結果を見る">›</a></div>
+    <div class="mobile-sheet-cards"><div><span>▤</span><strong>知識</strong><p>関連する読みものを探す</p></div><div><span>✎</span><strong>自分の問い</strong><p>気づいたことを振り返る</p></div></div>
+    <a href="#/history" class="mobile-sheet-next"><span>✧</span><div><strong>次にできること</strong><small>以前の記録を見返す</small></div><span>›</span></a>
+   </div>`:""}
+ </div>`;
+return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div>${treeOverview()}
  <div class="explore-topic-detail"><div class="explore-topic-header"><div><small>選択中の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div><span class="badge">4つのテーマ</span></div>
  <div class="tree-topics">${topicButtons}</div>
  <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
@@ -204,6 +218,8 @@ return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h
 }
   app.addEventListener("click",(event)=>{
     const region=event.target.closest("[data-region]");
+    const sheetToggle=event.target.closest("[data-sheet-toggle]");
+    if(sheetToggle){const y=window.scrollY;state.sheetVisible=!state.sheetVisible;render();window.scrollTo(0,y);return}
     const category=event.target.closest("[data-tree-category]");
     if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0]}render();window.scrollTo(0,y);return}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
