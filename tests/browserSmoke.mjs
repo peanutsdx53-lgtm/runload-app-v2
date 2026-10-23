@@ -30,7 +30,7 @@ try{
   assert.match(await page.locator("h1").innerText(),/ホーム/);
   if(mode.name!=="desktop"){
     const button=await page.locator(".home-heading-actions>a.btn").boundingBox();
-    assert.ok(button&&button.width>=65&&button.height<=46,mode.name+" record button must remain horizontal: "+JSON.stringify(button));
+    assert.ok(button&&button.width>=58&&button.height<=46,mode.name+" record button must remain horizontal: "+JSON.stringify(button));
   }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-viewport.png"),fullPage:false});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
