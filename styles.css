@@ -1390,3 +1390,17 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .widget-edit-label{font-size:.72rem}
  .dashboard-edit-buttons .btn{font-size:.59rem}
 }
+
+/* Dashboard visual QA: prevent the home record/edit buttons from collapsing into vertical Japanese text. */
+.home-head:has(.home-heading-actions)>div:first-child{flex:1 1 auto;min-width:0}
+.home-head:has(.home-heading-actions) .home-heading-actions{flex:0 0 auto;min-width:0}
+.home-heading-actions>.btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:auto;white-space:nowrap;writing-mode:horizontal-tb}
+@media(max-width:800px){
+ .home-head:has(.home-heading-actions){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:6px}
+ .home-head:has(.home-heading-actions) .home-heading-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:nowrap}
+ .home-head:has(.home-heading-actions) .home-heading-actions>.btn{font-size:.69rem;min-height:32px;padding:6px 8px;white-space:nowrap}
+}
+@media(max-width:355px){
+ .home-head:has(.home-heading-actions){grid-template-columns:minmax(0,1fr) auto;gap:3px}
+ .home-head:has(.home-heading-actions) .home-heading-actions>.btn{font-size:.61rem;padding:5px 5px}
+}
