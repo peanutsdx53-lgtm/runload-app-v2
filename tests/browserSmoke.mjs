@@ -38,6 +38,10 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
+  assert.equal(await page.locator(".tree-desktop .tree-hub").count(),7,"desktop tree has 7 domains");
+  assert.equal(await page.locator(".tree-desktop .tree-leaf").count(),28,"desktop tree has 28 topic leaves");
+  assert.equal(await page.locator(".tree-mobile .tree-bubble").count(),7,"mobile tree has 7 selectable domains");
+  assert.ok(await page.locator(".tree-decoration").count()>20,"branch artwork is rendered from inline vector shapes");
   await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
   if(mode.name!=="desktop"){
     assert.ok(await page.locator(".mobile-explore-sheet").isVisible(),"mobile theme bottom sheet");
