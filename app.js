@@ -32,9 +32,9 @@
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
-  const pageLabels={home:"ホーム",record:"記録",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
-  const mobileNav=[["home","⌂","ホーム"],["record","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
+  const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
   const navIcon=function navIcon(name){
   const shapes={
@@ -160,14 +160,20 @@
   return `<div data-home-dashboard-id="${id}" class="dashboard-widget ${current.sizes[id]==="full"?"dashboard-widget--wide":"dashboard-widget--half"} ${!visible?"dashboard-widget--hidden":""}" ${editing?`data-home-editable="true"`:""}>${editingControls}<div class="dashboard-widget-content">${cards[id]||""}</div></div>`;
  }).join("");
  const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="マイダッシュボードの編集"><div><strong>マイダッシュボードを編集</strong><p>ハンドルを長押しして移動できます。上下ボタン・表示・サイズ変更も使えます。変更の保存は手動です。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
- return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE</div><h1>ホーム</h1><p class="lead">走る日も、休む日も。自分のペースで続けよう。</p></div><div class="home-heading-actions"><a href="#/record" class="btn primary">＋ 記録する</a><button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を中止":"マイダッシュボードを編集"}</button></div></section>
+ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE</div><h1>ホーム</h1><p class="lead">走る日も、休む日も。自分のペースで続けよう。</p></div><div class="home-heading-actions"><a href="#/measurement" class="btn primary">GPSで測定</a><button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を中止":"マイダッシュボードを編集"}</button></div></section>
  <section class="home-welcome"><span class="welcome-mark" aria-hidden="true">☀</span><div><strong>今日も、自分らしい一日を。</strong><p>走りも休養も、あなたのペースで。</p></div><a href="#/exploration-tree" aria-label="探究ツリーへ">↗</a></section>
  ${homeEditState.notice?`<div class="dashboard-edit-notice" role="status">${esc(homeEditState.notice)}</div>`:""}
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
+ <section class="mobile-start-controls" aria-label="記録の始め方"><a href="#/measurement" class="mobile-gps-start"><span class="start-symbol" aria-hidden="true">◎</span><span><strong>GPSで測定</strong><small>屋外で走るときはこちらから</small></span><span aria-hidden="true">→</span></a><a href="#/record" class="mobile-manual-start"><span aria-hidden="true">✎</span><span><strong>手入力で記録</strong><small>走行後・休養日の記録</small></span></a></section>
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>`;
 }
-    function record(){
+    function recordStart(){
+ return `<section class="record-choose-head"><span class="eyebrow">START YOUR RUN</span><h1>記録の方法を選ぶ</h1><p class="lead">GPSで測定するか、あとから手入力するか選べます。</p></section>
+ <section class="record-choose-grid"><a class="record-choose-primary" href="#/measurement"><span class="choose-icon" aria-hidden="true">◎</span><strong>GPSで測定</strong><p>走行中の時間と距離を測るための画面へ</p><small>※ v2ではGPS測定エンジン接続前です</small><span class="choose-arrow">開始画面へ →</span></a><a class="record-choose-secondary" href="#/record"><span class="choose-icon" aria-hidden="true">✎</span><strong>手入力で記録</strong><p>走行時間・距離・ROF-Jの疲労感を記入する</p><span class="choose-arrow">入力画面へ →</span></a></section>
+ <p class="record-choose-note">旧アプリのGPS・保存エンジンと接続するまでは、v2からの測定開始や正式保存はできません。</p>`;
+}
+function record(){
  const draft=state.recordDraft,active=state.recordType==="run";
  const activities=[["run","♙","ラン"],["walk","♧","ウォーキング"],["cycle","♢","バイク"],["other","···","その他"]];
  const moods=[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]];
@@ -337,8 +343,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     let stopHomeDrag=null;
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
- const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":page;
+ const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
+ const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page,true)}</nav></div>`;
  if(page==="home"&&homeEditState.editing){
   stopHomeDrag=dashboardDrag.bindHomeDashboardDrag(app.querySelector(".dashboard-custom-grid"),{
