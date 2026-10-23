@@ -119,8 +119,31 @@ try{
   assert.equal(await page.locator("[data-feeling]").count(),5,"five visual mood options");
   await page.locator("[data-activity-type=walk]").click();
   assert.equal(await page.locator("[data-activity-type=walk]").getAttribute("aria-pressed"),"true");
+  await page.locator("[data-draft=distance]").fill("7.25");
+  await page.locator("[data-draft=minutes]").fill("45");
+  await page.locator("[data-draft=memo]").fill("自分のペースで走った");
   await page.locator("[data-feeling=regular]").click();
   assert.equal(await page.locator("[data-feeling=regular]").getAttribute("aria-pressed"),"true");
+  assert.equal(await page.locator("[data-draft=distance]").inputValue(),"7.25","distance retained across mood rerender");
+  assert.equal(await page.locator("[data-draft=memo]").inputValue(),"自分のペースで走った","notes retained across mood rerender");
+  await page.locator("[data-record-type=rest]").click();
+  assert.equal(await page.locator("[data-draft=distance]").count(),0);
+  await page.locator("[data-record-type=run]").click();
+  assert.equal(await page.locator("[data-draft=distance]").inputValue(),"7.25","inputs retained across record types");
+  await page.locator("[data-demo-save]").click();
+  assert.ok(await page.locator(".record-preview-dialog").isVisible(),"review dialog is opened, not a fictitious saved result");
+  assert.match(await page.locator(".record-preview-dialog").innerText(),/まだ正式な記録保存を行いません/);
+  await page.locator(".record-preview-dialog [data-close-preview]").click();
+  assert.equal(await page.locator(".record-preview-dialog").count(),0);
+  if(mode.name!=="desktop"){
+    const bounds=await page.evaluate(()=>{
+      const el=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();if(!r)throw Error("missing "+selector);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom}};
+      const overlap=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
+      return {distance:el(".record-distance"),duration:el(".record-duration"),moodLabels:[...document.querySelectorAll(".feeling-choice small")].map(x=>x.getBoundingClientRect().height),bodyWidth:document.documentElement.scrollWidth,viewport:innerWidth};
+    });
+    assert.ok(bounds.bodyWidth-bounds.viewport<=3,mode.name+" record overflows horizontally");
+    assert.ok(bounds.moodLabels.every(h=>h>=10),mode.name+" mood labels unreadable");
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-active.png"),fullPage:true});
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".calendar-day").count(),31,"calendar days in October");
@@ -133,7 +156,10 @@ try{
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
+   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+"-viewport.png"),fullPage:false});
+   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
+   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
    assert.ok((await page.locator("main").innerText()).length>60,route);
    const textContent=await page.locator("main").innerText();
    assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用/.test(textContent),route+" developer-only text found");
