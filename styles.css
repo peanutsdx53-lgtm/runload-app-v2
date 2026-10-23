@@ -1309,3 +1309,30 @@ a:focus-visible,button:focus-visible{outline-offset:3px}
  .duration-inputs input{font-size:.92rem}
  .record-editor .feeling-choice small{font-size:.52rem}
 }
+
+/* Exploration list fidelity: prevent two-digit topic numbers from wrapping. */
+.explore-topic-detail .tree-topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.explore-topic-detail .topic-choice{
+  display:grid;grid-template-columns:30px minmax(0,1fr) 12px;align-items:center;
+  gap:6px;min-width:0;min-height:56px;font-size:.79rem;text-align:left;line-height:1.35;
+  overflow-wrap:anywhere;padding:9px;
+}
+.explore-topic-detail .topic-choice.is-selected{padding:8px}
+.explore-topic-detail .topic-choice .topic-index{
+  display:block;min-width:27px;white-space:nowrap;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;font-size:1rem;font-weight:850;text-align:center;
+}
+.explore-topic-detail .topic-choice>span:last-child{justify-self:end;white-space:nowrap}
+@media(max-width:800px){
+  .explore-topic-detail .tree-topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .explore-topic-detail .topic-choice{
+    grid-template-columns:26px minmax(0,1fr) 9px;gap:5px;padding:8px 6px;
+    font-size:.73rem;min-height:61px;
+  }
+  .explore-topic-detail .topic-choice.is-selected{padding:7px 5px}
+  .explore-topic-detail .topic-choice .topic-index{min-width:25px;font-size:.94rem}
+}
+@media(max-width:355px){
+  .explore-topic-detail .topic-choice{grid-template-columns:24px minmax(0,1fr) 8px;gap:3px;font-size:.68rem}
+  .explore-topic-detail .topic-choice .topic-index{min-width:22px;font-size:.88rem}
+}
