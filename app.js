@@ -93,7 +93,23 @@
     const base=(y2-(100-lo)/(hi-lo)*(y2-y1)).toFixed(1);
     return `<svg class="spark-chart" viewBox="0 0 540 155" role="img" aria-label="${region.friendly}の参考値の推移"><line x1="18" x2="520" y1="${base}" y2="${base}" stroke="#819eae" stroke-dasharray="5 4"/><text x="22" y="${Math.max(12,Number(base)-5)}" fill="#708895" font-size="11">基準100</text><polyline points="${pts}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((val,i)=>{const [x,y]=coord(val,i);return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#008a9c" stroke-width="2.4"/>`}).join("")}<text x="516" y="16" text-anchor="end" fill="#007589" font-size="12" font-weight="800">${v.toFixed(1)}</text></svg>`;
 }
-  function radarChart(){
+  function miniTrendChart(region){
+ const v=region.value,prev=region.prev;
+ if(!Number.isFinite(v))return `<div class="mini-empty">推移はありません</div>`;
+ const ySeries=[v-9.5,v-7.1,v-8.0,v-5.1,Number.isFinite(prev)?prev:v-2.8,v];
+ const low=Math.min(100,...ySeries)-5,high=Math.max(100,...ySeries)+5;
+ const X=i=>24+i*37,Y=n=>74-(n-low)/(high-low)*55;
+ const poly=ySeries.map((n,i)=>`${X(i)},${Y(n).toFixed(1)}`).join(" ");
+ const base=Y(100).toFixed(1);
+ return `<svg class="mobile-mini-trend" viewBox="0 0 220 103" role="img" aria-label="${esc(region.friendly)}の参考値の推移">
+    <line x1="24" y1="${base}" x2="211" y2="${base}" stroke="#93afc9" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="23" y="${Math.max(9,Number(base)-4)}" fill="#7e92a5" font-size="8.5">基準100</text>
+    <polyline points="${poly}" fill="none" stroke="#1686e3" stroke-width="2.7" stroke-linejoin="round" stroke-linecap="round"/>
+    ${ySeries.map((n,i)=>`<circle cx="${X(i)}" cy="${Y(n).toFixed(1)}" r="3.4" fill="#fff" stroke="#1987e6" stroke-width="1.9"/>`).join("")}
+    <text x="25" y="97" fill="#8ca0b3" font-size="9">過去</text><text x="210" y="97" text-anchor="end" fill="#4885b5" font-size="9">今回</text>
+ </svg>`;
+}
+    function radarChart(){
     const labels=["距離","平均速度","ペース変動","上り密度","推定歩調","疲労変化"],a=[.63,.58,.42,.28,.5,.6],b=[.5,.51,.35,.22,.42,.47],cx=150,cy=115;
     const polygon=(data,r)=>data.map((v,i)=>{const theta=i*Math.PI/3;return `${(cx+Math.sin(theta)*r*v).toFixed(1)},${(cy-Math.cos(theta)*r*v).toFixed(1)}`}).join(" ");
     return `<svg class="radar-chart" viewBox="0 0 300 225" role="img" aria-label="架空の今回と前回を示す6軸走行プロフィール。能力点数ではありません">${[.33,.66,1].map(f=>`<polygon points="${polygon([f,f,f,f,f,f],76)}" fill="none" stroke="#c8d8e0"/>`).join("")}${labels.map((l,i)=>{const t=i*Math.PI/3;return `<line x1="${cx}" y1="${cy}" x2="${cx+Math.sin(t)*76}" y2="${cy-Math.cos(t)*76}" stroke="#cadbe3"/><text class="radar-label" text-anchor="middle" x="${cx+Math.sin(t)*108}" y="${cy-Math.cos(t)*97+4}">${l}</text>`}).join("")}<polygon points="${polygon(b,76)}" fill="#94a3b8" fill-opacity=".14" stroke="#94a3b8" stroke-width="2"/><polygon points="${polygon(a,76)}" fill="#0891b2" fill-opacity=".16" stroke="#0891b2" stroke-width="2.4"/></svg>`;
@@ -157,10 +173,10 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
       <div class="mobile-baseline-chip">基準比 <b>${valid(v)?pct(v-100):"—"}</b></div>
       <div class="mobile-past-stats"><div><small>前回の値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回から</small><strong class="${status(v)}">${comparison}</strong></div></div>
    </div>
-   <div class="mobile-inline-trend"><h3>最近の推移</h3>${historyChart(current)}</div>
+   <div class="mobile-inline-trend"><h3>最近の推移</h3>${miniTrendChart(current)}</div>
  </div>`;
  return `<section class="result-top card"><div class="result-heading"><div><div class="eyebrow">RUN REPORT</div><h1>結果</h1><p class="lead">走りを振り返り、自分のペースで次へつなげる。</p></div><div class="result-top-signals"><div class="signal-box"><span class="signal-icon">▥</span><span><small>数値あり</small><strong>11/12</strong></span></div><div class="signal-box"><span class="signal-icon">⇄</span><span><small>前回の参考値</small><strong>あり</strong></span></div><div class="signal-box warm"><span class="signal-icon">⌁</span><span><small>疲労感の変化</small><strong>+2</strong></span></div></div></div>
- <div class="run-facts"><span>◫　10月22日</span><span>◇　<strong>8.20</strong> km</span><span>◷　<strong>45</strong> 分</span><span>◉　<strong>5:29</strong> /km</span><span>⌁　コース情報なし</span></div></section>
+ <div class="run-facts"><span class="run-fact-date">◫　10月22日</span><span class="run-fact"><small>距離</small><strong>8.20</strong><em>km</em></span><span class="run-fact"><small>時間</small><strong>45</strong><em>分</em></span><span class="run-fact"><small>平均ペース</small><strong>5:29</strong><em>/km</em></span><span class="run-fact-course">⌁　コース情報なし</span></div></section>
  <section class="result-primary">
  <div class="card anatomy-card"><div class="section-title"><h2>身体の部位から見る</h2><a href="#/body-part-detail" class="help-link">部位の見方　ⓘ</a></div><div class="body-map-row">${BODY_REGION_VIEWS.map(svgBody).join("")}</div>${legend()}<p class="chart-caption">色は各部位自身の基準100との関係を示します。</p></div>
  <div class="card regions-card"><div class="section-title"><h2>12部位を見渡す</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div>${mobileRegionRows()}<p class="chart-caption regions-guidance">部位を選ぶと、人体図と詳細が連動します。</p></div>
