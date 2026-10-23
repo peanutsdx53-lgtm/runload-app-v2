@@ -39,8 +39,8 @@
   const pct=(value)=>value===null?"—":(value>0?"+":"")+value.toFixed(1);
   const valid=(x)=>x!==null&&x!==undefined&&Number.isFinite(x);
   const regionData=(id)=>REGIONS.find(x=>x.id===id)||REGIONS[0];
-  const status=(v)=>!valid(v)?"missing":v>=101?"above":v<=99?"below":"near";
-  const stateLabel=(v)=>!valid(v)?"表示なし":v>=101?"基準より上":v<=99?"基準より下":"基準付近";
+  const status=(v)=>!valid(v)?"missing":v>110?"above":v<90?"below":"near";
+  const stateLabel=(v)=>!valid(v)?"表示なし":v>110?"基準より上":v<90?"基準より下":"基準付近";
   const svgBody=(view)=>{
     const cid="clip-"+view.key;
     const paths=view.paths.map(([id,d])=>{
@@ -55,13 +55,18 @@
     const delta=valid(r.value)?r.value-100:null;
     return `<button type="button" class="region-tile ${state.region===r.id?"is-selected":""}" data-region="${r.id}" aria-pressed="${state.region===r.id}"><span class="name">${esc(r.friendly)}</span><span class="value">${valid(r.value)?r.value.toFixed(1):"—"}</span><span class="baseline ${status(r.value)}">${valid(delta)?"基準差 "+pct(delta):"数値なし"}</span></button>`;
   }).join("");
-  function historyChart(){
-    const values=[88,93,95,97,108.2,112.4],xmin=18,xmax=516,ymin=30,ymax=132;
-    const point=(v,i)=>[(xmin+(xmax-xmin)*i/(values.length-1)).toFixed(1),(ymax-(v-70)/(125-70)*(ymax-ymin)).toFixed(1)];
-    const points=values.map((v,i)=>point(v,i).join(",")).join(" ");
-    const baseY=(ymax-(100-70)/(125-70)*(ymax-ymin)).toFixed(1);
-    return `<svg class="spark-chart" viewBox="0 0 540 158" role="img" aria-label="架空の6走行における選択部位の値の推移。実データではありません"><line x1="18" x2="520" y1="${baseY}" y2="${baseY}" stroke="#829baa" stroke-dasharray="5 4"/><text x="20" y="${Number(baseY)-5}" fill="#748a99" font-size="11">基準100</text><polyline points="${points}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${values.map((v,i)=>{const [x,y]=point(v,i);return `<circle cx="${x}" cy="${y}" r="4" fill="white" stroke="#008a9c" stroke-width="2.5"/>`}).join("")}<text x="514" y="25" text-anchor="end" fill="#007589" font-weight="bold" font-size="13">デモ：112.4</text></svg>`;
-  }
+  function historyChart(region){
+    // Demo only: values are derived from a mock selected region to keep the chart consistent with the card.
+    if(!Number.isFinite(region?.value))return `<div class="empty-state">この部位の推移は表示できません（仮データ未設定）。</div>`;
+    const v=region.value;
+    const vals=[v-9.5,v-7.1,v-8.0,v-5.1,Number.isFinite(region.prev)?region.prev:v-2.8,v];
+    const lo=Math.min(...vals,100)-6,hi=Math.max(...vals,100)+6;
+    const x1=20,x2=520,y1=25,y2=132;
+    const coord=(val,i)=>[(x1+(x2-x1)*i/(vals.length-1)).toFixed(1),(y2-(val-lo)/(hi-lo)*(y2-y1)).toFixed(1)];
+    const pts=vals.map((val,i)=>coord(val,i).join(",")).join(" ");
+    const base=(y2-(100-lo)/(hi-lo)*(y2-y1)).toFixed(1);
+    return `<svg class="spark-chart" viewBox="0 0 540 155" role="img" aria-label="${region.friendly}の仮の推移。実記録ではありません"><line x1="18" x2="520" y1="${base}" y2="${base}" stroke="#819eae" stroke-dasharray="5 4"/><text x="22" y="${Math.max(12,Number(base)-5)}" fill="#708895" font-size="11">基準100</text><polyline points="${pts}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((val,i)=>{const [x,y]=coord(val,i);return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#008a9c" stroke-width="2.4"/>`}).join("")}<text x="516" y="16" text-anchor="end" fill="#007589" font-size="12" font-weight="800">デモ ${v.toFixed(1)}</text></svg>`;
+}
   function radarChart(){
     const labels=["距離","平均速度","ペース変動","上り密度","推定歩調","疲労変化"],a=[.63,.58,.42,.28,.5,.6],b=[.5,.51,.35,.22,.42,.47],cx=150,cy=115;
     const polygon=(data,r)=>data.map((v,i)=>{const theta=i*Math.PI/3;return `${(cx+Math.sin(theta)*r*v).toFixed(1)},${(cy-Math.cos(theta)*r*v).toFixed(1)}`}).join(" ");
@@ -82,7 +87,7 @@
     `<section class="card stack"><div class="section-title"><h2>今回の走行（仮データ）</h2>${badge("GPS軌跡なし","ghost")}</div><div class="metric-grid">${metric("記録日","10/22","")}${metric("距離","8.20","km")}${metric("時間","45","分")}${metric("平均ペース","5:29","/km")}</div><div class="info-note">GPS軌跡がない状態の例です。実データのない地図は表示しません。</div></section>
     <section class="result-primary"><div class="card"><div class="section-title"><h2>身体の部位から見る</h2>${badge("前面・後面・足裏")}</div><p class="lead">気になる部位をタップすると、12部位の数値と詳細が連動します。</p><div class="body-map-row">${BODY_REGION_VIEWS.map(svgBody).join("")}</div>${legend()}<p class="chart-caption">数値は部位自身の基準100に対する参考値。筋肉の使用量を直接測定したものではありません。</p></div>
     <div class="card"><div class="section-title"><h2>12部位比較値</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全12部位</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div><p class="chart-caption">部位間の順位ではありません。表示がない部位を0として扱いません。</p></div></section>
-    <section class="result-lower"><div class="card stack" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細：${esc(current.friendly)}</h2>${badge(current.name)}</div>${buttonLink("body-part-detail","詳しく見る")}</div><div class="detail-summary"><div><small>今回（デモ）</small><div class="detail-value">${valid(v)?v.toFixed(1):"—"}</div></div><div class="detail-mini"><small>基準100との差</small><h3>${valid(v)?pct(v-100):"—"}</h3></div><div class="detail-mini"><small>前回（デモ）</small><h3>${valid(prev)?prev.toFixed(1):"—"}</h3></div><div class="detail-mini"><small>前回との差</small><h3>${valid(v)&&valid(prev)?pct(v-prev):"—"}</h3></div></div><div class="chart-card">${historyChart()}<p class="chart-caption">このグラフの値も固定の仮表示です。将来は同じ意味の記録だけを比較します。</p></div><div class="info-note">各部位自身の基準を100とした文献由来の参考値です。実測した組織負荷、正常値、傷害リスクではありません。</div></div>
+    <section class="result-lower"><div class="card stack" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細：${esc(current.friendly)}</h2>${badge(current.name)}</div>${buttonLink("body-part-detail","詳しく見る")}</div><div class="detail-summary"><div><small>今回（デモ）</small><div class="detail-value">${valid(v)?v.toFixed(1):"—"}</div></div><div class="detail-mini"><small>基準100との差</small><h3>${valid(v)?pct(v-100):"—"}</h3></div><div class="detail-mini"><small>前回（デモ）</small><h3>${valid(prev)?prev.toFixed(1):"—"}</h3></div><div class="detail-mini"><small>前回との差</small><h3>${valid(v)&&valid(prev)?pct(v-prev):"—"}</h3></div></div><div class="chart-card">${historyChart(current)}<p class="chart-caption">このグラフの値も固定の仮表示です。将来は同じ意味の記録だけを比較します。</p></div><div class="info-note">各部位自身の基準を100とした文献由来の参考値です。実測した組織負荷、正常値、傷害リスクではありません。</div></div>
     <div class="support-stack"><div class="card stack"><div class="section-title"><h2>運動前後の疲労感</h2>${badge("ROF-J")}</div><div class="fatigue-flex"><div><small>運動前</small><div class="fatigue-value">6</div></div><span class="arrow">→</span><div><small>運動後</small><div class="fatigue-value">8</div></div><span class="arrow">＝</span><div><small>変化</small><div class="fatigue-value">+2</div></div></div><p class="chart-caption">デモ数値。ROF-Jは0〜10の主観的疲労評価です。</p></div><div class="card stack"><div class="section-title"><h2>走行プロフィール（補助）</h2>${badge("6軸・参考")}</div>${radarChart()}<div class="map-legend"><span><i class="dot" style="background:#0891b2"></i>今回</span><span><i class="dot missing"></i>前回</span></div><p class="chart-caption">距離・平均速度・ペース変動・上り密度・推定歩調・疲労変化。レーダーは総合点ではありません。</p></div></div></section>
     <section class="card"><div class="section-title"><h2>次にできること</h2>${badge("本人が選択")}</div><div class="btn-row">${buttonLink("exploration-tree","探究ツリーへ",true)}${buttonLink("history","履歴を見る")}${buttonLink("simulation","シミュレーション")}</div></section>`;
   }
@@ -92,16 +97,53 @@
     return header("履歴","走行・休養・振り返りの記録を見つける。")+
     `<section class="card stack"><div class="section-title"><h2>記録一覧（デモ）</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([key,label])=>`<button data-history-mode="${key}" class="${state.historyMode===key?"is-active":""}">${label}</button>`).join("")}</div></div><div class="timeline">${shown.map(row=>`<a href="#/result" class="timeline-item"><span><strong>${row[0]}</strong><p class="lead">${row[1]}</p></span>${badge(row[2])}</a>`).join("")}</div><p class="chart-caption">架空の履歴です。本番連携時には休養記録から部位計算結果へ誘導しないよう分岐します。</p></section><section class="grid-2"><a class="simple-card" href="#/exploration-tree"><strong>探究の足跡</strong><p>以前の問いや、気になったテーマを振り返る入口。</p></a><a class="simple-card" href="#/result"><strong>12部位の推移</strong><p>比較適格な記録だけを表示する設計。</p></a></section>`;
   }
+  function treeOverview(){
+  const positions=[["01",150,96],["02",408,72],["03",729,100],["04",784,271],["05",674,389],["06",392,385],["07",138,304]];
+  const paths=positions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id);const selected=state.category===id;
+    return `<path d="M450,228 Q${Math.round((450+x)/2)},${Math.round((228+y)/2-22)} ${x},${y}" fill="none" stroke="${c.color}" stroke-opacity="${selected?".6":".3"}" stroke-width="${selected?4:2.4}" stroke-linecap="round"/>`;
+  }).join("");
+  const nodes=positions.map(([id,x,y])=>{
+    const c=CATEGORIES.find(a=>a.id===id),sel=state.category===id;
+    return `<g data-tree-category="${id}" class="tree-node ${sel?"is-selected":""}" role="button" tabindex="0" aria-label="${esc(c.name)}のテーマを表示" aria-pressed="${sel}"><rect x="${x-84}" y="${y-28}" width="168" height="56" rx="19" fill="#fff" stroke="${c.color}" stroke-width="${sel?3:1.5}"/><circle cx="${x-60}" cy="${y}" r="8" fill="${c.color}"/><text x="${x+8}" y="${y+5}" text-anchor="middle" fill="#1a354a" font-size="15" font-weight="700">${esc(c.name)}</text>${sel?`<rect x="${x-90}" y="${y-34}" width="180" height="68" rx="23" fill="none" stroke="${c.color}" stroke-opacity=".20" stroke-width="7"/>`:""}</g>`;
+  }).join("");
+  const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 920 470" role="group" aria-label="中心から7分野に枝分かれする探究ツリー。各分野を選択できます"><g>${paths}</g><circle cx="450" cy="228" r="65" fill="#e9f7f7"/><circle cx="450" cy="228" r="53" fill="#007e96"/><text x="450" y="221" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">RunLoad</text><text x="450" y="241" text-anchor="middle" font-size="13" fill="#ddf7f8">探究ツリー</text>${nodes}</svg>`;
+  const mobilePositions=[["01",100,120],["02",260,172],["03",100,225],["04",260,278],["05",100,332],["06",260,385],["07",100,439]];
+  const mobilePaths=mobilePositions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id);return `<path d="M180,77 L180,${y} L${x},${y}" stroke="${c.color}" stroke-width="${state.category===id?3:1.7}" stroke-opacity="${state.category===id?".65":".27"}" fill="none"/>`}).join("");
+  const mobileNodes=mobilePositions.map(([id,x,y])=>{const c=CATEGORIES.find(a=>a.id===id),sel=state.category===id;return `<g data-tree-category="${id}" class="tree-node ${sel?"is-selected":""}" role="button" tabindex="0" aria-label="${esc(c.name)}のテーマを表示" aria-pressed="${sel}"><rect x="${x-81}" y="${y-21}" width="162" height="43" rx="15" fill="#fff" stroke="${c.color}" stroke-width="${sel?3:1.6}"/><circle cx="${x-60}" cy="${y}" r="6" fill="${c.color}"/><text x="${x+8}" y="${y+4}" text-anchor="middle" font-size="13" font-weight="750" fill="#233b4b">${esc(c.name)}</text></g>`}).join("");
+  const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 483" role="group" aria-label="7分野の探究ツリー。分野の選択で下のテーマが変わります"><path d="M180,76 L180,439" fill="none" stroke="#a8d3dc" stroke-width="2" stroke-dasharray="5 5"/>${mobilePaths}<circle cx="180" cy="45" r="37" fill="#007e96"/><text x="180" y="41" text-anchor="middle" font-size="14" font-weight="800" fill="white">探究</text><text x="180" y="56" text-anchor="middle" font-size="11" fill="#ecfbfd">ツリー</text>${mobileNodes}</svg>`;
+  return `<div class="tree-overview"><div class="tree-overview__decor" aria-hidden="true"></div>${desktop}${mobile}</div>`;
+}
   function explore(){
-    const category=CATEGORIES.find(c=>c.id===state.category)||CATEGORIES[0];
-    return header("探究ツリー","走るたび、自分への理解が育つ。",badge("7分野・28テーマ"))+
-    `<section class="card stack"><div class="section-title"><h2>どこから探しますか？</h2><div class="segmented">${[["today","今回の走り"],["free","自由探索"],["questions","過去の問い"]].map(([id,name])=>`<button data-explore-mode="${id}" class="${state.mode===id?"is-active":""}">${name}</button>`).join("")}</div></div><p class="lead">${state.mode==="today"?"今日は仮データを使った探索例です。実際の記録による淡い発光は本番連携後に行います。":state.mode==="free"?"分野やテーマを自由に選べます。": "本人が保存した問いがある場合に表示する予定です。"}</p></section>
-    <section class="topic-layout"><div class="card"><div class="section-title"><h2>7つの分野</h2>${badge("自由に選べます")}</div><div class="grid-2">${CATEGORIES.map(c=>`<div class="topic-cluster ${state.category===c.id?"is-selected":""}" style="--cluster-color:${c.color};--cluster-tint:${c.tint}"><h3><span class="cluster-icon">${c.icon}</span>${c.name}</h3><div class="topics">${c.topics.map(topic=>`<button type="button" data-topic="${c.id}|${esc(topic)}">${esc(topic)}</button>`).join("")}</div></div>`).join("")}</div></div><div class="card stack"><div class="section-title"><h2>選択したテーマ</h2>${badge(category.name)}</div><div class="topic-detail"><strong>${esc(state.topic)}</strong><p class="lead">今のテーマに関連する走行記録・科学的な知識・以前の問いを、ここから順に確認できる設計です。</p></div><div class="info-note">UI試作段階では推論や自動記録を行いません。関連データがない場合は「記録なし」として表示します。</div><h3>このテーマでできること</h3><div class="stack"><a href="#/result" class="simple-card"><strong>自分の結果と照らし合わせる</strong><p>12部位の参考値、比較可能な過去の記録など。</p></a><a href="#/history" class="simple-card"><strong>過去の記録を見る</strong><p>以前の経験を参照する。</p></a><div class="simple-card"><strong>自分の問い</strong><p>保存は本人が選択した場合だけ。今は表示構成の仮置きです。</p></div></div><div class="btn-row">${buttonLink("record","次の記録へ")}</div></div></section>`;
-  }
+  const c=CATEGORIES.find(c=>c.id===state.category)||CATEGORIES[0];
+  const selectTopics=c.topics.map(topic=>`<button type="button" data-topic="${c.id}|${esc(topic)}" class="topic-choice ${state.topic===topic?"is-selected":""}" aria-pressed="${state.topic===topic}">${esc(topic)} <span aria-hidden="true">›</span></button>`).join("");
+  const hint=state.mode==="today"?"今日の記録に関連した発光は、実際のデータと照合できるようになってから有効になります。":state.mode==="free"?"自分が関心を持った枝から自由に探せます。":"本人が保存した問いは、正式な保存機能の接続後に表示します。";
+  return header("探究ツリー","走るたび、自分への理解が育つ。",badge("7分野・28テーマ"))+
+    `<section class="card explore-toolbar"><div class="section-title"><h2>どこから探しますか？</h2><div class="segmented">${[["today","今回の走り"],["free","自由探索"],["questions","過去の問い"]].map(([mode,label])=>`<button data-explore-mode="${mode}" class="${state.mode===mode?"is-active":""}">${label}</button>`).join("")}</div></div><p class="lead">${hint}</p></section>
+    <section class="topic-layout">
+      <div class="card tree-panel">
+        <div class="section-title"><div><div class="eyebrow">EXPLORE THE RUN</div><h2>気になる枝を選ぶ</h2></div>${badge("操作できるツリー")}</div>
+        <p class="lead">7つの分野から一つ選ぶと、関連する4つのテーマが開きます。</p>
+        ${treeOverview()}
+        <div class="tree-selected-head"><div><small>現在の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div>${badge("4テーマ")}</div>
+        <div class="tree-topics">${selectTopics}</div>
+      </div>
+      <div class="card tree-detail-panel">
+        <div class="eyebrow">SELECTED TOPIC</div>
+        <h2>${esc(state.topic)}</h2>
+        <p class="lead">記録・知識・自分の問いをつなぐための探究テーマです。</p>
+        <div class="topic-detail feature-insight"><strong>今回の記録との接点</strong><p>この試作版では科学計算・記録連携を行っていません。関係が確認できない情報を推測で補完しません。</p><span class="badge ghost">実データ未接続</span></div>
+        <div class="tree-detail-step"><span class="step-num">01</span><div><strong>自分の記録を確かめる</strong><p>12部位の参考値や過去の走行と照らし合わせます。</p></div>${buttonLink("result","結果へ")}</div>
+        <div class="tree-detail-step"><span class="step-num">02</span><div><strong>知識を探す</strong><p>出典のある関連コラムを統合する予定です。</p></div><span class="badge ghost">準備中</span></div>
+        <div class="tree-detail-step"><span class="step-num">03</span><div><strong>自分の問いを残す</strong><p>本人が選んだ場合だけ記録し、次回も確かめられます。</p></div><span class="badge ghost">準備中</span></div>
+        <div class="tree-next"><strong>次にできること</strong><p class="lead">知識を読む、記録を振り返る、何も選ばず終了する。いずれも本人の自由です。</p><div class="btn-row">${buttonLink("history","履歴へ")}${buttonLink("record","記録へ")}</div></div>
+      </div>
+    </section>`;
+}
   function settings(){
-    return header("設定","使いやすさ、安全、保存の扱いを確認する。")+
-    `<section class="grid-2">${[["表示とアクセシビリティ","文字・配色・動きの設定を今後ここへ集約します。"],["記録とデータ","削除・エクスポート・バックアップの方針を整理します。"],["プライバシー","入力や日誌、GPSの取り扱いを明示します。"],["アプリ情報","RunLoad UI Next — 新UI試作版。科学計算は未接続です。"]].map(([n,s])=>`<div class="card stack"><h2>${n}</h2><p class="lead">${s}</p></div>`).join("")}</section>`;
-  }
+ return header("設定","使いやすさ・データの扱い・アプリ利用環境をまとめます。")+
+ `<section class="card install-settings"><div class="install-settings-icon" aria-hidden="true">↗</div><div><div class="eyebrow">INSTALL RUNLOAD UI NEXT</div><h2>RunLoadをホーム画面に追加</h2><p class="lead">スマホやPCでアプリのように開けます。対応ブラウザではオフラインで試作画面も確認できます。</p></div><button class="btn primary" type="button" data-install-app>インストール方法を見る ↗</button></section>
+ <section class="grid-2">${[["表示とアクセシビリティ","文字・配色・動きの設定を今後ここへ集約します。"],["記録とデータ","削除・エクスポート・バックアップの方針を整理します。"],["プライバシー","入力や日誌、GPSの取り扱いを明示します。"],["アプリ情報","RunLoad UI Next — 新UI試作版。科学計算・記録保存は未接続です。"]].map(([n,s])=>`<div class="card stack"><h2>${n}</h2><p class="lead">${s}</p></div>`).join("")}</section>`;
+}
   function secondary(page){
     const title=pageLabels[page]||"付属機能";
     const details={measurement:"GPS測定画面の配置・操作を検討中です。位置情報は取得・保存していません。",course:"コース名・路面・上り下りなどの条件を入力する画面です。",simulation:"条件を変えた場合の表示領域。計算モデルや結果を実行していません。",consultation:"相談・共有のための画面。安全案内と共有範囲を別途確認します。","body-part-detail":"選択した部位の正式名称、本人の記録、比較できる過去の値を確認する詳細領域です。"};
@@ -110,10 +152,12 @@
   }
   function render(){
     const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings}[page]?.()||secondary(page);
-    app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">↗</span>RunLoad</div><nav class="side-nav" aria-label="デスクトップの主ナビゲーション">${navHtml(desktopNav,page,false)}</nav><div class="side-foot">走るたび、自分への理解が育つ。<br>UI Next / Prototype</div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><strong>RunLoad</strong> <span class="muted">／ ${pageLabels[page]}</span></div><div class="topbar-right"><span class="topbar-status">UI 試作版</span></div></header><main class="main-content"><div class="banner"><span><strong>デモ専用：</strong>表示中の走行記録・比較値・グラフは架空のサンプルです。科学計算・本人の履歴・GPSは未接続です。</span><span class="badge warn">実データではありません</span></div>${state.toast?`<div class="info-note">${esc(state.toast)}</div>`:""}${content}<p class="project-status">RunLoad UI Next — 画面設計・操作導線の検証用。旧アプリの正式計算結果ではありません。</p></main></div><nav class="mobile-nav" aria-label="スマートフォンの主ナビゲーション">${navHtml(mobileNav,page,true)}</nav></div>`;
+    app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">↗</span>RunLoad</div><nav class="side-nav" aria-label="デスクトップの主ナビゲーション">${navHtml(desktopNav,page,false)}</nav><div class="side-foot">走るたび、自分への理解が育つ。<br>UI Next / Prototype</div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><strong>RunLoad</strong> <span class="muted">／ ${pageLabels[page]}</span></div><div class="topbar-right"><button type="button" class="btn btn-install" data-install-app aria-label="RunLoadをアプリとしてインストール">＋ アプリを入れる</button><span class="topbar-status">UI 試作版</span></div></header><main class="main-content"><div class="banner"><span><strong>デモ専用：</strong>表示中の走行記録・比較値・グラフは架空のサンプルです。科学計算・本人の履歴・GPSは未接続です。</span><span class="badge warn">実データではありません</span></div>${state.toast?`<div class="info-note">${esc(state.toast)}</div>`:""}${content}<p class="project-status">RunLoad UI Next — 画面設計・操作導線の検証用。旧アプリの正式計算結果ではありません。</p></main></div><nav class="mobile-nav" aria-label="スマートフォンの主ナビゲーション">${navHtml(mobileNav,page,true)}</nav></div>`;
   }
   app.addEventListener("click",(event)=>{
     const region=event.target.closest("[data-region]");
+    const category=event.target.closest("[data-tree-category]");
+    if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0]}render();window.scrollTo(0,y);return}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
@@ -128,7 +172,7 @@
     if(event.target.closest("[data-demo-save]")){state.toast="試作操作：この画面では記録を保存していません。仮の結果画面へ移ります。";location.hash="#/result";window.scrollTo(0,0)}
   });
   app.addEventListener("keydown",(event)=>{
-    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
+    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   window.addEventListener("hashchange",()=>{state.toast="";render();window.scrollTo(0,0)});
   render();
