@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "RunLoad UI Next",
+  "name": "RunLoad",
   "short_name": "RunLoad",
-  "description": "PC・スマホの新UI試作版。科学計算は未接続です。",
+  "description": "走るほど、自分への理解が育つ。",
   "lang": "ja",
   "start_url": "./#/home",
   "scope": "./",
