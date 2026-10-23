@@ -100,6 +100,7 @@
   }
   function home(){
 return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE</div><h1>ホーム</h1><p class="lead">走る日も、休む日も。自分のペースで続けよう。</p></div><a href="#/record" class="btn primary">＋ 記録する</a></section>
+<section class="home-welcome"><span class="welcome-mark" aria-hidden="true">☀</span><div><strong>今日も、自分らしい一日を。</strong><p>走りも休養も、あなたのペースで。</p></div><a href="#/exploration-tree" aria-label="探究ツリーへ">↗</a></section>
 <section class="home-dashboard">
 <div class="card home-feature">
  <div class="section-title"><div><h2>今日のコンディション</h2><p class="lead">今の自分を知る、小さな記録</p></div><span class="wellness-sun" aria-hidden="true">☀</span></div>
@@ -118,10 +119,14 @@ return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE<
  <button class="home-topic blue" type="button" data-open-topic="01|過去の走りとの比較"><span class="home-topic-icon">⌁</span><span><strong>走りの記録</strong><small>前回との違いを見つける</small></span><span>›</span></button>
  <button class="home-topic purple" type="button" data-open-topic="05|睡眠"><span class="home-topic-icon">☾</span><span><strong>睡眠</strong><small>暮らしと走りを考える</small></span><span>›</span></button>
  </div></section>
-<section class="grid-3 dashboard-bottom">
-<a class="card home-shortcut home-shortcut-explore" href="#/exploration-tree"><div class="shortcut-icon">✧</div><div><strong>探究ツリー</strong><p>気になる枝から、自分の走りを探究する。</p></div><span>↗</span></a>
-<a class="card home-shortcut" href="#/measurement"><div class="shortcut-icon">◷</div><div><strong>走行を測定</strong><p>GPSで走行を記録する。</p></div><span>↗</span></a>
-<a class="card home-shortcut" href="#/history"><div class="shortcut-icon">▥</div><div><strong>過去を振り返る</strong><p>これまでの変化を確かめる。</p></div><span>↗</span></a>
+<section class="card home-quick-access">
+ <div class="section-title"><h2>クイックアクセス</h2></div>
+ <div class="home-quick-grid">
+  <a href="#/record" class="quick-access-item"><span class="quick-icon">✎</span><span>記録する</span></a>
+  <a href="#/exploration-tree" class="quick-access-item"><span class="quick-icon">✦</span><span>探究ツリー</span></a>
+  <a href="#/course" class="quick-access-item"><span class="quick-icon">△</span><span>コース設計</span></a>
+  <a href="#/result" class="quick-access-item"><span class="quick-icon">▥</span><span>結果を見る</span></a>
+ </div>
 </section>
 <section class="grid-2 dashboard-bottom"><div class="card"><div class="section-title"><h2>記録の移り変わり</h2><a href="#/history" class="text-link">詳細を見る ↗</a></div><div class="home-trend">${historyChart(regionData("BA-DISP-023"))}</div></div><div class="card"><div class="section-title"><h2>探究の続きを見る</h2><a href="#/exploration-tree" class="text-link">開く ↗</a></div><div class="home-question"><div class="question-leaf">✦</div><div><strong>自分が感じた疲れ</strong><p class="lead">走行記録を見比べながら、気になるテーマを探してみましょう。</p></div></div></div></section>`;
 }
