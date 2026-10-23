@@ -22,4 +22,4 @@ jobs:
           node --check ui/homeDashboardLayout.js
           node --check ui/rofJScale.js
       - name: UI and installability contracts
-        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs
+        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/rofJScale.test.mjs
