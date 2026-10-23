@@ -20,6 +20,21 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Upload checked-out UI for local visual QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-ui-snapshot
+          path: |
+            app.js
+            styles.css
+            index.html
+            pwa.js
+            sw.js
+            manifest.webmanifest
+            icons/
+            assets/
+            tests/
+          retention-days: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
