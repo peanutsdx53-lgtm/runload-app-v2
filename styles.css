@@ -340,3 +340,11 @@ body{background:#f4f8fc}
  .mobile-sheet-insight{padding:8px}.mobile-sheet-cards>div{padding:7px}
  .mobile-sheet-insight p{font-size:.67rem}
 }
+
+@media(max-width:800px){
+.mobile-explore-sheet:not(.is-expanded):not(.is-hidden){max-height:175px;overflow:hidden}
+.mobile-explore-sheet.is-expanded:not(.is-hidden){max-height:56vh;overflow-y:auto}
+.mobile-sheet-title-label{display:flex;flex:1;min-width:0;flex-direction:column;position:relative;background:transparent;text-align:left;border:0;padding:0 23px 0 0;color:inherit;cursor:pointer}
+.sheet-expand-hint{position:absolute;right:5px;top:8px;font-size:1rem;color:#617c90}
+.mobile-explore-sheet.is-hidden .sheet-expand-hint{display:none}
+}
