@@ -105,15 +105,15 @@ export function discoveryCard(){
 }
 export function conditionPanel(storage,preview){
  const state=readConditions(storage),entries=preview?demoEntries():state.entries,today=entries.find(v=>v.date===todayLocal());
- const mins=today?.sleepMinutes??0,feeling=today?.feeling||"ふつう";
+ const mins=today?.sleepMinutes??null,feeling=today?.feeling||"ふつう";
  const opts=FEELINGS.map(v=>'<option value="'+escape(v)+'"'+(feeling===v?' selected':'')+'>'+escape(v)+'</option>').join("");
- const bars=sevenBars(entries);
+ const bars=entries.length?sevenBars(entries):'<p class="hx-no-sleep">睡眠の記録はまだありません</p>';
  return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
  '<div class="hx-dialog-head"><h2 id="hx-dialog-label">コンディション</h2><button data-home-close aria-label="閉じる" type="button">×</button></div>'+
  (preview?'<p class="hx-dialog-notice">表示例のデータです。入力は実際の保存内容に反映されます。</p>':'')+
  '<div class="hx-dialog-trend"><h3>睡眠時間の推移</h3>'+bars+'</div>'+
- '<form data-condition-form><h3>任意の生活記録</h3><label>日付<input type="date" name="date" required value="'+todayLocal()+'"></label>'+
- '<div class="hx-form-grid"><label>睡眠（時間）<input type="number" name="hours" min="0" max="24" value="'+Math.floor(mins/60)+'" required></label><label>睡眠（分）<input type="number" name="minutes" min="0" max="59" value="'+mins%60+'" required></label></div>'+
+ '<form data-condition-form><h3>任意の生活記録</h3><label class="hx-date-row"><span>日付</span><input type="date" name="date" required value="'+todayLocal()+'"></label>'+
+ '<div class="hx-form-grid"><label>睡眠（時間）<input type="number" name="hours" min="0" max="24" placeholder="例：7" value="'+(mins===null?'':Math.floor(mins/60))+'" required></label><label>睡眠（分）<input type="number" name="minutes" min="0" max="59" placeholder="例：30" value="'+(mins===null?'':mins%60)+'" required></label></div>'+
  '<label>起床時の調子<select name="feeling">'+opts+'</select></label><label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(today?.memo||"")+'</textarea></label>'+
  '<div class="hx-dialog-foot"><button type="button" data-home-close>キャンセル</button><button type="submit" class="hx-save" '+(!state.canSave?'disabled':'')+'>保存</button></div></form>'+
  (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':'')+'</section></div>';
