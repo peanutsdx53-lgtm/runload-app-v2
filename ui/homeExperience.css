@@ -308,3 +308,8 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
    max-width:calc(100% - 43px);padding:9px 4px;font-size:16px
  }
 }
+
+/* Touch dragging is exclusive to the dashboard edit handle. Regular scrolling remains
+   possible anywhere else, including inside the condition form. */
+.dashboard-custom-grid--dragging{touch-action:none;overscroll-behavior:none}
+.dashboard-touch-drag-active body{overscroll-behavior:none}
