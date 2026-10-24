@@ -487,6 +487,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
   app.addEventListener("input",(event)=>{
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
+    if(target.matches('.hx-time-control input[type=time]')){
+      const visual=target.closest('.hx-time-control')?.querySelector('[data-time-display]');
+      if(visual)visual.textContent=target.value||"時刻を選択";
+    }
     const sleepForm=target.closest("[data-condition-form]");
     if(sleepForm&&(target.matches('[name="bedTime"],[name="wakeTime"],[name="duration"],[name="bedDayRule"]'))){
       homeExperience.updateSleepForm(sleepForm);
