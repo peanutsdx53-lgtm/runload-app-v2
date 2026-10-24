@@ -266,6 +266,8 @@ try{
   await page.locator('[data-rv-slope-number]').fill("55");
   await page.locator('[data-rv-slope-tile="down"]').click();
   await page.locator('[data-rv-slope-number]').fill("50");
+  assert.equal(await page.locator('[data-rv-slope-number]').inputValue(),"45","slope edit clamps to available proportion");
+  await page.locator('[data-rv-slope-number]').fill("");
   await page.locator('[data-rv-apply]').click();
   assert.match(await page.locator('.rv-error').innerText(),/100%以下/,'reject invalid slope percentages');
   await page.locator('[data-rv-slope-number]').fill("25");
