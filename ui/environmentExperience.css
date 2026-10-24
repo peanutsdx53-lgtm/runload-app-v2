@@ -34,3 +34,7 @@
 .environment-v4 input:focus-visible,.environment-v4 textarea:focus-visible,.environment-v4 button:focus-visible,.environment-v4 a:focus-visible{outline:3px solid #80eff0;outline-offset:2px}
 @media(max-width:800px){.environment-v4{max-width:480px;padding:14px 13px 104px}.environment-v4 .e4-grid{grid-template-columns:minmax(0,1fr);gap:15px}.environment-v4 .e4-panel{padding:19px}.environment-v4 .e4-bottom{flex-direction:column;align-items:stretch}.environment-v4 .e4-done{width:100%}}
 @media(max-width:355px){.environment-v4{padding:10px 8px 100px}.environment-v4 .e4-panel{padding:12px}.environment-v4 .e4-chips{gap:5px}.environment-v4 .e4-chip{font-size:.75rem;min-height:70px}.environment-v4 .e4-flag{font-size:.77rem}}
+/* Compact number entry: spinner controls must not steal space on phones. */
+.environment-v4 .e4-temperature input[type=number]{appearance:textfield;-moz-appearance:textfield}
+.environment-v4 .e4-temperature input[type=number]::-webkit-inner-spin-button,
+.environment-v4 .e4-temperature input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
