@@ -152,3 +152,5 @@
  .record-v3 .rv-choice{font-size:.73rem}
 }
 @media(prefers-reduced-motion:reduce){.record-v3 *{transition-duration:.001ms!important}}
+
+@media(min-width:801px){.record-v3 .rv-phone-only{display:none}}
