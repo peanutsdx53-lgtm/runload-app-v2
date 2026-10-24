@@ -313,3 +313,81 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
    possible anywhere else, including inside the condition form. */
 .dashboard-custom-grid--dragging{touch-action:none;overscroll-behavior:none}
 .dashboard-touch-drag-active body{overscroll-behavior:none}
+
+
+/* 2026-10-24: confirmed sleep entry design v2. Primary input = bedtime/wake time;
+   secondary input = self-reported total; both retain the provenance of the value. */
+#app .hx-dialog [hidden]{display:none!important}
+#app .hx-sleep-section{min-width:0;display:grid;gap:14px}
+#app .hx-sleep-head h3{margin:0 0 2px;font-size:1rem;color:#f1fcff}
+#app .hx-sleep-modes{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+ background:#081e2c;border:1px solid #457384;border-radius:13px;
+ padding:5px;min-width:0;
+}
+#app .hx-sleep-modes>button{
+ min-width:0;min-height:48px;padding:9px 5px;border:1px solid transparent;
+ background:transparent;border-radius:9px;color:#b7d3dd;line-height:1.25;
+ font-size:clamp(.76rem,3.2vw,.94rem);font-weight:800;cursor:pointer;
+}
+#app .hx-sleep-modes>button.is-selected{
+ color:#f4feff;background:linear-gradient(120deg,#0990a5,#08758f);
+ border-color:#62dfe3;box-shadow:0 3px 12px #00151f88
+}
+#app .hx-sleep-modes>button:focus-visible{outline:2px solid #85ebf0;outline-offset:2px}
+#app .hx-time-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0}
+#app .hx-dialog form label.hx-time-card{
+ box-sizing:border-box;min-width:0;max-width:100%;padding:13px 10px;
+ border:1px solid #4d7b89;border-radius:14px;
+ background:linear-gradient(145deg,#194456,#103545);
+ display:flex;flex-direction:column;align-items:stretch;gap:8px;
+}
+#app .hx-time-card .hx-time-label{font-size:.9rem;color:#e4f6fa;font-weight:800;display:flex;align-items:center;gap:6px}
+#app .hx-time-card .hx-icon{width:18px;height:18px;color:#9adfe9}
+#app .hx-dialog .hx-time-card input[type=time]{
+ -webkit-appearance:auto;appearance:auto;
+ display:block;box-sizing:border-box;min-width:0;max-width:100%;width:100%;
+ min-height:50px;padding:9px 5px;border:1px solid #6096a4;border-radius:10px;
+ background:#082839;color:#f5fcff;color-scheme:dark;
+ font-size:clamp(16px,4vw,19px);font-weight:800;
+ font-variant-numeric:tabular-nums;
+}
+#app .hx-time-card small{color:#b2d0d9;font-size:.68rem;line-height:1.45;min-height:2em}
+#app .hx-day-details{margin-top:10px}
+#app .hx-day-details summary{
+ cursor:pointer;color:#87d7e5;font-size:.82rem;
+ padding:6px 2px;min-height:38px;
+}
+#app .hx-day-options{display:grid;gap:7px;padding:10px;
+ background:#092b3b;border:1px solid #366b7e;border-radius:11px}
+#app .hx-dialog form label.hx-day-radio{
+ display:flex;flex-direction:row;align-items:center;gap:9px;font-size:.9rem;
+ min-height:40px;cursor:pointer;color:#d8eaf0
+}
+#app .hx-dialog .hx-day-radio input[type=radio]{
+ appearance:auto;min-height:18px;height:18px;width:18px;max-width:18px;
+ accent-color:#36d1db;flex:0 0 18px;padding:0;margin:0;
+}
+#app .hx-duration-entry{
+ display:grid;gap:9px;min-width:0;border:1px solid #4d7b89;border-radius:14px;
+ padding:14px;background:linear-gradient(145deg,#194456,#103545);
+}
+#app .hx-duration-entry input{max-width:200px}
+#app .hx-duration-entry small{font-size:.82rem;color:#b3d2df}
+#app .hx-sleep-result{
+ min-width:0;padding:15px 16px;display:grid;gap:5px;
+ background:linear-gradient(120deg,#0b4050,#0a3445);
+ border:1px solid #307e8c;border-radius:14px;color:#f1fcff;
+}
+#app .hx-sleep-result>div{font-size:.77rem;color:#c5e6eb;font-weight:700}
+#app .hx-sleep-result>strong{color:#85eee8;font-size:clamp(1.45rem,5vw,1.8rem);line-height:1.35;font-variant-numeric:tabular-nums}
+#app .hx-sleep-result>p{margin:0;font-size:.79rem;color:#c6e5e8;line-height:1.4}
+#app .hx-sleep-result>small{font-size:.73rem;color:#9bc5d2;line-height:1.4}
+#app .hx-form-error:not([hidden]){display:block;margin:0;color:#ffcfb8;
+ padding:9px 11px;border:1px solid #b77a65;background:#462e33;border-radius:8px;font-size:.9rem}
+.home-v3 .hx-condition-stats .hx-wake-time{display:block;margin-top:4px;color:#a8d7df;font-size:.7rem;white-space:nowrap}
+@media(max-width:370px){
+ #app .hx-dialog form label.hx-time-card{padding:10px 6px}
+ #app .hx-dialog .hx-time-card input[type=time]{padding:7px 3px;font-size:16px}
+ #app .hx-time-card small{font-size:.63rem}
+}
