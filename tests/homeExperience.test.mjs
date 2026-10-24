@@ -62,6 +62,12 @@ test("clock and self-report provenance are explicit and validated",()=>{
  assert.equal(conditionEntryFromForm({...fields,sleepMode:"duration",duration:"24:00"}).ok,false);
  assert.equal(conditionEntryFromForm({...fields,sleepMode:"duration",duration:"not-a-time"}).ok,false);
  assert.equal(validEntry({...computed.entry,sleepMinutes:400}),false,"tampered computed total fails validation");
+ const twoFields=conditionEntryFromForm({...fields,sleepMode:"duration",durationHours:"7",durationMinutes:"30"});
+ assert.equal(twoFields.ok,true);
+ assert.equal(twoFields.entry.sleepMinutes,450);
+ for(const [h,m] of [["","30"],["7",""],["24","0"],["7","60"],["7","-1"],["-1","15"],["7.5","0"]]){
+  assert.equal(conditionEntryFromForm({...fields,sleepMode:"duration",durationHours:h,durationMinutes:m}).ok,false,h+":"+m);
+ }
 });
 test("legacy entries persist alongside new v2 entries and edit without forced conversion",()=>{
  const legacy={date:"2026-10-22",sleepMinutes:400,feeling:"ふつう",memo:"旧記録"};
@@ -75,7 +81,8 @@ test("legacy entries persist alongside new v2 entries and edit without forced co
  assert.equal(out.entries[1].sleepSource,"clock");
  const historicalPanel=conditionPanel(s,false,"2026-10-22");
  assert.match(historicalPanel,/data-sleep-mode="duration"/);
- assert.match(historicalPanel,/value="6:40"/);
+ assert.match(historicalPanel,/name="durationHours"[^>]*value="6"/);
+ assert.match(historicalPanel,/name="durationMinutes"[^>]*value="40"/);
  assert.doesNotMatch(historicalPanel,/name="bedTime" value="23:20"/);
  const newPanel=conditionPanel(s,false,"2026-10-23");
  assert.match(newPanel,/data-sleep-mode="clock"/);
