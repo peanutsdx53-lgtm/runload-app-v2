@@ -127,6 +127,13 @@ try{
   await page.locator('[name="wakeTime"]').fill("06:00");
   assert.equal(await page.locator('[data-time-display="bedTime"]').textContent(),"23:20","clock readout always uses 24-hour time");
   assert.equal(await page.locator('[data-time-display="wakeTime"]').textContent(),"06:00");
+  const pickerPresentation=await page.evaluate(()=>{
+    const input=document.querySelector('[name="bedTime"]');
+    const visible=document.querySelector('[data-time-display="bedTime"]');
+    return {nativeOpacity:getComputedStyle(input).opacity,labelVisible:getComputedStyle(visible).display!=="none",font:parseFloat(getComputedStyle(input).fontSize)};
+  });
+  if(mode.width<=430)assert.deepEqual({opacity:pickerPresentation.nativeOpacity,label:pickerPresentation.labelVisible},{opacity:"0",label:true},"touch-width display keeps the same 24-hour readout and tap target");
+  else assert.ok(pickerPresentation.nativeOpacity==="1"&&!pickerPresentation.labelVisible&&pickerPresentation.font>=16,"desktop time field visibly supports keyboard entry");
   assert.match(await page.locator('[data-sleep-result]').innerText(),/6時間40分/);
   assert.match(await page.locator('[data-sleep-result-note]').innerText(),/前日に就寝/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-filled-v2.png"),fullPage:false});
