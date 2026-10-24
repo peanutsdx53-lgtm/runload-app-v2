@@ -472,6 +472,9 @@ try{
   await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill("5.2");
   await page.locator('[data-draft="runWalkRunningDurationMinutes"]').fill("32");
   assert.equal(await page.locator('[data-g4-issue]').isVisible(),false,"valid mixed run input");
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="static";el.style.width="100%";el.style.bottom="auto";
+  });
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gait-v4-mixed.png"),fullPage:true});
   await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill("999");
   assert.equal(await page.locator('[data-g4-apply]').isDisabled(),true,"running distance cannot exceed overall distance");
@@ -483,6 +486,9 @@ try{
   const gaitOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gaitOverflow<=3,"gait v4 width "+mode.width+" overflow "+gaitOverflow);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gait-v4-restored.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="";el.style.width="";el.style.bottom="";
+  });
   await page.goto(host+"#/record-environment",{waitUntil:"networkidle"});
   await page.locator('[data-draft="temperatureC"]').fill("21.5");
   await page.goto(host+"#/record-reflection",{waitUntil:"networkidle"});
