@@ -15,8 +15,8 @@ test("six independent widgets and home priorities",()=>{
  assert.equal(d.order.length,6);
  assert.deepEqual(d.visible,["latest","condition","topics","shortcuts"]);
  assert.ok(d.visible.includes("condition"));
- assert.equal(d.sizes.topics,"full");
- assert.equal(d.sizes.condition,"full");
+ assert.equal(d.sizes.topics,"half");
+ assert.equal(d.sizes.condition,"half");
  assert.ok(isValidHomeDashboardLayout(d));
 });
 test("reorder and size preserve unchanged input",()=>{
@@ -25,8 +25,8 @@ test("reorder and size preserve unchanged input",()=>{
  assert.deepEqual(swapped.order.slice(0,2),["condition","latest"]);
  assert.equal(initial.order[0],"latest");
  const full=editHomeDashboardLayout(swapped,"size","condition");
- assert.equal(full.sizes.condition,"half");
- assert.equal(swapped.sizes.condition,"full");
+ assert.equal(full.sizes.condition,"full");
+ assert.equal(swapped.sizes.condition,"half");
 });
 test("hide and restore, preserve minimum one visible",()=>{
  let d=defaultHomeDashboardLayout();
