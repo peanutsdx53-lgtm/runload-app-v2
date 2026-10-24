@@ -175,3 +175,12 @@
  .home-v3 .hx-condition-stats strong{font-size:clamp(.7rem,3.2vw,.88rem);letter-spacing:-.055em}
  .home-v3 .hx-shortcut strong{white-space:normal;overflow-wrap:anywhere;line-height:1.3}
 }
+
+/* Desktop navigation rail: approved composition uses a compact dark icon rail. */
+@media(min-width:801px){
+ .app-shell:has(.home-v3){grid-template-columns:96px minmax(0,1fr)}
+ .app-shell:has(.home-v3) .sidebar{padding:20px 8px}
+ .app-shell:has(.home-v3) .side-nav{gap:7px}
+ .app-shell:has(.home-v3) .side-link{display:flex;flex-direction:column;gap:5px;text-align:center;padding:11px 2px;border-radius:12px;font-size:.72rem;justify-content:center}
+ .app-shell:has(.home-v3) .side-link .nav-icon{width:auto}
+}
