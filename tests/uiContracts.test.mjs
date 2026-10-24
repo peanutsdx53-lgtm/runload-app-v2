@@ -62,7 +62,20 @@ test("only registered locally produced or approved visual assets are shipped",()
 
  for(const directory of ["assets","icons"]){
    const files=readdirSync(new URL("../"+directory+"/",import.meta.url));
-   const allowed=directory==="assets"?["ASSET_REGISTER.md","bodyRegionVisuals.js"]:["icon.svg","icon-192.png","icon-512.png"];
+   const allowed=directory==="assets"?["ASSET_REGISTER.md","bodyRegionVisuals.js","rof"]:["icon.svg","icon-192.png","icon-512.png"];
    for(const filename of files)assert.ok(allowed.includes(filename),"unregistered artwork: "+directory+"/"+filename);
  }
+});
+
+test("local ROF-J illustrations match the approved five-figure asset register",()=>{
+ const path=new URL("../assets/rof/",import.meta.url);
+ const allowed=["lowest","low","moderate","high","highest"].map(v=>"rof-visual-"+v+".png");
+ assert.deepEqual(readdirSync(path).sort(),allowed.sort());
+ const register=read("assets/ASSET_REGISTER.md");
+ for(const name of allowed){
+  const data=readFileSync(new URL(name,path));
+  assert.equal(data.subarray(0,8).toString("hex"),"89504e470d0a1a0a");
+  assert.ok(data.length>2000,"figure content must not be an empty placeholder");
+ }
+ assert.match(register,/Micklewright et al/);
 });
