@@ -7,6 +7,7 @@
   const rofScale=await import("./ui/rofJScale.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordExperience=await import("./ui/recordExperience.js");
+  const measurementExperience=await import("./ui/measurementExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -38,6 +39,7 @@
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
+  const measurementUi=measurementExperience.createMeasurementViewState();
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
@@ -435,8 +437,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     function secondary(page){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
- if(page==="measurement")return top+`<section class="measurement-layout"><div class="card measurement-main"><div class="measurement-display"><span class="gps-status"><span class="status-dot"></span>GPSを確認</span><div class="measurement-clock">00:00:00</div><p>走行時間</p><div class="measurement-numbers"><div><strong>0.00</strong><small>km　距離</small></div><div><strong>--:--</strong><small>/km　ペース</small></div></div></div><div class="measurement-controls"><button class="btn primary" type="button" disabled title="GPS測定機能は現在利用できません">▶　測定開始</button><button class="btn" type="button" disabled>一時停止</button></div></div><div class="card stack"><h2>測定の前に</h2><div class="feature-entry"><span class="entry-icon cyan">◇</span><span><strong>位置情報</strong><small>現在地が取得できると表示されます。</small></span></div><div class="feature-entry"><span class="entry-icon blue">⌁</span><span><strong>コースの確認</strong><small>保存したGPS軌跡のみ地図に表示します。</small></span></div>${buttonLink("course","コースを選ぶ")}${buttonLink("record","手動で記録する")}</div></section>`;
- if(page==="course")return top+`<section class="grid-2"><div class="card stack"><div class="section-title"><h2>コースの基本情報</h2></div><label class="field">コース名<input placeholder="コース名を入力"></label><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" placeholder="0.0"></label><label class="field">走る場所<select><option>屋外</option><option>室内</option></select></label></div><h3>路面の種類</h3><div class="form-grid"><label class="field">主要な路面<select><option>選択してください</option><option>舗装路</option><option>陸上トラック</option><option>土道・トレイル</option><option>天然芝</option><option>砂地</option></select></label><label class="field">坂の条件<select><option>選択してください</option><option>ほぼ平坦</option><option>上りがある</option><option>下りがある</option><option>上り・下りがある</option></select></label></div></div><div class="card stack"><h2>コースを確認する</h2><div class="route-large-empty"><div class="route-empty-icon">⌁</div><strong>位置情報の登録はありません</strong><p class="lead">GPSで測定した走行は、保存された軌跡がある場合にのみ地図へ表示します。</p></div>${buttonLink("measurement","測定へ")}</div></section>`;
+ if(page==="measurement")return measurementExperience.measurementPage(measurementUi);
+  if(page==="course")return top+`<section class="grid-2"><div class="card stack"><div class="section-title"><h2>コースの基本情報</h2></div><label class="field">コース名<input placeholder="コース名を入力"></label><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" placeholder="0.0"></label><label class="field">走る場所<select><option>屋外</option><option>室内</option></select></label></div><h3>路面の種類</h3><div class="form-grid"><label class="field">主要な路面<select><option>選択してください</option><option>舗装路</option><option>陸上トラック</option><option>土道・トレイル</option><option>天然芝</option><option>砂地</option></select></label><label class="field">坂の条件<select><option>選択してください</option><option>ほぼ平坦</option><option>上りがある</option><option>下りがある</option><option>上り・下りがある</option></select></label></div></div><div class="card stack"><h2>コースを確認する</h2><div class="route-large-empty"><div class="route-empty-icon">⌁</div><strong>位置情報の登録はありません</strong><p class="lead">GPSで測定した走行は、保存された軌跡がある場合にのみ地図へ表示します。</p></div>${buttonLink("measurement","測定へ")}</div></section>`;
  if(page==="simulation")return top+`<section class="grid-2"><div class="card stack"><h2>比較する条件</h2><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label><label class="field">傾斜<select><option>平坦</option><option>上り</option><option>下り</option></select></label><label class="field">路面<select><option>舗装路</option><option>トラック</option><option>天然芝</option><option>土道</option></select></label></div><div class="info-note">比較する条件を整理できます。利用可能なモデルにより、結果を表示できる範囲は異なります。</div></div><div class="card stack"><h2>比較結果</h2><div class="empty-state"><span style="font-size:2.5rem">▥</span><strong>条件の比較結果はありません</strong><p class="lead">比較可能な科学的根拠がある場合だけ、対応する値を表示します。</p></div>${buttonLink("result","結果へ戻る")}</div></section>`;
  if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">12部位比較値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
  const cur=regionData(state.region);
@@ -451,9 +453,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":["record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
+ const navPage=page==="result"?"result":page==="measurement"?"record":["record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
- document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay]")));
+ document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay],[data-gps-overlay]")));
  if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
@@ -588,6 +590,11 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     render();
   });
   app.addEventListener("click",(event)=>{
+    const measurementControl=event.target.closest("[data-gps-preview]");
+    if(measurementControl){
+      if(measurementExperience.stepMeasurementPreview(measurementUi,measurementControl.dataset.gpsPreview))render();
+      return;
+    }
     const ui=state.recordCourseUi,d=state.recordDraft;
     const drawRecord=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
     const grade=event.target.closest("[data-rv-grade]");
