@@ -9,7 +9,7 @@ function mockStore(seed={}){
  const map=new Map(Object.entries(seed));
  return {getItem(key){return map.has(key)?map.get(key):null},setItem(key,value){map.set(key,String(value))},removeItem(key){map.delete(key)},raw:key=>map.get(key),keys:()=>[...map.keys()]};
 }
-test("six independent widgets and default desktop split",()=>{
+test("six independent widgets and home priorities",()=>{
  const d=defaultHomeDashboardLayout();
  assert.equal(HOME_DASHBOARD_WIDGETS.length,6);
  assert.equal(d.order.length,6);
@@ -20,7 +20,7 @@ test("six independent widgets and default desktop split",()=>{
 });
 test("reorder and size preserve unchanged input",()=>{
  const initial=defaultHomeDashboardLayout();
- const swapped=editHomeDashboardLayout(initial,"down","condition");
+ const swapped=editHomeDashboardLayout(initial,"up","condition");
  assert.deepEqual(swapped.order.slice(0,2),["condition","latest"]);
  assert.equal(initial.order[0],"latest");
  const full=editHomeDashboardLayout(swapped,"size","condition");
@@ -74,7 +74,7 @@ test("drag reorder inserts strictly before or after a target",()=>{
  const original=defaultHomeDashboardLayout();
  const below=moveHomeDashboardWidget(original,"condition","latest",true);
  assert.deepEqual(below.order.slice(0,2),["latest","condition"]);
- const above=moveHomeDashboardWidget(original,"discovery","condition",false);
+ const above=moveHomeDashboardWidget(original,"discovery","latest",false);
  assert.equal(above.order[0],"discovery");
  assert.deepEqual(original.order,defaultHomeDashboardLayout().order,"reorder leaves original unchanged");
  assert.equal(moveHomeDashboardWidget(original,"condition","condition"),original,"self-drop is a no-op");
