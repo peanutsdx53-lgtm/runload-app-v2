@@ -10,6 +10,7 @@
   const recordExperience=await import("./ui/recordExperience.js");
   const gaitExperience=await import("./ui/gaitExperience.js");
   const environmentExperience=await import("./ui/environmentExperience.js");
+  const bodyExperience=await import("./ui/bodyContextExperience.js");
   const measurementExperience=await import("./ui/measurementExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -44,6 +45,7 @@
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const measurementUi=measurementExperience.createMeasurementViewState();
   const environmentUi=environmentExperience.newEnvironmentUi();
+  const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
@@ -288,7 +290,7 @@ function recordExtras(){
     const title=kind==="compare"?"歩数・走り方・環境":kind==="reflection"?"身体・使用品・メモ":"追加情報";
     return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>${title}</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><div class="record-optional-stack">${fields}</div></section></div></div>`;
   }
-  const recordCompare=()=>gaitExperience.gaitPage(state.recordDraft),recordReflection=()=>recordMore("reflection");
+  const recordCompare=()=>gaitExperience.gaitPage(state.recordDraft),recordReflection=()=>bodyExperience.renderScreen(state.recordDraft,bodyUi);
   function recordEnvironment(){return environmentExperience.environmentPage(state.recordDraft,environmentUi);}
   
     function result(){
@@ -543,6 +545,11 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       state.recordDraft[event.target.dataset.draft]=event.target.value;
       if(event.target.closest("[data-g4-page]"))gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
       if(event.target.closest("[data-e4-page]"))environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),state.recordDraft,environmentUi);
+      if(event.target.closest("[data-cx-page]")){
+        const k=event.target.dataset.draft;
+        const count=app.querySelector(`[data-counter="${k}"]`);
+        if(count)count.textContent=`${event.target.value.length}/${k==="shoeName"?120:500}`;
+      }
     }
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
     if(event.target.matches("[data-rof-v4-range]")){
@@ -615,6 +622,28 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
+    const bodyRoot=event.target.closest('[data-cx-page]');
+    if(bodyRoot){
+      const obj=event.target.closest('[data-map-view],[data-region-focus],[data-confirm-id],[data-picker-id],[data-unselect],[data-picker-toggle],[data-clear-all],[data-append-name],[data-apply]');
+      if(obj){
+        if(obj.matches('[data-map-view]')) bodyExperience.setView(bodyUi,obj.dataset.mapView);
+        else if(obj.matches('[data-region-focus]'))bodyExperience.focusRegion(bodyUi,obj.dataset.regionFocus);
+        else if(obj.matches('[data-confirm-id]'))bodyExperience.toggleRegion(bodyUi,obj.dataset.confirmId);
+        else if(obj.matches('[data-picker-id]')){
+          bodyExperience.focusRegion(bodyUi,obj.dataset.pickerId);
+          bodyExperience.toggleRegion(bodyUi,obj.dataset.pickerId);
+          bodyUi.pickerOpen=true;
+        }
+        else if(obj.matches('[data-unselect]'))bodyExperience.toggleRegion(bodyUi,obj.dataset.unselect);
+        else if(obj.matches('[data-picker-toggle]'))bodyUi.pickerOpen=!bodyUi.pickerOpen;
+        else if(obj.matches('[data-clear-all]'))bodyExperience.clearSelected(bodyUi);
+        else if(obj.matches('[data-append-name]'))bodyExperience.addRegionNamesToNote(d,bodyUi);
+        else if(obj.matches('[data-apply]')){location.hash='#/record';return;}
+        const y=window.scrollY;render();window.scrollTo(0,y);
+        if(obj.matches('[data-region-focus]'))app.querySelector(`[data-region-focus="${obj.dataset.regionFocus}"]`)?.focus({preventScroll:true});
+        return;
+      }
+    }
     const weather=event.target.closest("[data-e4-weather]");
     if(weather){environmentExperience.toggleWeather(environmentUi,weather.dataset.e4Weather);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d,environmentUi);return;}
     const flag=event.target.closest("[data-e4-flag]");
@@ -773,6 +802,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(event.target.matches(".record-preview-overlay")||event.target.closest(".record-preview-dialog button[data-close-preview]")){state.recordPreviewOpen=false;render();return}
   });
   app.addEventListener("keydown",(event)=>{
+    if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-region-focus]")){
+      event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}));return;
+    }
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
