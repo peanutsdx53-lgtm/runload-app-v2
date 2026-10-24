@@ -592,7 +592,13 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   app.addEventListener("click",(event)=>{
     const measurementControl=event.target.closest("[data-gps-preview]");
     if(measurementControl){
-      if(measurementExperience.stepMeasurementPreview(measurementUi,measurementControl.dataset.gpsPreview))render();
+      if(measurementExperience.stepMeasurementPreview(measurementUi,measurementControl.dataset.gpsPreview)){
+        render();
+        window.scrollTo(0,0);
+        if(measurementUi.phase==="confirm"){
+          app.querySelector('[data-gps-preview="cancel-end"]')?.focus({preventScroll:true});
+        }
+      }
       return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
