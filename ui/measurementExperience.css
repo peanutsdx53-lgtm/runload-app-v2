@@ -78,7 +78,7 @@
  .app-shell:has(.gps-v2) .main-content{padding:19px 13px calc(94px + env(safe-area-inset-bottom))}
  .gps-v2-header{margin-bottom:17px}.gps-v2-meter{padding:20px 17px}.gps-v2-clock>strong{font-size:clamp(2.95rem,11vw,4.2rem)}
  .gps-v2-metrics strong{font-size:clamp(1.47rem,6vw,1.86rem)}
- .gps-v2--demo-active~.mobile-nav{display:none}
+ .app-shell:has(.gps-v2--demo-active) .mobile-nav{display:none}
 }
 @media(max-width:350px){
  .gps-v2-header{gap:9px}.gps-v2-back{width:45px;flex-basis:45px;height:45px}
