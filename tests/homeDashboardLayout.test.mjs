@@ -13,6 +13,7 @@ test("six independent widgets and home priorities",()=>{
  const d=defaultHomeDashboardLayout();
  assert.equal(HOME_DASHBOARD_WIDGETS.length,6);
  assert.equal(d.order.length,6);
+ assert.deepEqual(d.visible,["latest","condition","topics","shortcuts"]);
  assert.ok(d.visible.includes("condition"));
  assert.equal(d.sizes.topics,"full");
  assert.equal(d.sizes.condition,"full");
@@ -29,9 +30,9 @@ test("reorder and size preserve unchanged input",()=>{
 });
 test("hide and restore, preserve minimum one visible",()=>{
  let d=defaultHomeDashboardLayout();
- for(const widget of HOME_DASHBOARD_WIDGETS.slice(0,-1))d=editHomeDashboardLayout(d,"toggle",widget.id);
+ for(const id of defaultHomeDashboardLayout().visible.slice(0,-1))d=editHomeDashboardLayout(d,"toggle",id);
  const before=JSON.stringify(d);
- d=editHomeDashboardLayout(d,"toggle",HOME_DASHBOARD_WIDGETS.at(-1).id);
+ d=editHomeDashboardLayout(d,"toggle","shortcuts");
  assert.equal(JSON.stringify(d),before,"never allow an empty dashboard");
  d=editHomeDashboardLayout(d,"toggle","condition");
  assert.ok(d.visible.includes("condition"));
