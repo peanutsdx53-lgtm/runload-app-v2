@@ -154,3 +154,53 @@
 @media(prefers-reduced-motion:reduce){.record-v3 *{transition-duration:.001ms!important}}
 
 @media(min-width:801px){.record-v3 .rv-phone-only{display:none}}
+
+/* 2026-10-24 accessibility polish: compact date control, legible input values.
+   Scope only to v2 recording screens; no stored field or calculation changes. */
+.record-v3 .rv-date{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  align-items:center;
+  column-gap:12px;
+  width:min(100%,290px);
+  max-width:100%;
+  margin-top:19px;
+}
+.record-v3 .rv-date>span{font-size:.875rem;white-space:nowrap}
+.record-v3 .rv-date>input{
+  min-width:0;
+  width:100%;
+  height:52px;
+  font-size:1.0625rem;
+  font-weight:760;
+  padding:9px 12px;
+  letter-spacing:0;
+  font-variant-numeric:tabular-nums;
+}
+.record-v3 .rv-field>input:not(.rv-unit-input input),
+.record-v3 .rv-section-fields input,
+.record-v3 .rv-section-fields select,
+.record-v3 .rv-course-grid input[type="text"],
+.record-v3 .rv-fine-top input,
+.record-v3 .rv-surface-percent input[type="number"],
+.record-v3 .rv-aux-wrap input:not([type="range"]),
+.record-v3 .rv-aux-wrap select,
+.record-v3 .rv-aux-wrap textarea{
+  font-size:1rem;
+  line-height:1.35;
+}
+.record-v3 .rv-fine-top input,
+.record-v3 .rv-surface-percent input[type="number"]{
+  width:86px;
+  min-height:42px;
+  padding:7px 9px;
+}
+.record-v3 .rv-link-content small{
+  font-size:.78rem;
+  line-height:1.4;
+}
+.record-v3 .rv-link-content strong{font-size:.91rem}
+@media(max-width:355px){
+  .record-v3 .rv-date{grid-template-columns:40px minmax(0,1fr);column-gap:9px}
+  .record-v3 .rv-date>input{padding:9px 8px;font-size:1rem}
+}
