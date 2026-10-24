@@ -475,11 +475,17 @@ try{
   assert.equal(await page.locator('[data-measurement-v2]').getAttribute('data-preview'),"false");
   assert.match(await page.locator(".gps-v2-banner").innerText(),/GPS測定機能は現在利用できません/);
   assert.ok(await page.locator(".gps-v2-button[disabled]").isDisabled(),"readiness start remains blocked");
+  if(mode.name!=="desktop"){
+    const navBg=await page.locator(".mobile-nav").evaluate(el=>getComputedStyle(el).backgroundColor);
+    assert.ok(!navBg.includes("255, 255, 255"),"GPS readiness navigation keeps dark visual tone: "+navBg);
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-ready.png"),fullPage:false});
   await page.locator('[data-gps-preview="preview"]').click();
   await page.locator('[data-gps-preview="show-running"]').click();
   assert.match(await page.locator(".gps-v2-banner").innerText(),/サンプル値/,"all active metrics explicitly samples");
   assert.equal(await page.locator('.gps-v2-clock>strong').innerText(),"00:32:16");
+  assert.equal(await page.evaluate(()=>Math.round(window.scrollY)),0,"demo enters from top instead of clipped scrolled position");
+  if(mode.name!=="desktop")assert.equal(await page.locator(".mobile-nav").isVisible(),false,"active measurement preview hides distracting navigation");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-running-demo.png"),fullPage:false});
   await page.locator('[data-gps-preview="show-paused"]').first().click();
   assert.match(await page.locator(".gps-v2-signal").innerText(),/一時停止/);
