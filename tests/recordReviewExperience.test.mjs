@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { reviewView, paceLabel, durationLabel } from '../ui/recordReviewExperience.js';
+const base={date:'2026-10-25',distance:'5.2',hours:'',minutes:'32.5',seconds:'',rofBefore:0,rofAfter:5,steps:'',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',temperatureC:'',environmentNote:'',bodyObservation:'',shoeName:'',memo:'',gradeMode:'UNKNOWN',surfaceMode:'UNKNOWN'};
+test('minutes decimal precision and manual pace',()=>{ assert.equal(durationLabel(base),'32:30');assert.equal(paceLabel(base),'6:15'); });
+test('GPS hours and seconds are not rounded to integer minutes',()=>{const d={...base,hours:'0',minutes:'32',seconds:'16'};assert.equal(durationLabel(d),'32:16');assert.equal(paceLabel(d),'6:12');});
+test('manual record review renders real draft and five editing destinations',()=>{const s=reviewView({...base,courseName:'川沿い往復',shoeName:'練習用シューズ'},{});assert.match(s,/川沿い往復/);assert.match(s,/練習用シューズ/);assert.match(s,/6:15/);assert.equal((s.match(/data-review-link=/g)||[]).length,5);assert.match(s,/保存機能は準備中/);assert.doesNotMatch(s,/<button[^>]*>保存する/);});
+test('zero ROF-J is shown as a valid selection and no phantom region values',()=>{const s=reviewView(base,{});assert.match(s,/運動前 0 ／ 運動後 5/);assert.doesNotMatch(s,/心拍数|消費カロリー|獲得標高/);});
+test('GPS preview values never become recorded values',()=>{const s=reviewView({...base,date:'2026-10-25'},{source:'gps'});assert.match(s,/GPS未取得/);assert.match(s,/距離が未取得/);assert.doesNotMatch(s,/>5\.20</); assert.doesNotMatch(s,/練習用シューズA/);assert.match(s,/手入力で補足/);});
+test('missing values remain missing and rest has no running metrics',()=>{const s=reviewView({date:'',distance:'',minutes:''},{});assert.match(s,/日付が未取得/);assert.match(s,/距離が未取得/);const rest=reviewView({date:'2026-10-25',memo:'休養'},{recordType:'rest'});assert.doesNotMatch(rest,/class="rr-metrics"/);assert.equal((rest.match(/data-review-link=/g)||[]).length,2);});
+test('script injection in notes is escaped',()=>{const s=reviewView({...base,bodyObservation:'<script>alert(1)</script>'},{});assert.ok(!s.includes('<script>'));assert.match(s,/&lt;script&gt;/);});
