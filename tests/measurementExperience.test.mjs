@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMeasurementViewState,stepMeasurementPreview,measurementPage} from './measurementExperience.js';
+import {createMeasurementViewState,stepMeasurementPreview,measurementPage} from '../ui/measurementExperience.js';
 test('real GPS is not started by mock transitions',()=>{
  const ui=createMeasurementViewState();
  assert.match(measurementPage(ui),/disabled aria-disabled="true"/);
