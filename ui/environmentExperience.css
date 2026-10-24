@@ -1,0 +1,36 @@
+/* Environment Ver.4: uses the approved recording palette across screens. */
+.environment-v4{width:100%;max-width:1070px;margin:auto;padding:16px 17px 60px;color:#edfaff;min-width:0}
+.environment-v4 *{box-sizing:border-box}
+.environment-v4 .rv-head{margin-bottom:8px}
+.environment-v4 .e4-intro{color:#b7d3df;font-size:.91rem;margin:0 0 19px;line-height:1.6}
+.environment-v4 .e4-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;align-items:start}
+.environment-v4 .e4-panel{padding:23px;min-width:0}
+.environment-v4 .e4-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:20px}
+.environment-v4 .e4-top h2{margin:0;font-size:1.15rem}
+.environment-v4 .e4-top small{color:#bed7e0;white-space:nowrap}
+.environment-v4 .e4-label{display:grid;gap:10px;color:#d2e6ee;font-weight:750;font-size:.88rem}
+.environment-v4 .e4-temperature{display:flex;align-items:center;gap:9px;background:#082838;border:1px solid #6897a3;border-radius:12px;max-width:300px;padding:0 13px;min-height:66px}
+.environment-v4 .e4-temperature input{min-width:0;max-width:100%;width:100%;color:#f2fcff;background:transparent;border:0;font-size:29px;font-weight:820;padding:10px 0;font-variant-numeric:tabular-nums;color-scheme:dark}
+.environment-v4 .e4-temperature b{white-space:nowrap;font-size:1rem}
+.environment-v4 .e4-help{font-size:.78rem;line-height:1.6;color:#b6d4dd;margin:9px 0 0}
+.environment-v4 .e4-divider{height:1px;background:#487384;margin:20px 0}
+.environment-v4 .e4-label-text{margin:0 0 10px;font-size:.87rem;color:#cde2ea;font-weight:750}
+.environment-v4 .e4-gap{margin-top:21px}
+.environment-v4 .e4-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.environment-v4 .e4-chip{background:#0c2d3d;border:1px solid #578496;border-radius:12px;min-width:0;min-height:77px;display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;color:#e7f6fa;font-weight:750;font-size:.79rem;padding:5px 1px;cursor:pointer}
+.environment-v4 .e4-chip span{font-size:1.45rem;line-height:1.1}
+.environment-v4 .e4-chip[aria-pressed=true],.environment-v4 .e4-flag[aria-pressed=true]{background:linear-gradient(115deg,#1198a5,#087589);border-color:#78e4e4;color:#fff}
+.environment-v4 .e4-flags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.environment-v4 .e4-flag{border:1px solid #548493;background:#103445;color:#eef7fa;border-radius:11px;min-height:49px;padding:8px 4px;font-size:.85rem;line-height:1.4;font-weight:750;cursor:pointer}
+.environment-v4 .e4-draft-note{border:1px solid #3e7587;background:#0b3040;border-radius:11px;padding:10px 11px;color:#bdd3dc;font-size:.76rem;line-height:1.6;margin:18px 0 0}
+.environment-v4 textarea{box-sizing:border-box;resize:vertical;min-height:162px;width:100%;border-radius:12px;background:#082737;border:1px solid #648f9b;padding:13px;color:#eef9fe;font-size:16px;line-height:1.6;color-scheme:dark}
+.environment-v4 .e4-summary{border-radius:11px;background:#0d3443;border:1px solid #3d7584;padding:14px 16px;margin-top:20px;line-height:1.6}
+.environment-v4 .e4-summary strong{font-size:.87rem}.environment-v4 .e4-summary p{margin:8px 0 0;color:#abd5dc;font-size:.83rem;overflow-wrap:anywhere}
+.environment-v4 .e4-error:not([hidden]){margin-top:14px;color:#ffd09d;font-size:.87rem}
+.environment-v4 .e4-bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:20px}
+.environment-v4 .e4-bottom p{font-size:.77rem;line-height:1.7;color:#b9d1db;margin:0}
+.environment-v4 .e4-done{display:flex;align-items:center;justify-content:center;white-space:nowrap;padding:11px 22px;min-height:48px;background:#118b9c;border:1px solid #73dfe5;border-radius:11px;text-decoration:none;color:white;font-weight:800}
+.environment-v4 .e4-done.e4-disabled{opacity:.46;cursor:not-allowed;pointer-events:none}
+.environment-v4 input:focus-visible,.environment-v4 textarea:focus-visible,.environment-v4 button:focus-visible,.environment-v4 a:focus-visible{outline:3px solid #80eff0;outline-offset:2px}
+@media(max-width:800px){.environment-v4{max-width:480px;padding:14px 13px 104px}.environment-v4 .e4-grid{grid-template-columns:minmax(0,1fr);gap:15px}.environment-v4 .e4-panel{padding:19px}.environment-v4 .e4-bottom{flex-direction:column;align-items:stretch}.environment-v4 .e4-done{width:100%}}
+@media(max-width:355px){.environment-v4{padding:10px 8px 100px}.environment-v4 .e4-panel{padding:12px}.environment-v4 .e4-chips{gap:5px}.environment-v4 .e4-chip{font-size:.75rem;min-height:70px}.environment-v4 .e4-flag{font-size:.77rem}}
