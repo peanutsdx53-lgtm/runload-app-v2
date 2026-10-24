@@ -15,6 +15,7 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
  const scrollWhileDragging=()=>{
   scrollFrame=null;
   if(!active?.dragging)return;
+  if(active.pointerType==="touch")return; // Do not move the page after a finger long-press.
   const y=active.y;
   const delta=y<78?-11:y>win.innerHeight-100?11:0;
   if(delta){
@@ -35,6 +36,7 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
   active.ghost?.remove();
   active=null;
   root.classList.remove("dashboard-custom-grid--dragging");
+  root.ownerDocument.documentElement.classList.remove("dashboard-touch-drag-active");
   clearHover();
  };
  function begin(){
@@ -44,6 +46,7 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
   const card=active.source;
   card.classList.add("dashboard-widget--drag-source");
   root.classList.add("dashboard-custom-grid--dragging");
+  if(active.pointerType==="touch")root.ownerDocument.documentElement.classList.add("dashboard-touch-drag-active");
   const ghost=root.ownerDocument.createElement("div");
   ghost.className="dashboard-drag-ghost";
   ghost.setAttribute("aria-hidden","true");
@@ -79,6 +82,10 @@ export function bindHomeDashboardDrag(root,{onDrop}={}){
   const source=handle.closest("[data-home-dashboard-id]");
   if(!source)return;
   const touch=e.pointerType==="touch";
+  if(touch){
+   e.preventDefault();
+   try{handle.setPointerCapture(e.pointerId)}catch{} // Keep the finger gesture on the handle.
+  }
   active={pointerId:e.pointerId,pointerType:e.pointerType,x:e.clientX,y:e.clientY,
    startX:e.clientX,startY:e.clientY,source,sourceId:source.dataset.homeDashboardId,
    armed:!touch,dragging:false,targetId:null,after:false,timer:null,ghost:null};
