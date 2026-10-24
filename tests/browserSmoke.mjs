@@ -442,9 +442,17 @@ try{
   assert.match(await page.locator('[data-rof-v4-anchor-meaning]').innerText(),/とても疲れている/);
   await page.locator('[data-rof-v4-phase="before"]').click();
   assert.equal(await page.locator('[data-rof-v4-number]').innerText(),"2");
+  // For printable full-page screenshots only, put the fixed bottom navigation
+  // after the content, rather than over the middle of the full-page capture.
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="static";el.style.width="100%";el.style.bottom="auto";
+  });
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-rof-v4-before.png"),fullPage:true});
   await page.locator('[data-rof-v4-phase="after"]').click();
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-rof-v4-after.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="";el.style.width="";el.style.bottom="";
+  });
   const overflowRof=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflowRof<=3,"ROF v4 mobile/PC must not scroll horizontally");
   await page.locator('[data-rof-v4-clear]').click();
