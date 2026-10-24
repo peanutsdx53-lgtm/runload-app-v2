@@ -49,9 +49,9 @@ export function rofPage(d,ui){
  syncRofUiState(ui,d);
  const n=d[rofPhaseKey[ui.phase]],hasScore=isValidRofJ(n),anchor=ROF_J_ANCHORS[ui.focusedAnchor];
  const tabs=Object.entries(rofPhaseKey).map(([phase,key],i)=>`<button type="button" role="tab" data-rof-v4-phase="${phase}" id="rof-v4-${phase}-tab" aria-controls="rof-v4-panel" aria-selected="${ui.phase===phase}" tabindex="${ui.phase===phase?0:-1}">${labels[i]}<small>${isValidRofJ(d[key])?esc(d[key]+'/10'):'未入力'}</small></button>`).join('');
- const anchors=ROF_J_ANCHORS.map((a,i)=>`<button type="button" class="rv4-anchor" data-rof-v4-anchor="${i}" aria-label="代表位置 ${esc(a.positionLabel)}：${esc(a.descriptor)}。説明を確認します。数値は変えません。" aria-pressed="${ui.focusedAnchor===i}">
+ const anchors=ROF_J_ANCHORS.map((a,i)=>`<button type="button" class="rv4-anchor" style="--anchor-position:${a.position*10}%" data-rof-v4-anchor="${i}" aria-label="代表位置 ${esc(a.positionLabel)}：${esc(a.descriptor)}。説明を確認します。数値は変えません。" aria-pressed="${ui.focusedAnchor===i}">
  <span class="rv4-picture"><img src="${esc(referenceImageUrl(a))}" alt="" loading="eager" decoding="async"><span class="rv4-picture-fallback" aria-hidden="true">図を表示できません</span></span><strong>${esc(a.positionLabel)}</strong><small>${shortLabels[i]}</small></button>`).join('');
- const ticks=Array.from({length:11},(_,i)=>`<span data-rof-v4-tick="${i}" class="${hasScore&&n===i?'is-selected':''}">${i}</span>`).join('');
+ const ticks=Array.from({length:11},(_,i)=>`<span data-rof-v4-tick="${i}" style="--tick-position:${i*10}%" class="${hasScore&&n===i?'is-selected':''}">${i}</span>`).join('');
  return `<div class="record-v3 rv4-page" data-rof-v4-root><header class="rv-head rv4-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><div><h1>運動前後の疲労感</h1><p>ROF-J｜0〜10の整数11段階</p></div></header>
  <section class="rv4-card" aria-labelledby="rv4-title"><div class="rv4-title"><h2 id="rv4-title">疲労感の記録</h2><span>任意</span></div>
  <div class="rv4-tabs" role="tablist" aria-label="疲労感の入力タイミング">${tabs}</div>
