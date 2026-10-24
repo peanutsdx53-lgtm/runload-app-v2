@@ -1,5 +1,12 @@
 /* Home redesign, 2026-10-24. Scope is home-v3; other screens keep their own styles. */
 .app-shell:has(.home-v3){--hx-txt:#f1f8fc;--hx-muted:#b3cad5}
+/* Home-level shell follows the approved dark dashboard visual language. */
+.app-shell:has(.home-v3) .sidebar{background:linear-gradient(180deg,#0c2533,#071923);border-right-color:#254655}
+.app-shell:has(.home-v3) .side-link{color:#b8d5df}
+.app-shell:has(.home-v3) .side-link:hover,.app-shell:has(.home-v3) .side-link.is-active{color:#85eff0;background:#1e5666}
+.app-shell:has(.home-v3) .topbar{display:none}
+.app-shell:has(.home-v3) .main-content{width:100%}
+.home-v3{width:100%;min-width:0}
 .app-shell:has(.home-v3) .main-frame{background:radial-gradient(ellipse at 90% 0%,#256072 0%,transparent 42%),linear-gradient(145deg,#091824,#0d2634 50%,#091620);min-height:100vh}
 .app-shell:has(.home-v3) .main-content{background:transparent;color:var(--hx-txt);max-width:1500px;margin:auto;padding-top:22px}
 .app-shell:has(.home-v3) .topbar{background:#0b1f2def;border-bottom-color:#36536a}
