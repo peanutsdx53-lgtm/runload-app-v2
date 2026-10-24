@@ -3,6 +3,7 @@
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
+  const homeExperience=await import("./ui/homeExperience.js");
   const rofScale=await import("./ui/rofJScale.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const app=document.querySelector("#app");
@@ -34,6 +35,7 @@
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
+  const homeUi={preview:false,conditionOpen:false,achievementOpen:false};
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
@@ -150,12 +152,12 @@
  const pref=editing?homeEditState.draft:homePreferenceState.layout;
  const names=dashboardPrefs.HOME_DASHBOARD_WIDGETS;
  const cards={
-  condition:`<div class="card home-feature"><div class="section-title"><div><h2>今日のコンディション</h2><p class="lead">今の自分を知る、小さな記録</p></div><span class="wellness-sun" aria-hidden="true">☀</span></div><div class="condition-profile"><div class="condition-ring"><span aria-hidden="true">◌</span></div><div class="condition-copy"><strong>今日の状態は未記録</strong><p>自分の感じ方を、好きなときに残しましょう。</p><a href="#/record" class="btn soft">コンディションを記録する →</a></div></div><div class="mini-head"><strong>最近の記録</strong><a href="#/history">履歴を見る ↗</a></div><div class="quick-run-facts"><span>◷ 45分</span><span>◇ 8.20km</span><span>♡ 疲労感 6 → 8</span></div></div>`,
-  latest:`<div class="card latest-run-card"><div class="section-title"><h2>直近の走行</h2><a class="text-link" href="#/history">すべて見る ↗</a></div><div class="latest-run-top"><div class="route-placeholder"><span class="route-placeholder-icon" aria-hidden="true">⌁</span><div class="route-placeholder-label">GPS軌跡なし</div></div><div class="latest-run-content"><span class="badge">10月22日</span><h3>今日の走行記録</h3><div class="home-metrics"><div><strong>8.20</strong><small>km</small><p>距離</p></div><div><strong>45</strong><small>分</small><p>時間</p></div><div><strong>5:29</strong><small>/km</small><p>ペース</p></div></div><a class="btn primary" href="#/result">結果を見る →</a></div></div></div>`,
-  topics:`<div class="card home-topics"><div class="section-title"><h2>気になるテーマから</h2><a class="text-link" href="#/exploration-tree">すべて見る →</a></div><div class="home-topic-grid"><button class="home-topic red" type="button" data-open-topic="04|疲れの感じ方"><span class="home-topic-icon">♡</span><span><strong>疲れと回復</strong><small>身体のサインを振り返る</small></span><span>›</span></button><button class="home-topic blue" type="button" data-open-topic="01|過去の走りとの比較"><span class="home-topic-icon">⌁</span><span><strong>走りの記録</strong><small>前回との違いを見つける</small></span><span>›</span></button><button class="home-topic purple" type="button" data-open-topic="05|睡眠"><span class="home-topic-icon">☾</span><span><strong>睡眠</strong><small>暮らしと走りを考える</small></span><span>›</span></button></div></div>`,
-  shortcuts:`<div class="card home-quick-access"><div class="section-title"><h2>クイックアクセス</h2></div><div class="home-quick-grid"><a href="#/record" class="quick-access-item"><span class="quick-icon">✎</span><span>記録する</span></a><a href="#/exploration-tree" class="quick-access-item"><span class="quick-icon">✦</span><span>探究ツリー</span></a><a href="#/course" class="quick-access-item"><span class="quick-icon">△</span><span>コース設計</span></a><a href="#/result" class="quick-access-item"><span class="quick-icon">▥</span><span>結果を見る</span></a></div></div>`,
-  trend:`<div class="card"><div class="section-title"><h2>記録の移り変わり</h2><a href="#/history" class="text-link">詳細を見る ↗</a></div><div class="home-trend">${historyChart(regionData("BA-DISP-023"))}</div></div>`,
-  discovery:`<div class="card"><div class="section-title"><h2>探究の続きを見る</h2><a href="#/exploration-tree" class="text-link">開く ↗</a></div><div class="home-question"><div class="question-leaf">✦</div><div><strong>自分が感じた疲れ</strong><p class="lead">走行記録を見比べながら、気になるテーマを探してみましょう。</p></div></div></div>`
+  latest:homeExperience.latestCard(homeUi.preview),
+  condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
+  topics:homeExperience.achievementCard(homeUi.preview),
+  shortcuts:homeExperience.shortcutsCard(),
+  trend:homeExperience.trendCard(homeUi.preview),
+  discovery:homeExperience.discoveryCard()
  };
  const current=pref||dashboardPrefs.defaultHomeDashboardLayout();
  const widgets=current.order.map(id=>{
@@ -167,13 +169,18 @@
   return `<div data-home-dashboard-id="${id}" class="dashboard-widget ${current.sizes[id]==="full"?"dashboard-widget--wide":"dashboard-widget--half"} ${!visible?"dashboard-widget--hidden":""}" ${editing?`data-home-editable="true"`:""}>${editingControls}<div class="dashboard-widget-content">${cards[id]||""}</div></div>`;
  }).join("");
  const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="マイダッシュボードの編集"><div><strong>マイダッシュボードを編集</strong><p>ハンドルを長押しして移動できます。上下ボタン・表示・サイズ変更も使えます。変更の保存は手動です。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
- return `<section class="home-head"><div><div class="eyebrow">YOUR RUNNING SPACE</div><h1>ホーム</h1><p class="lead">走る日も、休む日も。自分のペースで続けよう。</p></div><div class="home-heading-actions"><a href="#/measurement" class="btn primary">GPSで測定</a><button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を中止":"マイダッシュボードを編集"}</button></div></section>
- <section class="home-welcome"><span class="welcome-mark" aria-hidden="true">☀</span><div><strong>今日も、自分らしい一日を。</strong><p>走りも休養も、あなたのペースで。</p></div><a href="#/exploration-tree" aria-label="探究ツリーへ">↗</a></section>
+ return `<div class="home-v3"><section class="home-head"><h1>ホーム</h1><div class="home-heading-actions">
+ <button type="button" class="hx-preview-toggle" data-home-preview aria-pressed="${homeUi.preview}">${homeUi.preview?"表示例を終了":"表示例を見る"}</button>
+ <button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を終了":"編集"}</button>
+ </div></section>
+ ${homeUi.preview?'<div class="hx-preview-banner" role="status">表示例：走行・実績・睡眠はサンプルデータです。正式な記録として保存されません。</div>':""}
  ${homeEditState.notice?`<div class="dashboard-edit-notice" role="status">${esc(homeEditState.notice)}</div>`:""}
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
- <section class="mobile-start-controls" aria-label="記録の始め方"><a href="#/measurement" class="mobile-gps-start"><span class="start-symbol" aria-hidden="true">◎</span><span><strong>GPSで測定</strong><small>屋外で走るときはこちらから</small></span><span aria-hidden="true">→</span></a><a href="#/record" class="mobile-manual-start"><span aria-hidden="true">✎</span><span><strong>手入力で記録</strong><small>走行後・休養日の記録</small></span></a></section>
  ${controls}
- <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>`;
+ <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>
+ ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview):""}
+ ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
+ </div>`;
 }
     function rofPanel(){
  const anchors=rofScale.ROF_J_ANCHORS.map(a=>`<div class="rof-anchor-card" aria-label="${esc(a.positionLabel)}、${esc(a.descriptor)}">
@@ -433,7 +440,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M3 29 16 9l6 9 5-6 12 17m-26 0 5-8 5 8M6 34h32" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="3.6" stroke-linecap="round"/></svg></span>RunLoad</div><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title"><span class="topbar-brand">RunLoad</span><span class="topbar-subtitle">走るほど、わたしが見えてくる</span></div><div class="topbar-right"><a href="#/exploration-tree" class="topbar-search" aria-label="探究ツリーからテーマを探す">⌕ <span>知りたいことを探す...</span></a><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="record"){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -488,7 +495,22 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const attr=key==="gradeMode"?"data-grade-submode":key==="surfaceMode"?"data-surface-submode":"data-running-format";
     container.querySelectorAll("["+attr+"]").forEach(node=>node.hidden=node.getAttribute(attr)!==value);
   });
+  app.addEventListener("submit",(event)=>{
+    const form=event.target.closest("[data-condition-form]");
+    if(!form)return;
+    event.preventDefault();
+    const data=new FormData(form);
+    const hours=Number(data.get("hours")),minutes=Number(data.get("minutes"));
+    const saved=homeExperience.saveCondition(homePreferenceStorage,{date:String(data.get("date")||""),sleepMinutes:hours*60+minutes,feeling:String(data.get("feeling")||""),memo:String(data.get("memo")||"")});
+    homeEditState.notice=saved.ok?"生活記録を保存しました":saved.reason;
+    if(saved.ok){homeUi.preview=false;homeUi.conditionOpen=false;}
+    render();
+  });
   app.addEventListener("click",(event)=>{
+    if(event.target.closest("[data-home-preview]")){homeUi.preview=!homeUi.preview;render();return;}
+    if(event.target.closest("[data-condition-open]")){homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
+    if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
+    if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.step=0;render();return}
     if(event.target.closest("[data-onboard-close]")){onboardingState.open=false;render();return}
     if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(0,onboardingState.step-1);render();return}
