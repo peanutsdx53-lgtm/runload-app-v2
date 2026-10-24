@@ -252,7 +252,7 @@ try{
   assert.equal(await page.locator(".rv-unit-input").count(),2,"distance and total minutes side by side");
   assert.equal(await page.locator('[data-draft="hours"]').count(),0,"hours are not separate input");
   assert.equal(await page.locator('[data-draft="seconds"]').count(),0,"seconds are not separate input");
-  assert.equal(await page.locator(".rv-link").count(),4,"four optional entry cards");
+  assert.equal(await page.locator(".rv-link").count(),5,"five distinct optional entry cards");
   await page.locator('[data-draft="date"]').fill("2026-10-24");
   await page.locator('[data-draft="distance"]').fill("7.25");
   await page.locator('[data-draft="minutes"]').fill("45.5");
@@ -308,6 +308,8 @@ try{
   await page.locator('[data-draft="runningFormat"]').selectOption("RUN_WALK");
   await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill("5.2");
   await page.locator('[data-draft="runWalkRunningDurationMinutes"]').fill("32");
+  await page.goto(host+"#/record-environment",{waitUntil:"networkidle"});
+  await page.locator('[data-draft="temperatureC"]').fill("21.5");
   await page.goto(host+"#/record-reflection",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".record-extra-section").count(),1,"reflection remains independent");
   await page.locator('[data-record-section="reflection"] summary').click();
