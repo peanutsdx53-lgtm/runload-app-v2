@@ -4,8 +4,8 @@
 export const HOME_DASHBOARD_KEY="runload-v2-home-dashboard-layout-v1";
 export const HOME_DASHBOARD_WIDGETS=Object.freeze([
   {id:"latest",title:"最新の走行",defaultSize:"full"},
-  {id:"condition",title:"コンディション",defaultSize:"full"},
-  {id:"topics",title:"実績",defaultSize:"full"},
+  {id:"condition",title:"コンディション",defaultSize:"half"},
+  {id:"topics",title:"実績",defaultSize:"half"},
   {id:"shortcuts",title:"クイックアクセス",defaultSize:"full"},
   {id:"trend",title:"記録の移り変わり",defaultSize:"half"},
   {id:"discovery",title:"探究の続き",defaultSize:"half"}
