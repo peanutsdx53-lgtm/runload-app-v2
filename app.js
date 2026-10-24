@@ -43,7 +43,7 @@
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
   const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:String(introStored?.nickname||""),purpose:String(introStored?.purpose||"")};
-  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方・環境","record-reflection":"身体・使用品・メモ",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
@@ -270,11 +270,15 @@ function recordExtras(){
   function record(){return recordExperience.manualPage(state)+recordPreview();}
   function recordCourse(){return recordExperience.coursePage(state,state.recordCourseUi);}
   function recordRof(){return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>運動前後の疲労感</h1></header><div class="rv-aux-wrap">${rofPanel()}</div></div>`;}
-  function recordMore(){
-    const all=recordExtras();const from=all.indexOf('<details class="record-extra-section" data-record-section="compare">');
-    const fields=from>=0?all.slice(from).replace(/\s*<\/div>\s*$/,""):"";
-    return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>追加情報</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><h2>比較・環境・身体</h2><p class="rv-hint">分かる項目だけ入力してください。入力は手入力画面に戻っても保持されます。</p><div class="record-optional-stack">${fields}</div></section></div></div>`;
+  function recordMore(kind="both"){
+    const all=recordExtras();
+    const compareStart=all.indexOf('<details class="record-extra-section" data-record-section="compare">');
+    const reflectionStart=all.indexOf('<details class="record-extra-section" data-record-section="reflection">');
+    const fields=kind==="compare"?all.slice(compareStart,reflectionStart):kind==="reflection"?all.slice(reflectionStart).replace(/\s*<\/div>\s*$/,''):all.slice(compareStart).replace(/\s*<\/div>\s*$/,'');
+    const title=kind==="compare"?"歩数・走り方・環境":kind==="reflection"?"身体・使用品・メモ":"追加情報";
+    return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>${title}</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><div class="record-optional-stack">${fields}</div></section></div></div>`;
   }
+  const recordCompare=()=>recordMore("compare"),recordReflection=()=>recordMore("reflection");
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
  const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
@@ -438,9 +442,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
- const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":["record-course","record-rof","record-more"].includes(page)?"record":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection}[page]?.()||secondary(page);
+ const navPage=page==="result"?"result":["record-course","record-rof","record-more","record-compare","record-reflection"].includes(page)?"record":page;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","record-compare","record-reflection","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
