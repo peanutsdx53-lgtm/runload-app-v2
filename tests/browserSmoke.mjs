@@ -298,14 +298,16 @@ try{
   await page.locator('[data-rof-input="rofAfter"]').evaluate(el=>{el.value="8";el.dispatchEvent(new Event("input",{bubbles:true}))});
   assert.equal(await page.locator('[data-rof-output="rofBefore"]').innerText(),"2");
   assert.equal(await page.locator('[data-rof-output="rofAfter"]').innerText(),"8");
-  await page.goto(host+"#/record-more",{waitUntil:"networkidle"});
-  assert.equal(await page.locator(".record-extra-section").count(),2,"compare and reflection survive redesign");
+  await page.goto(host+"#/record-compare",{waitUntil:"networkidle"});
+  assert.equal(await page.locator(".record-extra-section").count(),1,"comparison remains independent");
   await page.locator('[data-record-section="compare"] summary').click();
   await page.locator('[data-draft="steps"]').fill("6120");
   await page.locator('[data-draft="stepsProvenance"]').selectOption("DEVICE_MEASURED");
   await page.locator('[data-draft="runningFormat"]').selectOption("RUN_WALK");
   await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill("5.2");
   await page.locator('[data-draft="runWalkRunningDurationMinutes"]').fill("32");
+  await page.goto(host+"#/record-reflection",{waitUntil:"networkidle"});
+  assert.equal(await page.locator(".record-extra-section").count(),1,"reflection remains independent");
   await page.locator('[data-record-section="reflection"] summary').click();
   await page.locator('[data-draft="shoeName"]').fill("検証用シューズ");
   await page.locator('[data-draft="memo"]').fill("自分のペースで走った");
