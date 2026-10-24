@@ -491,6 +491,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(target.value==="")d[key]="";
       else if(Number.isFinite(Number(target.value)))d[key]=String(Math.max(0,Math.min(cap,Math.round(Number(target.value)))));
       ui.notice="";
+      const oldError=app.querySelector(".rv-error");if(oldError)oldError.remove();
       if(target.value!==d[key])target.value=d[key];
       const direct=app.querySelector("[data-rv-slope-number]"),slide=app.querySelector("[data-rv-slope-range]");
       if(direct&&direct!==target)direct.value=d[key];if(slide&&slide!==target)slide.value=d[key]===""?0:d[key];
@@ -506,6 +507,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(target.matches("[data-rv-surface-range],[data-rv-surface-value]")){
       const k=target.dataset.rvSurfaceRange||target.dataset.rvSurfaceValue;
       d["surface"+k]=target.value===""?"":String(Math.max(0,Math.min(100,Number(target.value))));ui.notice="";
+      const oldError=app.querySelector(".rv-error");if(oldError)oldError.remove();
       const direct=app.querySelector('[data-rv-surface-value="'+k+'"]'),slide=app.querySelector('[data-rv-surface-range="'+k+'"]');
       if(direct&&direct!==target)direct.value=d["surface"+k];if(slide&&slide!==target)slide.value=d["surface"+k]||0;
       const selected=ui.surfaceSelected,total=selected.reduce((sum,key)=>sum+(d['surface'+key]===""?0:Number(d['surface'+key])),0);
