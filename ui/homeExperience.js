@@ -1,6 +1,74 @@
 const KEY = "runload-v2-life-condition-v1";
 const FEELINGS = Object.freeze(["とても良い","良い","ふつう","疲れ気味","良くない"]);
 export const CONDITION_KEY = KEY;
+
+const CLOCK_PATTERN=/^([01]\d|2[0-3]):([0-5]\d)$/;
+function clockMinutes(value) {
+ const match=CLOCK_PATTERN.exec(value||"");
+ return match?Number(match[1])*60+Number(match[2]):null;
+}
+export function calculatedTimeInBed(bedTime,wakeTime,relation="auto"){
+ const start=clockMinutes(bedTime),end=clockMinutes(wakeTime);
+ if(start===null||end===null||!["auto","previous","same"].includes(relation))return null;
+ const offset=relation==="previous"?1:relation==="same"?0:Number(start>end);
+ const minutes=end-start+offset*1440;
+ if(minutes<=0||minutes>=1440)return null;
+ return {minutes,bedDayOffset:offset};
+}
+export function conditionEntryFromForm(fields) {
+ const date=String(fields.date||""),feeling=String(fields.feeling||""),
+  memo=String(fields.memo||""),mode=String(fields.sleepMode||"");
+ let entry={date,feeling,memo,sleepMinutes:0};
+ if(mode==="clock"){
+  const bedTime=String(fields.bedTime||""),wakeTime=String(fields.wakeTime||""),
+   bedDayRule=String(fields.bedDayRule||"auto"),
+   calculated=calculatedTimeInBed(bedTime,wakeTime,bedDayRule);
+  if(!calculated)return {ok:false,reason:"就寝・起床時刻と日付の関係を確認してください"};
+  entry={...entry,sleepMinutes:calculated.minutes,sleepSource:"clock",bedTime,wakeTime,
+   bedDayOffset:calculated.bedDayOffset,bedDayRule};
+ }else if(mode==="duration"){
+  const parts=/^(\d{1,2}):([0-5]\d)$/.exec(String(fields.duration||"").trim());
+  if(!parts)return {ok:false,reason:"合計時間は「7:30」の形式で入力してください"};
+  const minutes=Number(parts[1])*60+Number(parts[2]);
+  if(minutes<=0||minutes>=1440)return {ok:false,reason:"合計時間は1分以上24時間未満にしてください"};
+  entry={...entry,sleepMinutes:minutes,sleepSource:"duration"};
+ }else return {ok:false,reason:"睡眠の入力方法を選択してください"};
+ if(!validEntry(entry))return {ok:false,reason:"日付・起床時の調子・メモを確認してください"};
+ return {ok:true,entry};
+}
+export function updateSleepForm(form){
+ if(!form)return;
+ const mode=form.querySelector('[name="sleepMode"]')?.value||"clock";
+ form.querySelectorAll("[data-sleep-mode]").forEach(btn=>{
+  const active=btn.dataset.sleepMode===mode;
+  btn.setAttribute("aria-pressed",String(active));btn.classList.toggle("is-selected",active);
+ });
+ form.querySelectorAll("[data-sleep-panel]").forEach(el=>el.hidden=el.dataset.sleepPanel!==mode);
+ const result=form.querySelector("[data-sleep-result]");
+ const label=form.querySelector("[data-sleep-result-label]");
+ const note=form.querySelector("[data-sleep-result-note]");
+ const error=form.querySelector("[data-sleep-error]");
+ if(error){error.hidden=true;error.textContent="";}
+ let minutes=null,message="";
+ if(mode==="clock"){
+  const bed=form.querySelector('[name="bedTime"]')?.value,
+    wake=form.querySelector('[name="wakeTime"]')?.value,
+    rule=form.querySelector('[name="bedDayRule"]:checked')?.value||"auto";
+  const calc=calculatedTimeInBed(bed,wake,rule);
+  minutes=calc?.minutes??null;
+  message=calc?(calc.bedDayOffset===1?"前日に就寝した記録として計算":"当日に就寝した記録として計算"):
+   (bed&&wake?"時刻と就寝日を確認してください":"就寝・起床時刻を選んでください");
+ }else{
+  const parts=/^(\d{1,2}):([0-5]\d)$/.exec(form.querySelector('[name="duration"]')?.value.trim()||"");
+  const parsed=parts?Number(parts[1])*60+Number(parts[2]):null;
+  minutes=parsed!==null&&parsed>0&&parsed<1440?parsed:null;
+  message=minutes!==null?"本人が申告した睡眠時間として記録":"例：7時間30分なら「7:30」";
+ }
+ if(result)result.textContent=minutes!==null?sleepText(minutes):"—";
+ if(label)label.textContent=mode==="clock"?"就寝から起床までの経過時間":"申告した睡眠時間";
+ if(note)note.textContent=message;
+}
+
 function dayText(date) {
  const d = date instanceof Date ? date : new Date(date);
  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
@@ -11,7 +79,15 @@ export function validEntry(v) {
  return !!v && typeof v==="object" && !Array.isArray(v) &&
  /^\d{4}-\d{2}-\d{2}$/.test(v.date) && !Number.isNaN(new Date(v.date+"T12:00:00").getTime()) &&
  Number.isInteger(v.sleepMinutes) && v.sleepMinutes>=0 && v.sleepMinutes<=1440 &&
- FEELINGS.includes(v.feeling) && typeof v.memo==="string" && v.memo.length<=160;
+ FEELINGS.includes(v.feeling) && typeof v.memo==="string" && v.memo.length<=160 &&
+ (v.sleepSource===undefined ||
+  (v.sleepSource==="duration" && v.sleepMinutes>0 && v.sleepMinutes<1440 &&
+   !("bedTime" in v) && !("wakeTime" in v)) ||
+  (v.sleepSource==="clock" && typeof v.bedTime==="string" && typeof v.wakeTime==="string" &&
+   ["auto","previous","same"].includes(v.bedDayRule) &&
+   (v.bedDayOffset===0||v.bedDayOffset===1) &&
+   (()=>{const r=calculatedTimeInBed(v.bedTime,v.wakeTime,v.bedDayRule);
+   return !!r&&r.minutes===v.sleepMinutes&&r.bedDayOffset===v.bedDayOffset;})()));
 }
 export function readConditions(storage) {
  try {
@@ -69,9 +145,9 @@ function sevenBars(entries){
  for(let offset=6;offset>=0;offset--){
   const date=pastDay(offset),item=map.get(date),m=item?.sleepMinutes;
   const pct=Number.isInteger(m)?Math.max(4,Math.min(100,Math.round(m/600*100))):0;
-  pieces.push('<span class="hx-bar-col"><span class="hx-bar '+(Number.isInteger(m)?"":"hx-missing")+'" style="height:'+pct+'%" aria-label="'+escape(date+(Number.isInteger(m)?" "+sleepText(m):" 未入力"))+'"></span><small>'+Number(date.slice(-2))+'</small></span>');
+  pieces.push('<span class="hx-bar-col"><span class="hx-bar '+(Number.isInteger(m)?"":"hx-missing")+'" style="height:'+pct+'%" aria-label="'+escape(date+(Number.isInteger(m)?" "+(item.sleepSource==="clock"?"就床 ":"睡眠 ")+sleepText(m):" 未入力"))+'"></span><small>'+Number(date.slice(-2))+'</small></span>');
  }
- return '<div class="hx-bars" role="img" aria-label="直近7日間の睡眠時間。未入力日は棒を表示しません">'+pieces.join("")+'</div>';
+ return '<div class="hx-bars" role="img" aria-label="直近7日間の睡眠・就床の記録時間。未入力日は棒を表示しません">'+pieces.join("")+'</div>';
 }
 export function latestCard(preview){
  const body=preview ? '<div class="hx-latest-fig"><div><small>距離</small><strong>7.20 <em>km</em></strong></div><div><small>時間</small><strong>42 <em>分</em></strong></div><div><small>平均ペース</small><strong>5:50 <em>/km</em></strong></div></div>'
@@ -81,11 +157,11 @@ export function latestCard(preview){
 export function conditionCard(storage,preview){
  const state=readConditions(storage),entries=preview?demoEntries():state.entries,map=new Map(entries.map(x=>[x.date,x])),today=map.get(todayLocal());
  const count=Array.from({length:7},(_,i)=>pastDay(i)).filter(d=>map.has(d)).length;
- const sleep= sleepText(today?.sleepMinutes),feeling=today?.feeling||"未入力";
- const stat='<div class="hx-condition-stats"><div><small>睡眠</small><strong>'+escape(sleep)+'</strong></div><div><small>起床時の調子</small><strong>'+escape(feeling)+'</strong></div><div><small>直近7日の入力</small><strong>'+count+'<em> / 7日</em></strong></div></div>';
+ const sleep= sleepText(today?.sleepMinutes),feeling=today?.feeling||"未入力",sleepLabel=today?.sleepSource==="clock"?"就床時間":"睡眠";
+ const stat='<div class="hx-condition-stats"><div><small>'+sleepLabel+'</small><strong>'+escape(sleep)+'</strong>'+(today?.sleepSource==="clock"?'<span class="hx-wake-time">起床 '+escape(today.wakeTime)+'</span>':'')+'</div><div><small>起床時の調子</small><strong>'+escape(feeling)+'</strong></div><div><small>直近7日の入力</small><strong>'+count+'<em> / 7日</em></strong></div></div>';
  return '<section class="hx-card hx-condition">'+
  '<button type="button" class="hx-title-button" data-condition-open aria-label="コンディションの入力と詳細を開く">'+head("コンディション","moon",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+
- stat+'<div class="hx-chart-label">睡眠時間の推移 <span>直近7日</span></div>'+sevenBars(entries)+
+ stat+'<div class="hx-chart-label">記録時間の推移 <span>直近7日</span></div>'+sevenBars(entries)+
  (!state.canSave&&!preview?'<p class="hx-warning">'+escape(state.reason)+'</p>':"")+'</section>';
 }
 export function achievementCard(preview){
@@ -103,18 +179,38 @@ export function trendCard(preview){
 export function discoveryCard(){
  return '<section class="hx-card hx-optional">'+head("探究の続き","leaf")+'<p>保存された探究の続きはありません</p></section>';
 }
-export function conditionPanel(storage,preview){
- const state=readConditions(storage),entries=preview?demoEntries():state.entries,today=entries.find(v=>v.date===todayLocal());
- const mins=today?.sleepMinutes??null,feeling=today?.feeling||"ふつう";
+export function conditionPanel(storage,preview,selectedDate=todayLocal()){
+ const state=readConditions(storage),chartEntries=preview?demoEntries():state.entries;
+ const existing=state.entries.find(x=>x.date===selectedDate);
+ const mode=existing?.sleepSource==="clock"||!existing?"clock":"duration";
+ const feeling=existing?.feeling||"ふつう";
  const opts=FEELINGS.map(v=>'<option value="'+escape(v)+'"'+(feeling===v?' selected':'')+'>'+escape(v)+'</option>').join("");
- const bars=entries.length?sevenBars(entries):'<p class="hx-no-sleep">睡眠の記録はまだありません</p>';
+ const bars=chartEntries.length?sevenBars(chartEntries):'<p class="hx-no-sleep">睡眠の記録はまだありません</p>';
+ const duration=existing?Math.floor(existing.sleepMinutes/60)+":"+String(existing.sleepMinutes%60).padStart(2,"0"):"";
+ const bed=existing?.sleepSource==="clock"?existing.bedTime:"";
+ const wake=existing?.sleepSource==="clock"?existing.wakeTime:"";
+ const dayRule=existing?.sleepSource==="clock"?existing.bedDayRule:"auto";
+ const modeButtons=[["clock","時刻から入力"],["duration","合計時間だけ"]].map(([value,label])=>
+  '<button type="button" data-sleep-mode="'+value+'" class="'+(mode===value?'is-selected':'')+'" aria-pressed="'+String(mode===value)+'">'+label+'</button>').join("");
+ const dayRadios=[["auto","自動判定"],["previous","前日に就寝"],["same","当日に就寝"]].map(([v,label])=>
+  '<label class="hx-day-radio"><input type="radio" name="bedDayRule" value="'+v+'"'+(dayRule===v?' checked':'')+'><span>'+label+'</span></label>').join("");
  return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
  '<div class="hx-dialog-head"><h2 id="hx-dialog-label">コンディション</h2><button data-home-close aria-label="閉じる" type="button">×</button></div>'+
- (preview?'<p class="hx-dialog-notice">表示例のデータです。入力は実際の保存内容に反映されます。</p>':'')+
- '<div class="hx-dialog-trend"><h3>睡眠時間の推移</h3>'+bars+'</div>'+
- '<form data-condition-form><h3>任意の生活記録</h3><label class="hx-date-row"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">'+todayLocal().replaceAll("-", "/")+'</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input type="date" name="date" required value="'+todayLocal()+'" aria-label="生活記録の日付"></span></label>'+
- '<div class="hx-form-grid"><label>睡眠（時間）<input type="number" name="hours" min="0" max="24" placeholder="例：7" value="'+(mins===null?'':Math.floor(mins/60))+'" required></label><label>睡眠（分）<input type="number" name="minutes" min="0" max="59" placeholder="例：30" value="'+(mins===null?'':mins%60)+'" required></label></div>'+
- '<label>起床時の調子<select name="feeling">'+opts+'</select></label><label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(today?.memo||"")+'</textarea></label>'+
+ (preview?'<p class="hx-dialog-notice">グラフは表示例です。以下の入力は実際の記録として保存されます。</p>':'')+
+ '<div class="hx-dialog-trend"><h3>睡眠・就床の記録推移</h3>'+bars+'</div>'+
+ '<form data-condition-form novalidate><h3>任意の生活記録</h3>'+
+ '<label class="hx-date-row"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">'+selectedDate.replaceAll("-", "/")+'</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input type="date" name="date" required value="'+selectedDate+'" aria-label="生活記録の日付"></span></label>'+
+ '<section class="hx-sleep-section" aria-label="睡眠の記録"><div class="hx-sleep-head"><h3>睡眠の記録</h3></div>'+
+ '<input type="hidden" name="sleepMode" value="'+mode+'"><div class="hx-sleep-modes" role="group" aria-label="睡眠の入力方法">'+modeButtons+'</div>'+
+ '<div data-sleep-panel="clock"'+(mode!=="clock"?' hidden':'')+'><div class="hx-time-grid">'+
+ '<label class="hx-time-card"><span class="hx-time-label">'+icon("moon")+' 就寝</span><input type="time" name="bedTime" value="'+escape(bed)+'" aria-label="就寝時刻"><small>起床日より前の場合もあります</small></label>'+
+ '<label class="hx-time-card"><span class="hx-time-label">☀ 起床</span><input type="time" name="wakeTime" value="'+escape(wake)+'" aria-label="起床時刻"><small>記録した日の時刻</small></label></div>'+
+ '<details class="hx-day-details"><summary>就寝日を修正</summary><div class="hx-day-options">'+dayRadios+'</div></details></div>'+
+ '<div data-sleep-panel="duration"'+(mode!=="duration"?' hidden':'')+'><label class="hx-duration-entry">覚えている睡眠時間<input type="text" name="duration" inputmode="text" placeholder="7:30" value="'+escape(duration)+'" aria-label="申告した睡眠時間（時間:分）"><small>7時間30分なら 7:30</small></label></div>'+
+ '<div class="hx-sleep-result" aria-live="polite"><div data-sleep-result-label></div><strong data-sleep-result>—</strong><p data-sleep-result-note></p><small>時刻からの計算は実際に眠っていた時間とは異なる場合があります。</small></div></section>'+
+ '<label>起床時の調子<select name="feeling">'+opts+'</select></label>'+
+ '<label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(existing?.memo||"")+'</textarea></label>'+
+ '<p class="hx-form-error" data-sleep-error role="alert" hidden></p>'+
  '<div class="hx-dialog-foot"><button type="button" data-home-close>キャンセル</button><button type="submit" class="hx-save" '+(!state.canSave?'disabled':'')+'>保存</button></div></form>'+
  (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':'')+'</section></div>';
 }
