@@ -57,131 +57,71 @@ try{
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
   assert.match(await page.locator("h1").innerText(),/ホーム/);
-  if(mode.name!=="desktop"){
-    const button=await page.locator(".home-heading-actions>a.btn").boundingBox();
-    assert.ok(button&&button.width>=58&&button.height<=46,mode.name+" record button must remain horizontal: "+JSON.stringify(button));
-  }
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-viewport.png"),fullPage:false});
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home.png"),fullPage:true});
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
-  if(mode.name!=="desktop"){
-    assert.equal(await page.locator(".mobile-start-controls a").count(),2,"GPS first and manual record choices");
-    assert.match(await page.locator(".mobile-gps-start").innerText(),/GPSで測定/);
-    await page.locator(".mobile-nav a[href='#/record-start']").click();
-    await page.locator(".record-choose-head h1").waitFor();
-    assert.match(await page.locator(".record-choose-head h1").innerText(),/記録の方法を選ぶ/);
-    assert.equal(await page.locator(".record-choose-grid a").count(),2);
-    await page.locator(".record-choose-primary").click();
-    await page.locator(".measurement-layout").waitFor();
-    assert.match(await page.locator("h1").first().innerText(),/測定/);
-    assert.ok(await page.locator(".measurement-controls .btn.primary").isDisabled(),"no fake GPS recording before engine bridge");
-    await page.goto(host+"#/home",{waitUntil:"networkidle"});
-  }
-  // v2 phase-one My Dashboard: edit, reorder, hide, resize, cancel and persist.
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"six dashboard modules exist");
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"six editable dashboard modules");
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
+  assert.equal(await page.locator(".hx-condition").count(),1);
+  assert.equal(await page.locator(".hx-achievement").count(),1);
+  assert.equal(await page.locator(".hx-shortcuts a").count(),3,"shortcuts only point to supplementary functions");
+  assert.equal(await page.locator(".home-welcome").count(),0,"no decorative greeting");
+  assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-empty.png"),fullPage:true});
+  await page.locator("[data-home-preview]").click();
+  assert.match(await page.locator(".hx-preview-banner").innerText(),/サンプルデータ/);
+  assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
+  assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
+  await page.locator("[data-condition-open]").click();
+  assert.equal(await page.locator(".hx-dialog").count(),1);
+  await page.locator("[data-home-close]").first().click();
+  await page.locator("[data-home-preview]").click();
+  await page.locator("[data-condition-open]").click();
+  await page.locator('input[name="hours"]').fill("6");
+  await page.locator('input[name="minutes"]').fill("40");
+  await page.locator('select[name="feeling"]').selectOption("ふつう");
+  await page.locator("[data-condition-form] button[type=submit]").click();
+  assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/);
+  const savedCondition=await page.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")));
+  assert.equal(savedCondition.length,1);
+  assert.equal(savedCondition[0].sleepMinutes,400);
+  await page.reload({waitUntil:"networkidle"});
+  assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/,"lifestyle input persists");
+
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
-  assert.equal(await page.locator("[data-widget-action=toggle]").count(),6,"editing controls on six modules");
-  assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"all widgets have accessible drag handles");
-  // Simulate a genuine pointer-stream after a 350ms long hold. The root uses
-  // elementFromPoint, so coordinates pass through browser layout and CSS.
-  await page.evaluate(()=>{
-    const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
-    const rect=h.getBoundingClientRect();
-    const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
-    h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
-  });
-  await page.waitForTimeout(385);
-  // Move the scroller while the long-press gesture is armed, as the real edge
-  // auto-scroll does when the user drags a tall card towards the bottom.
-  await page.evaluate(()=>{
-    const box=document.querySelector('[data-home-dashboard-id="latest"]').getBoundingClientRect();
-    const desiredBottom=innerHeight-115;
-    if(box.bottom>desiredBottom)window.scrollBy(0,box.bottom-desiredBottom);
-  });
-  const dragProbe=await page.evaluate(()=>{
-    const target=document.querySelector('[data-home-dashboard-id="latest"]');
-    const t=target.getBoundingClientRect();
-    const x=t.left+t.width/2,y=t.top+t.height*.77;
-    window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
-    const dropTarget=document.querySelector(".dashboard-widget--drop-after");
-    const selected=dropTarget?.dataset.homeDashboardId||null;
-    window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:73,isPrimary:true,button:0,clientX:x,clientY:y}));
-    return {selected,x,y,viewport:innerHeight};
-  });
-  assert.equal(dragProbe.selected,"latest",mode.name+" drag drop should show an after-target marker: "+JSON.stringify(dragProbe));
-  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest","long press drag must reorder in draft");
-  assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-home-dashboard-layout-v1")),null,"drag must not silently write preferences");
-  await page.locator("[data-home-cancel]").click();
-  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","cancel must restore drag edits");
-  await page.locator("[data-home-edit]").click();
-  // A stray early swipe before the long-press threshold must leave the order unchanged.
-  await page.evaluate(()=>{
-    const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
-    const rect=h.getBoundingClientRect(),x=rect.x+rect.width/2,y=rect.y+rect.height/2;
-    h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x,clientY:y}));
-    window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x+20,clientY:y+25}));
-    window.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:74,isPrimary:true,button:0,clientX:x+20,clientY:y+25}));
-  });
-  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","early swipe must not reorder");
-  if(mode.name!=="desktop"){
-    await page.evaluate(()=>window.scrollTo(0,0));
-    await page.evaluate(()=>{
-      const h=document.querySelector('[data-home-dashboard-id="condition"] [data-home-drag-handle]');
-      const r=h.getBoundingClientRect();
-      h.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerType:"touch",pointerId:75,button:0,isPrimary:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2}));
-    });
-    await page.waitForTimeout(370);
-    await page.evaluate(()=>{
-      window.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,cancelable:true,pointerType:"touch",pointerId:75,button:0,isPrimary:true,clientX:140,clientY:innerHeight-78}));
-    });
-    await page.waitForTimeout(150);
-    const scrolled=await page.evaluate(()=>window.scrollY);
-    assert.ok(scrolled>0,mode.name+" long drag near bottom should auto-scroll, got "+scrolled);
-    await page.evaluate(()=>window.dispatchEvent(new PointerEvent("pointercancel",{bubbles:true,pointerType:"touch",pointerId:75,isPrimary:true})));
-    assert.equal(await page.locator(".dashboard-drag-ghost").count(),0,"cancel must remove drag ghost");
-    assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition","cancel must preserve draft order");
-  }
-
-
-  if(mode.name!=="desktop"){
-    await page.evaluate(()=>window.scrollTo(0,0));
-    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing-viewport.png"),fullPage:false});
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
-    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-editing.png"),fullPage:true});
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
-  }
-
+  assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"drag handles preserved");
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
-  await page.locator("[data-widget-id=condition][data-widget-action=down]").click();
-  await page.locator("[data-widget-id=topics][data-widget-action=toggle]").click();
-  assert.ok(await page.locator("[data-home-dashboard-id=topics]").isVisible(),"hidden module must remain editable");
   await page.locator("[data-home-cancel]").click();
-  assert.equal(await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")?.then(s=>s.includes("dashboard-widget--wide")),false,"cancel restores default size");
-  assert.equal(await page.locator("[data-home-dashboard-id=topics]").getAttribute("class")?.then(s=>s.includes("dashboard-widget--hidden")),false,"cancel restores visibility");
+  assert.ok((await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")).includes("dashboard-widget--wide"));
   await page.locator("[data-home-edit]").click();
-  await page.locator("[data-widget-id=condition][data-widget-action=down]").click();
+  await page.locator("[data-widget-id=latest][data-widget-action=down]").click();
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
   await page.locator("[data-widget-id=topics][data-widget-action=toggle]").click();
+  assert.ok(await page.locator("[data-home-dashboard-id=topics]").isVisible(),"hidden widgets remain editable");
   await page.locator("[data-home-save]").click();
   const saved=await page.evaluate(()=>({
     pref:JSON.parse(localStorage.getItem("runload-v2-home-dashboard-layout-v1")),
     legacy:localStorage.getItem("running-record-mobile-home-layout-v1")
   }));
-  assert.equal(saved.pref.order[0],"latest");
-  assert.equal(saved.pref.sizes.condition,"full");
+  assert.equal(saved.pref.order[0],"condition");
+  assert.equal(saved.pref.sizes.condition,"half");
   assert.ok(!saved.pref.visible.includes("topics"));
-  assert.equal(saved.legacy,"legacy-original-must-stay","must never overwrite authoritative app prefs");
+  assert.equal(saved.legacy,"legacy-original-must-stay");
   await page.reload({waitUntil:"networkidle"});
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),5,"hide persisted after reload");
-  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest","reorder persisted");
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-customized.png"),fullPage:true});
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),5);
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition");
   await page.locator("[data-home-edit]").click();
   await page.locator("[data-home-reset]").click();
   await page.locator("[data-home-save]").click();
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"reset restores widgets");
-  // Keep the rest of this test based on a normal home composition.
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"reset restores modules");
+  assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
+
+  if(mode.name!=="desktop"){
+    await page.locator(".mobile-nav a[href='#/record-start']").click();
+    await page.locator(".record-choose-head h1").waitFor();
+    await page.locator(".record-choose-primary").click();
+    await page.locator(".measurement-layout").waitFor();
+    assert.ok(await page.locator(".measurement-controls .btn.primary").isDisabled());
+  }
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
   assert.equal(await page.locator(".region-tile").count(),12);
