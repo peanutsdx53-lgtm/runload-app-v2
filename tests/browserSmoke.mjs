@@ -283,7 +283,11 @@ try{
   await page.locator('[data-draft="date"]').fill("2026-10-24");
   await page.locator('[data-draft="distance"]').fill("7.25");
   await page.locator('[data-draft="minutes"]').fill("45.5");
+  // Full-page QA image only: move fixed bottom navigation into normal flow
+  // so it does not overlap the form halfway down the screenshot.
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-manual-v2.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.locator('a[href="#/record-course"]').click();
   await page.locator(".rv-course").waitFor();
   await page.locator('[data-draft="courseName"]').fill("川沿い往復");
@@ -309,7 +313,11 @@ try{
   await page.locator('[data-rv-apply]').click();
   assert.match(await page.locator('.rv-error').innerText(),/路面の割合/,'reject underfilled surface split');
   await page.locator('[data-rv-surface-value="trail"]').fill("30");
+  // Full-page QA image only: move fixed bottom navigation into normal flow
+  // so it does not overlap the form halfway down the screenshot.
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-course-v2.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   if(mode.name!=="desktop"){
     const widths=await page.locator(".rv-slope-tile").evaluateAll(tiles=>tiles.map(x=>({y:x.getBoundingClientRect().y,ok:x.scrollWidth<=x.clientWidth+1})));
     assert.ok(widths.every(v=>v.ok),"slope tile text must fit without horizontal overflow");
