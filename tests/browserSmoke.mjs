@@ -125,8 +125,8 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-empty-v2.png"),fullPage:false});
   await page.locator('[name="bedTime"]').fill("23:20");
   await page.locator('[name="wakeTime"]').fill("06:00");
-  assert.equal(await page.locator('[data-time-display="bedTime"]').innerText(),"23:20","clock readout always uses 24-hour time");
-  assert.equal(await page.locator('[data-time-display="wakeTime"]').innerText(),"06:00");
+  assert.equal(await page.locator('[data-time-display="bedTime"]').textContent(),"23:20","clock readout always uses 24-hour time");
+  assert.equal(await page.locator('[data-time-display="wakeTime"]').textContent(),"06:00");
   assert.match(await page.locator('[data-sleep-result]').innerText(),/6時間40分/);
   assert.match(await page.locator('[data-sleep-result-note]').innerText(),/前日に就寝/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-filled-v2.png"),fullPage:false});
@@ -157,8 +157,12 @@ try{
   assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20");
   assert.equal(await page.locator('[name="wakeTime"]').inputValue(),"06:00");
   await page.locator('[data-sleep-mode="duration"]').click();
-  assert.equal(await page.locator('[name="duration"]').isVisible(),true);
-  await page.locator('[name="duration"]').fill("7:30");
+  assert.equal(await page.locator('[name="durationHours"]').isVisible(),true);
+  await page.locator('[name="durationHours"]').fill("7");
+  await page.locator('[data-duration-minute="30"]').click();
+  assert.equal(await page.locator('[name="durationMinutes"]').inputValue(),"30","minute chip sets numeric field");
+  assert.match(await page.locator('[data-sleep-result]').innerText(),/7時間30分/);
+  assert.equal(await page.locator('[data-duration-minute="30"]').getAttribute("aria-pressed"),"true");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-duration-v2.png"),fullPage:false});
   await page.locator("[data-condition-form] button[type=submit]").click();
   const savedDuration=await page.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")));
@@ -168,7 +172,8 @@ try{
   assert.equal("bedTime" in savedDuration[0],false,"duration does not invent a bedtime");
   await page.locator("[data-condition-open]").click();
   assert.equal(await page.locator('[data-sleep-mode="duration"]').getAttribute("aria-pressed"),"true");
-  assert.equal(await page.locator('[name="duration"]').inputValue(),"7:30");
+  assert.equal(await page.locator('[name="durationHours"]').inputValue(),"7");
+  assert.equal(await page.locator('[name="durationMinutes"]').inputValue(),"30");
   await page.locator("[data-home-close]").first().click();
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
