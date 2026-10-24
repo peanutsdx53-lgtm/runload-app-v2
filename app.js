@@ -440,7 +440,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav><div class="side-foot"><div class="side-mountains" aria-hidden="true"></div><strong>走ることで、<br>もっと自分を知る。</strong></div></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="record"){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -587,6 +587,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(event.target.matches(".record-preview-overlay")||event.target.closest(".record-preview-dialog button[data-close-preview]")){state.recordPreviewOpen=false;render();return}
   });
   app.addEventListener("keydown",(event)=>{
+    if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   window.addEventListener("hashchange",()=>{state.toast="";render();window.scrollTo(0,0)});
