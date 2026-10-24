@@ -86,3 +86,15 @@
  .gps-v2-clock>strong{font-size:clamp(2.64rem,11.5vw,3.4rem)}
  .gps-v2-metrics strong{font-size:1.45rem}.gps-v2-button{font-size:.88rem}
 }
+/* Keep the GPS readiness route's mobile navigation consistent with Home. */
+@media(max-width:800px){
+ .app-shell:has(.gps-v2) .mobile-nav{
+  background:#092636f4;border-top:1px solid #37697a;
+  box-shadow:0 -6px 24px #0008;
+ }
+ .app-shell:has(.gps-v2) .mobile-link{color:#bed3dc}
+ .app-shell:has(.gps-v2) .mobile-link.is-active{
+  color:#50e1e3;background:transparent;
+ }
+ .app-shell:has(.gps-v2--demo-active) .mobile-nav{display:none}
+}
