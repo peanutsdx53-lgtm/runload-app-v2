@@ -32,6 +32,7 @@ test("the total duration is minutes only, without invented run values",()=>{
  assert.ok(!html.includes('data-draft="distance" type="text"'));
  assert.match(courseSummary(d).slope,/未設定/);
  assert.ok(!html.includes('GPSで測定'));
+ assert.equal((html.match(/class="rv-link"/g)||[]).length,5);
 });
 test("course sections never auto-fill empty proportions",()=>{
  const d=draft();d.gradeMode="SECTIONS";
