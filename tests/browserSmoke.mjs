@@ -292,6 +292,7 @@ try{
   assert.equal(await page.locator('[data-draft="distance"]').inputValue(),"7.25","distance retained after course");
   assert.equal(await page.locator('[data-draft="minutes"]').inputValue(),"45.5","minutes retained after course");
   await page.locator('a[href="#/record-rof"]').click();
+  await page.locator(".record-rof-j").waitFor();
   assert.equal(await page.locator(".rof-anchor-card").count(),5,"authorized ROF guide retained");
   const imageRefs=await page.locator(".rof-anchor-card img").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("src")));
   assert.ok(imageRefs.every(src=>src.startsWith("https://raw.githubusercontent.com/peanutsdx53-lgtm/runload-app/main/assets/rof/rof-visual-")));
