@@ -112,6 +112,17 @@ try{
     font:parseFloat(getComputedStyle(document.querySelector('.hx-dialog input[type=date]')).fontSize)
   }));
   assert.ok(conditionDateType.width<=261 && conditionDateType.font>=16,"compact legible condition date: "+JSON.stringify(conditionDateType));
+  const conditionDateVisual=await page.evaluate(()=>{
+    const box=document.querySelector(".hx-dialog .rl-date-control");
+    const panel=document.querySelector(".hx-dialog");
+    const input=box.querySelector("input[type=date]");
+    return {text:box.querySelector("[data-date-display]").textContent,
+      width:box.getBoundingClientRect().width,overflow:box.getBoundingClientRect().right-panel.getBoundingClientRect().right,
+      transparent:getComputedStyle(input).opacity};
+  });
+  assert.match(conditionDateVisual.text,/^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/);
+  assert.ok(conditionDateVisual.overflow<=0 && conditionDateVisual.width<=235 && conditionDateVisual.transparent==="0","condition native iOS picker fully contained: "+JSON.stringify(conditionDateVisual));
+
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-condition-input-v2.png"),fullPage:false});
   await page.locator("[data-home-close]").first().click();
   assert.equal(await page.evaluate(()=>document.body.classList.contains("runload-dialog-open")),false,"background unlocks on close");
@@ -295,7 +306,16 @@ try{
   });
   assert.ok(compactDate.font>=16 && compactDate.width<=291 && compactDate.width>200 && compactDate.sideBySide,"compact legible date row: "+JSON.stringify(compactDate));
   assert.ok(compactDate.overscroll<=1,"record screen must not scroll sideways: "+JSON.stringify(compactDate));
+  const visualDate=await page.evaluate(()=>{
+    const visual=document.querySelector(".rv-date .rl-date-control"),input=visual.querySelector("input");
+    return {width:visual.getBoundingClientRect().width,overflow:visual.getBoundingClientRect().right-visual.closest(".rv-panel").getBoundingClientRect().right,
+      nativeOpacity:getComputedStyle(input).opacity,text:visual.querySelector("[data-date-display]").textContent};
+  });
+  assert.ok(visualDate.overflow<=0 && visualDate.width<=234 && visualDate.nativeOpacity==="0",
+    "record date visual fits iOS panel and retains native input: "+JSON.stringify(visualDate));
+
   await page.locator('[data-draft="date"]').fill("2026-10-24");
+  assert.equal(await page.locator(".rv-date [data-date-display]").innerText(),"2026/10/24","custom date mirrors native value");
   await page.locator('[data-draft="distance"]').fill("7.25");
   await page.locator('[data-draft="minutes"]').fill("45.5");
   // Full-page QA image only: move fixed bottom navigation into normal flow
