@@ -61,6 +61,8 @@ jobs:
           fc-match :lang=ja
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
+      - name: Verify the actual public Pages screen
+        run: node tests/livePagesSmoke.mjs
       - name: Upload visual inspection screenshots
         if: always()
         uses: actions/upload-artifact@v4
