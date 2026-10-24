@@ -8,6 +8,7 @@
   const rofExperience=await import("./ui/rofExperience.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordExperience=await import("./ui/recordExperience.js");
+  const gaitExperience=await import("./ui/gaitExperience.js");
   const measurementExperience=await import("./ui/measurementExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -285,7 +286,7 @@ function recordExtras(){
     const title=kind==="compare"?"歩数・走り方・環境":kind==="reflection"?"身体・使用品・メモ":"追加情報";
     return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>${title}</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><div class="record-optional-stack">${fields}</div></section></div></div>`;
   }
-  const recordCompare=()=>recordMore("compare"),recordReflection=()=>recordMore("reflection");
+  const recordCompare=()=>gaitExperience.gaitPage(state.recordDraft),recordReflection=()=>recordMore("reflection");
   function recordEnvironment(){
     const d=state.recordDraft;
     return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>環境</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><h2 class="rv-section-title">走行時の環境 <small>任意</small></h2><label class="rv-field"><span>気温（℃）</span><input type="number" data-draft="temperatureC" min="-50" max="60" step="0.1" inputmode="decimal" value="${esc(d.temperatureC)}" placeholder="未入力"></label><label class="rv-field" style="margin-top:14px"><span>環境メモ</span><textarea data-draft="environmentNote" maxlength="500" rows="4" style="background:#092737;border:1px solid #588494;border-radius:11px;padding:10px;color:#fff">${esc(d.environmentNote)}</textarea></label><p class="rv-hint">測定値や本人の記録だけを残します。天気を自動的に推定しません。</p></section></div></div>`;
@@ -537,7 +538,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(warn){warn.textContent=ok?'割合の合計は100%です。':'選択した路面の割合を合計100%にしてください。';warn.className='rv-hint '+(ok?'rv-ok':'rv-invalid');}
       return;
     }
-    if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value;
+    if(event.target.matches("[data-draft]")){
+      state.recordDraft[event.target.dataset.draft]=event.target.value;
+      if(event.target.closest("[data-g4-page]"))gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
+    }
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
     if(event.target.matches("[data-rof-v4-range]")){
       rofExperience.setRofScore(rofUi,state.recordDraft,event.target.value);
@@ -609,6 +613,15 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
+    const gaitSource=event.target.closest("[data-g4-source]");
+    if(gaitSource){d.stepsProvenance=gaitSource.dataset.g4Source;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
+    const gaitFormat=event.target.closest("[data-g4-format]");
+    if(gaitFormat){d.runningFormat=gaitFormat.dataset.g4Format;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
+    if(event.target.closest("[data-g4-apply]")){
+      const check=gaitExperience.gaitValidation(d);
+      if(check.valid){state.recordPreviewOpen=true;location.hash="#/record";render();}
+      return;
+    }
     const drawRecord=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
     const grade=event.target.closest("[data-rv-grade]");
     if(grade){d.gradeMode=grade.dataset.rvGrade;ui.notice="";drawRecord();return;}
