@@ -37,7 +37,7 @@
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
-  const homeUi={preview:false,conditionOpen:false,achievementOpen:false};
+  const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
@@ -180,7 +180,7 @@
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>
- ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview):""}
+ ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
  ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
  </div>`;
 }
@@ -454,6 +454,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  const navPage=page==="result"?"result":["record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay]")));
+ if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -486,6 +487,11 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
   app.addEventListener("input",(event)=>{
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
+    const sleepForm=target.closest("[data-condition-form]");
+    if(sleepForm&&(target.matches('[name="bedTime"],[name="wakeTime"],[name="duration"],[name="bedDayRule"]'))){
+      homeExperience.updateSleepForm(sleepForm);
+      return;
+    }
     if(target.matches(".rl-date-control input[type=date]")){
       const visual=target.closest(".rl-date-control")?.querySelector("[data-date-display]");
       if(visual)visual.textContent=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(target.value)?target.value.replaceAll("-","/"):"日付を選択";
@@ -539,6 +545,16 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     }
   });
   app.addEventListener("change",(event)=>{
+    if(event.target.matches('[data-condition-form] [name="date"]')){
+      if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(event.target.value)){
+        homeUi.conditionDate=event.target.value;render();
+      }
+      return;
+    }
+    if(event.target.matches('[data-condition-form] [name="bedDayRule"]')){
+      homeExperience.updateSleepForm(event.target.closest("[data-condition-form]"));
+      return;
+    }
     if(!event.target.matches("[data-draft]"))return;
     const key=event.target.dataset.draft,value=event.target.value;state.recordDraft[key]=value;
     const container=event.target.closest(".record-editor, .record-v3");
@@ -550,11 +566,20 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     const form=event.target.closest("[data-condition-form]");
     if(!form)return;
     event.preventDefault();
-    const data=new FormData(form);
-    const hours=Number(data.get("hours")),minutes=Number(data.get("minutes"));
-    const saved=homeExperience.saveCondition(homePreferenceStorage,{date:String(data.get("date")||""),sleepMinutes:hours*60+minutes,feeling:String(data.get("feeling")||""),memo:String(data.get("memo")||"")});
-    homeEditState.notice=saved.ok?"生活記録を保存しました":saved.reason;
-    if(saved.ok){homeUi.preview=false;homeUi.conditionOpen=false;}
+    const fields=new FormData(form);
+    const result=homeExperience.conditionEntryFromForm({
+      date:String(fields.get("date")||""),feeling:String(fields.get("feeling")||""),
+      memo:String(fields.get("memo")||""),sleepMode:String(fields.get("sleepMode")||""),
+      bedTime:String(fields.get("bedTime")||""),wakeTime:String(fields.get("wakeTime")||""),
+      bedDayRule:String(fields.get("bedDayRule")||"auto"),duration:String(fields.get("duration")||"")
+    });
+    const saved=result.ok?homeExperience.saveCondition(homePreferenceStorage,result.entry):result;
+    if(!saved.ok){
+      const msg=form.querySelector("[data-sleep-error]");
+      if(msg){msg.hidden=false;msg.textContent=saved.reason;}return;
+    }
+    homeEditState.notice="生活記録を保存しました";
+    homeUi.preview=false;homeUi.conditionOpen=false;
     render();
   });
   app.addEventListener("click",(event)=>{
@@ -589,8 +614,15 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(err.length){ui.notice=err.join(" ");drawRecord();return;}
       ui.notice="";location.hash="#/record";return;
     }
+    const modeButton=event.target.closest("[data-sleep-mode]");
+    if(modeButton){
+      const form=modeButton.closest("[data-condition-form]");
+      form.querySelector('[name="sleepMode"]').value=modeButton.dataset.sleepMode;
+      homeExperience.updateSleepForm(form);
+      return;
+    }
     if(event.target.closest("[data-home-preview]")){homeUi.preview=!homeUi.preview;render();return;}
-    if(event.target.closest("[data-condition-open]")){homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
+    if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
     if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.step=0;render();return}
