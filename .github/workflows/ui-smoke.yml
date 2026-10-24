@@ -23,5 +23,6 @@ jobs:
           node --check ui/homeExperience.js
           node --check ui/rofJScale.js
           node --check ui/recordDraftReview.js
+          node --check ui/recordExperience.js
       - name: UI and installability contracts
-        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/recordDraftReview.test.mjs
+        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/recordDraftReview.test.mjs tests/recordExperience.test.mjs
