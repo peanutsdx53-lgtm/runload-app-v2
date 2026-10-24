@@ -1,8 +1,8 @@
 // RunLoad UI Next: only publicly served static resources are cached.
 // Network-first prevents installed devices from being pinned to outdated UI files.
-const CACHE="runload-ui-next-shell-2026-10-24-record-redesign-01";
+const CACHE="runload-ui-next-shell-2026-10-24-gps-preview-01";
 const BASE=new URL("./",self.location.href);
-const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./ui/homeDashboardLayout.js","./ui/homeDashboardDrag.js","./ui/homeExperience.js","./ui/homeExperience.css","./ui/recordExperience.js","./ui/recordExperience.css","./ui/rofJScale.js","./ui/recordDraftReview.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
+const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./ui/homeDashboardLayout.js","./ui/homeDashboardDrag.js","./ui/homeExperience.js","./ui/homeExperience.css","./ui/recordExperience.js","./ui/recordExperience.css","./ui/measurementExperience.js","./ui/measurementExperience.css","./ui/rofJScale.js","./ui/recordDraftReview.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
 const shellURL=new URL("./index.html",BASE).href;
 self.addEventListener("install",event=>event.waitUntil(
  caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(name=>new URL(name,BASE).href))).then(()=>self.skipWaiting())
