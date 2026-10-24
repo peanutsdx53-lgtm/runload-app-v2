@@ -32,7 +32,7 @@ export function conditionEntryFromForm(fields) {
   const minuteText=explicit?String(fields.durationMinutes??"").trim():null;
   const parts=explicit
    ?(/^(?:[0-9]|1[0-9]|2[0-3])$/.test(hours)&&/^(?:[0-9]|[1-5][0-9])$/.test(minuteText)?[null,hours,minuteText]:null)
-   :/^(\\d{1,2}):([0-5]\\d)$/.exec(String(fields.duration||"").trim());
+   :/^([0-9]{1,2}):([0-5][0-9])$/.exec(String(fields.duration||"").trim());
   if(!parts)return {ok:false,reason:"合計時間の「時間」「分」を確認してください"};
   const minutes=Number(parts[1])*60+Number(parts[2]);
   if(minutes<=0||minutes>=1440)return {ok:false,reason:"合計時間は1分以上24時間未満にしてください"};
