@@ -420,6 +420,13 @@ try{
     "all original images fully contained on screen: "+JSON.stringify(illustrationGeometry));
   const anchorGeometry=await page.locator('.rv4-anchor').evaluateAll(nodes=>nodes.map(el=>el.getBoundingClientRect().top));
   assert.ok(anchorGeometry.every(y=>Math.abs(y-anchorGeometry[0])<2),"five anchors share one horizontal row");
+  const anchorPositions=await page.evaluate(()=>{
+    const middle=el=>{const r=el.getBoundingClientRect();return r.left+r.width/2};
+    const anchors=[...document.querySelectorAll('.rv4-anchor')].map(middle);
+    const ticks=[...document.querySelectorAll('[data-rof-v4-tick]')].map(middle);
+    return anchors.map((x,i)=>({representative:x,expected:i%2===0?ticks[i*2.5]:((ticks[Math.floor(i*2.5)]+ticks[Math.ceil(i*2.5)])/2),delta:Math.abs(x-(i%2===0?ticks[i*2.5]:((ticks[Math.floor(i*2.5)]+ticks[Math.ceil(i*2.5)])/2)))}));
+  });
+  assert.ok(anchorPositions.every(p=>p.delta<=5),"anchor centers align with 0/2.5/5/7.5/10 ticks: "+JSON.stringify(anchorPositions));
   const tickGeometry=await page.locator('[data-rof-v4-tick]').evaluateAll(nodes=>nodes.map(el=>el.getBoundingClientRect().top));
   assert.ok(tickGeometry.every(y=>Math.abs(y-tickGeometry[0])<2),"integer ticks share one straight row");
   assert.equal(await page.locator('[data-rof-v4-number]').innerText(),"—","unanswered ROF is missing, not zero");
