@@ -616,9 +616,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
     const weather=event.target.closest("[data-e4-weather]");
-    if(weather){environmentExperience.toggleWeather(environmentUi,weather.dataset.e4Weather);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d);return;}
+    if(weather){environmentExperience.toggleWeather(environmentUi,weather.dataset.e4Weather);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d,environmentUi);return;}
     const flag=event.target.closest("[data-e4-flag]");
-    if(flag){environmentExperience.toggleFlag(environmentUi,flag.dataset.e4Flag);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d);return;}
+    if(flag){environmentExperience.toggleFlag(environmentUi,flag.dataset.e4Flag);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d,environmentUi);return;}
     if(event.target.closest("[data-e4-done]")&&environmentExperience.temperatureError(d.temperatureC)){event.preventDefault();return;}
     const gaitSource=event.target.closest("[data-g4-source]");
     if(gaitSource){d.stepsProvenance=gaitSource.dataset.g4Source;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
