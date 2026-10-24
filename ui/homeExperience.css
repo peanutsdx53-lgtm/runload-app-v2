@@ -441,7 +441,7 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
  border-color:#77e6e7;background:#087f94;color:#fff;
 }
 #app .hx-duration-picks>button:focus-visible{outline:2px solid #7aece8;outline-offset:2px}
-@media(hover:hover) and (pointer:fine){
+@media(min-width:801px) and (hover:hover) and (pointer:fine){
  #app .hx-time-control{padding:0 3px}
  #app .hx-time-control>span,#app .hx-time-control>.hx-time-clock{display:none}
  #app .hx-dialog .hx-time-card .hx-time-control>input[type=time]{
