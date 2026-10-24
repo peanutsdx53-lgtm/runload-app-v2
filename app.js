@@ -9,6 +9,7 @@
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordExperience=await import("./ui/recordExperience.js");
   const gaitExperience=await import("./ui/gaitExperience.js");
+  const environmentExperience=await import("./ui/environmentExperience.js");
   const measurementExperience=await import("./ui/measurementExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -42,6 +43,7 @@
   const homeEditState={editing:false,draft:null,notice:""};
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const measurementUi=measurementExperience.createMeasurementViewState();
+  const environmentUi=environmentExperience.newEnvironmentUi();
   const rofUi=rofExperience.createRofUiState();
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
@@ -287,11 +289,8 @@ function recordExtras(){
     return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>${title}</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><div class="record-optional-stack">${fields}</div></section></div></div>`;
   }
   const recordCompare=()=>gaitExperience.gaitPage(state.recordDraft),recordReflection=()=>recordMore("reflection");
-  function recordEnvironment(){
-    const d=state.recordDraft;
-    return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>環境</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><h2 class="rv-section-title">走行時の環境 <small>任意</small></h2><label class="rv-field"><span>気温（℃）</span><input type="number" data-draft="temperatureC" min="-50" max="60" step="0.1" inputmode="decimal" value="${esc(d.temperatureC)}" placeholder="未入力"></label><label class="rv-field" style="margin-top:14px"><span>環境メモ</span><textarea data-draft="environmentNote" maxlength="500" rows="4" style="background:#092737;border:1px solid #588494;border-radius:11px;padding:10px;color:#fff">${esc(d.environmentNote)}</textarea></label><p class="rv-hint">測定値や本人の記録だけを残します。天気を自動的に推定しません。</p></section></div></div>`;
-  }
-
+  function recordEnvironment(){return environmentExperience.environmentPage(state.recordDraft,environmentUi);}
+  
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
  const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
@@ -461,6 +460,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay],[data-gps-overlay]")));
  if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(page==="record-compare")gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
+ if(page==="record-environment")environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),state.recordDraft,environmentUi);
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -542,6 +542,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(event.target.matches("[data-draft]")){
       state.recordDraft[event.target.dataset.draft]=event.target.value;
       if(event.target.closest("[data-g4-page]"))gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
+      if(event.target.closest("[data-e4-page]"))environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),state.recordDraft,environmentUi);
     }
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
     if(event.target.matches("[data-rof-v4-range]")){
@@ -614,6 +615,11 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
+    const weather=event.target.closest("[data-e4-weather]");
+    if(weather){environmentExperience.toggleWeather(environmentUi,weather.dataset.e4Weather);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d);return;}
+    const flag=event.target.closest("[data-e4-flag]");
+    if(flag){environmentExperience.toggleFlag(environmentUi,flag.dataset.e4Flag);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d);return;}
+    if(event.target.closest("[data-e4-done]")&&environmentExperience.temperatureError(d.temperatureC)){event.preventDefault();return;}
     const gaitSource=event.target.closest("[data-g4-source]");
     if(gaitSource){d.stepsProvenance=gaitSource.dataset.g4Source;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
     const gaitFormat=event.target.closest("[data-g4-format]");
