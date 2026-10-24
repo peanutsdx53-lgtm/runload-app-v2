@@ -197,14 +197,14 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
  '<div class="hx-dialog-head"><h2 id="hx-dialog-label">コンディション</h2><button data-home-close aria-label="閉じる" type="button">×</button></div>'+
  (preview?'<p class="hx-dialog-notice">グラフは表示例です。以下の入力は実際の記録として保存されます。</p>':'')+
- '<div class="hx-dialog-trend"><h3>睡眠・就床の記録推移</h3>'+bars+'</div>'+
+ 
  '<form data-condition-form novalidate><h3>任意の生活記録</h3>'+
  '<label class="hx-date-row"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">'+selectedDate.replaceAll("-", "/")+'</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input type="date" name="date" required value="'+selectedDate+'" aria-label="生活記録の日付"></span></label>'+
  '<section class="hx-sleep-section" aria-label="睡眠の記録"><div class="hx-sleep-head"><h3>睡眠の記録</h3></div>'+
  '<input type="hidden" name="sleepMode" value="'+mode+'"><div class="hx-sleep-modes" role="group" aria-label="睡眠の入力方法">'+modeButtons+'</div>'+
  '<div data-sleep-panel="clock"'+(mode!=="clock"?' hidden':'')+'><div class="hx-time-grid">'+
- '<label class="hx-time-card"><span class="hx-time-label">'+icon("moon")+' 就寝</span><input type="time" name="bedTime" value="'+escape(bed)+'" aria-label="就寝時刻"><small>起床日より前の場合もあります</small></label>'+
- '<label class="hx-time-card"><span class="hx-time-label">☀ 起床</span><input type="time" name="wakeTime" value="'+escape(wake)+'" aria-label="起床時刻"><small>記録した日の時刻</small></label></div>'+
+ '<label class="hx-time-card"><span class="hx-time-label">'+icon("moon")+' 就寝</span><span class="hx-time-control"><span data-time-display="bedTime" aria-hidden="true">'+escape(bed||"時刻を選択")+'</span><svg viewBox="0 0 24 24" class="hx-time-clock" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><input type="time" name="bedTime" value="'+escape(bed)+'" aria-label="就寝時刻"></span><small>起床日より前の場合もあります</small></label>'+
+ '<label class="hx-time-card"><span class="hx-time-label">☀ 起床</span><span class="hx-time-control"><span data-time-display="wakeTime" aria-hidden="true">'+escape(wake||"時刻を選択")+'</span><svg viewBox="0 0 24 24" class="hx-time-clock" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><input type="time" name="wakeTime" value="'+escape(wake)+'" aria-label="起床時刻"></span><small>記録した日の時刻</small></label></div>'+
  '<details class="hx-day-details"><summary>就寝日を修正</summary><div class="hx-day-options">'+dayRadios+'</div></details></div>'+
  '<div data-sleep-panel="duration"'+(mode!=="duration"?' hidden':'')+'><label class="hx-duration-entry">覚えている睡眠時間<input type="text" name="duration" inputmode="text" placeholder="7:30" value="'+escape(duration)+'" aria-label="申告した睡眠時間（時間:分）"><small>7時間30分なら 7:30</small></label></div>'+
  '<div class="hx-sleep-result" aria-live="polite"><div data-sleep-result-label></div><strong data-sleep-result>—</strong><p data-sleep-result-note></p><small>時刻からの計算は実際に眠っていた時間とは異なる場合があります。</small></div></section>'+
@@ -212,6 +212,7 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  '<label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(existing?.memo||"")+'</textarea></label>'+
  '<p class="hx-form-error" data-sleep-error role="alert" hidden></p>'+
  '<div class="hx-dialog-foot"><button type="button" data-home-close>キャンセル</button><button type="submit" class="hx-save" '+(!state.canSave?'disabled':'')+'>保存</button></div></form>'+
+ '<div class="hx-dialog-trend"><h3>睡眠・就床の記録推移</h3>'+bars+'</div>'+
  (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':'')+'</section></div>';
 }
 export function achievementPanel(preview){
