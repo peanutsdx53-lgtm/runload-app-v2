@@ -18,7 +18,7 @@ export const guidanceForRofJ=v=>{
  return "目安の間の値";
 };
 export const ORIGINAL_ROF_ASSET_ROOT="https://raw.githubusercontent.com/peanutsdx53-lgtm/runload-app/main/assets/rof/";
-export function referenceImageUrl(anchor){return ORIGINAL_ROF_ASSET_ROOT+"rof-visual-"+anchor.file+".png"}
+export function referenceImageUrl(anchor){return "./assets/rof/rof-visual-"+anchor.file+".png"}
 export const ROF_J_RIGHTS={
  scale:"Suzuki K, Arai T. Validation of the Japanese Version of the Rating of Fatigue Scale. Sports Medicine - Open (2026).",
  scaleUrl:"https://link.springer.com/article/10.1186/s40798-026-01108-8",
