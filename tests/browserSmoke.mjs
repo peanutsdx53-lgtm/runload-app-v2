@@ -217,8 +217,8 @@ try{
     await page.locator(".rv-method h1").waitFor();
     assert.equal(await page.locator(".rv-method-card").count(),2,"GPS/manual mobile chooser");
     await page.locator(".rv-method-gps").click();
-    await page.locator(".measurement-layout").waitFor();
-    assert.ok(await page.locator(".measurement-controls .btn.primary").isDisabled());
+    await page.locator("[data-measurement-v2]").waitFor();
+    assert.ok(await page.locator(".gps-v2-button[disabled]").isDisabled(),"real GPS cannot be started");
   }
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
@@ -471,6 +471,30 @@ try{
    const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
+  await page.goto(host+"#/measurement",{waitUntil:"networkidle"});
+  assert.equal(await page.locator('[data-measurement-v2]').getAttribute('data-preview'),"false");
+  assert.match(await page.locator(".gps-v2-banner").innerText(),/GPS測定機能は現在利用できません/);
+  assert.ok(await page.locator(".gps-v2-button[disabled]").isDisabled(),"readiness start remains blocked");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-ready.png"),fullPage:false});
+  await page.locator('[data-gps-preview="preview"]').click();
+  await page.locator('[data-gps-preview="show-running"]').click();
+  assert.match(await page.locator(".gps-v2-banner").innerText(),/サンプル値/,"all active metrics explicitly samples");
+  assert.equal(await page.locator('.gps-v2-clock>strong').innerText(),"00:32:16");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-running-demo.png"),fullPage:false});
+  await page.locator('[data-gps-preview="show-paused"]').first().click();
+  assert.match(await page.locator(".gps-v2-signal").innerText(),/一時停止/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-paused-demo.png"),fullPage:false});
+  await page.locator('[data-gps-preview="end"]').click();
+  assert.equal(await page.locator(".gps-v2-confirm").count(),1,"ending requires explicit confirmation");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-gps-v2-confirm-demo.png"),fullPage:false});
+  await page.locator('[data-gps-preview="cancel-end"]').click();
+  assert.equal(await page.locator(".gps-v2-confirm").count(),0,"return from end confirmation");
+  await page.locator('[data-gps-preview="end"]').click();
+  await page.locator('[data-gps-preview="confirm-end"]').click();
+  assert.equal(await page.locator('[data-measurement-v2]').getAttribute('data-preview'),"false","demo never continues recording");
+  assert.ok(await page.locator(".gps-v2-button[disabled]").isDisabled());
+  const gpsOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+  assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+" horizontal overflow: "+overflow);
   await page.close();
