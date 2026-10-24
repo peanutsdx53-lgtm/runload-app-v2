@@ -57,7 +57,7 @@ try{
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
   assert.match(await page.locator("h1").innerText(),/ホーム/);
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"six editable dashboard modules");
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),4,"four core widgets by default");
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
   assert.equal(await page.locator(".hx-condition").count(),1);
   assert.equal(await page.locator(".hx-achievement").count(),1);
@@ -107,12 +107,12 @@ try{
   assert.ok(!saved.pref.visible.includes("topics"));
   assert.equal(saved.legacy,"legacy-original-must-stay");
   await page.reload({waitUntil:"networkidle"});
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),5);
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),3);
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"condition");
   await page.locator("[data-home-edit]").click();
   await page.locator("[data-home-reset]").click();
   await page.locator("[data-home-save]").click();
-  assert.equal(await page.locator("[data-home-dashboard-id]").count(),6,"reset restores modules");
+  assert.equal(await page.locator("[data-home-dashboard-id]").count(),4,"reset restores default core modules");
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
 
   if(mode.name!=="desktop"){
