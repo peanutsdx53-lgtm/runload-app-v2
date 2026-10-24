@@ -12,7 +12,7 @@
 | パス／位置 | 種類 | 由来／利用条件 | 取扱い |
 |---|---|---|---|
 | `assets/bodyRegionVisuals.js` | 前面・後面・足裏の選択可能なSVG形状 | 旧RunLoad `ui/bodyRegionVisuals.js` から、同じ開発者の依頼・許可で移植した既存コード。第三者向けのライセンス許諾を新規に設定したものではない | 維持。元ファイルとの対応・正式12部位IDを保護 |
-| 旧RunLoad `assets/rof/rof-visual-{lowest,low,moderate,high,highest}.png`（v2では同じ開発者の公開リポジトリ画像をURL参照） | ROF / ROF-J 5種の疲労感イラスト（AI生成物ではない） | Micklewright et al. (2017) *Sports Medicine* DOI: 10.1007/s40279-017-0711-5、図は CC BY 4.0。旧RunLoad `assets/rof/README.md` に出典・変更履歴。許可済みの旧アプリ資産 | 図は変更しない。外部参照のため初回表示に通信が必要。使用時に画面内で出典・ライセンスを明示。正式公開前に権利・出典を再確認 |
+| `assets/rof/rof-visual-{lowest,low,moderate,high,highest}.png`（旧RunLoadの同名ファイルからバイナリを変更せずv2へ複製） | ROF / ROF-J 5種の疲労感イラスト（AI生成物ではない） | Micklewright et al. (2017) *Sports Medicine* DOI: 10.1007/s40279-017-0711-5、図は CC BY 4.0。旧RunLoad `assets/rof/README.md` に出典・変更履歴。許可済みの旧アプリ資産 | 図の画像内容は変更しない。v2の同一オリジンから配信・オフラインキャッシュ。使用時に画面内で出典・ライセンスを明示。正式公開前に権利・出典を再確認 |
 | `ui/rofJScale.js` | ROF-J 0〜10 整数選択と著者確認済み5段階の説明文 | Suzuki & Arai (2026) *Sports Medicine - Open* DOI: 10.1186/s40798-026-01108-8、CC BY-NC-ND 4.0。旧版の責任著者確認 2026-10-01 により原版ROFと同じアンカー位置を採用 | 2.5 / 7.5は表示上の目安で選択値ではない。原文を恣意的に改変しない。商用公開時には許諾範囲を改めて確認 |
 | `icons/icon.svg` | RunLoadアプリアイコンの簡易ベクター | 今回の試作工程でコードとして制作した**暫定アイコン**。外部画像・生成画像サービスからの取り込みなし | 正式リリース前に開発者が採否・ロゴの権利関係を確認 |
 | `icons/icon-192.png`、`icons/icon-512.png` | PWAアイコン | 上記の暫定ロゴ案に合わせてプログラムで作成したビットマップ | 正式素材として固定しない。開発者の正式アイコンがあれば差し替え |
