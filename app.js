@@ -5,6 +5,7 @@
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const homeExperience=await import("./ui/homeExperience.js");
   const rofScale=await import("./ui/rofJScale.js");
+  const rofExperience=await import("./ui/rofExperience.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordExperience=await import("./ui/recordExperience.js");
   const measurementExperience=await import("./ui/measurementExperience.js");
@@ -40,6 +41,7 @@
   const homeEditState={editing:false,draft:null,notice:""};
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const measurementUi=measurementExperience.createMeasurementViewState();
+  const rofUi=rofExperience.createRofUiState();
   const onboardingKey="runload-v2-introduction-preview-v1";
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
@@ -271,7 +273,7 @@ function recordExtras(){
   }
   function record(){return recordExperience.manualPage(state)+recordPreview();}
   function recordCourse(){return recordExperience.coursePage(state,state.recordCourseUi);}
-  function recordRof(){return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>運動前後の疲労感</h1></header><div class="rv-aux-wrap">${rofPanel()}</div></div>`;}
+  function recordRof(){return rofExperience.rofPage(state.recordDraft,rofUi);}
   function recordMore(kind="both"){
     const all=recordExtras();
     const compareStart=all.indexOf('<details class="record-extra-section" data-record-section="compare">');
@@ -537,6 +539,11 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     }
     if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value;
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
+    if(event.target.matches("[data-rof-v4-range]")){
+      rofExperience.setRofScore(rofUi,state.recordDraft,event.target.value);
+      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);
+      return;
+    }
     if(event.target.matches("[data-rof-input]")){
       const key=event.target.dataset.rofInput,value=Number(event.target.value);
       if(!rofScale.isValidRofJ(value))return;
@@ -708,6 +715,25 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
     if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";state.sheetVisible=true;location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
+    const rofTab=event.target.closest("[data-rof-v4-phase]");
+    if(rofTab){
+      rofExperience.setRofPhase(rofUi,rofTab.dataset.rofV4Phase,state.recordDraft);
+      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+    }
+    const rofAnchor=event.target.closest("[data-rof-v4-anchor]");
+    if(rofAnchor){
+      rofExperience.focusRofAnchor(rofUi,Number(rofAnchor.dataset.rofV4Anchor));
+      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+    }
+    const rofStep=event.target.closest("[data-rof-v4-step]");
+    if(rofStep){
+      rofExperience.adjustRofScore(rofUi,state.recordDraft,Number(rofStep.dataset.rofV4Step));
+      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+    }
+    if(event.target.closest("[data-rof-v4-clear]")){
+      rofExperience.clearRofScore(rofUi,state.recordDraft);
+      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+    }
     const rofClear=event.target.closest("[data-rof-clear]");
     if(rofClear){const y=window.scrollY;state.recordDraft[rofClear.dataset.rofClear]=null;render();window.scrollTo(0,y);return}
     const feeling=event.target.closest("[data-feeling]");
