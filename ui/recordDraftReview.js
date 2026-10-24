@@ -12,7 +12,7 @@ export function checkRecordDraft(d={},isRun=true){
  if(!isRun)return {errors,warnings,ready:true}; // Rest uses a separate record contract.
  range(d.distance,0,10000,errors,"距離");
  range(d.hours,0,10000,errors,"時間（時）");
- range(d.minutes,0,59,errors,"時間（分）");
+ range(d.minutes,0,100000,errors,"時間（分）");
  range(d.seconds,0,59,errors,"時間（秒）");
  const steps=range(d.steps,0,10000000,errors,"歩数");
  if(steps!==null&&!Number.isInteger(steps))errors.push("歩数は整数で入力してください");
