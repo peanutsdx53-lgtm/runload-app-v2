@@ -15,17 +15,17 @@ test("six independent widgets and default desktop split",()=>{
  assert.equal(d.order.length,6);
  assert.ok(d.visible.includes("condition"));
  assert.equal(d.sizes.topics,"full");
- assert.equal(d.sizes.condition,"half");
+ assert.equal(d.sizes.condition,"full");
  assert.ok(isValidHomeDashboardLayout(d));
 });
 test("reorder and size preserve unchanged input",()=>{
  const initial=defaultHomeDashboardLayout();
  const swapped=editHomeDashboardLayout(initial,"down","condition");
- assert.deepEqual(swapped.order.slice(0,2),["latest","condition"]);
- assert.equal(initial.order[0],"condition");
+ assert.deepEqual(swapped.order.slice(0,2),["condition","latest"]);
+ assert.equal(initial.order[0],"latest");
  const full=editHomeDashboardLayout(swapped,"size","condition");
- assert.equal(full.sizes.condition,"full");
- assert.equal(swapped.sizes.condition,"half");
+ assert.equal(full.sizes.condition,"half");
+ assert.equal(swapped.sizes.condition,"full");
 });
 test("hide and restore, preserve minimum one visible",()=>{
  let d=defaultHomeDashboardLayout();
