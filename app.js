@@ -32,7 +32,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"土踏まず",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   state.recordCourseUi=recordExperience.initialCourseUi(state.recordDraft);
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
@@ -43,7 +43,7 @@
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
   const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:String(introStored?.nickname||""),purpose:String(introStored?.purpose||"")};
-  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方・環境","record-reflection":"身体・使用品・メモ",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方・環境","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
@@ -274,11 +274,19 @@ function recordExtras(){
     const all=recordExtras();
     const compareStart=all.indexOf('<details class="record-extra-section" data-record-section="compare">');
     const reflectionStart=all.indexOf('<details class="record-extra-section" data-record-section="reflection">');
-    const fields=kind==="compare"?all.slice(compareStart,reflectionStart):kind==="reflection"?all.slice(reflectionStart).replace(/\s*<\/div>\s*$/,''):all.slice(compareStart).replace(/\s*<\/div>\s*$/,'');
+    const compare=all.slice(compareStart,reflectionStart);
+    const environmentAt=compare.indexOf('<div class="record-extra-grid"><label class="record-extra-field"><span>気温');
+    const compareOnly=environmentAt>=0?compare.slice(0,environmentAt)+"</div></details>":compare;
+    const fields=kind==="compare"?compareOnly:kind==="reflection"?all.slice(reflectionStart).replace(/\s*<\/div>\s*$/,''):all.slice(compareStart).replace(/\s*<\/div>\s*$/,'');
     const title=kind==="compare"?"歩数・走り方・環境":kind==="reflection"?"身体・使用品・メモ":"追加情報";
     return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>${title}</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><div class="record-optional-stack">${fields}</div></section></div></div>`;
   }
   const recordCompare=()=>recordMore("compare"),recordReflection=()=>recordMore("reflection");
+  function recordEnvironment(){
+    const d=state.recordDraft;
+    return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>環境</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><h2 class="rv-section-title">走行時の環境 <small>任意</small></h2><label class="rv-field"><span>気温（℃）</span><input type="number" data-draft="temperatureC" min="-50" max="60" step="0.1" inputmode="decimal" value="${esc(d.temperatureC)}" placeholder="未入力"></label><label class="rv-field" style="margin-top:14px"><span>環境メモ</span><textarea data-draft="environmentNote" maxlength="500" rows="4" style="background:#092737;border:1px solid #588494;border-radius:11px;padding:10px;color:#fff">${esc(d.environmentNote)}</textarea></label><p class="rv-hint">測定値や本人の記録だけを残します。天気を自動的に推定しません。</p></section></div></div>`;
+  }
+
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
  const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
@@ -442,9 +450,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
- const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":["record-course","record-rof","record-more","record-compare","record-reflection"].includes(page)?"record":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","record-compare","record-reflection","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
+ const navPage=page==="result"?"result":["record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -483,6 +491,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(target.value==="")d[key]="";
       else if(Number.isFinite(Number(target.value)))d[key]=String(Math.max(0,Math.min(cap,Math.round(Number(target.value)))));
       ui.notice="";
+      if(target.value!==d[key])target.value=d[key];
       const direct=app.querySelector("[data-rv-slope-number]"),slide=app.querySelector("[data-rv-slope-range]");
       if(direct&&direct!==target)direct.value=d[key];if(slide&&slide!==target)slide.value=d[key]===""?0:d[key];
       for(const [k,v] of [["up",d.upPercent],["down",d.downPercent],["flat",recordExperience.derivedFlat(d)]]){
