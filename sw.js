@@ -1,6 +1,6 @@
 // RunLoad UI Next: only publicly served static resources are cached.
 // Network-first prevents installed devices from being pinned to outdated UI files.
-const CACHE="runload-ui-next-shell-2026-10-25-body-v8-review-01";
+const CACHE="runload-ui-next-shell-2026-10-25-body-v8-release-02";
 const BASE=new URL("./",self.location.href);
 const ASSETS=["./","./index.html","./styles.css","./app.js","./pwa.js","./assets/bodyRegionVisuals.js","./ui/homeDashboardLayout.js","./ui/homeDashboardDrag.js","./ui/homeExperience.js","./ui/homeExperience.css","./ui/recordExperience.js","./ui/recordExperience.css","./ui/gaitExperience.js","./ui/gaitExperience.css","./ui/environmentExperience.js","./ui/environmentExperience.css","./ui/bodyContextExperience.js","./ui/bodyContextExperience.css","./ui/rofExperience.js","./ui/rofExperience.css","./ui/measurementExperience.js","./ui/measurementExperience.css","./ui/rofJScale.js","./assets/rof/rof-visual-lowest.png","./assets/rof/rof-visual-low.png","./assets/rof/rof-visual-moderate.png","./assets/rof/rof-visual-high.png","./assets/rof/rof-visual-highest.png","./ui/recordDraftReview.js","./manifest.webmanifest","./icons/icon.svg","./icons/icon-192.png","./icons/icon-512.png"];
 const shellURL=new URL("./index.html",BASE).href;
@@ -30,7 +30,7 @@ self.addEventListener("fetch",event=>{
  if(url.origin!==self.location.origin||!url.pathname.startsWith(BASE.pathname))return;
  event.respondWith((async()=>{
   try{
-   const response=await fetch(req);
+   const response=await fetch(new Request(req,{cache:"no-cache"}));
    if(response.ok){
     const copy=response.clone();
     const cache=await caches.open(CACHE);

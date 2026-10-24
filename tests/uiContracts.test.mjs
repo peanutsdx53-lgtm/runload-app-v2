@@ -79,3 +79,14 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
  }
  assert.match(register,/Micklewright et al/);
 });
+
+test("body v8 refresh release uses versioned app assets",()=>{
+ const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
+ assert.match(html,/app\.js\?v=20261025-body-v8-r2/);
+ assert.match(html,/bodyContextExperience\.css\?v=20261025-body-v8-r2/);
+ assert.match(app,/bodyContextExperience\.js\?v=20261025-body-v8-r2/);
+ assert.ok(pwa.includes('updateViaCache:"none"'));
+ assert.ok(pwa.includes("更新する"));
+ assert.ok(sw.includes("body-v8-release-02"));
+ assert.ok(sw.includes('cache:"no-cache"'));
+});

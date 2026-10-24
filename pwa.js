@@ -18,4 +18,32 @@ function showInstall(){
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 window.addEventListener("appinstalled",()=>{deferredInstall=null});
 document.addEventListener("click",e=>{if(e.target.closest("[data-install-app]")){e.preventDefault();showInstall()}});
-if("serviceWorker" in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("Offline cache:",e)));
+function showAppUpdateNotice(){
+ if(document.getElementById("runload-update-notice"))return;
+ const banner=document.createElement("div");banner.id="runload-update-notice";banner.setAttribute("role","status");
+ banner.style.cssText="position:fixed;z-index:100000;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));max-width:450px;margin:auto;background:#092e46;color:#f4fdff;border:1px solid #3bd5dc;border-radius:14px;box-shadow:0 10px 35px #001522bb;padding:12px 14px;display:flex;gap:12px;align-items:center;font:600 14px/1.5 system-ui,sans-serif";
+ const label=document.createElement("span");label.textContent="RunLoadの新しい画面を利用できます。";label.style.flex="1";
+ const refresh=document.createElement("button");refresh.type="button";refresh.textContent="更新する";
+ refresh.style.cssText="border:0;border-radius:9px;background:#17c6d1;color:#06233a;padding:9px 12px;font:700 14px system-ui,sans-serif";
+ refresh.addEventListener("click",()=>location.reload());
+ const dismiss=document.createElement("button");dismiss.type="button";dismiss.textContent="後で";
+ dismiss.style.cssText="border:0;background:transparent;color:#c8ebf2;padding:7px;font:600 13px system-ui,sans-serif";
+ dismiss.addEventListener("click",()=>banner.remove());
+ banner.append(label,refresh,dismiss);document.body.append(banner);
+}
+if("serviceWorker" in navigator&&location.protocol==="https:"){
+ window.addEventListener("load",async()=>{
+  const wasControlled=Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(wasControlled)showAppUpdateNotice()});
+  try{
+   const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./",updateViaCache:"none"});
+   registration.addEventListener("updatefound",()=>{
+    const installing=registration.installing;
+    installing?.addEventListener("statechange",()=>{
+     if(installing.state==="installed"&&wasControlled)showAppUpdateNotice();
+    });
+   });
+   await registration.update();
+  }catch(e){console.warn("Offline cache:",e)}
+ });
+}

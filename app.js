@@ -10,7 +10,7 @@
   const recordExperience=await import("./ui/recordExperience.js");
   const gaitExperience=await import("./ui/gaitExperience.js");
   const environmentExperience=await import("./ui/environmentExperience.js");
-  const bodyExperience=await import("./ui/bodyContextExperience.js");
+  const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261025-body-v8-r2");
   const measurementExperience=await import("./ui/measurementExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
