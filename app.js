@@ -486,6 +486,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
   app.addEventListener("input",(event)=>{
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
+    if(target.matches(".rl-date-control input[type=date]")){
+      const visual=target.closest(".rl-date-control")?.querySelector("[data-date-display]");
+      if(visual)visual.textContent=/^\\d{4}-\\d{2}-\\d{2}$/.test(target.value)?target.value.replaceAll("-","/"):"日付を選択";
+    }
     if(target.matches("[data-rv-slope-number],[data-rv-slope-range]")){
       const key=ui.slope==="down"?"downPercent":"upPercent",other=key==="upPercent"?"downPercent":"upPercent";
       const cap=100-(d[other]===""?0:Number(d[other]));
