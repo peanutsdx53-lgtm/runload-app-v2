@@ -1,0 +1,21 @@
+name: Body review source and visual
+on:
+  push:
+    branches:
+      - design/body-equipment-v8-review
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture checked-out source (review branch only)
+        run: |
+          tar -czf /tmp/runload-v2-source.tgz --exclude=.git .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: body-review-repository-source
+          path: /tmp/runload-v2-source.tgz
+          retention-days: 3
