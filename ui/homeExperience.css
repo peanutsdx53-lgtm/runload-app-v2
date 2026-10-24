@@ -176,11 +176,26 @@
  .home-v3 .hx-shortcut strong{white-space:normal;overflow-wrap:anywhere;line-height:1.3}
 }
 
-/* Desktop navigation rail: approved composition uses a compact dark icon rail. */
-@media(min-width:801px){
- .app-shell:has(.home-v3){grid-template-columns:96px minmax(0,1fr)}
- .app-shell:has(.home-v3) .sidebar{padding:20px 8px}
- .app-shell:has(.home-v3) .side-nav{gap:7px}
- .app-shell:has(.home-v3) .side-link{display:flex;flex-direction:column;gap:5px;text-align:center;padding:11px 2px;border-radius:12px;font-size:.72rem;justify-content:center}
- .app-shell:has(.home-v3) .side-link .nav-icon{width:auto}
+/* 2026-10-24 home dialogs and achievements: typography and compact date.
+   Achievement data remains read-only until the real achievements engine is wired. */
+.app-shell:has(.home-v3) .hx-dialog form label{font-size:.92rem;line-height:1.45}
+.app-shell:has(.home-v3) .hx-dialog form input,
+.app-shell:has(.home-v3) .hx-dialog form select,
+.app-shell:has(.home-v3) .hx-dialog form textarea{font-size:1rem;min-height:46px}
+.app-shell:has(.home-v3) .hx-dialog input[type="date"]{
+  width:min(100%,260px);
+  min-height:50px;
+  font-size:1.0625rem;
+  font-weight:750;
+  font-variant-numeric:tabular-nums;
+}
+.app-shell:has(.home-v3) .hx-dialog p{font-size:.94rem;line-height:1.65}
+.app-shell:has(.home-v3) .hx-dialog .hx-dialog-notice{font-size:.875rem}
+.app-shell:has(.home-v3) .hx-ach-grid{gap:12px}
+.app-shell:has(.home-v3) .hx-ach-grid span{font-size:.95rem;line-height:1.5;padding:15px 12px}
+.home-v3 .hx-ach-data>small{font-size:.86rem;line-height:1.55}
+.home-v3 .hx-ach-data strong em{font-size:.89rem}
+@media(max-width:400px){
+ .app-shell:has(.home-v3) .hx-ach-dialog .hx-ach-grid{grid-template-columns:minmax(0,1fr)}
+ .app-shell:has(.home-v3) .hx-dialog{padding:18px}
 }
