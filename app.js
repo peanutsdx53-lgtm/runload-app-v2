@@ -6,6 +6,7 @@
   const homeExperience=await import("./ui/homeExperience.js");
   const rofScale=await import("./ui/rofJScale.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
+  const recordExperience=await import("./ui/recordExperience.js");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -32,6 +33,7 @@
     {id:"BA-DISP-029",name:"前足部",friendly:"足裏の前",value:106.3,prev:104.4}
   ];
   const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:"",memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  state.recordCourseUi=recordExperience.initialCourseUi(state.recordDraft);
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
@@ -41,7 +43,7 @@
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
   const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:String(introStored?.nickname||""),purpose:String(introStored?.purpose||"")};
-  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
@@ -216,11 +218,7 @@
  const current=steps[onboardingState.step];
  return `<div class="onboard-overlay" data-onboard-overlay><section class="onboard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboard-title"><div class="onboard-top"><strong>RunLoad</strong><span>初回案内・試作版</span><button type="button" data-onboard-close aria-label="案内を閉じる">×</button></div><div class="onboard-progress" aria-label="${onboardingState.step+1} / ${steps.length}">${steps.map((_,i)=>`<span class="${i<=onboardingState.step?"is-active":""}"></span>`).join("")}</div><div class="onboard-main"><p class="eyebrow">${current.eyebrow}</p><h2 id="onboard-title">${current.title}</h2><p class="onboard-description">${current.body}</p>${current.html}</div><div class="onboard-footer"><button type="button" class="btn" data-onboard-back ${onboardingState.step===0?"disabled":""}>戻る</button><span>${onboardingState.step+1} / ${steps.length}</span><button type="button" class="btn primary" data-onboard-next>${onboardingState.step===steps.length-1?"試用を始める":"次へ"}</button></div></section></div>`;
 }
-  function recordStart(){
- return `<section class="record-choose-head"><span class="eyebrow">START YOUR RUN</span><h1>記録の方法を選ぶ</h1><p class="lead">GPSで測定するか、あとから手入力するか選べます。</p></section>
- <section class="record-choose-grid"><a class="record-choose-primary" href="#/measurement"><span class="choose-icon" aria-hidden="true">◎</span><strong>GPSで測定</strong><p>走行中の時間と距離を測るための画面へ</p><small>※ v2ではGPS測定エンジン接続前です</small><span class="choose-arrow">開始画面へ →</span></a><a class="record-choose-secondary" href="#/record"><span class="choose-icon" aria-hidden="true">✎</span><strong>手入力で記録</strong><p>走行時間・距離・ROF-Jの疲労感を記入する</p><span class="choose-arrow">入力画面へ →</span></a></section>
- <p class="record-choose-note">旧アプリのGPS・保存エンジンと接続するまでは、v2からの測定開始や正式保存はできません。</p>`;
-}
+  function recordStart(){return recordExperience.recordMethodPage();}
 function recordExtras(){
  const d=state.recordDraft, field=(id)=>esc(d[id]??"");
  const select=(name,items,extra="")=>`<select data-draft="${name}" ${extra}>${items.map(([value,label])=>`<option value="${value}" ${d[name]===value?"selected":""}>${label}</option>`).join("")}</select>`;
@@ -257,24 +255,26 @@ function recordExtras(){
  <div class="record-extra-content"><p class="record-extra-help">身体の自覚情報はROF-Jや12部位の計算結果とは別に扱います。旧版の部位別詳細入力は、正式な保存契約を確認してから接続します。</p><label class="record-extra-field"><span>身体の気づき（自由記述）</span><textarea data-draft="bodyObservation" rows="2" maxlength="500" placeholder="気になった部位、違和感など">${field("bodyObservation")}</textarea></label><label class="record-extra-field"><span>今回のシューズ</span><input type="text" data-draft="shoeName" maxlength="120" placeholder="未入力" value="${field("shoeName")}"></label><label class="record-extra-field"><span>走行・休養時のメモ</span><textarea data-draft="memo" rows="3" maxlength="500" placeholder="自分が感じたことを記入">${field("memo")}</textarea></label></div></details>
  </div>`;
 }
-  function record(){
- const draft=state.recordDraft,active=state.recordType==="run";
- const review=reviewDraft.checkRecordDraft(draft,active);
- 
- const moods=[["very-good","☺","とても良い"],["good","◡","良い"],["regular","•","ふつう"],["tired","◠","疲れ気味"],["low","○","あまり良くない"]];
- return `<section class="record-page-head"><div><h1>記録をつけましょう</h1><p>ランニングや休養、その日の気分を記録する。</p></div></section>
- <section class="record-editor card">
- <div class="record-segments" aria-label="記録の種類">${[["run","ラン"],["rest","休養"]].map(([id,label])=>`<button type="button" data-record-type="${id}" class="${state.recordType===id?"is-active":""}" aria-pressed="${state.recordType===id}">${label}</button>`).join("")}</div>
- ${active?"":`<div class="record-rest-note"><span aria-hidden="true">☾</span><div><strong>休養日の記録</strong><p>身体を休めた日も、気づきを残せます。</p></div></div>`}
- <div class="record-area record-measurements">${active?`<div class="record-distance"><h2>距離</h2><label class="record-number"><input aria-label="距離（km）" data-draft="distance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.0" value="${esc(draft.distance)}"><span>km</span></label></div><div class="record-duration"><h2>時間</h2><div class="duration-inputs">${[["hours","時"],["minutes","分"],["seconds","秒"]].map(([id,unit])=>`<label><input aria-label="時間・${unit}" data-draft="${id}" type="number" inputmode="numeric" min="0" ${id==="hours"?"":'max="59"'} placeholder="00" value="${esc(draft[id])}"><span>${unit}</span></label>`).join("")}</div></div>`:""}<div class="record-date"><h2>日付</h2><input aria-label="記録日" type="date" data-draft="date" value="${esc(draft.date)}"></div></div>
- ${active?rofPanel():""}
- ${active?recordExtras():""}
- <div class="record-area"><h2>気分の記録 <small>任意・本人が選択</small></h2><div class="feelings-choice">${moods.map(([id,icon,label])=>`<button type="button" data-feeling="${id}" aria-label="${label}" aria-pressed="${state.feeling===id}" class="feeling-choice ${state.feeling===id?"is-active":""}"><span class="mood-symbol">${icon}</span><small>${label}</small></button>`).join("")}</div></div>
- ${active?"":`<div class="record-area"><label class="field record-memo"><span>休養日のメモ <small>任意</small></span><textarea data-draft="memo" rows="2" placeholder="休養日の気づき">${esc(draft.memo)}</textarea></label></div>`}
- <div class="record-save-actions"><button class="btn primary" type="button" data-demo-save>入力内容を確認する <span aria-hidden="true">→</span></button></div>
- </section>
- ${state.recordPreviewOpen?`<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2><p>この画面ではまだ正式な記録保存を行いません。</p><dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(draft.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(draft.distance||"未入力")} km</dd>`:""}${active?`<dt>ROF-J 運動前</dt><dd>${rofScale.isValidRofJ(draft.rofBefore)?draft.rofBefore:"未入力"}</dd><dt>ROF-J 運動後</dt><dd>${rofScale.isValidRofJ(draft.rofAfter)?draft.rofAfter:"未入力"}</dd>`:""}${active?`<dt>歩数</dt><dd>${esc(draft.steps||"未入力")}</dd><dt>歩数の取得方法</dt><dd>${esc({DEVICE_MEASURED:"端末・時計で計測",ESTIMATED:"手入力・おおよそ",UNKNOWN:"不明・未設定"}[draft.stepsProvenance]||"不明・未設定")}</dd><dt>走り方</dt><dd>${esc({RUN_WALK:"走歩混在",CONTINUOUS_RUN:"連続走行",UNKNOWN:"不明・未設定"}[draft.runningFormat]||"不明・未設定")}</dd><dt>コース</dt><dd>${esc(draft.courseName||"未入力")}</dd><dt>坂・路面</dt><dd>${esc({UNKNOWN:"不明・未設定",FLAT:"ほぼ平坦",SUMMARY:"割合で入力",SECTIONS:"区間ごとに入力"}[draft.gradeMode]||"不明・未設定")} ／ ${esc({UNKNOWN:"不明・未設定",SINGLE:"単一路面",MIXED:"複数路面の割合"}[draft.surfaceMode]||"不明・未設定")}</dd><dt>気温</dt><dd>${esc(draft.temperatureC||"未入力")}</dd><dt>身体の気づき</dt><dd>${esc(draft.bodyObservation||"未入力")}</dd><dt>シューズ</dt><dd>${esc(draft.shoeName||"未入力")}</dd>`:""}<dt>メモ</dt><dd>${esc(draft.memo||"未入力")}</dd></dl>${review.errors.length||review.warnings.length?`<div class="record-review-alert" role="alert"><strong>入力内容の確認事項</strong>${review.errors.map(t=>`<p class="is-error">${esc(t)}</p>`).join("")}${review.warnings.map(t=>`<p>${esc(t)}</p>`).join("")}</div>`:`<p class="record-review-success">入力項目の形式上の問題は検出されませんでした。正式保存・科学計算の検証ではありません。</p>`}<button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`:""}`;
-}
+  function recordPreview(){
+    if(!state.recordPreviewOpen)return "";
+    const d=state.recordDraft,active=state.recordType==="run",v=reviewDraft.checkRecordDraft(d,active);
+    const errors=[...v.errors];
+    if(!d.date)errors.unshift("日付を入力してください");
+    if(active&&(!d.distance||Number(d.distance)<=0||!d.minutes||Number(d.minutes)<=0))errors.unshift("距離と時間を入力してください");
+    return `<div class="record-preview-overlay" data-close-preview><section class="record-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="record-preview-title"><h2 id="record-preview-title">入力内容の確認</h2>
+      <p>正式な記録保存にはまだ接続していません。</p>
+      <dl><dt>種類</dt><dd>${active?"走行":"休養"}</dd><dt>日付</dt><dd>${esc(d.date||"未入力")}</dd>${active?`<dt>距離</dt><dd>${esc(d.distance||"未入力")} km</dd><dt>時間</dt><dd>${esc(d.minutes||"未入力")} 分</dd><dt>コース</dt><dd>${esc(d.courseName||"未設定")}</dd><dt>ROF-J</dt><dd>${Number.isInteger(d.rofBefore)?d.rofBefore:"未入力"} → ${Number.isInteger(d.rofAfter)?d.rofAfter:"未入力"}</dd>`:""}<dt>メモ</dt><dd>${esc(d.memo||"未入力")}</dd></dl>
+      ${errors.length||v.warnings.length?`<div class="record-review-alert" role="alert">${errors.map(t=>`<p class="is-error">${esc(t)}</p>`).join("")}${v.warnings.map(t=>`<p>${esc(t)}</p>`).join("")}</div>`:`<p class="record-review-success">入力形式に問題は検出されませんでした（正式保存・科学計算の検証ではありません）。</p>`}
+      <button type="button" class="btn primary" data-close-preview>閉じる</button></section></div>`;
+  }
+  function record(){return recordExperience.manualPage(state)+recordPreview();}
+  function recordCourse(){return recordExperience.coursePage(state,state.recordCourseUi);}
+  function recordRof(){return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>運動前後の疲労感</h1></header><div class="rv-aux-wrap">${rofPanel()}</div></div>`;}
+  function recordMore(){
+    const all=recordExtras();const from=all.indexOf('<details class="record-extra-section" data-record-section="compare">');
+    const fields=from>=0?all.slice(from).replace(/\s*<\/div>\s*$/,""):"";
+    return `<div class="record-v3 rv-aux"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>追加情報</h1></header><div class="rv-aux-wrap"><section class="rv-panel"><h2>比較・環境・身体</h2><p class="rv-hint">分かる項目だけ入力してください。入力は手入力画面に戻っても保持されます。</p><div class="record-optional-stack">${fields}</div></section></div></div>`;
+  }
     function result(){
  const current=regionData(state.region),v=current.value,prev=current.prev;
  const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
@@ -438,10 +438,10 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
       const previousTreeViewport=app.querySelector(".tree-pan-viewport");
       if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
- const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":page==="record-start"?"record-start":page;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
- if(page==="record"){
+ const page=currentPage(),content={home,record,result,history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore}[page]?.()||secondary(page);
+ const navPage=page==="result"?"result":["record-course","record-rof","record-more"].includes(page)?"record":page;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${content}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-course","record-rof","record-more","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
  }
@@ -472,6 +472,37 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
 }
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
   app.addEventListener("input",(event)=>{
+    const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
+    if(target.matches("[data-rv-slope-number],[data-rv-slope-range]")){
+      const key=ui.slope==="down"?"downPercent":"upPercent",other=key==="upPercent"?"downPercent":"upPercent";
+      const cap=100-(d[other]===""?0:Number(d[other]));
+      if(target.value==="")d[key]="";
+      else if(Number.isFinite(Number(target.value)))d[key]=String(Math.max(0,Math.min(cap,Math.round(Number(target.value)))));
+      ui.notice="";
+      const direct=app.querySelector("[data-rv-slope-number]"),slide=app.querySelector("[data-rv-slope-range]");
+      if(direct&&direct!==target)direct.value=d[key];if(slide&&slide!==target)slide.value=d[key]===""?0:d[key];
+      for(const [k,v] of [["up",d.upPercent],["down",d.downPercent],["flat",recordExperience.derivedFlat(d)]]){
+        const el=app.querySelector('[data-rv-slope-tile="'+k+'"] b');if(el)el.textContent=v===null||v===""?"—":v+"%";
+      }
+      const sumSlope=app.querySelector("[data-rv-summary-slope]");if(sumSlope)sumSlope.textContent=recordExperience.courseSummary(d,ui).slope;
+      const barUp=app.querySelector(".rv-mix-up"),barDown=app.querySelector(".rv-mix-down");
+      if(barUp)barUp.style.width=(d.upPercent===""?0:Number(d.upPercent))+"%";
+      if(barDown)barDown.style.width=(d.downPercent===""?0:Number(d.downPercent))+"%";
+      return;
+    }
+    if(target.matches("[data-rv-surface-range],[data-rv-surface-value]")){
+      const k=target.dataset.rvSurfaceRange||target.dataset.rvSurfaceValue;
+      d["surface"+k]=target.value===""?"":String(Math.max(0,Math.min(100,Number(target.value))));ui.notice="";
+      const direct=app.querySelector('[data-rv-surface-value="'+k+'"]'),slide=app.querySelector('[data-rv-surface-range="'+k+'"]');
+      if(direct&&direct!==target)direct.value=d["surface"+k];if(slide&&slide!==target)slide.value=d["surface"+k]||0;
+      const selected=ui.surfaceSelected,total=selected.reduce((sum,key)=>sum+(d['surface'+key]===""?0:Number(d['surface'+key])),0);
+      const ok=selected.length>=2&&selected.every(key=>d['surface'+key]!==""&&Number(d['surface'+key])>0)&&Math.abs(total-100)<.001;
+      const sumSurface=app.querySelector("[data-rv-summary-surface]");if(sumSurface)sumSurface.textContent=recordExperience.courseSummary(d,ui).surface;
+      const totalEl=app.querySelector('[data-rv-surface-total]'),warn=app.querySelector('[data-rv-surface-warning]');
+      if(totalEl){totalEl.textContent='合計 '+total+'% / 100%';totalEl.className=ok?'rv-ok':'rv-invalid';}
+      if(warn){warn.textContent=ok?'割合の合計は100%です。':'選択した路面の割合を合計100%にしてください。';warn.className='rv-hint '+(ok?'rv-ok':'rv-invalid');}
+      return;
+    }
     if(event.target.matches("[data-draft]"))state.recordDraft[event.target.dataset.draft]=event.target.value;
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
     if(event.target.matches("[data-rof-input]")){
@@ -507,6 +538,37 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     render();
   });
   app.addEventListener("click",(event)=>{
+    const ui=state.recordCourseUi,d=state.recordDraft;
+    const drawRecord=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
+    const grade=event.target.closest("[data-rv-grade]");
+    if(grade){d.gradeMode=grade.dataset.rvGrade;ui.notice="";drawRecord();return;}
+    const slopeTile=event.target.closest("[data-rv-slope-tile]");
+    if(slopeTile&&slopeTile.dataset.rvSlopeTile!=="flat"){ui.slope=slopeTile.dataset.rvSlopeTile;drawRecord();return;}
+    const slopeStep=event.target.closest("[data-rv-step]");
+    if(slopeStep){
+      const own=ui.slope==="down"?"downPercent":"upPercent",other=own==="upPercent"?"downPercent":"upPercent";
+      const old=d[own]===""?0:Number(d[own]),max=100-(d[other]===""?0:Number(d[other]));
+      d[own]=String(Math.max(0,Math.min(max,old+Number(slopeStep.dataset.rvStep))));ui.notice="";drawRecord();return;
+    }
+    const surfaceMode=event.target.closest("[data-rv-surface-mode]");
+    if(surfaceMode){d.surfaceMode=surfaceMode.dataset.rvSurfaceMode;ui.notice="";drawRecord();return;}
+    const surface=event.target.closest("[data-rv-surface]");
+    if(surface){const k=surface.dataset.rvSurface;
+      if(d.surfaceMode==="SINGLE")d.primarySurface=k;
+      else if(d.surfaceMode==="MIXED")ui.surfaceSelected=ui.surfaceSelected.includes(k)?ui.surfaceSelected.filter(x=>x!==k):[...ui.surfaceSelected,k];
+      ui.notice="";drawRecord();return;
+    }
+    if(event.target.closest("[data-rv-add]")){if(ui.sections<5){ui.sections++;ui.notice="";drawRecord()}return;}
+    const remove=event.target.closest("[data-rv-remove]");
+    if(remove){const n=Number(remove.dataset.rvRemove);
+      if(n>=0&&n<ui.sections){for(let i=n;i<ui.sections-1;i++)for(const stem of ["sectionShare","sectionDirection","sectionGrade","sectionSurface"])d[stem+i]=d[stem+(i+1)];
+      const last=ui.sections-1;d["sectionShare"+last]="";d["sectionDirection"+last]="FLAT";d["sectionGrade"+last]="";d["sectionSurface"+last]="UNKNOWN";ui.sections--;ui.notice="";drawRecord()}return;
+    }
+    if(event.target.closest("[data-rv-apply]")){
+      const err=recordExperience.courseReadiness(d,ui);
+      if(err.length){ui.notice=err.join(" ");drawRecord();return;}
+      ui.notice="";location.hash="#/record";return;
+    }
     if(event.target.closest("[data-home-preview]")){homeUi.preview=!homeUi.preview;render();return;}
     if(event.target.closest("[data-condition-open]")){homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
