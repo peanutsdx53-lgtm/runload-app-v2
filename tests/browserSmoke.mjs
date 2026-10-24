@@ -94,6 +94,19 @@ try{
   await page.locator("[data-home-close]").first().click();
   await page.locator("[data-condition-open]").click();
   assert.equal(await page.locator(".hx-dialog").count(),1);
+  const modalGeometry=await page.evaluate(()=>{
+    const dlg=document.querySelector('.hx-dialog'),date=dlg.querySelector('input[type=date]');
+    const dr=dlg.getBoundingClientRect(),ir=date.getBoundingClientRect();
+    const bg=getComputedStyle(dlg.querySelector('input[name=hours]')).backgroundColor;
+    return {dateRight:ir.right,dialogRight:dr.right,dialogScroll:dlg.scrollWidth-dlg.clientWidth,
+      bodyLocked:document.body.classList.contains('runload-dialog-open'),
+      background:bg,emptyState:!!dlg.querySelector('.hx-no-sleep'),
+      inputFont:parseFloat(getComputedStyle(dlg.querySelector('input[name=hours]')).fontSize)};
+  });
+  assert.ok(modalGeometry.dateRight<=modalGeometry.dialogRight-4,"iOS-like date stays inside modal: "+JSON.stringify(modalGeometry));
+  assert.ok(modalGeometry.dialogScroll<=1,"modal has no horizontal scrolling: "+JSON.stringify(modalGeometry));
+  assert.ok(modalGeometry.bodyLocked,"background scrolling locked while dialog visible");
+  assert.ok(modalGeometry.inputFont>=16 && !modalGeometry.background.includes('255, 255, 255'),"dark readable condition inputs");
   const conditionDateType=await page.evaluate(()=>({
     width:document.querySelector('.hx-dialog input[type=date]').getBoundingClientRect().width,
     font:parseFloat(getComputedStyle(document.querySelector('.hx-dialog input[type=date]')).fontSize)
@@ -101,6 +114,7 @@ try{
   assert.ok(conditionDateType.width<=261 && conditionDateType.font>=16,"compact legible condition date: "+JSON.stringify(conditionDateType));
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-condition-input-v2.png"),fullPage:false});
   await page.locator("[data-home-close]").first().click();
+  assert.equal(await page.evaluate(()=>document.body.classList.contains("runload-dialog-open")),false,"background unlocks on close");
   await page.locator("[data-home-preview]").click();
   await page.locator("[data-condition-open]").click();
   await page.locator('input[name="hours"]').fill("6");
@@ -117,6 +131,7 @@ try{
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
   assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"drag handles preserved");
+  assert.equal(await page.locator("[data-home-drag-handle]").first().evaluate(el=>getComputedStyle(el).touchAction),"none","long-press drag handle does not trigger native scrolling");
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
   await page.locator("[data-home-cancel]").click();
   assert.ok((await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")).includes("dashboard-widget--half"));
