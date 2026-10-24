@@ -97,21 +97,19 @@ try{
   const modalGeometry=await page.evaluate(()=>{
     const dlg=document.querySelector('.hx-dialog'),date=dlg.querySelector('input[type=date]');
     const dr=dlg.getBoundingClientRect(),ir=date.getBoundingClientRect();
-    const bg=getComputedStyle(dlg.querySelector('input[name=hours]')).backgroundColor;
+    const clockInputs=[...dlg.querySelectorAll('input[type=time]')];
+    const bg=getComputedStyle(clockInputs[0]).backgroundColor;
+    const timeOverflow=clockInputs.map(el=>({
+      overflow:Math.round(el.getBoundingClientRect().right-el.closest('.hx-time-card').getBoundingClientRect().right),
+      font:parseFloat(getComputedStyle(el).fontSize)
+    }));
     return {dateRight:ir.right,dialogRight:dr.right,dialogScroll:dlg.scrollWidth-dlg.clientWidth,
-      bodyLocked:document.body.classList.contains('runload-dialog-open'),
-      background:bg,emptyState:!!dlg.querySelector('.hx-no-sleep'),
-      inputFont:parseFloat(getComputedStyle(dlg.querySelector('input[name=hours]')).fontSize)};
+      bodyLocked:document.body.classList.contains('runload-dialog-open'), background:bg,timeOverflow};
   });
-  assert.ok(modalGeometry.dateRight<=modalGeometry.dialogRight-4,"iOS-like date stays inside modal: "+JSON.stringify(modalGeometry));
+  assert.ok(modalGeometry.dateRight<=modalGeometry.dialogRight-4,"date stays inside modal: "+JSON.stringify(modalGeometry));
   assert.ok(modalGeometry.dialogScroll<=1,"modal has no horizontal scrolling: "+JSON.stringify(modalGeometry));
   assert.ok(modalGeometry.bodyLocked,"background scrolling locked while dialog visible");
-  assert.ok(modalGeometry.inputFont>=16 && !modalGeometry.background.includes('255, 255, 255'),"dark readable condition inputs");
-  const conditionDateType=await page.evaluate(()=>({
-    width:document.querySelector('.hx-dialog input[type=date]').getBoundingClientRect().width,
-    font:parseFloat(getComputedStyle(document.querySelector('.hx-dialog input[type=date]')).fontSize)
-  }));
-  assert.ok(conditionDateType.width<=261 && conditionDateType.font>=16,"compact legible condition date: "+JSON.stringify(conditionDateType));
+  assert.ok(modalGeometry.timeOverflow.every(x=>x.font>=16&&x.overflow<=1)&&!modalGeometry.background.includes("255, 255, 255"),"time fields are readable and contained: "+JSON.stringify(modalGeometry));
   const conditionDateVisual=await page.evaluate(()=>{
     const box=document.querySelector(".hx-dialog .rl-date-control");
     const panel=document.querySelector(".hx-dialog");
@@ -121,24 +119,54 @@ try{
       transparent:getComputedStyle(input).opacity};
   });
   assert.match(conditionDateVisual.text,/^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/);
-  assert.ok(conditionDateVisual.overflow<=0 && conditionDateVisual.width<=235 && conditionDateVisual.transparent==="0","condition native iOS picker fully contained: "+JSON.stringify(conditionDateVisual));
-
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-condition-input-v2.png"),fullPage:false});
+  assert.ok(conditionDateVisual.overflow<=0 && conditionDateVisual.width<=235 && conditionDateVisual.transparent==="0","date native picker remains usable");
+  assert.equal(await page.locator('[data-sleep-mode="clock"]').getAttribute("aria-pressed"),"true","clock is default on empty journal");
+  assert.match(await page.locator('[data-sleep-result]').innerText(),/—/,"no fake sleep history");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-empty-v2.png"),fullPage:false});
+  await page.locator('[name="bedTime"]').fill("23:20");
+  await page.locator('[name="wakeTime"]').fill("06:00");
+  assert.match(await page.locator('[data-sleep-result]').innerText(),/6時間40分/);
+  assert.match(await page.locator('[data-sleep-result-note]').innerText(),/前日に就寝/);
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-filled-v2.png"),fullPage:false});
   await page.locator("[data-home-close]").first().click();
-  assert.equal(await page.evaluate(()=>document.body.classList.contains("runload-dialog-open")),false,"background unlocks on close");
+  assert.equal(await page.evaluate(()=>document.body.classList.contains("runload-dialog-open")),false,"background unlocks");
   await page.locator("[data-home-preview]").click();
   await page.locator("[data-condition-open]").click();
-  await page.locator('input[name="hours"]').fill("6");
-  await page.locator('input[name="minutes"]').fill("40");
+  await page.locator('[name="bedTime"]').fill("23:20");
+  await page.locator('[name="wakeTime"]').fill("06:00");
+  await page.locator('[name="bedDayRule"][value="same"]').check({force:true});
+  assert.match(await page.locator('[data-sleep-result-note]').innerText(),/確認/,"same-day invalid if wake earlier");
+  await page.locator("[data-condition-form] button[type=submit]").click();
+  assert.match(await page.locator("[data-sleep-error]").innerText(),/確認/,"invalid clock is not stored");
+  assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20","validation preserves unfinished form");
+  await page.locator('[name="bedDayRule"][value="auto"]').check({force:true});
   await page.locator('select[name="feeling"]').selectOption("ふつう");
   await page.locator("[data-condition-form] button[type=submit]").click();
   assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/);
+  assert.match(await page.locator(".hx-condition").innerText(),/起床 06:00/);
   const savedCondition=await page.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")));
   assert.equal(savedCondition.length,1);
-  assert.equal(savedCondition[0].sleepMinutes,400);
+  assert.deepEqual({minutes:savedCondition[0].sleepMinutes,source:savedCondition[0].sleepSource,offset:savedCondition[0].bedDayOffset},
+    {minutes:400,source:"clock",offset:1});
   await page.reload({waitUntil:"networkidle"});
-  assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/,"lifestyle input persists");
-
+  assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/,"sleep entry persists");
+  await page.locator("[data-condition-open]").click();
+  assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20");
+  assert.equal(await page.locator('[name="wakeTime"]').inputValue(),"06:00");
+  await page.locator('[data-sleep-mode="duration"]').click();
+  assert.equal(await page.locator('[name="duration"]').isVisible(),true);
+  await page.locator('[name="duration"]').fill("7:30");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-duration-v2.png"),fullPage:false});
+  await page.locator("[data-condition-form] button[type=submit]").click();
+  const savedDuration=await page.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")));
+  assert.equal(savedDuration.length,1);
+  assert.equal(savedDuration[0].sleepSource,"duration");
+  assert.equal(savedDuration[0].sleepMinutes,450);
+  assert.equal("bedTime" in savedDuration[0],false,"duration does not invent a bedtime");
+  await page.locator("[data-condition-open]").click();
+  assert.equal(await page.locator('[data-sleep-mode="duration"]').getAttribute("aria-pressed"),"true");
+  assert.equal(await page.locator('[name="duration"]').inputValue(),"7:30");
+  await page.locator("[data-home-close]").first().click();
   await page.evaluate(()=>localStorage.setItem("running-record-mobile-home-layout-v1","legacy-original-must-stay"));
   await page.locator("[data-home-edit]").click();
   assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"drag handles preserved");
