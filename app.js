@@ -534,7 +534,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   app.addEventListener("change",(event)=>{
     if(!event.target.matches("[data-draft]"))return;
     const key=event.target.dataset.draft,value=event.target.value;state.recordDraft[key]=value;
-    const container=event.target.closest(".record-editor");
+    const container=event.target.closest(".record-editor, .record-v3");
     if(!container||!["gradeMode","surfaceMode","runningFormat"].includes(key))return;
     const attr=key==="gradeMode"?"data-grade-submode":key==="surfaceMode"?"data-surface-submode":"data-running-format";
     container.querySelectorAll("["+attr+"]").forEach(node=>node.hidden=node.getAttribute(attr)!==value);
