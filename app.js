@@ -57,7 +57,7 @@
   return `<svg class="nav-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${shapes[name]||shapes.home}</svg>`;
 };
   const navHtml=(items,page,mobile)=>items.map(([path,icon,label])=>`<a class="${mobile?"mobile-link":"side-link"} ${page===path?"is-active":""}" href="#/${path}" ${page===path?'aria-current="page"':""}><span class="nav-icon">${navIcon(path)}</span>${label}</a>`).join("");
-  const header=(name,description,right="")=>`<section class="card page-hero"><div><div class="eyebrow">RUNLOAD UI NEXT</div><h1>${name}</h1><p class="lead">${description}</p></div>${right}</section>${sheetBody}`;
+  const header=(name,description,right="")=>`<section class="card page-hero"><div><h1>${name}</h1><p class="lead">${description}</p></div>${right}</section>${sheetBody}`;
   const badge=(text,style="")=>`<span class="badge ${style}">${esc(text)}</span>`;
   const buttonLink=(page,text,primary=false)=>`<a class="btn ${primary?"primary":""}" href="#/${page}">${text}<span aria-hidden="true">→</span></a>`;
   const metric=(title,value,unit="")=>`<div class="metric"><label>${title}</label><strong>${value}</strong><em>${unit}</em></div>`;
@@ -307,7 +307,7 @@ function recordExtras(){
  const recorded=new Set(data.map(x=>x.day));
  const sum=data.filter(x=>x.type==="走行").reduce((n,x)=>n+x.distance,0);
  const days=["日","月","火","水","木","金","土",...Array(4).fill(""),...Array.from({length:31},(_,i)=>String(i+1))];
- return `<section class="home-head"><div><div class="eyebrow">RUNNING HISTORY</div><h1>履歴</h1><p class="lead">これまでの記録を、日付や条件から振り返る。</p></div>${buttonLink("record","記録する",true)}</section>
+ return `<section class="home-head"><div><h1>履歴</h1><p class="lead">これまでの記録を、日付や条件から振り返る。</p></div>${buttonLink("record","記録する",true)}</section>
  <section class="card">
   <div class="section-title"><h2>記録を探す</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([key,label])=>`<button type="button" data-history-mode="${key}" class="${state.historyMode===key?"is-active":""}">${label}</button>`).join("")}</div></div>
   <div class="history-layout">
@@ -409,7 +409,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   ["?","ヘルプ",[["各画面の使い方","RunLoadの機能を確認"],["身体の参考値について","12部位比較の見方"]]],
   ["▦","アプリ情報",[["RunLoadについて","研究・アプリの情報"],["ホーム画面への追加","アプリとしてすぐに開く"]]]
  ];
- return `<section class="home-head"><div><div class="eyebrow">PREFERENCES</div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
+ return `<section class="home-head"><div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
  <section class="settings-grid">${sections.map(([icon,title,options],idx)=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc],j)=>{
    const route=name==="記録の振り返り"?"history":name==="身体の参考値について"?"result":name==="各画面の使い方"?"exploration-tree":null;
    const install=name==="ホーム画面への追加";
@@ -422,7 +422,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
 }
     function secondary(page){
  const title=pageLabels[page]||"その他";
- const top=`<section class="home-head"><div><div class="eyebrow">RUNLOAD</div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
+ const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
  if(page==="measurement")return top+`<section class="measurement-layout"><div class="card measurement-main"><div class="measurement-display"><span class="gps-status"><span class="status-dot"></span>GPSを確認</span><div class="measurement-clock">00:00:00</div><p>走行時間</p><div class="measurement-numbers"><div><strong>0.00</strong><small>km　距離</small></div><div><strong>--:--</strong><small>/km　ペース</small></div></div></div><div class="measurement-controls"><button class="btn primary" type="button" disabled title="GPS測定機能は現在利用できません">▶　測定開始</button><button class="btn" type="button" disabled>一時停止</button></div></div><div class="card stack"><h2>測定の前に</h2><div class="feature-entry"><span class="entry-icon cyan">◇</span><span><strong>位置情報</strong><small>現在地が取得できると表示されます。</small></span></div><div class="feature-entry"><span class="entry-icon blue">⌁</span><span><strong>コースの確認</strong><small>保存したGPS軌跡のみ地図に表示します。</small></span></div>${buttonLink("course","コースを選ぶ")}${buttonLink("record","手動で記録する")}</div></section>`;
  if(page==="course")return top+`<section class="grid-2"><div class="card stack"><div class="section-title"><h2>コースの基本情報</h2></div><label class="field">コース名<input placeholder="コース名を入力"></label><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" placeholder="0.0"></label><label class="field">走る場所<select><option>屋外</option><option>室内</option></select></label></div><h3>路面の種類</h3><div class="form-grid"><label class="field">主要な路面<select><option>選択してください</option><option>舗装路</option><option>陸上トラック</option><option>土道・トレイル</option><option>天然芝</option><option>砂地</option></select></label><label class="field">坂の条件<select><option>選択してください</option><option>ほぼ平坦</option><option>上りがある</option><option>下りがある</option><option>上り・下りがある</option></select></label></div></div><div class="card stack"><h2>コースを確認する</h2><div class="route-large-empty"><div class="route-empty-icon">⌁</div><strong>位置情報の登録はありません</strong><p class="lead">GPSで測定した走行は、保存された軌跡がある場合にのみ地図へ表示します。</p></div>${buttonLink("measurement","測定へ")}</div></section>`;
  if(page==="simulation")return top+`<section class="grid-2"><div class="card stack"><h2>比較する条件</h2><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label><label class="field">傾斜<select><option>平坦</option><option>上り</option><option>下り</option></select></label><label class="field">路面<select><option>舗装路</option><option>トラック</option><option>天然芝</option><option>土道</option></select></label></div><div class="info-note">比較する条件を整理できます。利用可能なモデルにより、結果を表示できる範囲は異なります。</div></div><div class="card stack"><h2>比較結果</h2><div class="empty-state"><span style="font-size:2.5rem">▥</span><strong>条件の比較結果はありません</strong><p class="lead">比較可能な科学的根拠がある場合だけ、対応する値を表示します。</p></div>${buttonLink("result","結果へ戻る")}</div></section>`;
