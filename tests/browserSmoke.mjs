@@ -59,6 +59,17 @@ try{
   assert.match(await page.locator("h1").innerText(),/ホーム/);
   assert.equal(await page.locator("[data-home-dashboard-id]").count(),4,"four core widgets by default");
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
+  if(mode.name==="desktop"){
+    const layout=await page.evaluate(()=>{
+      const rect=id=>document.querySelector('[data-home-dashboard-id="'+id+'"]').getBoundingClientRect();
+      const latest=rect("latest"),condition=rect("condition"),achievement=rect("topics");
+      return {latestWidth:latest.width,conditionWidth:condition.width,achievementWidth:achievement.width,
+        conditionY:condition.top,achievementY:achievement.top,conditionX:condition.left,achievementX:achievement.left};
+    });
+    assert.ok(layout.latestWidth>800,"desktop hero must use available content width: "+JSON.stringify(layout));
+    assert.ok(Math.abs(layout.conditionY-layout.achievementY)<4,"condition and achievements must be side by side: "+JSON.stringify(layout));
+    assert.ok(layout.achievementX>layout.conditionX+layout.conditionWidth-4,"desktop cards are in separate columns: "+JSON.stringify(layout));
+  }
   assert.equal(await page.locator(".hx-condition").count(),1);
   assert.equal(await page.locator(".hx-achievement").count(),1);
   assert.equal(await page.locator(".hx-shortcuts a").count(),3,"shortcuts only point to supplementary functions");
@@ -91,7 +102,7 @@ try{
   assert.equal(await page.locator("[data-home-drag-handle]").count(),6,"drag handles preserved");
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
   await page.locator("[data-home-cancel]").click();
-  assert.ok((await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")).includes("dashboard-widget--wide"));
+  assert.ok((await page.locator("[data-home-dashboard-id=condition]").getAttribute("class")).includes("dashboard-widget--half"));
   await page.locator("[data-home-edit]").click();
   await page.locator("[data-widget-id=latest][data-widget-action=down]").click();
   await page.locator("[data-widget-id=condition][data-widget-action=size]").click();
@@ -103,7 +114,7 @@ try{
     legacy:localStorage.getItem("running-record-mobile-home-layout-v1")
   }));
   assert.equal(saved.pref.order[0],"condition");
-  assert.equal(saved.pref.sizes.condition,"half");
+  assert.equal(saved.pref.sizes.condition,"full");
   assert.ok(!saved.pref.visible.includes("topics"));
   assert.equal(saved.legacy,"legacy-original-must-stay");
   await page.reload({waitUntil:"networkidle"});
