@@ -162,3 +162,9 @@
  .home-v3 .home-heading-actions .btn{font-size:.66rem;padding:7px 8px}
 }
 @media(prefers-reduced-motion:reduce){.home-v3 *{transition-duration:.001ms!important}}
+
+/* Narrow phones: preserve Japanese value and shortcut readability. */
+@media(max-width:400px){
+ .home-v3 .hx-condition-stats strong{font-size:clamp(.7rem,3.2vw,.88rem);letter-spacing:-.055em}
+ .home-v3 .hx-shortcut strong{white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+}
