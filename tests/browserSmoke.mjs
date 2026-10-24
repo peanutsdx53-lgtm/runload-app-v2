@@ -504,7 +504,14 @@ try{
   assert.match(await page.locator('[data-e4-summary]').innerText(),/0℃/);
   const envOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(envOverflow<=3,"environment has no horizontal overflow at "+mode.width);
+  await page.locator('[data-draft="temperatureC"]').blur();
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="static";el.style.width="100%";el.style.bottom="auto";
+  });
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-environment-v4.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{
+    el.style.position="";el.style.width="";el.style.bottom="";
+  });
   await page.goto(host+"#/record-reflection",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".record-extra-section").count(),1,"reflection remains independent");
   await page.locator('[data-record-section="reflection"] summary').click();
