@@ -38,7 +38,7 @@ export function reviewView(d={},opts={}){
   ['record-rof','rof','運動前後の疲労感',`運動前 ${Number.isInteger(values.rofBefore)?values.rofBefore:'—'} ／ 運動後 ${Number.isInteger(values.rofAfter)?values.rofAfter:'—'}`,rof],
   ['record-compare','gait','歩数・走り方',present(values.steps)?`${values.steps}歩 ・ ${({DEVICE_MEASURED:'端末で計測',ESTIMATED:'推定・手入力',UNKNOWN:'出所不明'})[values.stepsProvenance]||'出所不明'}`:(values.runningFormat==='RUN_WALK'?'走歩混在（歩数未入力）':values.runningFormat==='CONTINUOUS_RUN'?'連続走行（歩数未入力）':'未入力'),present(values.steps)||['CONTINUOUS_RUN','RUN_WALK'].includes(values.runningFormat)],
   ['record-environment','environment','環境',present(values.temperatureC)?`気温 ${values.temperatureC}℃`:(present(values.environmentNote)?'環境メモあり':'未入力'),present(values.temperatureC)||present(values.environmentNote)],
-  ['record-reflection','body','身体・使用品・メモ',present(values.bodyObservation)?values.bodyObservation:(present(values.shoeName)?`シューズ：${values.shoeName}`:(opts.bodySelected?.length?`気になった部位 ${opts.bodySelected.length}件`:'未入力')),bodyHas]
+  ['record-reflection','body','身体・使用品・メモ',[present(values.bodyObservation)?values.bodyObservation:'',present(values.shoeName)?`シューズ：${values.shoeName}`:'',present(values.memo)?'メモあり':'',(!isGps&&opts.bodySelected?.length)?`気になった部位 ${opts.bodySelected.length}件`:'' ].filter(Boolean).join('・')||'未入力',bodyHas]
  ];
  const visible=isRest?links.slice(3):links;
  const count=visible.filter(x=>x[4]).length;
