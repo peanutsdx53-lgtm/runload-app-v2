@@ -81,8 +81,25 @@ try{
   assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
   assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
+  await page.locator("[data-achievement-open]").click();
+  assert.ok(await page.locator(".hx-ach-dialog").isVisible(),"achievement detail remains accessible");
+  const achievementType=await page.evaluate(()=>({
+    text:parseFloat(getComputedStyle(document.querySelector('.hx-ach-dialog p')).fontSize),
+    tile:parseFloat(getComputedStyle(document.querySelector('.hx-ach-grid span')).fontSize),
+    scroll:document.documentElement.scrollWidth-innerWidth
+  }));
+  assert.ok(achievementType.text>=14 && achievementType.tile>=14,"achievement detail text legible: "+JSON.stringify(achievementType));
+  assert.ok(achievementType.scroll<=1,"no horizontal overflow in achievements");
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-achievement-detail-v2.png"),fullPage:false});
+  await page.locator("[data-home-close]").first().click();
   await page.locator("[data-condition-open]").click();
   assert.equal(await page.locator(".hx-dialog").count(),1);
+  const conditionDateType=await page.evaluate(()=>({
+    width:document.querySelector('.hx-dialog input[type=date]').getBoundingClientRect().width,
+    font:parseFloat(getComputedStyle(document.querySelector('.hx-dialog input[type=date]')).fontSize)
+  }));
+  assert.ok(conditionDateType.width<=261 && conditionDateType.font>=16,"compact legible condition date: "+JSON.stringify(conditionDateType));
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-condition-input-v2.png"),fullPage:false});
   await page.locator("[data-home-close]").first().click();
   await page.locator("[data-home-preview]").click();
   await page.locator("[data-condition-open]").click();
@@ -253,17 +270,26 @@ try{
   assert.equal(await page.locator('[data-draft="hours"]').count(),0,"hours are not separate input");
   assert.equal(await page.locator('[data-draft="seconds"]').count(),0,"seconds are not separate input");
   assert.equal(await page.locator(".rv-link").count(),5,"five distinct optional entry cards");
+  const compactDate=await page.evaluate(()=>{
+    const input=document.querySelector('.rv-date input'), label=document.querySelector('.rv-date>span');
+    const field=document.querySelector('.rv-date');
+    const rect=input.getBoundingClientRect(),lab=label.getBoundingClientRect();
+    return {font:parseFloat(getComputedStyle(input).fontSize), width:field.getBoundingClientRect().width,
+      inputWidth:rect.width, aligned:Math.abs(rect.top-lab.top)<25, sideBySide:rect.left>=lab.right,
+      overscroll:document.documentElement.scrollWidth-innerWidth};
+  });
+  assert.ok(compactDate.font>=16 && compactDate.width<=291 && compactDate.width>200 && compactDate.sideBySide,"compact legible date row: "+JSON.stringify(compactDate));
+  assert.ok(compactDate.overscroll<=1,"record screen must not scroll sideways: "+JSON.stringify(compactDate));
   await page.locator('[data-draft="date"]').fill("2026-10-24");
   await page.locator('[data-draft="distance"]').fill("7.25");
   await page.locator('[data-draft="minutes"]').fill("45.5");
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-manual-v2.png"),fullPage:true});
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.locator('a[href="#/record-course"]').click();
   await page.locator(".rv-course").waitFor();
   await page.locator('[data-draft="courseName"]').fill("川沿い往復");
   await page.locator('[data-rv-grade="SUMMARY"]').click();
   assert.equal(await page.locator(".rv-slope-tile").count(),3,"up/down/flat in same row");
+  assert.ok(await page.locator('[data-rv-slope-number]').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16),"course numeric adjustment uses legible input font");
   assert.equal(await page.locator('[data-rv-slope-tile="flat"] b').innerText(),"—","missing percent is not zero");
   await page.locator('[data-rv-slope-number]').fill("55");
   await page.locator('[data-rv-slope-tile="down"]').click();
@@ -283,9 +309,7 @@ try{
   await page.locator('[data-rv-apply]').click();
   assert.match(await page.locator('.rv-error').innerText(),/路面の割合/,'reject underfilled surface split');
   await page.locator('[data-rv-surface-value="trail"]').fill("30");
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-course-v2.png"),fullPage:true});
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   if(mode.name!=="desktop"){
     const widths=await page.locator(".rv-slope-tile").evaluateAll(tiles=>tiles.map(x=>({y:x.getBoundingClientRect().y,ok:x.scrollWidth<=x.clientWidth+1})));
     assert.ok(widths.every(v=>v.ok),"slope tile text must fit without horizontal overflow");
@@ -337,9 +361,7 @@ try{
   for(let i=0;i<5;i++)await page.locator('[data-rv-add]').click();
   assert.equal(await page.locator('.rv-section-row').count(),5,"five sections maximum");
   assert.ok(await page.locator('[data-rv-add]').isDisabled());
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-v2.png"),fullPage:true});
-  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   const layout=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
   assert.ok(layout.bodyWidth-layout.viewport<=3,"record UI horizontal overflow");
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
