@@ -27,8 +27,13 @@ export function conditionEntryFromForm(fields) {
   entry={...entry,sleepMinutes:calculated.minutes,sleepSource:"clock",bedTime,wakeTime,
    bedDayOffset:calculated.bedDayOffset,bedDayRule};
  }else if(mode==="duration"){
-  const parts=/^(\d{1,2}):([0-5]\d)$/.exec(String(fields.duration||"").trim());
-  if(!parts)return {ok:false,reason:"合計時間は「7:30」の形式で入力してください"};
+  const explicit=fields.durationHours!==undefined||fields.durationMinutes!==undefined;
+  const hours=explicit?String(fields.durationHours??"").trim():null;
+  const minuteText=explicit?String(fields.durationMinutes??"").trim():null;
+  const parts=explicit
+   ?(/^(?:[0-9]|1[0-9]|2[0-3])$/.test(hours)&&/^(?:[0-9]|[1-5][0-9])$/.test(minuteText)?[null,hours,minuteText]:null)
+   :/^(\\d{1,2}):([0-5]\\d)$/.exec(String(fields.duration||"").trim());
+  if(!parts)return {ok:false,reason:"合計時間の「時間」「分」を確認してください"};
   const minutes=Number(parts[1])*60+Number(parts[2]);
   if(minutes<=0||minutes>=1440)return {ok:false,reason:"合計時間は1分以上24時間未満にしてください"};
   entry={...entry,sleepMinutes:minutes,sleepSource:"duration"};
@@ -59,10 +64,16 @@ export function updateSleepForm(form){
   message=calc?(calc.bedDayOffset===1?"前日に就寝した記録として計算":"当日に就寝した記録として計算"):
    (bed&&wake?"時刻と就寝日を確認してください":"就寝・起床時刻を選んでください");
  }else{
-  const parts=/^(\d{1,2}):([0-5]\d)$/.exec(form.querySelector('[name="duration"]')?.value.trim()||"");
-  const parsed=parts?Number(parts[1])*60+Number(parts[2]):null;
+  const hours=form.querySelector('[name="durationHours"]')?.value.trim()||"";
+  const fraction=form.querySelector('[name="durationMinutes"]')?.value.trim()||"";
+  const complete=/^(?:[0-9]|1[0-9]|2[0-3])$/.test(hours)&&/^(?:[0-9]|[1-5][0-9])$/.test(fraction);
+  const parsed=complete?Number(hours)*60+Number(fraction):null;
   minutes=parsed!==null&&parsed>0&&parsed<1440?parsed:null;
-  message=minutes!==null?"本人が申告した睡眠時間として記録":"例：7時間30分なら「7:30」";
+  message=minutes!==null?"本人が申告した睡眠時間として記録":"時間と分を入力してください";
+  form.querySelectorAll("[data-duration-minute]").forEach(button=>{
+   const pressed=fraction!==""&&Number(button.dataset.durationMinute)===Number(fraction);
+   button.setAttribute("aria-pressed",String(pressed));
+  });
  }
  if(result)result.textContent=minutes!==null?sleepText(minutes):"—";
  if(label)label.textContent=mode==="clock"?"就寝から起床までの経過時間":"申告した睡眠時間";
@@ -186,7 +197,8 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  const feeling=existing?.feeling||"ふつう";
  const opts=FEELINGS.map(v=>'<option value="'+escape(v)+'"'+(feeling===v?' selected':'')+'>'+escape(v)+'</option>').join("");
  const bars=chartEntries.length?sevenBars(chartEntries):'<p class="hx-no-sleep">睡眠の記録はまだありません</p>';
- const duration=existing?Math.floor(existing.sleepMinutes/60)+":"+String(existing.sleepMinutes%60).padStart(2,"0"):"";
+ const durationHours=existing?Math.floor(existing.sleepMinutes/60):"";
+ const durationMinutes=existing?existing.sleepMinutes%60:"";
  const bed=existing?.sleepSource==="clock"?existing.bedTime:"";
  const wake=existing?.sleepSource==="clock"?existing.wakeTime:"";
  const dayRule=existing?.sleepSource==="clock"?existing.bedDayRule:"auto";
@@ -206,7 +218,12 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  '<label class="hx-time-card"><span class="hx-time-label">'+icon("moon")+' 就寝</span><span class="hx-time-control"><span data-time-display="bedTime" aria-hidden="true">'+escape(bed||"時刻を選択")+'</span><svg viewBox="0 0 24 24" class="hx-time-clock" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><input type="time" name="bedTime" value="'+escape(bed)+'" aria-label="就寝時刻"></span><small>起床日より前の場合もあります</small></label>'+
  '<label class="hx-time-card"><span class="hx-time-label">☀ 起床</span><span class="hx-time-control"><span data-time-display="wakeTime" aria-hidden="true">'+escape(wake||"時刻を選択")+'</span><svg viewBox="0 0 24 24" class="hx-time-clock" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><input type="time" name="wakeTime" value="'+escape(wake)+'" aria-label="起床時刻"></span><small>記録した日の時刻</small></label></div>'+
  '<details class="hx-day-details"><summary>就寝日を修正</summary><div class="hx-day-options">'+dayRadios+'</div></details></div>'+
- '<div data-sleep-panel="duration"'+(mode!=="duration"?' hidden':'')+'><label class="hx-duration-entry">覚えている睡眠時間<input type="text" name="duration" inputmode="text" placeholder="7:30" value="'+escape(duration)+'" aria-label="申告した睡眠時間（時間:分）"><small>7時間30分なら 7:30</small></label></div>'+
+ '<div data-sleep-panel="duration"'+(mode!=="duration"?' hidden':'')+'><div class="hx-duration-entry"><strong>覚えている睡眠時間</strong><div class="hx-duration-grid">'+
+ '<label>時間<input type="number" inputmode="numeric" name="durationHours" min="0" max="23" step="1" placeholder="例：7" value="'+durationHours+'" aria-label="睡眠時間（時間）"></label>'+
+ '<label>分<input type="number" inputmode="numeric" name="durationMinutes" min="0" max="59" step="1" placeholder="例：30" value="'+durationMinutes+'" aria-label="睡眠時間（分）"></label></div>'+
+ '<div class="hx-duration-picks" role="group" aria-label="分を簡単に選択">'+
+ [0,15,30,45].map(v=>'<button type="button" data-duration-minute="'+v+'" aria-pressed="'+String(durationMinutes!==""&&Number(durationMinutes)===v)+'">'+String(v).padStart(2,"0")+'分</button>').join("")+
+ '</div><small>分は1分単位で直接入力もできます。</small></div></div>'+
  '<div class="hx-sleep-result" aria-live="polite"><div data-sleep-result-label></div><strong data-sleep-result>—</strong><p data-sleep-result-note></p><small>時刻からの計算は実際に眠っていた時間とは異なる場合があります。</small></div></section>'+
  '<label>起床時の調子<select name="feeling">'+opts+'</select></label>'+
  '<label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(existing?.memo||"")+'</textarea></label>'+
