@@ -30,6 +30,13 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
+      - name: Install Japanese glyphs for faithful UI screenshots
+        run: |
+          if ! fc-list :lang=ja | grep -qi 'Noto'; then
+            sudo timeout 150s apt-get install -y --no-install-recommends fonts-noto-cjk
+            fc-cache -f
+          fi
+          fc-match :lang=ja
       - name: Desktop and smartphone existing UI smoke
         run: node tests/browserSmoke.mjs
       - uses: actions/upload-artifact@v4
