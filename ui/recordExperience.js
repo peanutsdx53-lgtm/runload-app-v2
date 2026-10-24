@@ -34,10 +34,11 @@ export function manualPage(state){
  const access=[
   ['#/record-course','⌁','コース・走行条件',`${s.courseName} ・ ${s.slope}`],
   ['#/record-rof','◉','運動前後の疲労感',`${Number.isInteger(d.rofBefore)?'運動前 '+d.rofBefore:'運動前 未入力'} / ${Number.isInteger(d.rofAfter)?'運動後 '+d.rofAfter:'運動後 未入力'}`],
-  ['#/record-compare','☁','歩数・走り方・環境',filled(d.steps)?`歩数 ${escape(d.steps)} ・ 詳細を確認`:'未入力'],
+  ['#/record-compare','◷','歩数・走り方',filled(d.steps)?`歩数 ${escape(d.steps)} ・ 詳細を確認`:'未入力'],
+  ['#/record-environment','☀','環境',filled(d.temperatureC)?`気温 ${escape(d.temperatureC)}℃`:filled(d.environmentNote)?'環境メモあり':'未入力'],
   ['#/record-reflection','✎','身体・使用品・メモ',filled(d.bodyObservation)||filled(d.shoeName)||filled(d.memo)?'入力あり':'未入力']
  ];
- return `<div class="record-v3 rv-manual"><header class="rv-head"><div><h1>手入力で記録</h1></div></header>
+ return `<div class="record-v3 rv-manual"><header class="rv-head"><a href="#/record-start" class="rv-back rv-phone-only" aria-label="記録方法の選択へ戻る">‹</a><div><h1>手入力で記録</h1></div></header>
  <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報</h2>
  ${optionGroup('data-record-type',[['run','走行'],['rest','休養']],state.recordType)}
  <label class="rv-field rv-date"><span>日付</span><input aria-label="記録日" data-draft="date" type="date" value="${date}"></label>
