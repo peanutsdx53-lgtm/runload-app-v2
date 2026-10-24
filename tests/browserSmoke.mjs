@@ -125,6 +125,8 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-empty-v2.png"),fullPage:false});
   await page.locator('[name="bedTime"]').fill("23:20");
   await page.locator('[name="wakeTime"]').fill("06:00");
+  assert.equal(await page.locator('[data-time-display="bedTime"]').innerText(),"23:20","clock readout always uses 24-hour time");
+  assert.equal(await page.locator('[data-time-display="wakeTime"]').innerText(),"06:00");
   assert.match(await page.locator('[data-sleep-result]').innerText(),/6時間40分/);
   assert.match(await page.locator('[data-sleep-result-note]').innerText(),/前日に就寝/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-filled-v2.png"),fullPage:false});
