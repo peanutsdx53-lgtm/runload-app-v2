@@ -15,10 +15,10 @@ test("original author-confirmed Japanese descriptors remain intact",()=>{
  assert.match(guidanceForRofJ(0),/まったく疲れていない/);
  assert.equal(guidanceForRofJ(null),"数値を選択してください");
 });
-test("all five diagrams are original licensed ROF figures hosted by the original developer",()=>{
+test("the v2 project serves authorized original ROF figures locally, preserving their attribution",()=>{
  const urls=ROF_J_ANCHORS.map(referenceImageUrl);
  assert.equal(new Set(urls).size,5);
- for(const url of urls)assert.match(url,/^https:\/\/raw\.githubusercontent\.com\/peanutsdx53-lgtm\/runload-app\/main\/assets\/rof\/rof-visual-(lowest|low|moderate|high|highest)\.png$/);
+ for(const url of urls)assert.match(url,/^\.\/assets\/rof\/rof-visual-(lowest|low|moderate|high|highest)\.png$/);
  assert.match(ROF_J_RIGHTS.imagesLicense,/by\/4\.0/);
  assert.match(ROF_J_RIGHTS.scaleLicense,/by-nc-nd\/4\.0/);
 });
