@@ -300,7 +300,7 @@ try{
     const input=document.querySelector('.rv-date input'), label=document.querySelector('.rv-date>span');
     const field=document.querySelector('.rv-date');
     const rect=input.getBoundingClientRect(),lab=label.getBoundingClientRect();
-    return {font:parseFloat(getComputedStyle(input).fontSize), width:field.getBoundingClientRect().width,
+    return {font:parseFloat(getComputedStyle(field.querySelector(".rl-date-value")).fontSize), width:field.getBoundingClientRect().width,
       inputWidth:rect.width, aligned:Math.abs(rect.top-lab.top)<25, sideBySide:rect.left>=lab.right,
       overscroll:document.documentElement.scrollWidth-innerWidth};
   });
