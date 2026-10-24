@@ -492,7 +492,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       if(visual)visual.textContent=target.value||"時刻を選択";
     }
     const sleepForm=target.closest("[data-condition-form]");
-    if(sleepForm&&(target.matches('[name="bedTime"],[name="wakeTime"],[name="duration"],[name="bedDayRule"]'))){
+    if(sleepForm&&(target.matches('[name="bedTime"],[name="wakeTime"],[name="durationHours"],[name="durationMinutes"],[name="bedDayRule"]'))){
       homeExperience.updateSleepForm(sleepForm);
       return;
     }
@@ -575,7 +575,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       date:String(fields.get("date")||""),feeling:String(fields.get("feeling")||""),
       memo:String(fields.get("memo")||""),sleepMode:String(fields.get("sleepMode")||""),
       bedTime:String(fields.get("bedTime")||""),wakeTime:String(fields.get("wakeTime")||""),
-      bedDayRule:String(fields.get("bedDayRule")||"auto"),duration:String(fields.get("duration")||"")
+      bedDayRule:String(fields.get("bedDayRule")||"auto"),
+      durationHours:String(fields.get("durationHours")??""),durationMinutes:String(fields.get("durationMinutes")??"")
     });
     const saved=result.ok?homeExperience.saveCondition(homePreferenceStorage,result.entry):result;
     if(!saved.ok){
@@ -617,6 +618,14 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       const err=recordExperience.courseReadiness(d,ui);
       if(err.length){ui.notice=err.join(" ");drawRecord();return;}
       ui.notice="";location.hash="#/record";return;
+    }
+    const pick=event.target.closest("[data-duration-minute]");
+    if(pick){
+      const form=pick.closest("[data-condition-form]");
+      const input=form.querySelector('[name="durationMinutes"]');
+      input.value=String(Number(pick.dataset.durationMinute));
+      homeExperience.updateSleepForm(form);
+      return;
     }
     const modeButton=event.target.closest("[data-sleep-mode]");
     if(modeButton){
