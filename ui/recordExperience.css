@@ -204,3 +204,95 @@
   .record-v3 .rv-date{grid-template-columns:40px minmax(0,1fr);column-gap:9px}
   .record-v3 .rv-date>input{padding:9px 8px;font-size:1rem}
 }
+
+/* Unified date control used by manual records and the condition dialog.
+   Its text and calendar indicator are our own layout, while the transparent
+   native input remains focusable and opens the OS date picker on interaction. */
+#app .record-v3 .rv-date,
+#app .hx-dialog form label.hx-date-row{
+ display:grid;
+ grid-template-columns:44px minmax(0,1fr);
+ gap:10px;
+ align-items:center;
+ width:min(100%,278px);
+ max-width:100%;
+ min-width:0;
+ margin-top:16px;
+}
+#app .record-v3 .rv-date>span:first-child,
+#app .hx-dialog form label.hx-date-row>span:first-child{
+ font-size:15px;
+ font-weight:800;
+ white-space:nowrap;
+}
+#app .record-v3 .rl-date-control,
+#app .hx-dialog .rl-date-control{
+ position:relative;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ box-sizing:border-box;
+ height:51px;
+ padding:0 11px 0 14px;
+ background:#092737;
+ border:1px solid #6794a3;
+ border-radius:11px;
+ color:#f3fcff;
+ overflow:hidden;
+}
+#app .rl-date-value{
+ display:block;
+ font-size:16px;
+ line-height:1.25;
+ font-weight:780;
+ font-variant-numeric:tabular-nums;
+ letter-spacing:0;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+#app .rl-date-icon{
+ display:block;
+ flex:0 0 20px;
+ width:20px;
+ height:20px;
+ margin-left:5px;
+ pointer-events:none;
+ color:#91d9e4;
+}
+#app .record-v3 .rl-date-control>input[type="date"],
+#app .hx-dialog form .rl-date-control>input[type="date"]{
+ position:absolute;
+ inset:0;
+ width:100%;
+ max-width:100%;
+ min-width:0;
+ height:100%;
+ min-height:0;
+ padding:0;
+ margin:0;
+ border:0;
+ border-radius:inherit;
+ opacity:0;
+ cursor:pointer;
+ z-index:1;
+}
+#app .rl-date-control:focus-within{
+ outline:2px solid #6ce6e4;
+ outline-offset:2px;
+ border-color:#6ce6e4;
+}
+@media(max-width:355px){
+ #app .record-v3 .rv-date,#app .hx-dialog form label.hx-date-row{
+  grid-template-columns:40px minmax(0,1fr);
+  gap:8px;
+  width:min(100%,265px);
+ }
+ #app .record-v3 .rl-date-control,#app .hx-dialog .rl-date-control{
+  padding:0 9px;
+ }
+ #app .rl-date-value{font-size:16px}
+}
