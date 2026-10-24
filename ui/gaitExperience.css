@@ -1,0 +1,46 @@
+/* Ver.4 gait: home/record palette, consistent on mobile & desktop. */
+.gait-v4{max-width:1060px;margin:0 auto;padding:18px 20px 58px;color:#ecfaff;min-width:0}
+.gait-v4 .rv-head{margin-bottom:12px}
+.gait-v4 .g4-intro{margin:0 0 18px;color:#b6d4df;font-size:.88rem}
+.gait-v4 .g4-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+.gait-v4 .g4-panel{padding:20px;min-width:0}
+.gait-v4 .g4-panel-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px;gap:8px}
+.gait-v4 .g4-panel-top h2{font-size:1.19rem;line-height:1.4;margin:0}
+.gait-v4 .g4-panel-top small{color:#bddbe5;white-space:nowrap}
+.gait-v4 .g4-label{display:grid;gap:10px;font-size:.88rem;color:#cae3eb;font-weight:750;min-width:0}
+.gait-v4 .g4-step-input,.gait-v4 .g4-number{display:flex;align-items:center;min-width:0;background:#082738;border:1px solid #6692a2;border-radius:12px;gap:8px;padding:0 12px}
+.gait-v4 .g4-step-input{min-height:64px}
+.gait-v4 .g4-step-input input,.gait-v4 .g4-number input{appearance:textfield;min-width:0;width:100%;border:0;background:transparent;color:#fff;font-size:clamp(20px,3vw,32px);padding:10px 0;font-weight:820;font-variant-numeric:tabular-nums;color-scheme:dark}
+.gait-v4 .g4-step-input b{white-space:nowrap;font-size:1rem;color:#d3e9f0}
+.gait-v4 input::placeholder{color:#7295a1;opacity:1}
+.gait-v4 input:focus-visible,.gait-v4 button:focus-visible{outline:3px solid #a5f9ef;outline-offset:3px}
+.gait-v4 .g4-field-title{margin:19px 0 10px;color:#c3e2eb;font-size:.83rem}
+.gait-v4 .g4-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.gait-v4 .g4-choice button{min-width:0;min-height:60px;padding:9px 3px;background:#0a2c3d;border:1px solid #568393;color:#e3f4f7;border-radius:12px;font-size:.82rem;font-weight:800;white-space:nowrap;touch-action:manipulation}
+.gait-v4 .g4-choice button[aria-pressed=true]{background:linear-gradient(110deg,#139bad,#08778d);border-color:#6ee7e7;color:#fff}
+.gait-v4 .g4-note{font-size:.79rem;line-height:1.65;color:#b6d3dd;margin:14px 0 0}
+.gait-v4 .g4-runwalk{padding:14px;margin-top:18px;border-radius:15px;border:1px solid #4b7888;background:#0a2c3b}
+.gait-v4 [hidden]{display:none!important}
+.gait-v4 .g4-runwalk h3{margin:0;font-size:1rem}
+.gait-v4 .g4-runwalk>.g4-note:first-of-type{margin:6px 0 15px}
+.gait-v4 .g4-numbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gait-v4 .g4-numbers>label{min-width:0;font-size:.83rem;color:#cae2e9;font-weight:750}
+.gait-v4 .g4-number{margin-top:8px;min-height:54px;padding:0 9px;gap:5px}
+.gait-v4 .g4-number input{font-size:19px}
+.gait-v4 .g4-number small{font-size:.79rem;color:#bedae4}
+.gait-v4 .g4-compare{margin-top:18px;display:grid;gap:8px}
+.gait-v4 .g4-bar-title,.gait-v4 .g4-bar-legend{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.75rem;color:#c5e0e7}
+.gait-v4 .g4-bar-title strong{color:#9eebeb}
+.gait-v4 .g4-bar{display:flex;height:10px;background:#426776;border-radius:99px;overflow:hidden}
+.gait-v4 .g4-bar [data-g4-run]{background:linear-gradient(90deg,#50e0de,#0cbbbf)}
+.gait-v4 .g4-bar .g4-rest{flex:1;background:#e9ba79}
+.gait-v4 .g4-issue:not([hidden]){padding:12px;margin-top:14px;color:#ffcfb2;border:1px solid #b87962;background:#402e33;border-radius:11px;line-height:1.5;font-size:.85rem}
+.gait-v4 .g4-summary{border-top:1px solid #47717e;margin-top:20px;padding-top:12px;display:grid;gap:11px}
+.gait-v4 .g4-summary p{display:flex;justify-content:space-between;gap:8px;margin:0;font-size:.83rem;color:#b8d7df}
+.gait-v4 .g4-summary strong{font-weight:790;color:#f6fcfd;text-align:right}
+.gait-v4 .g4-footer{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.gait-v4 .g4-footer p{font-size:.77rem;color:#accdda;line-height:1.5;margin:0;max-width:520px}
+.gait-v4 .g4-apply{border-radius:11px;background:linear-gradient(105deg,#128fa3,#087c93);border:1px solid #61dce0;color:#fff;min-height:52px;padding:11px 21px;white-space:nowrap;font-size:.9rem;font-weight:850;cursor:pointer}
+.gait-v4 .g4-apply:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:800px){.gait-v4{padding:16px 15px 120px}.gait-v4 .g4-grid{grid-template-columns:minmax(0,1fr);gap:15px}.gait-v4 .g4-footer{display:grid}.gait-v4 .g4-apply{width:100%}}
+@media(max-width:355px){.gait-v4{padding:12px 11px 115px}.gait-v4 .g4-panel{padding:13px}.gait-v4 .g4-choice{gap:5px}.gait-v4 .g4-choice button{font-size:.74rem;padding:8px 1px}.gait-v4 .g4-number{padding:0 6px}.gait-v4 .g4-number input{font-size:17px}.gait-v4 .g4-numbers{gap:7px}}
