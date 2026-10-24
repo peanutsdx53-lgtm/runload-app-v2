@@ -75,12 +75,16 @@ try{
   assert.equal(await page.locator(".hx-shortcuts a").count(),3,"shortcuts only point to supplementary functions");
   assert.equal(await page.locator(".home-welcome").count(),0,"no decorative greeting");
   assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-empty.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.locator("[data-home-preview]").click();
   assert.match(await page.locator(".hx-preview-banner").innerText(),/サンプルデータ/);
   assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
   assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.locator("[data-condition-open]").click();
   assert.equal(await page.locator(".hx-dialog").count(),1);
   await page.locator("[data-home-close]").first().click();
