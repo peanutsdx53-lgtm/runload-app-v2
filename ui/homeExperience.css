@@ -199,3 +199,112 @@
  .app-shell:has(.home-v3) .hx-ach-dialog .hx-ach-grid{grid-template-columns:minmax(0,1fr)}
  .app-shell:has(.home-v3) .hx-dialog{padding:18px}
 }
+
+/* Condition / achievement dialogs: share the approved dark record form language.
+   Safari iOS date controls have intrinsic min-content sizes; explicitly bound
+   both the grid track and native picker inside the modal content box. */
+#app .hx-overlay{
+ padding:12px;
+ padding-left:max(12px,env(safe-area-inset-left));
+ padding-right:max(12px,env(safe-area-inset-right));
+ overscroll-behavior:contain;
+ touch-action:pan-y;
+}
+#app .hx-dialog{
+ box-sizing:border-box;
+ width:min(530px,calc(100vw - 24px));
+ max-width:100%;
+ max-height:calc(100dvh - 24px);
+ min-width:0;
+ padding:clamp(15px,4vw,23px);
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ touch-action:pan-y;
+}
+#app .hx-dialog form{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ width:100%;
+ min-width:0;
+}
+#app .hx-dialog form label,
+#app .hx-dialog .hx-form-grid{
+ min-width:0;
+ max-width:100%;
+}
+#app .hx-dialog .hx-form-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;
+}
+#app .hx-dialog form input,
+#app .hx-dialog form select,
+#app .hx-dialog form textarea{
+ display:block;
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+ width:100%;
+ min-height:50px;
+ font-size:16px;
+ line-height:1.4;
+ color:#f3fcff;
+ background:#092737;
+ border:1px solid #6393a3;
+ border-radius:11px;
+ color-scheme:dark;
+ padding:11px 12px;
+}
+#app .hx-dialog form input:focus-visible,
+#app .hx-dialog form select:focus-visible,
+#app .hx-dialog form textarea:focus-visible{
+ outline:2px solid #71e9e9;outline-offset:2px;
+}
+#app .hx-dialog form label.hx-date-row{
+ display:flex;
+ flex-direction:row;
+ align-items:center;
+ justify-content:flex-start;
+ gap:14px;
+ min-width:0;
+ width:100%;
+}
+#app .hx-dialog form .hx-date-row>span{
+ flex:0 0 34px;
+ white-space:nowrap;
+ font-size:.95rem;
+ font-weight:800;
+}
+#app .hx-dialog form .hx-date-row>input[type="date"]{
+ display:block;
+ box-sizing:border-box;
+ min-width:0;
+ max-width:calc(100% - 48px);
+ width:220px;
+ flex:0 1 220px;
+ min-height:50px;
+ font-size:16px;
+ padding:10px 7px 10px 11px;
+ font-weight:760;
+ font-variant-numeric:tabular-nums;
+ -webkit-appearance:auto;
+}
+#app .hx-dialog-trend{min-width:0;max-width:100%;overflow:hidden}
+#app .hx-dialog .hx-no-sleep{
+ margin:0;padding:8px 0 4px;
+ color:#b8d0db;
+ font-size:.88rem;
+ line-height:1.5;
+}
+#app .hx-dialog .hx-dialog-head{gap:12px;min-width:0}
+#app .hx-dialog .hx-dialog-head h2{font-size:1.28rem;min-width:0}
+#app .hx-dialog .hx-dialog-foot{flex-wrap:wrap}
+body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
+@media(max-width:360px){
+ #app .hx-dialog{padding:14px}
+ #app .hx-dialog .hx-date-row{gap:9px}
+ #app .hx-dialog form .hx-date-row>input[type="date"]{
+   max-width:calc(100% - 43px);padding:9px 4px;font-size:16px
+ }
+}
