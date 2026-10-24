@@ -13,7 +13,7 @@ export const HOME_DASHBOARD_WIDGETS=Object.freeze([
 const IDS=HOME_DASHBOARD_WIDGETS.map(w=>w.id);
 const IS_ID=new Set(IDS);
 export function defaultHomeDashboardLayout(){
- return {version:1,order:[...IDS],visible:[...IDS],sizes:Object.fromEntries(HOME_DASHBOARD_WIDGETS.map(w=>[w.id,w.defaultSize]))};
+ return {version:1,order:[...IDS],visible:["latest","condition","topics","shortcuts"],sizes:Object.fromEntries(HOME_DASHBOARD_WIDGETS.map(w=>[w.id,w.defaultSize]))};
 }
 export function isValidHomeDashboardLayout(v){
  if(!v||typeof v!=="object"||Array.isArray(v)||v.version!==1)return false;
