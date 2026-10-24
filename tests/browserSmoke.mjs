@@ -134,12 +134,13 @@ try{
   await page.locator("[data-condition-open]").click();
   await page.locator('[name="bedTime"]').fill("23:20");
   await page.locator('[name="wakeTime"]').fill("06:00");
-  await page.locator('[name="bedDayRule"][value="same"]').check({force:true});
+  await page.locator(".hx-day-details summary").click();
+  await page.locator('[name="bedDayRule"][value="same"]').check();
   assert.match(await page.locator('[data-sleep-result-note]').innerText(),/確認/,"same-day invalid if wake earlier");
   await page.locator("[data-condition-form] button[type=submit]").click();
   assert.match(await page.locator("[data-sleep-error]").innerText(),/確認/,"invalid clock is not stored");
   assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20","validation preserves unfinished form");
-  await page.locator('[name="bedDayRule"][value="auto"]').check({force:true});
+  await page.locator('[name="bedDayRule"][value="auto"]').check();
   await page.locator('select[name="feeling"]').selectOption("ふつう");
   await page.locator("[data-condition-form] button[type=submit]").click();
   assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/);
