@@ -1,7 +1,7 @@
 // RunLoad v2 settings: local-only opt-in preferences. No legal consent is recorded here.
 export const PROFILE_KEY='runload-v2-user-profile-v1';
 export const DISPLAY_KEY='runload-v2-display-preferences-v1';
-const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
+const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const purposeOptions=Object.freeze([['','選択しない'],['health','健康のため'],['record','ランニングの記録'],['learn','身体への理解・探究'],['other','その他']]);
 const ageOptions=Object.freeze([['','回答しない'],['under18','18歳未満'],['18-29','18〜29歳'],['30-39','30〜39歳'],['40-49','40〜49歳'],['50-59','50〜59歳'],['60plus','60歳以上']]);
 const within=(value,min,max)=>{const n=Number(value);return value!==''&&Number.isFinite(n)&&n>=min&&n<=max?n:null};
