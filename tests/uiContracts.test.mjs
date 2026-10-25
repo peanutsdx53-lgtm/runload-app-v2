@@ -87,7 +87,7 @@ test("v8 release uses cache-busted body resources and a user-controlled update p
  assert.match(app,/bodyContextExperience\.js\?v=20261025-terminology-v1/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/header-parity-02/);
+ assert.match(sw,/history-footer-03/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
 
