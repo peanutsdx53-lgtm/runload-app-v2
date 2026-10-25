@@ -237,7 +237,7 @@ try{
     await page.locator("[data-expand-regions]").click();
     assert.equal(await page.locator(".mobile-region-row").count(),5,"compact list can be collapsed");
   }
-  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/太ももの前/);
+  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/大腿前面/);
   if(mode.name==="desktop"){
     await page.locator(".region-tile[data-region='BA-DISP-023']").click();
   }else{
