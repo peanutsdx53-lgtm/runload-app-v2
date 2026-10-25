@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
 const root='https://peanutsdx53-lgtm.github.io/runload-app-v2/';
 const tag='20261025-review-v5';
-const probes=[['index.html','app.js?v=20261025-explore-v3-01'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
+const probes=[['index.html','app.js?v=20261025-explore-v12-01'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
 let valid=false;
 for(let i=1;i<=30;i++){
  try{
@@ -56,5 +56,20 @@ try{
  assert.equal(await report.locator('[data-download]').isDisabled(),true);
  await resultCheck.screenshot({path:'screenshots/live-result-v4-mobile.png',fullPage:true});
 }finally{await resultCheck.close()}
+const explorationCheck=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+try{
+ await explorationCheck.goto(root+'?check='+tag+'#/exploration-tree',{waitUntil:'networkidle',timeout:45000});
+ if(await explorationCheck.locator('[data-onboard-close]').count())await explorationCheck.locator('[data-onboard-close]').click();
+ await explorationCheck.locator('[data-ex-learning="slope-running"]').waitFor({timeout:15000});
+ await explorationCheck.locator('[data-ex-slope="down"]').click();
+ assert.match(await explorationCheck.locator('.ex-tool-result').innerText(),/勢いを受け止める/);
+ await explorationCheck.locator('[data-ex-category="02"]').click();
+ await explorationCheck.locator('[data-ex-learning="body-movement"]').waitFor();
+ await explorationCheck.locator('[data-ex-category="05"]').click();
+ await explorationCheck.locator('[data-ex-learning="sleep-recovery"]').waitFor();
+ assert.ok(await explorationCheck.locator('.ex-citation[href^="https://doi.org/"]').count()===1);
+ assert.equal(await explorationCheck.evaluate(()=>document.documentElement.scrollWidth-innerWidth),0);
+ await explorationCheck.screenshot({path:'screenshots/live-exploration-v12-mobile.png',fullPage:true});
+}finally{await explorationCheck.close()}
 }finally{await browser.close()}
-console.log('PUBLIC PAGES PASS: record review v5 real-value route and return on mobile and desktop');
+console.log('PUBLIC PAGES PASS: record review v5, results and exploration v12');
