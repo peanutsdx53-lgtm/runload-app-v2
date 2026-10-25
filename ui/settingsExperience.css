@@ -114,6 +114,6 @@ html.rl-text-large{font-size:112.5%}html.rl-reduce-motion *,html.rl-reduce-motio
 @media(max-width:900px){.s2-heading{padding-top:6px}}
 @media(max-width:480px){.s2-heading h1{font-size:1.65rem}}
 @media(max-width:800px){
- .app-shell:has([data-settings-v2]) .main-content{padding-top:22px}
+ .app-shell:has([data-settings-v2]) .main-content{padding-top:13px}
  .app-shell:has([data-settings-v2]) .mobile-link.is-active{background:#174353}
 }

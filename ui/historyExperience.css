@@ -62,3 +62,7 @@
 @media(max-width:870px){.stage{padding-top:28px}}
 @media(max-width:540px){.stage{padding-top:28px}}
 @media(prefers-reduced-motion:reduce){.entry{transition:none}}
+
+/* On phones, match the home dashboard title baseline rather than desktop spacing. */
+@media(max-width:800px){.stage{padding-top:19px}}
+@media(min-width:801px){.hero-title strong{white-space:nowrap}}
