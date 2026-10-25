@@ -17,9 +17,10 @@ test('exploration has no invented saved activity or sample relevance by default'
  assert.doesNotMatch(r,/10月22日|8\.20 km/);
 });
 test('relevance is linked to explicitly provided draft fields and does not treat zero as missing',()=>{
- assert.deepEqual([...signals({date:'2026-10-25',upPercent:'0',rofBefore:0,rofAfter:null},{}).linked.keys()],['03','04']);
- assert.deepEqual([...signals({distance:'5',upPercent:'18',rofBefore:4,bodyObservation:'痛みについてのメモ'},{}).linked.keys()],['01','03','04','02']);
- const cond={entries:[{date:'2026-10-24',sleepMinutes:410,feeling:'ふつう'}]};
+ assert.deepEqual([...signals({date:'2026-10-25',gradeMode:'SUMMARY',upPercent:'0',downPercent:'0',rofBefore:0,rofAfter:null},{}).linked.keys()],['04']);
+ assert.deepEqual([...signals({gradeMode:'SUMMARY',upPercent:'20',downPercent:'0'},{}).linked.keys()],['03']);
+ assert.deepEqual([...signals({distance:'5',gradeMode:'SUMMARY',upPercent:'18',downPercent:'0',rofBefore:4,bodyObservation:'痛みについてのメモ'},{}).linked.keys()],['01','03','04','02']);
+ const cond={canSave:true,entries:[{date:'2026-10-24',sleepMinutes:410,sleepSource:'duration',feeling:'ふつう'}]};
  assert.equal(signals({},cond).linked.get('05'),'2026-10-24 の生活コンディション記録に関連');
  assert.equal(signals({distance:''},{entries:[]}).linked.size,0);
 });

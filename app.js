@@ -16,7 +16,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v4-01");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261025-explore-v3-01");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261025-explore-v12-01");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -405,6 +405,9 @@ function recordExtras(){
       if(list){const all=CATEGORIES.flatMap(c=>c.topics.map(t=>({c,t})));const q=input.value.trim().toLocaleLowerCase("ja");list.innerHTML=all.filter(x=>(x.c.name+x.t).toLocaleLowerCase("ja").includes(q)).map(x=>`<button type="button" data-ex-category="${esc(x.c.id)}" data-ex-pick-topic="${esc(x.t)}"><small>${esc(x.c.name)}</small><strong>${esc(x.t)}</strong><span aria-hidden="true">↗</span></button>`).join("")||"<p>該当するテーマがありません</p>";}
       return;
     }
+    if(event.target.matches("[data-ex-life]")){
+      const y=window.scrollY;explorationUi[event.target.dataset.exLife==="a"?"lifeA":"lifeB"]=event.target.value;render();window.scrollTo(0,y);return;
+    }
     if(event.target.matches("[data-ex-distance],[data-ex-minutes]")){explorationExperience.updatePace(app);return;}
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
     if(target.matches('.hx-time-control input[type=time]')){
@@ -688,9 +691,15 @@ function recordExtras(){
       return;
     }
     const exploreTopic=event.target.closest("[data-ex-topic]");
-    if(exploreTopic){explorationUi.topic=exploreTopic.dataset.exTopic;render();return;}
+    if(exploreTopic){explorationUi.topic=exploreTopic.dataset.exTopic;explorationUi.followup="";render();return;}
     const exploreTab=event.target.closest("[data-ex-tab]");
     if(exploreTab){explorationUi.tab=exploreTab.dataset.exTab;explorationUi.notice="";render();return;}
+    const bodyChoice=event.target.closest("[data-ex-body]");
+    if(bodyChoice){const y=window.scrollY;explorationUi.bodyChoice=bodyChoice.dataset.exBody;render();window.scrollTo(0,y);return;}
+    const slopeChoice=event.target.closest("[data-ex-slope]");
+    if(slopeChoice){const y=window.scrollY;explorationUi.toolChoice=slopeChoice.dataset.exSlope;render();window.scrollTo(0,y);return;}
+    const nextChoice=event.target.closest("[data-ex-next]");
+    if(nextChoice){const prompts={"02|足・膝・股関節":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],"03|上り坂・下り坂":["次は上りと下りで感じ方を確かめたい","坂道のある日とない日の記録を見比べたい"],"05|睡眠":["次は起床時の調子も記録してみたい","睡眠の記録を数日分見返してみたい"]};const options=prompts[explorationUi.selected+"|"+explorationUi.topic]||[];explorationUi.followup=options[Number(nextChoice.dataset.exNext)]||"";explorationUi.modal="note";render();app.querySelector("#ex-note")?.focus();return;}
     const exploreAction=event.target.closest("[data-ex-action]");
     if(exploreAction){
       const action=exploreAction.dataset.exAction;
@@ -699,7 +708,7 @@ function recordExtras(){
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
       if(action==="save-note"){
         const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value);
-        explorationUi.notice=result.ok?"メモを保存しました":result.reason;
+        explorationUi.notice=result.ok?"メモを保存しました":result.reason;if(result.ok)explorationUi.followup="";
         if(result.ok)explorationUi.modal="";
         render();return;
       }

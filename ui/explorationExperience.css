@@ -104,3 +104,21 @@
 @media(max-width:800px){.app-shell:has(.ex-page) .main-content{padding:19px 13px calc(102px + env(safe-area-inset-bottom,0px))}.ex-map{height:450px}.ex-node{width:88px;gap:5px}.ex-node-orb{width:53px;height:53px}.ex-node-title{font-size:.69rem}.ex-core{width:102px;height:102px}.ex-core strong{font-size:1.35rem}.ex-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.ex-heading h1{font-size:1.55rem}.ex-map-head{padding:22px 16px 4px}.ex-map-head h2{font-size:1.16rem}.ex-map-head p{font-size:.73rem}.ex-count{font-size:.66rem}.ex-map{margin:0 2px;height:430px}.ex-node{width:80px;min-height:77px}.ex-node-orb{width:48px;height:48px}.ex-node-icon{font-size:1.17rem}.ex-node-title{font-size:.65rem}.ex-core{width:85px;height:85px}.ex-core span{font-size:.52rem}.ex-core strong{font-size:1.19rem}.ex-core small{font-size:.54rem}.ex-map-card,.ex-focus{border-radius:19px}.ex-legend{padding:0 15px;font-size:.64rem}.ex-map-foot{padding:15px}.ex-topic-set{gap:7px}.ex-action-grid .ex-action{font-size:.72rem}}
 @media(prefers-reduced-motion:reduce){.ex-page *{transition:none!important;animation:none!important}}
+
+/* Exploration v12: thematic, evidence-aware learning panels; constellation field intact. */
+.ex-learning{margin-top:15px;border:1px solid #396e80;border-radius:18px;background:#082b3acc;padding:16px;display:grid;gap:13px}
+.ex-learning h3{font-size:1.11rem;line-height:1.5;margin:0;color:#ecfcff}.ex-learning>p{margin:0;font-size:.83rem;color:#c8dfe8}
+.ex-learning-head{display:flex;align-items:center;justify-content:space-between;color:#7fe0dd;font-size:.73rem;letter-spacing:.035em}
+.ex-help{border:1px solid #6295a5;border-radius:50%;background:#0f4758;min-width:34px;height:34px;color:#e2fcfc}
+.ex-context{border-left:3px solid #52d4c8;background:#13455788;padding:11px 12px;border-radius:0 12px 12px 0}
+.ex-context small{color:#80ded9;font-size:.7rem}.ex-context p{margin:7px 0 0;color:#ebf7fa;font-size:.79rem;line-height:1.65}
+.ex-tool{display:grid;gap:12px}.ex-tool h4{font-size:.91rem;margin:0}
+.ex-tool-switch{display:flex;gap:8px;flex-wrap:wrap}.ex-tool-switch button{border:1px solid #4d788a;border-radius:11px;background:#102f41;padding:11px 13px;font-size:.77rem}
+.ex-tool-switch button[aria-pressed=true]{background:#136879;border-color:#70dfdb;color:#fff}
+.ex-tool-result{border:1px solid #397587;border-radius:13px;background:#0b2231;padding:14px;display:grid;gap:8px}.ex-tool-result strong{font-size:.86rem}.ex-tool-result p{margin:0;line-height:1.72;font-size:.79rem;color:#cce4ec}.ex-tool-result small{line-height:1.6;color:#a8c9d4;font-size:.7rem}
+.ex-learning-link{display:block;border-radius:12px;border:1px solid #3c9da3;background:#155769;color:#dffafa;text-align:center;padding:11px;font-weight:700;text-decoration:none;font-size:.78rem}
+.ex-citation{font-size:.74rem;color:#87e4db;text-underline-offset:3px}.ex-precaution{border-top:1px solid #356373;padding-top:10px;color:#b6d5da!important;font-size:.71rem!important;line-height:1.7!important}
+.ex-course-bars{display:flex;width:100%;height:17px;overflow:hidden;border-radius:12px;background:#214354;margin:6px 0 12px}.ex-course-source small{color:#afced5;font-size:.71rem;line-height:1.65}
+.ex-life-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ex-life-choices label{display:grid;gap:5px;font-size:.7rem;color:#bdd8df;min-width:0}.ex-life-choices select{width:100%;min-width:0;background:#112f40;color:#e9faff;border:1px solid #4c8799;border-radius:10px;padding:10px 4px}
+.ex-next{border-top:1px solid #356373;padding-top:13px;display:grid;gap:9px}.ex-next strong{font-size:.83rem}.ex-next p{font-size:.74rem;color:#adccd7;margin:0}.ex-next button{border:1px solid #3b697c;border-radius:10px;background:#113d4b;padding:11px;text-align:left;display:flex;justify-content:space-between;gap:6px;font-size:.73rem;line-height:1.5}.ex-next button span{color:#75dfd6}.ex-revisit{background:#233d4b;border-radius:9px;padding:10px;overflow-wrap:anywhere;color:#e0f3f6!important}
+@media(max-width:370px){.ex-learning{padding:12px}.ex-life-choices{grid-template-columns:1fr}}
