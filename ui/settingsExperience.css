@@ -9,3 +9,14 @@ html.rl-text-large{font-size:112.5%}html.rl-reduce-motion *,html.rl-reduce-motio
 
 /* First-use optional profile fields share this stylesheet; remain responsive. */
 .onboard-extra-profile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.onboard-extra-profile label{display:grid;gap:6px;min-width:0;font-size:12px}.onboard-extra-profile input{width:100%;min-width:0;min-height:44px;font-size:16px;border-radius:9px;padding:9px 12px}.onboard-extra-profile input::placeholder{font-size:12px}@media(max-width:360px){.onboard-extra-profile{grid-template-columns:minmax(0,1fr)}}
+
+/* Integrate the approved dark settings into RunLoad's real outer app shell. */
+.app-shell:has([data-settings-v2]){background:#061725;min-height:100dvh}
+.app-shell:has([data-settings-v2]) .main-frame{background:radial-gradient(ellipse at 65% -7%,#15546a55,transparent 45%),#061725;min-height:100dvh}
+.app-shell:has([data-settings-v2]) .main-content{max-width:none;width:100%;padding:22px clamp(16px,2.7vw,44px) 80px;min-height:calc(100dvh - 55px);background:transparent}
+.app-shell:has([data-settings-v2]) .sidebar{background:linear-gradient(165deg,#0b3448,#061724 90%);border-right:1px solid #216078}
+.app-shell:has([data-settings-v2]) .side-link{color:#b4d7e1}
+.app-shell:has([data-settings-v2]) .side-link:hover{background:#154b5b;color:#fff}
+.app-shell:has([data-settings-v2]) .side-link.is-active{background:linear-gradient(100deg,#10718c,#0c3d56);border:1px solid #2aa1b4;box-shadow:inset 3px 0 #41ede1;color:#fff}
+.app-shell:has([data-settings-v2]) .topbar{background:#071f30;color:#ddf7f8;border-bottom:1px solid #28576c}
+@media(max-width:870px){.app-shell:has([data-settings-v2]) .main-content{padding:18px 14px calc(82px + env(safe-area-inset-bottom))}.app-shell:has([data-settings-v2]) .mobile-nav{background:#082638f5;border-top:1px solid #27778a}.app-shell:has([data-settings-v2]) .mobile-link{color:#a7cbda}.app-shell:has([data-settings-v2]) .mobile-link.is-active{color:#32e8e1}}
