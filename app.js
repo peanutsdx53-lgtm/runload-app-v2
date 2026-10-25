@@ -16,7 +16,10 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v4-01");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261025-explore-v12-01");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-v14");
+  const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
+  const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
+  const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -51,6 +54,7 @@
   const measurementUi=measurementExperience.createMeasurementViewState();
   const historyUi=historyExperience.createHistoryUi();
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
+  const lifeCompareUi={a:"",b:"",open:false,notice:""};
   const environmentUi=environmentExperience.newEnvironmentUi();
   const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
@@ -198,6 +202,7 @@
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>
+ ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);return interpretationExperience.actionIntentCard(r.intent,homeExperience.readConditions(onboardStorage),r.ok?"":r.reason);})()}
  ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
  ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
  </div>`;
@@ -333,7 +338,18 @@ function recordExtras(){
 }
     // History records are intentionally not sourced from the unsaved input draft.
     // Saved-history repository integration is a separate protected milestone.
-    function history(){return '<section id="runload-history-v2" aria-label="履歴"></section>';}
+    function history(){
+      const show=lifeCompareUi.open||location.hash.includes("life=1");
+      const cond=homeExperience.readConditions(onboardStorage);
+      const life=interpretationRules.latestEligibleLifeBaseline(cond);
+      if(!lifeCompareUi.a&&!lifeCompareUi.b){
+        const records=interpretationRules.buildLifePacket(cond,"","").records||[];
+        const valid=records.filter(r=>r.minutes!==null);
+        if(valid.length>=2){lifeCompareUi.a=valid.at(-2).date;lifeCompareUi.b=valid.at(-1).date;}
+      }
+      const state=actionIntentStore.loadIntent(onboardStorage);
+      return `<section id="runload-history-v2" aria-label="履歴"></section><div class="iv-launch"><button type="button" data-interpret-toggle aria-expanded="${show}">${show?"生活の比較を閉じる":"生活の記録を比べる"}</button></div>${show?interpretationExperience.lifeComparisonPanel(cond,{a:lifeCompareUi.a,b:lifeCompareUi.b,notice:lifeCompareUi.notice,intent:state.intent}):""}`;
+    }
     function explore(){
       const conditions=homeExperience.readConditions(onboardStorage);
       return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions});
@@ -389,7 +405,13 @@ function recordExtras(){
   });
  }
 }
-  app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
+  app.addEventListener("change",(event)=>{
+    if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value;
+    if(event.target.matches("[data-interpret-date]")){
+      lifeCompareUi[event.target.dataset.interpretDate]=event.target.value;
+      const y=window.scrollY;render();window.scrollTo(0,y);
+    }
+  });
   const reportSettingsNotice=(message)=>{
     settingsUi.notice=message;
     const page=app.querySelector('[data-settings-v2]');if(!page)return;
@@ -536,6 +558,24 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",(event)=>{
+    const interpretToggle=event.target.closest("[data-interpret-toggle]");
+    if(interpretToggle){if(location.hash.includes("life=1")){lifeCompareUi.open=false;location.hash="#/history";}else {lifeCompareUi.open=!lifeCompareUi.open;render();}return;}
+    const lifeAction=event.target.closest("[data-interpret-save-intent],[data-interpret-mark-reviewed],[data-interpret-pause],[data-interpret-resume],[data-interpret-delete]");
+    if(lifeAction){
+      const old=actionIntentStore.loadIntent(onboardStorage);
+      if(!old.ok){lifeCompareUi.notice=old.reason;render();return;}
+      let result;
+      if(lifeAction.hasAttribute("data-interpret-save-intent")){
+        const baseline=interpretationRules.latestEligibleLifeBaseline(homeExperience.readConditions(onboardStorage));
+        result=actionIntentStore.createLifeIntent(onboardStorage,baseline);
+      }else if(lifeAction.hasAttribute("data-interpret-delete"))result=actionIntentStore.updateIntent(onboardStorage,null);
+      else if(old.intent){
+        const newStatus=lifeAction.hasAttribute("data-interpret-pause")?"paused":lifeAction.hasAttribute("data-interpret-resume")?"active":"reviewed";
+        result=actionIntentStore.updateIntent(onboardStorage,{...old.intent,status:newStatus});
+      }else result={ok:false,reason:"保存された確認事項がありません"};
+      lifeCompareUi.notice=result.ok?"確認事項を更新しました":result.reason;
+      const y=window.scrollY;render();window.scrollTo(0,y);return;
+    }
     const setting=event.target.closest('[data-settings-text],[data-settings-motion]');
     if(setting){
       const key=setting.hasAttribute('data-settings-text')?'textSize':'motion';
@@ -783,6 +823,6 @@ function recordExtras(){
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
-  window.addEventListener("hashchange",()=>{state.toast="";render();window.scrollTo(0,0)});
+  window.addEventListener("hashchange",()=>{state.toast="";render();if(location.hash.includes("life=1"))app.querySelector("#interpret-life")?.scrollIntoView({block:"start",behavior:"instant"});else window.scrollTo(0,0)});
   render();
 })();

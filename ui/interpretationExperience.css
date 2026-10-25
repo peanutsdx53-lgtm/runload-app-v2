@@ -1,0 +1,25 @@
+/* V14: subordinate cards, never replace the existing history, home or star field. */
+.iv-card{margin:16px auto 24px;padding:clamp(18px,4vw,32px);border-radius:28px;border:1px solid #387c8e;background:radial-gradient(ellipse at 90% 0%,#1d5c69 0%,transparent 60%),linear-gradient(150deg,#113849,#0a2537);color:#e7f8fd;box-shadow:0 14px 32px #00142039;max-width:1180px}
+.iv-card h2{font-size:clamp(1.26rem,3vw,1.65rem);line-height:1.4;color:#f4fcfe;margin:.3em 0 .6em}
+.iv-card h3{font-size:1.03rem;color:#e5f9fc;margin:1rem 0 .4rem}
+.iv-card p{font-size:clamp(.90rem,2.4vw,1rem);line-height:1.75;color:#bed4dc;margin:.55rem 0}
+.iv-card small,.iv-method{color:#98c2cf}
+.iv-topline{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}
+.iv-selects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.iv-selects label{font-size:.88rem;color:#c9e9f1;display:flex;flex-direction:column;gap:8px}
+.iv-selects select{max-width:100%;width:100%;min-height:48px;border:1px solid #5292a2;border-radius:12px;padding:8px 10px;color:#edfaff;background:#082939;font-size:1rem}
+.iv-packet,.iv-next{border:1px solid #386879;background:#0b2b3b;border-radius:18px;padding:15px 18px;margin:18px 0}
+.iv-incomplete{border-color:#47697a}
+.iv-knowledge{margin:16px 0;border-bottom:1px solid #2a5767;padding-bottom:12px}
+.iv-knowledge summary{cursor:pointer;color:#d1f5f7;font-weight:650;min-height:44px;display:flex;align-items:center}
+.iv-knowledge a,.iv-quiet-link{color:#81e7e3;text-underline-offset:4px;overflow-wrap:anywhere}
+.iv-card button,.iv-actions a{border:1px solid #4b9cac;background:#155568;border-radius:13px;color:#f0fbfe;font:inherit;font-weight:650;padding:12px 15px;min-height:46px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.iv-card button:focus-visible,.iv-card a:focus-visible,.iv-selects select:focus-visible{outline:3px solid #8df9e5;outline-offset:3px}
+.iv-next button{width:100%;margin:10px 0}
+.iv-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.iv-actions>*{flex:1 1 110px}
+.iv-status{display:inline-block;padding:5px 14px;background:#235a6a;border-radius:100px;color:#e4f8fb!important;font-weight:700}
+.iv-feedback{border-left:3px solid #6cded7;padding-left:12px}
+@media(max-width:480px){.iv-card{margin:12px 8px 25px;padding:18px 15px;border-radius:22px}.iv-selects{grid-template-columns:1fr}.iv-actions>*{flex-basis:calc(50% - 8px)}}
+
+.iv-launch{max-width:1180px;margin:12px auto;padding:0 10px}.iv-launch button{background:#123e50;border:1px solid #4b8999;border-radius:18px;color:#e5f8fa;min-height:50px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}.iv-launch button:focus-visible{outline:3px solid #8df9e5;outline-offset:3px}

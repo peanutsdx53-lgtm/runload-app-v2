@@ -639,6 +639,37 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-history-v2-approved.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
+  // V14: Saved life entries are separate from unsaved running drafts and exploration notes.
+  const lifeSeed=[
+   {date:'2026-10-20',sleepMinutes:360,sleepSource:'duration',feeling:'ふつう',memo:''},
+   {date:'2026-10-22',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}
+  ];
+  await page.evaluate(entries=>localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify(entries)),lifeSeed);
+  await page.goto(host+'#/history?life=1',{waitUntil:'networkidle'});
+  const lifePanel=page.locator('[data-interpretation-life]');await lifePanel.waitFor();
+  assert.match(await lifePanel.locator('.iv-packet').innerText(),/1時間30分の差/);
+  assert.match(await lifePanel.locator('.iv-packet').innerText(),/原因やランニングへの影響は判断できません/);
+  assert.equal(await page.locator('#runload-history-v2').count(),1,'approved history cards remain intact');
+  await lifePanel.locator('[data-interpret-save-intent]').click();
+  assert.match(await page.locator('.iv-feedback').innerText(),/確認事項を更新しました/);
+  await page.goto(host+'#/home',{waitUntil:'networkidle'});
+  assert.match(await page.locator('[data-interpretation-action]').innerText(),/記録待ち/);
+  await page.reload({waitUntil:'networkidle'});
+  assert.match(await page.locator('[data-interpretation-action]').innerText(),/記録待ち/,'confirmed local preservation');
+  await page.evaluate(()=>{
+   const key='runload-v2-life-condition-v1',rows=JSON.parse(localStorage.getItem(key));
+   rows.push({date:'2026-10-24',sleepMinutes:420,sleepSource:'duration',feeling:'ふつう',memo:''});
+   localStorage.setItem(key,JSON.stringify(rows));
+  });
+  await page.reload({waitUntil:'networkidle'});
+  assert.match(await page.locator('[data-interpretation-action]').innerText(),/見返せます/);
+  assert.equal(await page.locator('[data-interpretation-action] [data-interpret-mark-reviewed]').count(),1);
+  await page.locator('[data-interpret-mark-reviewed]').click();
+  assert.match(await page.locator('[data-interpretation-action]').innerText(),/見返した内容/);
+  await page.locator('[data-interpret-delete]').click();
+  assert.equal(await page.locator('[data-interpretation-action]').count(),0);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-exploration-notes-v1')!==null),true,'old exploration notes kept');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v14-interpretation-flow.png'),fullPage:false});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const historicalReport=page.locator("#runload-result-v4");
   assert.match(await historicalReport.locator(".rv4-notice").innerText(),/表示できる保存記録はまだありません/);
