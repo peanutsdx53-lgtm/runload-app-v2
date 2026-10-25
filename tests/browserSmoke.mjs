@@ -233,6 +233,7 @@ try{
   // SVG anatomical regions are often nonconvex: bbox center can be empty space.
   // Click a verified *filled* point, rather than Playwright's bbox-center heuristic.
   const clickFilledRegion=async id=>{
+    await report.locator('[data-region="'+id+'"]').first().scrollIntoViewIfNeeded();
     const point=await report.locator('[data-region="'+id+'"]').first().evaluate(el=>{
       const bb=el.getBBox(),svg=el.ownerSVGElement;
       for(let yi=1;yi<=16;yi++)for(let xi=1;xi<=16;xi++){
