@@ -32,7 +32,7 @@
 
 /* RunLoad v2 history surface polish — 2026-10-25.
    Match the home title baseline and luminous arc vocabulary, inside Shadow DOM. */
-.stage{padding-top:28px;background:transparent}
+.stage{padding-top:28px;background:radial-gradient(ellipse at 80% -2%,#20738c30,transparent 49%),linear-gradient(155deg,#0b2637,#051826 62%)}
 .topline h1{font-size:1.65rem;font-weight:900;letter-spacing:.03em;line-height:1.2;color:#f2f9fd}
 .topline p{margin-top:8px;color:#b1cfdb}
 .surface{
