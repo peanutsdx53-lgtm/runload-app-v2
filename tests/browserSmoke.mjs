@@ -585,6 +585,11 @@ try{
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
+   if(route==="settings"){
+     const layout=await page.evaluate(()=>({content:document.querySelector(".s2-page")?.getBoundingClientRect().width,viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth}));
+     assert.ok(layout.overflow<=1,"settings layout has no horizontal overflow: "+JSON.stringify(layout));
+     if(mode.name==="desktop")assert.ok(layout.content>=950,"PC settings should use full available width: "+JSON.stringify(layout));
+   }
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+"-viewport.png"),fullPage:false});
    if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});

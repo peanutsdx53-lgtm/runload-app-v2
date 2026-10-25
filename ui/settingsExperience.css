@@ -20,3 +20,6 @@ html.rl-text-large{font-size:112.5%}html.rl-reduce-motion *,html.rl-reduce-motio
 .app-shell:has([data-settings-v2]) .side-link.is-active{background:linear-gradient(100deg,#10718c,#0c3d56);border:1px solid #2aa1b4;box-shadow:inset 3px 0 #41ede1;color:#fff}
 .app-shell:has([data-settings-v2]) .topbar{background:#071f30;color:#ddf7f8;border-bottom:1px solid #28576c}
 @media(max-width:870px){.app-shell:has([data-settings-v2]) .main-content{padding:18px 14px calc(82px + env(safe-area-inset-bottom))}.app-shell:has([data-settings-v2]) .mobile-nav{background:#082638f5;border-top:1px solid #27778a}.app-shell:has([data-settings-v2]) .mobile-link{color:#a7cbda}.app-shell:has([data-settings-v2]) .mobile-link.is-active{color:#32e8e1}}
+
+/* CSS grid item with auto margins otherwise shrinks to intrinsic card width. */
+.app-shell:has([data-settings-v2]) .s2-page{width:100%;min-width:0}
