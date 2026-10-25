@@ -282,6 +282,12 @@ try{
   const ex=page.locator('[data-experience-v3]');
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
+  const fromDraft=await ex.locator('.ex-node.is-related').count();
+  if(fromDraft)assert.match(await ex.locator('.ex-map-head').innerText(),/入力中の走行/,'draft-linked themes are explicitly labeled, never saved records');
+  // A clean visit without an in-memory unsaved draft must have zero highlighted
+  // domains and show the user-controlled visual example instead.
+  await page.reload({waitUntil:'networkidle'});
+  await ex.waitFor();
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
   assert.match(await ex.innerText(),/記録がなくても、すべての分野を開けます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
