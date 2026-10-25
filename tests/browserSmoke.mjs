@@ -337,8 +337,9 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration v3 knowledge, arithmetic, notes, catalog');
   // The exploration shell deliberately has no legacy top header.
-  // Exercise the install control from the Record screen where it is visible.
-  await page.goto(host+"#/record",{waitUntil:"networkidle"});
+  // Exercise the install control from the Course screen where it is visible.
+  await page.goto(host+"#/course",{waitUntil:"networkidle"});
+  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on Course route");
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
