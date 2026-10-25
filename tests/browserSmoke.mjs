@@ -61,7 +61,9 @@ try{
     const textPanel=intro.locator(".s2-item").filter({hasText:"文字サイズ"}).first();
     await textPanel.locator("summary").click();await textPanel.locator('[data-settings-text="large"]').click();
     assert.equal(await intro.evaluate(()=>document.documentElement.classList.contains("rl-text-large")),true);
-    await intro.locator("[data-onboard-open]").first().click();
+    const tutorialPanel=intro.locator(".s2-item").filter({hasText:"初回ガイド"}).first();
+    await tutorialPanel.locator("summary").click();
+    await tutorialPanel.locator("[data-onboard-open]").click();
     assert.equal(await intro.locator(".onboard-dialog").count(),1,"tutorial can be reopened in Settings");
     await intro.close();
   }
