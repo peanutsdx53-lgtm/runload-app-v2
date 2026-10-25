@@ -29,3 +29,36 @@
 .focus-panel .focus-kicker{letter-spacing:.015em}
 @media(max-width:870px){.stage{padding:18px 14px 100px}.layout{grid-template-columns:minmax(0,1fr)}.calendar-panel,.list-panel{padding:18px 15px}.focus-panel{display:block}}
 @media(max-width:540px){.stage{padding:16px 12px 35px}.stats{margin-top:8px}.hero{padding:15px 15px 14px}.hero-main{gap:12px}.stat strong{font-size:clamp(18px,5.8vw,27px)}.focus-panel{padding:16px}}
+
+/* RunLoad v2 history surface polish — 2026-10-25.
+   Match the home title baseline and luminous arc vocabulary, inside Shadow DOM. */
+.stage{padding-top:28px;background:transparent}
+.topline h1{font-size:1.65rem;font-weight:900;letter-spacing:.03em;line-height:1.2;color:#f2f9fd}
+.topline p{margin-top:8px;color:#b1cfdb}
+.surface{
+  isolation:isolate;
+  border-color:#337b8d;
+  background:radial-gradient(ellipse at 94% -5%,#35bed04b,transparent 48%),
+             linear-gradient(123deg,#123b4d 0%,#0d2e41 52%,#092536 100%);
+  box-shadow:inset 0 1px #daffff1b,0 14px 31px #0007,0 2px 9px #0004;
+}
+.surface:not(.hero)::after{
+  content:"";position:absolute;right:-122px;top:-160px;width:360px;height:320px;
+  border-radius:50%;border:1px solid #8cf9f139;
+  box-shadow:0 0 0 32px #8afbea0c,0 0 0 70px #7deee80a,0 0 0 113px #7deee806;
+  pointer-events:none;z-index:0;
+}
+.surface:not(.hero)>*{position:relative;z-index:1}
+.hero{
+  border-color:#348c9c;
+  background:radial-gradient(circle at 92% 4%,#209eaf70,transparent 44%),
+             linear-gradient(118deg,#143e52,#0a2d40 65%,#0c3f4b);
+}
+.focus-panel{
+  background:radial-gradient(circle at 98% 0%,#2daab947,transparent 56%),
+             linear-gradient(125deg,#123b4c,#092538 75%);
+}
+.calendar-panel,.list-panel{border-color:#36788a}
+@media(max-width:870px){.stage{padding-top:28px}}
+@media(max-width:540px){.stage{padding-top:28px}}
+@media(prefers-reduced-motion:reduce){.entry{transition:none}}

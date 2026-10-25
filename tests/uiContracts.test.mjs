@@ -87,8 +87,8 @@ test("v8 release uses cache-busted body resources and a user-controlled update p
  assert.match(app,/bodyContextExperience\.js\?v=20261025-terminology-v1/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/mobile-shell-01/);
+ assert.match(sw,/header-parity-02/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
 
-test("settings v2 uses a dark outer shell and full content width",()=>{const css=read("ui/settingsExperience.css"),html=read("index.html");assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-frame/);assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-content\{max-width:none/);assert.match(html,/settingsExperience\.css\?v=20261025-settings-v4-01/)});
+test("settings v2 uses a dark outer shell and full content width",()=>{const css=read("ui/settingsExperience.css"),html=read("index.html");assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-frame/);assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-content\{max-width:none/);assert.match(html,/settingsExperience\.css\?v=20261025-settings-surface-05/)});

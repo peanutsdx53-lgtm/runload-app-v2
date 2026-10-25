@@ -22,6 +22,17 @@ const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROM
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  const host="http://127.0.0.1:4173/";
+ // Dedicated intermediate width QA without doubling the comprehensive suite.
+ const tablet=await browser.newPage({viewport:{width:1024,height:768},reducedMotion:'reduce'});
+ await tablet.addInitScript(()=>{localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja',formalTermsAccepted:false}))});
+ for(const route of ['home','record','history','settings']){
+   await tablet.goto(host+'#/'+route,{waitUntil:'networkidle'});
+   const overflow=await tablet.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+   assert.ok(overflow<=3,'tablet '+route+' overflows viewport: '+overflow);
+   if(route==='history'||route==='settings')assert.equal(await tablet.locator('.topbar').isVisible(),false,'tablet '+route+' top header');
+   await tablet.screenshot({path:resolve(root,'screenshots','tablet-'+route+'-viewport.png'),fullPage:false});
+ }
+ await tablet.close();
  for(const mode of [{name:"desktop",width:1440,height:900},{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740},{name:"wide-phone",width:430,height:932}]){
   if(mode.name==="mobile"){
     const intro=await browser.newPage({viewport:{width:390,height:844},reducedMotion:"reduce"});
@@ -73,6 +84,7 @@ try{
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
   await page.locator("h1").waitFor();
   assert.match(await page.locator("h1").innerText(),/ホーム/);
+  const homeHeadingTop=await page.locator(".home-head h1").evaluate(el=>el.getBoundingClientRect().top);
   assert.equal(await page.locator("[data-home-dashboard-id]").count(),4,"four core widgets by default");
   assert.equal(await page.locator("[data-home-dashboard-id]").first().getAttribute("data-home-dashboard-id"),"latest");
   if(mode.name==="desktop"){
@@ -557,6 +569,12 @@ try{
   // Navigate through the actual UI, rather than navigating the whole document.
   await page.locator(mode.name==="desktop"?'.side-nav a[href="#/history"]':'.mobile-nav a[href="#/history"]').click();
   const historyRoot=page.locator('#runload-history-v2');
+  assert.equal(await page.locator('.topbar').isVisible(),false,'history must not keep the empty top header');
+  const historyHeadingTop=await historyRoot.locator('.topline h1').evaluate(el=>el.getBoundingClientRect().top);
+  assert.ok(Math.abs(historyHeadingTop-homeHeadingTop)<=4,'history title matches home: '+JSON.stringify({homeHeadingTop,historyHeadingTop}));
+  const historySurfaceTheme=await historyRoot.locator('.calendar-panel').evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
+  assert.match(historySurfaceTheme.bg,/radial-gradient/,'history cards receive luminous gradient');
+  assert.notEqual(historySurfaceTheme.ring,'none','history cards retain decorative arc');
   await historyRoot.locator('.calendar-panel').waitFor();
   const historyInstantStyle=await historyRoot.evaluate(host=>{
     const root=host.shadowRoot,stage=root?.querySelector('.stage');
@@ -595,6 +613,12 @@ try{
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
    if(route==="settings"){
+     assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
+     const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
+     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=4,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
+     const panelTheme=await page.locator('.s2-panel').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
+     assert.match(panelTheme.bg,/radial-gradient/,'settings cards receive luminous gradient');
+     assert.notEqual(panelTheme.ring,'none','settings cards retain decorative arc');
      const layout=await page.evaluate(()=>({content:document.querySelector(".s2-page")?.getBoundingClientRect().width,viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth}));
      assert.ok(layout.overflow<=1,"settings layout has no horizontal overflow: "+JSON.stringify(layout));
      if(mode.name==="desktop")assert.ok(layout.content>=950,"PC settings should use full available width: "+JSON.stringify(layout));

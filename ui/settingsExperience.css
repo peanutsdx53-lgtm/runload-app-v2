@@ -84,3 +84,36 @@ html.rl-text-large{font-size:112.5%}html.rl-reduce-motion *,html.rl-reduce-motio
 .s4-purpose-help{margin:-1px 0 0!important;font-size:11px!important;color:#85aebc!important;line-height:1.4!important}
 @media(max-width:480px){.s4-purpose-select{height:56px}.s4-purpose-icon{margin-left:12px}.s4-purpose-chevron{right:17px;top:19px}}
 @media(prefers-reduced-motion:reduce){.s4-purpose-select{transition:none}}
+
+/* RunLoad v2 settings header and luminous panel parity — 2026-10-25.
+   No duplicate app chrome; preserve the install guide within Settings. */
+.app-shell:has([data-settings-v2]) .topbar{display:none}
+.app-shell:has([data-settings-v2]) .main-content{padding-top:22px}
+.s2-page{padding-top:0}
+.s2-heading{padding-top:6px}
+.s2-heading h1{font-size:1.65rem;font-weight:900;letter-spacing:.03em;line-height:1.2}
+.s2-panel{
+  isolation:isolate;
+  border-color:#39798b;
+  background:radial-gradient(circle at 90% -9%,#2da7ba55,transparent 47%),
+             linear-gradient(123deg,#143e51 0%,#0d3043 53%,#0a2536 100%);
+  box-shadow:inset 0 1px #d6ffff24,0 14px 31px #0007,0 2px 9px #0004;
+}
+.s2-panel[data-settings-tone]{
+  background:radial-gradient(ellipse at 94% 1%,color-mix(in srgb,var(--tone) 23%,transparent),transparent 47%),
+             linear-gradient(123deg,#143e51 0%,#0d3043 53%,#0a2536 100%);
+}
+.s2-panel::after{
+  content:"";position:absolute;right:-120px;top:-155px;width:350px;height:305px;
+  border:1px solid #91f7ed34;border-radius:50%;
+  box-shadow:0 0 0 31px #80eae90d,0 0 0 69px #80efea08,0 0 0 105px #80efea07;
+  pointer-events:none;z-index:0;
+}
+.s2-panel>*{position:relative;z-index:1}
+.s2-panel[data-settings-tone]::before{opacity:.95}
+@media(max-width:900px){.s2-heading{padding-top:6px}}
+@media(max-width:480px){.s2-heading h1{font-size:1.65rem}}
+@media(max-width:800px){
+ .app-shell:has([data-settings-v2]) .main-content{padding-top:22px}
+ .app-shell:has([data-settings-v2]) .mobile-link.is-active{background:#174353}
+}

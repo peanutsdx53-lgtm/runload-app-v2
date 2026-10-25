@@ -1746,3 +1746,27 @@ html, body { background-color:#061725; }
 @media (display-mode:standalone) {
   body { padding-top: env(safe-area-inset-top, 0px); }
 }
+
+/* RunLoad v2 shared headerless history shell — 2026-10-25.
+   The OS safe area belongs to the viewport, not an empty app topbar. */
+.app-shell:has(#runload-history-v2){background:#061725;min-height:100dvh}
+.app-shell:has(#runload-history-v2) .topbar{display:none}
+.app-shell:has(#runload-history-v2) .main-frame{
+  min-height:100dvh;
+  background:radial-gradient(ellipse at 88% 0%,#17556b70,transparent 43%),linear-gradient(145deg,#091824,#0c2635 54%,#091620);
+}
+.app-shell:has(#runload-history-v2) .main-content{
+  box-sizing:border-box;max-width:none;width:100%;margin:0;padding:0;
+  background:transparent;color:#f1f9fc;min-width:0;
+}
+.app-shell:has(#runload-history-v2) .sidebar{
+  background:linear-gradient(180deg,#0c2533,#071923);border-right-color:#254655;
+}
+.app-shell:has(#runload-history-v2) .side-link{color:#b8d5df}
+.app-shell:has(#runload-history-v2) .side-link:hover,
+.app-shell:has(#runload-history-v2) .side-link.is-active{color:#85eff0;background:#1e5666}
+@media(max-width:800px){
+ .app-shell:has(#runload-history-v2) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
+ .app-shell:has(#runload-history-v2) .mobile-link{color:#c0cbd5}
+ .app-shell:has(#runload-history-v2) .mobile-link.is-active{color:#55dce3;background:#174353}
+}
