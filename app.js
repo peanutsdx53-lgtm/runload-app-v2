@@ -15,7 +15,7 @@
   const measurementExperience=await import("./ui/measurementExperience.js");
   const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-history-v2-01");
-  const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v2-01");
+  const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v4-01");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
