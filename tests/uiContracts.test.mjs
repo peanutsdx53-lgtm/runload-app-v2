@@ -39,7 +39,7 @@ test("main navigation and prototype restrictions",()=>{
  assert.ok(js.includes("mobileNav=["));
  assert.ok(!/デモ専用|UI 試作版|配置・動線の試作/.test(js),"do not display developer-only labels in product screens");
  assert.ok(js.includes("resultExperience.mountResult"),"result uses the isolated result Ver4 experience");
- assert.ok(js.includes('data-tree-category'),"tree choices are interactive");
+ assert.ok(js.includes('data-ex-category'),"exploration choices are interactive");
 });
 test("install UI offers manual iOS steps",()=>{
  const js=read("pwa.js");
@@ -82,12 +82,12 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
 
 test("v8 release uses cache-busted body resources and a user-controlled update prompt",()=>{
  const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
- assert.match(html,/app\.js\?v=20261025-mobile-shell-01/);
+ assert.match(html,/app\.js\?v=20261025-explore-v3-01/);
  assert.match(html,/bodyContextExperience\.css\?v=20261025-terminology-v1/);
  assert.match(app,/bodyContextExperience\.js\?v=20261025-terminology-v1/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/history-footer-03/);
+ assert.match(sw,/explore-v3-01/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
 

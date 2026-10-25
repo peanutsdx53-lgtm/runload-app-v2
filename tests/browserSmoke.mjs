@@ -279,51 +279,50 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
-  await page.locator(".exploration-stage").waitFor();
-  assert.equal(await page.locator(".tree-desktop .tree-hub").count(),7,"desktop tree has 7 domains");
-  assert.equal(await page.locator(".tree-desktop .tree-leaf").count(),28,"desktop tree has 28 topic leaves");
-  assert.equal(await page.locator(".tree-mobile .tree-bubble").count(),7,"mobile tree has 7 selectable domains");
-  assert.equal(await page.locator(".tree-decoration").count(),0,"ornamental tree leaves are deferred");
-  const beforeZoom=await page.locator(".tree-pan-viewport").evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,height:el.scrollHeight,viewHeight:el.clientHeight}));
-  assert.ok(beforeZoom.scroll>beforeZoom.client&&beforeZoom.height>beforeZoom.viewHeight,mode.name+" both directions must be scrollable");
-  await page.locator("[data-tree-zoom=in]").click();
-  assert.match(await page.locator("[data-tree-zoom-value]").innerText(),/120%/);
-  const afterZoom=await page.locator(".tree-pan-viewport").evaluate(el=>el.scrollWidth);
-  assert.ok(afterZoom>beforeZoom.scroll,mode.name+" zoom increases map width");
-  await page.locator("[data-tree-zoom=reset]").click();
-  const fitted=await page.locator(".tree-pan-viewport").evaluate(el=>({width:el.scrollWidth,clientWidth:el.clientWidth,height:el.scrollHeight,clientHeight:el.clientHeight}));
-  const fittedLabel=await page.locator("[data-tree-zoom-value]").innerText();
-  assert.ok(fitted.width<=fitted.clientWidth+3&&fitted.height<=fitted.clientHeight+3,mode.name+" fit-to-map must show complete diagram "+JSON.stringify({fitted,fittedLabel}));
-  assert.ok(Number.parseInt(fittedLabel)>=40&&Number.parseInt(fittedLabel)<=100,mode.name+" fit magnification should stay valid");
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree-fit.png"),fullPage:false});
-
-  await page.locator(mode.name==="desktop"?".tree-desktop .tree-hub[data-tree-category='04']":".tree-mobile .tree-hub[data-tree-category='04']").click();
-  if(mode.name!=="desktop"){
-    assert.ok(await page.locator(".mobile-explore-sheet").isVisible(),"mobile theme bottom sheet");
-    await page.locator("[data-sheet-expand]").click();
-    assert.ok(await page.locator(".mobile-explore-sheet.is-expanded").isVisible(),"expanded panel");
-    await page.locator("[data-sheet-expand]").click();
-    assert.ok(await page.locator(".mobile-explore-sheet:not(.is-expanded)").isVisible(),"preview panel");
-    await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
-    assert.ok(await page.locator(".mobile-explore-sheet.is-hidden").isVisible(),"close theme bottom sheet");
-    await page.locator(".mobile-sheet-title [data-sheet-toggle]").click();
-    assert.ok(await page.locator(".mobile-sheet-insight").isVisible(),"reopen theme bottom sheet");
-  }
-  assert.match(await page.locator(".explore-topic-header").innerText(),/疲れと回復/);
-  if(mode.name!=="desktop"){
-    const fit=await page.locator(".explore-topic-detail .topic-index").evaluateAll(nodes=>nodes.every(el=>getComputedStyle(el).whiteSpace==="nowrap"&&el.scrollWidth<=el.clientWidth+1));
-    assert.ok(fit,mode.name+" exploration topic numbers must not wrap");
-  }
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree-viewport.png"),fullPage:false});
-  if(mode.name!=="desktop"){
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
-    await page.locator(".mobile-explore-sheet").evaluate(el=>{el.style.position="static";el.style.inset="auto";el.style.transform="none"});
-  }
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-tree.png"),fullPage:true});
-  if(mode.name!=="desktop"){
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
-    await page.locator(".mobile-explore-sheet").evaluate(el=>{el.style.position="";el.style.inset="";el.style.transform=""});
-  }
+  const ex=page.locator('[data-experience-v3]');
+  await ex.waitFor();
+  assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
+  assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
+  assert.match(await ex.innerText(),/記録がなくても、すべての分野を開けます/);
+  assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
+  await ex.locator('[data-ex-action=sample]').click();
+  assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
+  assert.match(await ex.locator('.ex-map-head').innerText(),/表示例/);
+  await ex.locator('[data-ex-category="04"]').click();
+  assert.match(await ex.locator('.ex-focus h2').innerText(),/疲れと回復/);
+  await ex.locator('[data-ex-topic]').first().click();
+  await ex.locator('[data-ex-action="know"]').click();
+  assert.match(await ex.locator('.ex-dialog').innerText(),/原因や身体の状態を判断できません/);
+  await ex.locator('[data-ex-action="close"]').click();
+  await ex.locator('[data-ex-category="03"]').click();
+  await ex.locator('[data-ex-action="try"]').click();
+  await ex.locator('[data-ex-distance]').fill('5');
+  await ex.locator('[data-ex-minutes]').fill('35');
+  assert.equal(await ex.locator('[data-ex-pace]').innerText(),'7:00');
+  assert.equal(await ex.locator('[data-ex-speed]').innerText(),'8.6');
+  await ex.locator('[data-ex-action="close"]').click();
+  await ex.locator('[data-ex-action="note"]').click();
+  await ex.locator('#ex-note').fill('次回はコースを変えて振り返る');
+  await ex.locator('[data-ex-action="save-note"]').click();
+  assert.equal(await ex.locator('.ex-memory-count').count(),1,'saved note creates a visible memory marker');
+  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,1);
+  await ex.locator('[data-ex-action="memories"]').first().click();
+  assert.match(await ex.locator('.ex-dialog').innerText(),/次回はコースを変えて振り返る/);
+  await ex.locator('[data-ex-delete]').click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),0);
+  await ex.locator('[data-ex-action="close"]').click();
+  await ex.locator('[data-ex-tab="catalog"]').click();
+  assert.equal(await ex.locator('.ex-catalog-grid button').count(),28,'all initial topics visible');
+  await ex.locator('[data-ex-search]').fill('上り坂');
+  assert.equal(await ex.locator('.ex-catalog-grid button').count(),1,'theme search finds matching topic');
+  await ex.locator('.ex-catalog-grid button').first().click();
+  assert.match(await ex.locator('.ex-selected-topic').innerText(),/上り坂・下り坂/);
+  const dims=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,nav:document.querySelector('.mobile-nav')?.getBoundingClientRect().top,bottom:document.querySelector('.ex-page')?.getBoundingClientRect().bottom}));
+  assert.ok(dims.overflow<=3,mode.name+' exploration horizontal overflow '+JSON.stringify(dims));
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v3.png'),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
+  console.log('PASS',mode.name,'exploration v3 knowledge, arithmetic, notes, catalog');
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();

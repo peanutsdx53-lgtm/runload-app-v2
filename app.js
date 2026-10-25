@@ -16,6 +16,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v4-01");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261025-explore-v3-01");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -49,6 +50,7 @@
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const measurementUi=measurementExperience.createMeasurementViewState();
   const historyUi=historyExperience.createHistoryUi();
+  const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
   const environmentUi=environmentExperience.newEnvironmentUi();
   const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
@@ -59,8 +61,8 @@
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
   const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
-  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
-  const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
+  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
   const navIcon=function navIcon(name){
@@ -225,11 +227,11 @@
 }
   function onboardingView(){
  const steps=[
-  {title:"RunLoadへようこそ",eyebrow:"WELCOME",body:"走行・休養の記録と、身体の参考値を振り返るアプリです。現在のv2は画面と操作の検証段階です。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>ROF-Jの疲労感</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
+  {title:"RunLoadへようこそ",eyebrow:"WELCOME",body:"走行・休養の記録と、身体の参考値を振り返るアプリです。現在のv2は画面と操作の検証段階です。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>運動前後の疲れ</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
   {title:"言語を選ぶ",eyebrow:"LANGUAGE",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
   {title:"利用規約とデータの扱い",eyebrow:"PRIVACY",body:"正式な利用規約・プライバシーポリシーはまだ確定していません。以下はUI確認用の案内であり、法的な同意の取得・記録ではありません。",html:`<div class="onboard-legal"><strong>現在のv2で扱う内容</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。現在のv2ではGPS測定・走行記録の正式保存は接続されていません。ROF-Jの既存イラストを表示する際には、旧RunLoadが管理するGitHub公開画像への通信が発生します。</p><p>位置情報の許可は、正式なGPS測定を開始する操作に合わせて確認する設計です。実装前に文面と導線を確定します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
   {title:"共有用プロフィール（任意）",eyebrow:"YOUR PROFILE",body:"旧アプリの共有用プロフィールを参考に、最初の設定を用意しました。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>RunLoadを使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><div class="onboard-extra-profile"><label>身長（cm・任意）<input type="number" min="80" max="250" step="0.1" inputmode="decimal" data-onboard-height placeholder="スキップできます" value="${esc(onboardingState.heightCm)}"></label><label>体重（kg・任意）<input type="number" min="15" max="400" step="0.1" inputmode="decimal" data-onboard-weight placeholder="スキップできます" value="${esc(onboardingState.weightKg)}"></label></div><p>入力内容はこの端末のプロフィールに保存します。探究や測定への接続は今後行います。</p></div>`},
-  {title:"始め方を確認",eyebrow:"QUICK TOUR",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究ツリーはスクロールとズームで自由に見られます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS測定は旧版エンジン接続後に利用可能</small></span></div><div><b>2</b><span><strong>ROF-Jの疲労感を記入</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・6軸レーダー・探究ツリー</small></span></div></div>`}
+  {title:"始め方を確認",eyebrow:"QUICK TOUR",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究では、分野を選んで知識や記録との接点を調べられます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS測定は旧版エンジン接続後に利用可能</small></span></div><div><b>2</b><span><strong>運動前後の疲れを記録</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・走りの記録・探究</small></span></div></div>`}
  ];
  const current=steps[onboardingState.step];
  return `<div class="onboard-overlay" data-onboard-overlay><section class="onboard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboard-title"><div class="onboard-top"><strong>RunLoad</strong><span>初回案内・試作版</span><button type="button" data-onboard-close aria-label="案内を閉じる">×</button></div><div class="onboard-progress" aria-label="${onboardingState.step+1} / ${steps.length}">${steps.map((_,i)=>`<span class="${i<=onboardingState.step?"is-active":""}"></span>`).join("")}</div><div class="onboard-main"><p class="eyebrow">${current.eyebrow}</p><h2 id="onboard-title">${current.title}</h2><p class="onboard-description">${current.body}</p>${current.html}</div><div class="onboard-footer"><button type="button" class="btn" data-onboard-back ${onboardingState.step===0?"disabled":""}>戻る</button><span>${onboardingState.step+1} / ${steps.length}</span><button type="button" class="btn primary" data-onboard-next>${onboardingState.step===steps.length-1?"試用を始める":"次へ"}</button></div></section></div>`;
@@ -326,90 +328,16 @@ function recordExtras(){
  <div class="support-stack">
  <div class="card fatigue-panel"><div class="section-title"><h2>運動前後の疲労感 <small>(ROF-J)</small></h2></div><div class="fatigue-flex"><div class="fatigue-cell"><small>運動前</small><strong>6</strong><span class="scale blue"></span></div><span class="fatigue-arrow" aria-hidden="true">→</span><div class="fatigue-cell"><small>運動後</small><strong>8</strong><span class="scale orange"></span></div><div class="fatigue-cell difference"><small>変化</small><strong>+2</strong></div></div><p class="chart-caption">本人が回答した0〜10の主観的な疲労感。</p></div>
  <div class="card radar-panel"><div class="section-title"><h2>走行プロフィール <small>(参考)</small></h2></div>${radarChart()}<div class="map-legend"><span><i class="dot" style="background:#0891b2"></i>今回</span><span><i class="dot missing"></i>比較する記録</span></div><p class="chart-caption">6つの走行指標の形。身体能力の判定ではありません。</p></div>
- <div class="result-actions">${buttonLink("exploration-tree","探究ツリーへ",true)}${buttonLink("history","履歴を見る")}</div></div>
+ <div class="result-actions">${buttonLink("exploration-tree","探究へ",true)}${buttonLink("history","履歴を見る")}</div></div>
  </section>`;
 }
     // History records are intentionally not sourced from the unsaved input draft.
     // Saved-history repository integration is a separate protected milestone.
     function history(){return '<section id="runload-history-v2" aria-label="履歴"></section>';}
-    function treeOverview(){
- const graphPositions=[
- ["01",160,175,[[65,95],[150,78],[44,245],[172,276]]],
- ["02",500,80,[[367,38],[475,16],[606,33],[664,94]]],
- ["03",855,166,[[896,50],[1003,122],[952,237],[1004,284]]],
- ["04",871,385,[[977,326],[1001,396],[952,473],[1009,523]]],
- ["05",690,531,[[618,623],[731,623],[837,568],[839,626]]],
- ["06",389,535,[[223,606],[331,624],[458,628],[538,587]]],
- ["07",143,404,[[43,334],[33,423],[74,497],[195,550]]]
- ];
- const xcenter=516,ycenter=314;
- const line=(x1,y1,x2,y2,color,thick=2,opacity=.5)=>`<path d="M${x1} ${y1} Q${(x1+x2)/2} ${(y1+y2)/2-12} ${x2} ${y2}" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${thick}" stroke-linecap="round" fill="none"/>`;
- // Tree structure is intentionally kept diagrammatic until a separately approved visual asset exists.
- const branchPath=(x0,y0,x1,y1,color,weight,opacity)=>`<path class="tree-branch-line" d="M${x0} ${y0} C${(x0*2+x1)/3} ${(y0*2+y1)/3-19} ${(x0+x1*2)/3} ${(y0+y1*2)/3+17} ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="${weight}" stroke-linecap="round" stroke-opacity="${opacity}"/>`;
-  const drawDesktop=graphPositions.map(([id,x,y,leaves])=>{
-  const c=CATEGORIES.find(item=>item.id===id),active=state.category===id;
-  const branches=leaves.map(([tx,ty],i)=>branchPath(x,y,tx,ty,c.color,active?3:2,active?.64:.37)).join("");
-  const nodes=leaves.map(([tx,ty],i)=>{
-   const name=c.topics[i],sel=state.category===id&&state.topic===name;
-   const align=tx<=100?"start":tx>=940?"end":"middle";
-   const labelY=ty<62?ty+23:ty>585?ty-13:ty-13;
-   return `<g class="tree-leaf ${sel?"is-selected":""}" data-topic="${id}|${esc(name)}" role="button" tabindex="0" aria-label="${esc(name)}" aria-pressed="${sel}">
-     ${sel?`<circle cx="${tx}" cy="${ty}" r="16" fill="${c.color}" fill-opacity=".11"/>`:""}
-     <circle cx="${tx}" cy="${ty}" r="${sel?9:7}" fill="${c.color}" stroke="#fff" stroke-width="3"/>
-     <text x="${tx}" y="${labelY}" text-anchor="${align}" font-size="12.5" font-weight="${sel?800:590}" fill="#476273">${esc(name)}</text>
-   </g>`;
-  }).join("");
-  const textColor=active?"#fff":c.color;
-  const glow=active?`<circle cx="${x}" cy="${y}" r="66" fill="${c.color}" fill-opacity=".15"/>`:"";
-  return `${branchPath(xcenter,ycenter,x,y,c.color,active?9:6,active?.77:.53)}${branches}${glow}<g class="tree-hub ${active?"is-selected":""}" data-tree-category="${id}" tabindex="0" role="button" aria-pressed="${active}" aria-label="${esc(c.name)}の分野を開く"><rect x="${x-79}" y="${y-23}" width="158" height="46" rx="21" fill="${active?c.color:c.tint}" stroke="${c.color}" stroke-width="${active?3:2}"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="800" font-size="17" fill="${textColor}">${esc(c.name)}</text></g>${nodes}`;
- }).join("");
- const desktop=`<svg class="tree-canvas tree-desktop" viewBox="0 0 1040 650" role="group" aria-label="7分野28テーマからなる探究ツリー。枝とテーマを選択できます"><defs><radialGradient id="tree-core-glow"><stop offset="0" stop-color="#e5f5ff" stop-opacity=".96"/><stop offset=".65" stop-color="#cfecff" stop-opacity=".54"/><stop offset="1" stop-color="#d8f2f8" stop-opacity="0"/></radialGradient><linearGradient id="tree-core"><stop offset="0" stop-color="#4395e8"/><stop offset="1" stop-color="#146ad0"/></linearGradient></defs><circle cx="${xcenter}" cy="${ycenter}" r="108" fill="url(#tree-core-glow)"/><circle cx="${xcenter}" cy="${ycenter}" r="66" fill="#1d79c9"/><circle cx="${xcenter}" cy="${ycenter}" r="56" fill="url(#tree-core)"/><g fill="#fff" text-anchor="middle"><text x="${xcenter}" y="${ycenter-4}" font-size="29">♙</text><text x="${xcenter}" y="${ycenter+22}" font-size="15" font-weight="800">今回の走り</text></g>${drawDesktop}</svg>`;
- const centers=[[90,99],[270,99],[75,224],[285,224],[90,357],[270,357],[180,470]];
- const mobileLines=centers.map(([x,y],i)=>branchPath(179,260,x,y,CATEGORIES[i].color,8,.44)).join("");
-
- const mobileNodes=centers.map(([x,y],i)=>{
-  const c=CATEGORIES[i],active=state.category===c.id;
-  const short=c.name==="走る前後の工夫"?"走る前後の工夫":c.name;
-  let first=short.length>6?short.slice(0,Math.ceil(short.length/2)):short;
-  let second=short.length>6?short.slice(Math.ceil(short.length/2)):"";
-  return `<g class="tree-hub tree-bubble" data-tree-category="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}" aria-pressed="${active}"><circle cx="${x}" cy="${y}" r="${active?68:61}" fill="${c.color}" fill-opacity=".09" stroke="${c.color}" stroke-opacity=".28" stroke-width="${active?6:3}"/><circle cx="${x}" cy="${y}" r="53" fill="${c.tint}" fill-opacity=".98" stroke="${c.color}" stroke-width="2"/><circle cx="${x}" cy="${y-24}" r="15" fill="${c.color}" fill-opacity=".15"/><text x="${x}" y="${y-18}" font-size="19" text-anchor="middle" font-weight="850" fill="${c.color}">${esc(c.icon)}</text><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="820" font-size="14" fill="#27465b">${esc(first)}</text>${second?`<text x="${x}" y="${y+22}" text-anchor="middle" font-weight="780" font-size="14" fill="#27465b">${esc(second)}</text>`:""}${active?`<circle cx="${x}" cy="${y}" r="68" stroke="${c.color}" stroke-opacity=".24" fill="none" stroke-width="8"/>`:""}</g>`;
- }).join("");
- const mobile=`<svg class="tree-canvas tree-mobile" viewBox="0 0 360 540" role="group" aria-label="7分野を選べる探究ツリー">${mobileLines}<defs><radialGradient id="tree-mobile-core"><stop offset="0" stop-color="#398de4"/><stop offset="1" stop-color="#1466bd"/></radialGradient></defs><circle cx="179" cy="260" r="66" fill="#d5e8ff" fill-opacity=".64"/><circle cx="179" cy="260" r="48" fill="url(#tree-mobile-core)"/><text x="179" y="254" font-size="20" fill="#fff" font-weight="800" text-anchor="middle">走る</text><text x="179" y="274" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">自分の探究</text>${mobileNodes}</svg>`;
- return `<div class="tree-overview"><div class="tree-overview__decor" aria-hidden="true"></div>${desktop}${mobile}</div>`;
-}
-  function explore(){
- const c=CATEGORIES.find(c=>c.id===state.category)||CATEGORIES[0];
- const topicButtons=c.topics.map((name,i)=>`<button data-topic="${c.id}|${esc(name)}" class="topic-choice ${state.topic===name?"is-selected":""}" aria-pressed="${state.topic===name}"><span class="topic-index">${String(i+1).padStart(2,"0")}</span>${esc(name)}<span>›</span></button>`).join("");
- const hero=`<section class="explore-heading"><div><h1>探究ツリー</h1><p class="lead">今回の走りを起点に、気になるテーマから自由に探究できます。</p></div></section>`;
- const tabs=`<section class="explore-tabs">${[["today","今回の走りから探す"],["questions","過去の問いに戻る"],["free","自由に探す"]].map(([m,n])=>`<button class="explore-tab ${state.mode===m?"is-active":""}" data-explore-mode="${m}" type="button">${n}</button>`).join("")}</section>`;
- const summary=state.mode==="today"?`<section class="explore-run-snapshot"><div class="small-route"><span aria-hidden="true">⌁</span></div><div><small>最近の走行</small><strong>10月22日</strong></div><div><small>距離</small><strong>8.20 <em>km</em></strong></div><div><small>時間</small><strong>45 <em>分</em></strong></div><a href="#/result" class="btn soft">結果を見る →</a></section>`:"";
- const right=`<aside class="explore-aside">
- <div class="explore-aside-hero"><div class="nature-header" aria-hidden="true"><span>⛰</span></div><h2>${state.mode==="free"?"自由探索のはじめ方":state.mode==="questions"?"過去の問い":"はじめに"}</h2><p>あなたの関心に合わせて、記録や知識を行き来できます。答えを決めるのは、あなた自身です。</p></div>
- <div class="insight-card rose"><div class="aside-title"><span>✧</span><h3>${state.mode==="today"?"今日の接点":"関連する知識"}</h3></div><strong>${esc(c.name)}</strong><p>選択した分野から、4つのテーマを確かめましょう。</p></div>
- <div class="insight-card blue"><div class="aside-title"><span>⌑</span><h3>続けている問い</h3></div><p>保存した問いは、いつでも見返せます。</p><div class="empty-inline">まだ問いはありません</div></div>
- <div class="insight-card green"><div class="aside-title"><span>✦</span><h3>次にできること</h3></div><a href="#/result" class="aside-action">今回の結果を振り返る　→</a><a href="#/history" class="aside-action">過去の記録を確かめる　→</a></div></aside>`;
- 
- const sheetBody=`<div class="mobile-explore-sheet ${state.sheetExpanded?"is-expanded":""} ${state.sheetVisible?"":"is-hidden"}">
-   <div class="mobile-sheet-bar"></div>
-   <div class="mobile-sheet-title">
-     <div class="mobile-sheet-title-icon" style="background:${c.tint};color:${c.color}">✦</div>
-     <button class="mobile-sheet-title-label" type="button" data-sheet-expand aria-expanded="${state.sheetExpanded}"><small>${esc(c.name)}</small><h2>${esc(state.topic)}</h2><span class="sheet-expand-hint">${state.sheetExpanded?"⌃":"⌄"}</span></button>
-     <button class="sheet-toggle" type="button" data-sheet-toggle aria-label="${state.sheetVisible?"詳細シートを閉じる":"詳細シートを開く"}">${state.sheetVisible?"×":"⌃"}</button>
-   </div>
-   ${state.sheetVisible?`<div class="mobile-sheet-content">
-    <div class="mobile-sheet-insight"><span>⌁</span><div><strong>自分の記録と照らし合わせる</strong><p>このテーマについて、今までの記録を確かめられます。</p></div><a href="#/result" aria-label="結果を見る">›</a></div>
-    <div class="mobile-sheet-cards"><div><span>▤</span><strong>知識</strong><p>関連する読みものを探す</p></div><div><span>✎</span><strong>自分の問い</strong><p>気づいたことを振り返る</p></div></div>
-    <a href="#/history" class="mobile-sheet-next"><span>✧</span><div><strong>次にできること</strong><small>以前の記録を見返す</small></div><span>›</span></a>
-   </div>`:""}
- </div>`;
-return hero+tabs+summary+`<section class="explore-main"><div class="card exploration-stage"><div class="explore-stage-title"><div><small>EXPLORATION MAP</small><h2>自分だけの探究を見つける</h2></div><span class="subtle-note">● 選択中の枝</span></div><div class="tree-zoom-head"><span>図をスクロールして探索</span><div class="tree-zoom-actions" role="group" aria-label="探究ツリーの拡大縮小"><button type="button" data-tree-zoom="out" aria-label="縮小">−</button><output data-tree-zoom-value>100%</output><button type="button" data-tree-zoom="in" aria-label="拡大">＋</button><button type="button" data-tree-zoom="reset">全体表示</button></div></div>
- <div class="tree-pan-viewport" tabindex="0" role="region" aria-label="上下左右に移動できる探究ツリー" style="--tree-zoom:${state.treeZoom}">${treeOverview()}</div>
- <div class="tree-pan-hint">上下左右に移動できます。＋／−で文字やテーマを拡大して確認できます。</div>
- <div class="explore-topic-detail"><div class="explore-topic-header"><div><small>選択中の分野</small><h3 style="color:${c.color}">${esc(c.name)}</h3></div><span class="badge">4つのテーマ</span></div>
- <div class="tree-topics">${topicButtons}</div>
- <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
- </div>${right}</section>${sheetBody}`;
-}
+    function explore(){
+      const conditions=homeExperience.readConditions(onboardStorage);
+      return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions});
+    }
     function settings(){return settingsExperience.renderSettings(settingsUi);}
     function secondary(page){
  const title=pageLabels[page]||"その他";
@@ -427,8 +355,6 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
-      const previousTreeViewport=app.querySelector(".tree-pan-viewport");
-      if(previousTreeViewport)state.treeScroll={left:previousTreeViewport.scrollLeft,top:previousTreeViewport.scrollTop};
  const page=currentPage(),content={home,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
  const navPage=page==="result"?"result":page==="measurement"?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
  // Return links to the common confirmation when a detail was opened from that screen.
@@ -446,15 +372,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
  }
- if(page==="exploration-tree"){
-  const viewport=app.querySelector(".tree-pan-viewport");
-  if(viewport){
-    viewport.scrollLeft=state.treeScroll?.left??Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2);
-    viewport.scrollTop=state.treeScroll?.top??Math.max(0,(viewport.scrollHeight-viewport.clientHeight)/2);
-    const display=app.querySelector("[data-tree-zoom-value]");
-    if(display)display.textContent=Math.round(state.treeZoom*100)+"%";
-  }
- }
+ if(page==="exploration-tree")explorationExperience.updatePace(app);
  if(page==="home"&&homeEditState.editing){
   stopHomeDrag=dashboardDrag.bindHomeDashboardDrag(app.querySelector(".dashboard-custom-grid"),{
    onDrop:({sourceId,targetId,after})=>{
@@ -480,6 +398,14 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     notice.textContent=message;
   };
   app.addEventListener("input",(event)=>{
+    if(event.target.matches("[data-ex-search]")){
+      const input=event.target,caret=input.selectionStart;
+      explorationUi.search=input.value;
+      const list=app.querySelector(".ex-catalog-grid");
+      if(list){const all=CATEGORIES.flatMap(c=>c.topics.map(t=>({c,t})));const q=input.value.trim().toLocaleLowerCase("ja");list.innerHTML=all.filter(x=>(x.c.name+x.t).toLocaleLowerCase("ja").includes(q)).map(x=>`<button type="button" data-ex-category="${esc(x.c.id)}" data-ex-pick-topic="${esc(x.t)}"><small>${esc(x.c.name)}</small><strong>${esc(x.t)}</strong><span aria-hidden="true">↗</span></button>`).join("")||"<p>該当するテーマがありません</p>";}
+      return;
+    }
+    if(event.target.matches("[data-ex-distance],[data-ex-minutes]")){explorationExperience.updatePace(app);return;}
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
     if(target.matches('.hx-time-control input[type=time]')){
       const visual=target.closest('.hx-time-control')?.querySelector('[data-time-display]');
@@ -754,33 +680,45 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(sheetExpand){const y=window.scrollY;state.sheetExpanded=!state.sheetExpanded;render();window.scrollTo(0,y);return}
     const sheetToggle=event.target.closest("[data-sheet-toggle]");
     if(sheetToggle){const y=window.scrollY;state.sheetVisible=!state.sheetVisible;render();window.scrollTo(0,y);return}
-    const zoom=event.target.closest("[data-tree-zoom]");
-    if(zoom){
-      const dir=zoom.dataset.treeZoom;
-      const viewport=app.querySelector(".tree-pan-viewport");
-      const mobile=window.matchMedia("(max-width:800px)").matches;
-      const fit=viewport?Math.min(1,(viewport.clientWidth-4)/(mobile?470:1040),(viewport.clientHeight-4)/(mobile?705:650)):1;
-      state.treeZoom=dir==="reset"?Math.max(.4,Math.round(fit*100)/100):Math.min(2.25,Math.max(.4,Math.round((state.treeZoom+(dir==="in"?.2:-.2))*100)/100));
-      if(viewport){
-        const centerX=(viewport.scrollLeft+viewport.clientWidth/2)/Math.max(.01,viewport.scrollWidth);
-        const centerY=(viewport.scrollTop+viewport.clientHeight/2)/Math.max(.01,viewport.scrollHeight);
-        viewport.style.setProperty("--tree-zoom",state.treeZoom);
-        viewport.scrollLeft=centerX*viewport.scrollWidth-viewport.clientWidth/2;
-        viewport.scrollTop=centerY*viewport.scrollHeight-viewport.clientHeight/2;
-        state.treeScroll={left:viewport.scrollLeft,top:viewport.scrollTop};
-        const o=app.querySelector("[data-tree-zoom-value]");if(o)o.textContent=Math.round(state.treeZoom*100)+"%";
-      }
+    const exploreSelect=event.target.closest("[data-ex-category]");
+    if(exploreSelect){
+      const id=exploreSelect.dataset.exCategory,c=CATEGORIES.find(c=>c.id===id);
+      if(c){explorationUi.selected=id;explorationUi.topic=exploreSelect.dataset.exPickTopic||c.topics[0]||"";explorationUi.tab="field";explorationUi.notice="";render();
+        if(matchMedia("(max-width:900px)").matches)app.querySelector(".ex-focus")?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});}
       return;
     }
-    const category=event.target.closest("[data-tree-category]");
-    if(category){const y=window.scrollY;const c=CATEGORIES.find(c=>c.id===category.dataset.treeCategory);if(c){state.category=c.id;state.topic=c.topics[0];state.sheetVisible=true}render();window.scrollTo(0,y);return}
+    const exploreTopic=event.target.closest("[data-ex-topic]");
+    if(exploreTopic){explorationUi.topic=exploreTopic.dataset.exTopic;render();return;}
+    const exploreTab=event.target.closest("[data-ex-tab]");
+    if(exploreTab){explorationUi.tab=exploreTab.dataset.exTab;explorationUi.notice="";render();return;}
+    const exploreAction=event.target.closest("[data-ex-action]");
+    if(exploreAction){
+      const action=exploreAction.dataset.exAction;
+      if(action==="close"){explorationUi.modal="";render();return;}
+      if(action==="catalog"){explorationUi.tab="catalog";render();return;}
+      if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
+      if(action==="save-note"){
+        const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value);
+        explorationUi.notice=result.ok?"メモを保存しました":result.reason;
+        if(result.ok)explorationUi.modal="";
+        render();return;
+      }
+      if(action==="copy"){
+        const value=app.querySelector("[data-ex-draft-text]")?.innerText||"";
+        if(navigator.clipboard?.writeText){navigator.clipboard.writeText(value).then(()=>{const n=app.querySelector(".ex-dialog");if(n){const p=document.createElement("p");p.setAttribute("role","status");p.textContent="コピーしました";n.appendChild(p);}}).catch(()=>{const n=app.querySelector(".ex-dialog");if(n){const p=document.createElement("p");p.setAttribute("role","alert");p.textContent="コピーできませんでした";n.appendChild(p);}})}
+        return;
+      }
+      explorationUi.modal=action;explorationUi.notice="";render();app.querySelector(".ex-dialog-head button")?.focus();return;
+    }
+    const exploreDelete=event.target.closest("[data-ex-delete]");
+    if(exploreDelete){const success=explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete);explorationUi.notice=success?"メモを削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const expandRegions=event.target.closest("[data-expand-regions]");
     if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
     const mode=event.target.closest("[data-result-mode]");
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
-    if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){state.category=cat;state.topic=topic;state.mode="free";state.sheetVisible=true;location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
+    if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){explorationUi.selected=cat;explorationUi.topic=topic;explorationUi.tab="field";explorationUi.modal="";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
     const rofTab=event.target.closest("[data-rof-v4-phase]");
     if(rofTab){
       rofExperience.setRofPhase(rofUi,rofTab.dataset.rofV4Phase,state.recordDraft);
@@ -811,10 +749,6 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(event.target.closest("[data-history-clear]")){const y=window.scrollY;state.historyDate=null;render();window.scrollTo(0,y);return}
     const filter=event.target.closest("[data-history-mode]");
     if(filter){const y=window.scrollY;state.historyMode=filter.dataset.historyMode;render();window.scrollTo(0,y);return}
-    const em=event.target.closest("[data-explore-mode]");
-    if(em){const y=window.scrollY;state.mode=em.dataset.exploreMode;render();window.scrollTo(0,y);return}
-    const topic=event.target.closest("[data-topic]");
-    if(topic){const y=window.scrollY;const [c,t]=topic.dataset.topic.split("|");state.category=c;state.topic=t;state.sheetVisible=true;render();window.scrollTo(0,y);return}
     if(event.target.closest("[data-demo-save]")){
       state.recordReviewSource="manual";
       state.recordReviewReturn=false;
@@ -836,8 +770,9 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-region-focus]")){
       event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}));return;
     }
+    if(event.key==="Escape"&&explorationUi.modal){explorationUi.modal="";render();return;}
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
-    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region],g[data-tree-category],g[data-topic]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
+    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   window.addEventListener("hashchange",()=>{state.toast="";render();window.scrollTo(0,0)});
   render();
