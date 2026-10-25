@@ -42,8 +42,43 @@ export function mountResult(host,draft={}){
     const transform=svg.getScreenCTM();
     if(!transform)return;
     const local=point.matrixTransform(transform.inverse());
-    const hit=[...svg.querySelectorAll('.rv4-region')].find(path=>path.isPointInFill(local));
+    const parts=[...svg.querySelectorAll('.rv4-region')];
+    let hit=parts.find(path=>path.isPointInFill(local));
+    if(!hit){
+      const distance=path=>{
+        const b=path.getBBox();
+        const dx=Math.max(b.x-local.x,0,local.x-(b.x+b.width));
+        const dy=Math.max(b.y-local.y,0,local.y-(b.y+b.height));
+        return Math.hypot(dx,dy);
+      };
+      const ranked=parts.map(path=>({path,d:distance(path)})).sort((a,b)=>a.d-b.d);
+      if(ranked[0]?.d<=12)hit=ranked[0].path;
+    }
     if(hit){chosen=hit.dataset.region;draw()}
+  });
+  // Invisible accessible tap targets supplement narrow multi-contour official paths;
+  // no official region geometry or scientific data is modified.
+  const liveSvg=root.querySelector('.rv4-body-svg');
+  liveSvg?.querySelectorAll('.rv4-region').forEach(path=>{
+    const b=path.getBBox();
+    let best=null;
+    const svgPoint=liveSvg.createSVGPoint();
+    for(let yi=1;yi<=15;yi++)for(let xi=1;xi<=15;xi++){
+      svgPoint.x=b.x+b.width*xi/16;svgPoint.y=b.y+b.height*yi/16;
+      if(!path.isPointInFill(svgPoint))continue;
+      const score=Math.hypot(svgPoint.x-(b.x+b.width/2),svgPoint.y-(b.y+b.height/2));
+      if(!best||score<best.score)best={x:svgPoint.x,y:svgPoint.y,score};
+    }
+    if(!best)return;
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx',String(best.x));dot.setAttribute('cy',String(best.y));
+    dot.setAttribute('r','9');dot.setAttribute('fill','transparent');
+    dot.setAttribute('stroke','none');dot.setAttribute('pointer-events','all');
+    dot.setAttribute('data-tap-region',path.dataset.region);
+    dot.setAttribute('aria-hidden','true');
+    dot.style.cursor='pointer';
+    dot.addEventListener('click',e=>{e.stopPropagation();chosen=path.dataset.region;draw()});
+    liveSvg.append(dot);
   });
   root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;draw()}));
   root.querySelector('[data-picker-toggle]')?.addEventListener('click',()=>{picker=!picker;draw()});
