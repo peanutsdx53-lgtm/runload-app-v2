@@ -541,6 +541,9 @@ try{
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
   const historyRoot=page.locator('#runload-history-v2');
   await historyRoot.locator('.calendar-panel').waitFor();
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-history-v2-initial.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
   const totalDays=await historyRoot.locator('[data-day]').count();
   assert.ok(totalDays>=28&&totalDays<=31,"calendar shows actual number of days");
   assert.equal(await historyRoot.locator('.day-grid button.has-record').count(),0,"no invented saved dates");
