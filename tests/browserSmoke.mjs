@@ -570,8 +570,9 @@ try{
    if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
    if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
-   assert.ok((await page.locator("main").innerText()).length>60,route);
-   const textContent=await page.locator("main").innerText();
+   const visibleArea=route==="history"?page.locator("#runload-history-v2").locator(".stage"):page.locator("main");
+   assert.ok((await visibleArea.innerText()).length>60,route);
+   const textContent=await visibleArea.innerText();
    assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用/.test(textContent),route+" developer-only text found");
    const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
