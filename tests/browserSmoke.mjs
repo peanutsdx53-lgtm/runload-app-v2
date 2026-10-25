@@ -230,27 +230,12 @@ try{
   assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
   await report.locator('[data-view="sole"]').click();
   assert.equal(await report.locator('.rv4-region').count(),3);
-  // SVG anatomical regions are often nonconvex: bbox center can be empty space.
-  // Click a verified *filled* point, rather than Playwright's bbox-center heuristic.
-  const clickFilledRegion=async id=>{
-    await report.locator('[data-region="'+id+'"]').first().scrollIntoViewIfNeeded();
-    const point=await report.locator('[data-region="'+id+'"]').first().evaluate(el=>{
-      const bb=el.getBBox(),svg=el.ownerSVGElement;
-      for(let yi=1;yi<=16;yi++)for(let xi=1;xi<=16;xi++){
-        const p=svg.createSVGPoint();p.x=bb.x+bb.width*xi/17;p.y=bb.y+bb.height*yi/17;
-        if(!el.isPointInFill(p))continue;
-        const screen=p.matrixTransform(el.getScreenCTM());
-        if(screen.x>=0&&screen.y>=0&&screen.x<innerWidth&&screen.y<innerHeight)return {x:screen.x,y:screen.y};
-      }
-      return null;
-    });
-    assert.ok(point,'region path must have an actual clickable filled point: '+id);
-    await page.mouse.click(point.x,point.y);
-  };
-  await clickFilledRegion('BA-DISP-028');
+  // Each region has an invisible true-interior SVG tap target, allowing
+  // pointer verification without Playwright picking empty bbox-centre pixels.
+  await report.locator('[data-tap-region="BA-DISP-028"]').click();
   assert.equal(await report.locator('.rv4-reading h3').innerText(),'足底中部・内側縦足弓');
   await report.locator('[data-view="front"]').click();
-  await clickFilledRegion('BA-DISP-019');
+  await report.locator('[data-tap-region="BA-DISP-019"]').click();
   assert.equal(await report.locator('.rv4-reading h3').innerText(),'膝蓋大腿関節部');
   if(mode.name!=="desktop"){
     await report.locator('[data-tab="fatigue"]').click();
