@@ -33,6 +33,18 @@ export function mountResult(host,draft={}){
   root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><span>RUNLOAD / RESULTS</span><h1>結果</h1></div><div class="rv4-actions"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存 ↓</button><button type="button" data-print>印刷</button></div></header><p class="rv4-notice">'+(hasInput?'入力中の内容です。正式保存・科学計算結果とは未接続です。':'表示できる保存記録はまだありません。正式保存機能との接続は未完了です。')+'</p>'+hero()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+'</div>';
   root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;const v=selectedView();if(!v.paths.some(x=>x[0]===chosen))chosen=v.paths[0][0];picker=false;draw()}));
   root.querySelectorAll('[data-region]').forEach(b=>{const select=()=>{chosen=b.dataset.region;draw()};b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}})});
+  // Accept taps on the SVG itself when a thin/nonconvex region is hit but the
+  // browser targets the SVG container instead of its path.
+  root.querySelector('.rv4-body-svg')?.addEventListener('click',e=>{
+    if(e.target.closest?.('[data-region]'))return;
+    const svg=e.currentTarget,point=svg.createSVGPoint();
+    point.x=e.clientX;point.y=e.clientY;
+    const transform=svg.getScreenCTM();
+    if(!transform)return;
+    const local=point.matrixTransform(transform.inverse());
+    const hit=[...svg.querySelectorAll('.rv4-region')].find(path=>path.isPointInFill(local));
+    if(hit){chosen=hit.dataset.region;draw()}
+  });
   root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;draw()}));
   root.querySelector('[data-picker-toggle]')?.addEventListener('click',()=>{picker=!picker;draw()});
   root.querySelector('[data-print]')?.addEventListener('click',()=>window.print());

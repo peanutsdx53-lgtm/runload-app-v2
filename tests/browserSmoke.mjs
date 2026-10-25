@@ -234,12 +234,12 @@ try{
   // Click a verified *filled* point, rather than Playwright's bbox-center heuristic.
   const clickFilledRegion=async id=>{
     const point=await report.locator('[data-region="'+id+'"]').first().evaluate(el=>{
-      const bb=el.getBBox(),svg=el.ownerSVGElement,root=el.getRootNode();
+      const bb=el.getBBox(),svg=el.ownerSVGElement;
       for(let yi=1;yi<=16;yi++)for(let xi=1;xi<=16;xi++){
         const p=svg.createSVGPoint();p.x=bb.x+bb.width*xi/17;p.y=bb.y+bb.height*yi/17;
         if(!el.isPointInFill(p))continue;
         const screen=p.matrixTransform(el.getScreenCTM());
-        if(root.elementFromPoint(screen.x,screen.y)===el)return {x:screen.x,y:screen.y};
+        if(screen.x>=0&&screen.y>=0&&screen.x<innerWidth&&screen.y<innerHeight)return {x:screen.x,y:screen.y};
       }
       return null;
     });
