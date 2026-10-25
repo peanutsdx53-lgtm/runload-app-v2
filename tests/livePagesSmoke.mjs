@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
 const root='https://peanutsdx53-lgtm.github.io/runload-app-v2/';
 const tag='20261025-review-v5';
-const probes=[['index.html','app.js?v=20261025-terminology-v1'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
+const probes=[['index.html','app.js?v=20261025-result-v4-main-01'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
 let valid=false;
 for(let i=1;i<=30;i++){
  try{
@@ -46,5 +46,15 @@ try{
   assert.deepEqual(errors,[],'Live browser errors');
   await page.close();
  }
+const resultCheck=await browser.newPage({viewport:{width:390,height:844}});
+try{
+ await resultCheck.goto(root+'?check='+tag+'#/result',{waitUntil:'networkidle'});
+ if(await resultCheck.locator('[data-onboard-close]').count())await resultCheck.locator('[data-onboard-close]').click();
+ const report=resultCheck.locator('#runload-result-v4');
+ await report.locator('.rv4-region').first().waitFor({timeout:15000});
+ assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
+ assert.equal(await report.locator('[data-download]').isDisabled(),true);
+ await resultCheck.screenshot({path:'screenshots/live-result-v4-mobile.png',fullPage:true});
+}finally{await resultCheck.close()}
 }finally{await browser.close()}
 console.log('PUBLIC PAGES PASS: record review v5 real-value route and return on mobile and desktop');

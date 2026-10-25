@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {OFFICIAL_NAMES} from '../ui/resultExperience.js';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('Result v4 references all formal region names, with immutable official identifiers',()=>{
+ assert.equal(OFFICIAL_NAMES.length,12);
+ assert.equal(new Set(OFFICIAL_NAMES.map(x=>x[0])).size,12);
+ assert.ok(OFFICIAL_NAMES.some(x=>x[0]==='BA-DISP-028'&&x[1]==='足底中部・内側縦足弓'));
+});
+test('Result v4 does not fabricate biomechanical comparisons or history',()=>{
+ const js=read('ui/resultExperience.js');
+ assert.match(js,/value:null/);
+ assert.match(js,/履歴未接続/);
+ assert.match(js,/正式保存前/);
+ assert.ok(!js.includes('distance:8.20'));
+ assert.ok(!js.includes('rofBefore:6,rofAfter:8'));
+ assert.ok(!js.includes('12部位比較値'));
+});
+test('Result v4 view is isolated and precached',()=>{
+ const app=read('app.js'),sw=read('sw.js'),html=read('index.html');
+ assert.ok(app.includes('resultExperience.mountResult'));
+ assert.ok(sw.includes('./ui/resultExperience.js'));
+ assert.ok(sw.includes('./ui/resultExperience.css'));
+ assert.ok(html.includes('app.js?v=20261025-result-v4-main-01'));
+});

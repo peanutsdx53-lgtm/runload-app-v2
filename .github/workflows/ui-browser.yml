@@ -13,6 +13,8 @@ on:
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
+      - 'ui/resultExperience.js'
+      - 'ui/resultExperience.css'
       - '.github/workflows/ui-browser.yml'
 permissions:
   contents: read

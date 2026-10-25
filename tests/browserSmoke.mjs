@@ -221,66 +221,33 @@ try{
     assert.ok(await page.locator(".gps-v2-button[disabled]").isDisabled(),"real GPS cannot be started");
   }
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
-  await page.locator(mode.name==="desktop"?".region-tile":".mobile-region-row").first().waitFor();
-  assert.equal(await page.locator(".region-tile").count(),12);
-  assert.equal(await page.locator(".body-view").count(),3);
-  if(mode.name==="desktop"){
-    await page.locator(".region-tile").filter({hasText:"大腿前面"}).click();
-  }else{
-    assert.equal(await page.locator(".mobile-region-row").count(),5,"mobile result shows a compact five-row preview");
-    assert.equal(await page.locator(".mobile-region-row .region-picto").count(),5,"each shown region uses official body-vector artwork");
-    const iconsClipped=await page.locator(".mobile-region-row .region-picto").evaluateAll(icons=>icons.every(icon=>getComputedStyle(icon).overflow==="hidden"));
-    assert.ok(iconsClipped,"SVG icons must crop artwork inside their row bounds");
-    await page.locator("[data-expand-regions]").click();
-    assert.equal(await page.locator(".mobile-region-row").count(),12,"all official regions remain accessible");
-    await page.locator(".mobile-region-row").filter({hasText:"大腿前面"}).click();
-    await page.locator("[data-expand-regions]").click();
-    assert.equal(await page.locator(".mobile-region-row").count(),5,"compact list can be collapsed");
-  }
-  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/大腿前面/);
-  if(mode.name==="desktop"){
-    await page.locator(".region-tile[data-region='BA-DISP-023']").click();
-  }else{
-    await page.locator("[data-expand-regions]").click();
-    await page.locator(".mobile-region-row[data-region='BA-DISP-023']").click();
-    await page.locator("[data-expand-regions]").click();
-  }
-  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/下腿後面/);
+  const report=page.locator('#runload-result-v4');
+  await report.locator('.rv4-region').first().waitFor({timeout:15000});
+  assert.equal(await report.locator('.rv4-region').count(),5,"front view has five official region targets");
+  assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
+  assert.match(await report.locator('.rv4-notice').innerText(),/正式保存/);
+  assert.match(await report.locator('.rv4-big-score').innerText(),/—/,"no synthetic scientific score");
+  assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
+  await report.locator('[data-view="sole"]').click();
+  assert.equal(await report.locator('.rv4-region').count(),3);
+  await report.locator('[data-region="BA-DISP-028"]').first().click();
+  assert.equal(await report.locator('.rv4-reading h3').innerText(),'足底中部・内側縦足弓');
+  await report.locator('[data-view="front"]').click();
+  await report.locator('[data-region="BA-DISP-019"]').first().click();
+  assert.equal(await report.locator('.rv4-reading h3').innerText(),'膝蓋大腿関節部');
   if(mode.name!=="desktop"){
-    const layout=await page.evaluate(()=>{
-      const rect=sel=>{const e=document.querySelector(sel);if(!e)throw Error("missing "+sel);const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
-      const overlaps=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
-      const heading=rect("#selected-detail .detail-head h2");
-      const region=rect("#selected-detail .selected-name");
-      const action=rect("#selected-detail>.section-title>a.btn");
-      const score=rect("#selected-detail .mobile-big-value");
-      const delta=rect("#selected-detail .mobile-baseline-chip");
-      const fatigue=rect(".fatigue-panel");
-      const arrow=rect(".fatigue-arrow");
-      const before=rect(".fatigue-panel .fatigue-cell:first-child strong");
-      const after=rect(".fatigue-panel .fatigue-cell:nth-of-type(2) strong");
-      const labels=[...document.querySelectorAll(".radar-panel .radar-label")].map(e=>e.getBoundingClientRect().height);
-      return {headingVsRegion:overlaps(heading,region),headingVsButton:overlaps(heading,action),regionVsButton:overlaps(region,action),scoreVsDelta:overlaps(score,delta),arrowVsBefore:overlaps(arrow,before),arrowVsAfter:overlaps(arrow,after),radarLabelHeights:labels,bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,fatigueWidth:fatigue.width};
-    });
-    for(const key of ["headingVsRegion","headingVsButton","regionVsButton","scoreVsDelta","arrowVsBefore","arrowVsAfter"]){
-      assert.equal(layout[key],false,mode.name+" overlapping result elements: "+key+" "+JSON.stringify(layout));
-    }
-    assert.equal(layout.radarLabelHeights.length,6,"all six radar axes must be present");
-    assert.ok(layout.radarLabelHeights.every(h=>h>=10),mode.name+" radar labels are too small: "+JSON.stringify(layout.radarLabelHeights));
-    assert.ok(layout.bodyWidth-layout.viewportWidth<=3,mode.name+" result horizontal overflow");
-    console.log("PASS",mode.name,"non-overlap and legible radar",JSON.stringify(layout));
+    await report.locator('[data-tab="fatigue"]').click();
+    assert.ok(await report.locator('.rv4-fatigue').isVisible());
+    await report.locator('[data-tab="radar"]').click();
+    assert.ok(await report.locator('.rv4-history').isVisible());
+    await report.locator('[data-tab="body"]').click();
   }
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth),0);
   await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result-viewport.png"),fullPage:false});
-  if(mode.name!=="desktop"){
-    // The real fixed bottom nav appears naturally in the viewport capture.
-    // For a full-document review, place it after the document so it cannot mask sections.
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
-  }
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result.png"),fullPage:true});
-  if(mode.name!=="desktop"){
-    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
-  }
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
   await page.goto(host+"#/exploration-tree",{waitUntil:"networkidle"});
   await page.locator(".exploration-stage").waitFor();
   assert.equal(await page.locator(".tree-desktop .tree-hub").count(),7,"desktop tree has 7 domains");
