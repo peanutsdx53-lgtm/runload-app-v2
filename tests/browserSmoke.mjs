@@ -336,6 +336,9 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v3.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration v3 knowledge, arithmetic, notes, catalog');
+  // The exploration shell deliberately has no legacy top header.
+  // Exercise the install control from the Record screen where it is visible.
+  await page.goto(host+"#/record",{waitUntil:"networkidle"});
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
