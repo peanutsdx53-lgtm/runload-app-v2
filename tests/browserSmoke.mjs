@@ -540,12 +540,17 @@ try{
   assert.ok(layout.bodyWidth-layout.viewport<=3,"record UI horizontal overflow");
   await page.goto(host+"#/history",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".calendar-day").count(),31,"calendar days in October");
-  assert.equal(await page.locator(".calendar-day.has-entry").count(),3,"recorded dates are indicated");
+  assert.equal(await page.locator(".calendar-day.has-entry").count(),0,"no invented saved dates");
+  assert.equal(await page.locator(".history-records .timeline-item").count(),0,"no invented saved-record links");
+  assert.match(await page.locator("[data-history-unconnected]").innerText(),/保存済みの履歴はまだ接続されていません/);
   await page.locator('[data-history-day="12"]').click();
   assert.match(await page.locator(".history-records h3").innerText(),/12日/);
-  assert.equal(await page.locator(".history-records .timeline-item").count(),1,"date filter narrows records");
   await page.locator("[data-history-clear]").click();
-  assert.equal(await page.locator(".history-records .timeline-item").count(),3,"clear restores list");
+  assert.equal(await page.locator(".history-records .timeline-item").count(),0);
+  await page.goto(host+"#/result",{waitUntil:"networkidle"});
+  const historicalReport=page.locator("#runload-result-v4");
+  assert.match(await historicalReport.locator(".rv4-notice").innerText(),/表示できる保存記録はまだありません/);
+  assert.equal((await historicalReport.locator(".rv4-distance strong").innerText()).trim(),"—","unsaved input must not leak into result");
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();

@@ -325,7 +325,7 @@ function recordExtras(){
  </section>`;
 }
     function history(){
- const data=[{day:22,label:"10月22日",detail:"8.20 km　・　45分",type:"走行",distance:8.2},{day:12,label:"10月12日",detail:"5.40 km　・　31分",type:"走行",distance:5.4},{day:5,label:"10月5日",detail:"休養日の記録",type:"休養",distance:0}];
+ const data=[]; // Until saved-record repository integration is approved, do not manufacture history entries.
  const shown=data.filter(x=>(state.historyMode==="all"||x.type===state.historyMode)&&(state.historyDate===null||x.day===state.historyDate));
  const recorded=new Set(data.map(x=>x.day));
  const sum=data.filter(x=>x.type==="走行").reduce((n,x)=>n+x.distance,0);
@@ -335,15 +335,15 @@ function recordExtras(){
   <div class="section-title"><h2>記録を探す</h2><div class="segmented">${[["all","すべて"],["走行","走行"],["休養","休養"]].map(([key,label])=>`<button type="button" data-history-mode="${key}" class="${state.historyMode===key?"is-active":""}">${label}</button>`).join("")}</div></div>
   <div class="history-layout">
    <div class="history-calendar">
-    <div class="calendar-header"><h3>2026年10月</h3><span class="badge">記録 ${data.length}件</span></div>
+    <div class="calendar-header"><h3>2026年10月</h3><span class="badge">保存履歴未接続</span></div>
     <div class="mini-calendar">${days.map((d,i)=>i<7?`<span class="calendar-weekday">${d}</span>`:d===""?`<span aria-hidden="true"></span>`:`<button type="button" data-history-day="${d}" aria-pressed="${Number(d)===state.historyDate}" class="calendar-day ${recorded.has(Number(d))?"has-entry":""} ${Number(d)===state.historyDate?"is-selected":""}">${d}</button>`).join("")}</div>
     <div class="calendar-legend"><span><i class="calendar-dot"></i>記録した日</span>${state.historyDate!==null?`<button type="button" data-history-clear>日付の絞り込みを解除</button>`:""}</div>
-    <div class="month-summary"><strong>今月のまとめ</strong><div><span><b>${data.filter(x=>x.type==="走行").length}</b><small>走行</small></span><span><b>${sum.toFixed(2)}</b><small>km</small></span><span><b>${data.filter(x=>x.type==="休養").length}</b><small>休養</small></span></div></div>
+    <div class="month-summary"><strong>今月のまとめ</strong><p class="lead">正式に保存した記録との接続後に表示します。</p></div>
    </div>
-   <div class="history-records"><h3>${state.historyDate!==null?`10月${state.historyDate}日の記録`:"最近の記録"}</h3><div class="timeline">${shown.length?shown.map(entry=>`<a class="timeline-item" href="#/${entry.type==="休養"?"history":"result"}"><span class="history-row-mark">${entry.type==="走行"?"↗":"◌"}</span><span><strong>${entry.label}</strong><p class="lead">${entry.detail}</p></span><span class="badge">${entry.type}</span><span>›</span></a>`).join(""):`<div class="empty-state"><strong>この条件の記録はありません</strong><p>別の日付や種類を選択できます。</p></div>`}</div></div>
+   <div class="history-records"><h3>${state.historyDate!==null?`10月${state.historyDate}日の記録`:"最近の記録"}</h3><div class="timeline"><div class="empty-state" data-history-unconnected><strong>保存済みの履歴はまだ接続されていません</strong><p>ここには未保存の入力内容やサンプル記録を表示しません。</p></div></div></div>
   </div>
  </section>
- <section class="grid-2"><a class="card home-shortcut" href="#/exploration-tree"><span class="shortcut-icon">✧</span><span><strong>探究の足跡</strong><p>興味を持ったテーマや問いを振り返る。</p></span><span>↗</span></a><a class="card home-shortcut" href="#/result"><span class="shortcut-icon">▥</span><span><strong>身体の推移</strong><p>12部位の過去の参考値を確かめる。</p></span><span>↗</span></a></section>`;
+ <section class="grid-2"><a class="card home-shortcut" href="#/exploration-tree"><span class="shortcut-icon">✧</span><span><strong>探究の足跡</strong><p>興味を持ったテーマや問いを振り返る。</p></span><span>↗</span></a><div class="card home-shortcut" aria-disabled="true"><span class="shortcut-icon">▥</span><span><strong>身体の推移</strong><p>保存履歴との接続後に利用できます。</p></span></div></section>`;
 }
     function treeOverview(){
  const graphPositions=[
@@ -468,7 +468,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  const detailContent=(state.recordReviewReturn&&detailPages.includes(page))
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
- if(page==="result")resultExperience.mountResult(app.querySelector("#runload-result-v4"),state.recordDraft);
+ if(page==="result")resultExperience.mountResult(app.querySelector("#runload-result-v4"),{}); // No saved-record selection: never treat an unsaved draft as a historical result.
  document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay],[data-gps-overlay]")));
  if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(page==="record-compare")gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);

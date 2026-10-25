@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
 const root='https://peanutsdx53-lgtm.github.io/runload-app-v2/';
 const tag='20261025-review-v5';
-const probes=[['index.html','app.js?v=20261025-result-v4-main-01'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
+const probes=[['index.html','app.js?v=20261025-history-guard-01'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
 let valid=false;
 for(let i=1;i<=30;i++){
  try{
