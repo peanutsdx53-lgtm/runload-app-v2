@@ -554,9 +554,18 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-v2.png"),fullPage:true});
   const layout=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
   assert.ok(layout.bodyWidth-layout.viewport<=3,"record UI horizontal overflow");
-  await page.goto(host+"#/history",{waitUntil:"networkidle"});
+  // Navigate through the actual UI, rather than navigating the whole document.
+  await page.locator(mode.name==="desktop"?'.side-nav a[href="#/history"]':'.mobile-nav a[href="#/history"]').click();
   const historyRoot=page.locator('#runload-history-v2');
   await historyRoot.locator('.calendar-panel').waitFor();
+  const historyInstantStyle=await historyRoot.evaluate(host=>{
+    const root=host.shadowRoot,stage=root?.querySelector('.stage');
+    return {inline:!!root?.querySelector('style[data-history-inline-styles]'),external:root?.querySelectorAll('link[rel="stylesheet"]').length,paint:stage?getComputedStyle(stage).backgroundImage:'none'};
+  });
+  assert.ok(historyInstantStyle.inline && historyInstantStyle.external===0 && historyInstantStyle.paint!=='none',
+    'History applies theme synchronously without waiting for CSS fetch: '+JSON.stringify(historyInstantStyle));
+  const safeTheme=await page.evaluate(()=>({theme:document.querySelector('meta[name="theme-color"]')?.content,ios:document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.content}));
+  assert.deepEqual(safeTheme,{theme:'#061725',ios:'black-translucent'},'iOS app status bar uses dark canvas');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-history-v2-initial.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});

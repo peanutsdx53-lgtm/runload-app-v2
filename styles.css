@@ -1739,3 +1739,10 @@ body:has(#runload-history-v2){background:#061725}
 /* The embedded history surface must cover all remaining shell/padding space. */
 .app-shell:has(#runload-history-v2) .main-frame{min-height:100vh}
 .app-shell:has(#runload-history-v2) .main-content{background:#061725;min-height:calc(100vh - 58px)}
+
+/* Use one dark canvas behind the iPhone safe area in every RunLoad screen.
+   Only installed PWAs use overlay status bars; keep content below their inset. */
+html, body { background-color:#061725; }
+@media (display-mode:standalone) {
+  body { padding-top: env(safe-area-inset-top, 0px); }
+}

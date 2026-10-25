@@ -1,3 +1,4 @@
+import {HISTORY_STYLES} from "./historyInlineStyles.js";
 /* RunLoad v2 / History Ver.2 (approved visual contract)
  * Presentation only: receives saved records explicitly from an authorised source.
  * No localStorage reads, no synthetic history, no draft fallback, no speculative results.
@@ -55,7 +56,7 @@ export function renderHistory(ui,rawRecords=[],options={}){const records=normali
 export function mountHistory(host,{records=[],connected=false,onOpen=null,ui=createHistoryUi()}={}){
  if(!host)return;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
- root.innerHTML='<link rel="stylesheet" href="./ui/historyExperience.css?v=20261025-history-v2-01"><div id="hx-view"></div>';
+ root.innerHTML='<style data-history-inline-styles>'+HISTORY_STYLES+'</style><div id="hx-view"></div>';
  const safeRecords=connected===true?normalizeRecords(records):[];
  const context={connected:connected===true,onOpen};
  const draw=()=>root.querySelector('#hx-view').innerHTML=renderHistory(ui,safeRecords,context);
