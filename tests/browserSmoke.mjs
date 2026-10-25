@@ -584,6 +584,28 @@ try{
     'History applies theme synchronously without waiting for CSS fetch: '+JSON.stringify(historyInstantStyle));
   const safeTheme=await page.evaluate(()=>({theme:document.querySelector('meta[name="theme-color"]')?.content,ios:document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.content}));
   assert.deepEqual(safeTheme,{theme:'#061725',ios:'black-translucent'},'iOS app status bar uses dark canvas');
+  // At maximum scroll the final History panel must sit fully above the fixed
+  // navigation bar; checking a full-page screenshot alone misses this overlap.
+  if(mode.name!=="desktop") {
+    await page.evaluate(()=>window.scrollTo({top:document.scrollingElement.scrollHeight,behavior:'instant'}));
+    const historyBottom=await page.evaluate(()=>{
+      const lastCard=document.querySelector('#runload-history-v2')?.shadowRoot?.querySelector('.list-panel');
+      const nav=document.querySelector('.mobile-nav');
+      const main=document.querySelector('.main-content');
+      return {
+        cardBottom:lastCard?.getBoundingClientRect().bottom,
+        navTop:nav?.getBoundingClientRect().top,
+        mainPaddingBottom:getComputedStyle(main).paddingBottom,
+        overflow:document.documentElement.scrollWidth-innerWidth
+      };
+    });
+    assert.ok(historyBottom.cardBottom<=historyBottom.navTop-12,
+      'history final card must clear fixed nav: '+JSON.stringify({mode:mode.name,...historyBottom}));
+    assert.ok(historyBottom.overflow<=3,'history bottom horizontal overflow');
+    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-history-bottom-fixed-nav.png'),fullPage:false});
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+  }
+
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-history-v2-initial.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});

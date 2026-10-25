@@ -1770,3 +1770,11 @@ html, body { background-color:#061725; }
  .app-shell:has(#runload-history-v2) .mobile-link{color:#c0cbd5}
  .app-shell:has(#runload-history-v2) .mobile-link.is-active{color:#55dce3;background:#174353}
 }
+
+/* Restore the bottom clearance for History after the headerless shell reset.
+   The fixed five-item nav must never cover the final search/history panel. */
+@media(max-width:800px){
+  .app-shell:has(#runload-history-v2) .main-content{
+    padding-bottom:calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
