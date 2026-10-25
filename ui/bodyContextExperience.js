@@ -3,10 +3,10 @@
  * No scientific comparison values, injury interpretations or persistent region flags. */
 import { BODY_REGION_VIEWS } from '../assets/bodyRegionVisuals.js';
 export const REGIONS = Object.freeze([
-  ['BA-DISP-014','股関節まわり'],['BA-DISP-015','お尻'],['BA-DISP-016','太ももの前'],
-  ['BA-DISP-018','太ももの後ろ'],['BA-DISP-019','膝の前'],['BA-DISP-021','すね'],
-  ['BA-DISP-023','ふくらはぎ'],['BA-DISP-024','足首まわり'],['BA-DISP-025','足首の後ろ'],
-  ['BA-DISP-027','かかと'],['BA-DISP-028','土踏まず'],['BA-DISP-029','足裏の前']
+  ['BA-DISP-014','股関節部'],['BA-DISP-015','殿部'],['BA-DISP-016','大腿前面'],
+  ['BA-DISP-018','大腿後面'],['BA-DISP-019','膝蓋大腿関節部'],['BA-DISP-021','脛骨部'],
+  ['BA-DISP-023','下腿後面'],['BA-DISP-024','足関節部'],['BA-DISP-025','アキレス腱部'],
+  ['BA-DISP-027','後足部'],['BA-DISP-028','足底中部・内側縦足弓'],['BA-DISP-029','前足部']
 ].map(([id,name])=>Object.freeze({id,name})));
 export const DRAFT_KEYS = Object.freeze(['bodyObservation','shoeName','memo']);
 export const VIEWS = BODY_REGION_VIEWS;
@@ -46,7 +46,7 @@ ${focus?`<div class="cx-context" aria-live="polite"><div class="cx-context-kicke
 </div>
 <div class="cx-toolbar"><div class="cx-chosen-head"><strong>選択中の部位</strong><span class="cx-chosen-count">${selected.length}<small> / 12</small></span></div><div class="cx-chosen-row" aria-live="polite">${chips||'<span class="cx-no-selection">まだ選択されていません</span>'}</div><div class="cx-toolbar-actions"><button type="button" data-picker-toggle aria-expanded="${ui.pickerOpen}" class="cx-picker-trigger">部位名から探す <span>${ui.pickerOpen?'−':'＋'}</span></button>${selected.length?'<button type="button" data-clear-all class="cx-clear">すべて解除</button>':''}</div></div>
 ${ui.pickerOpen?`<div class="cx-picker" role="group" aria-label="${current.title}の部位名から選ぶ"><div class="cx-picker-title">${current.title}で選べる部位 <span>${current.paths.length}件</span></div><div class="cx-picker-grid">${namedPicker}</div></div>`:''}
-<p class="cx-science-note">選択は本人の自覚記録であり、12部位比較値や医学的診断ではありません。</p>
+<p class="cx-science-note">選択は本人の自覚記録であり、身体部位の参考値や医学的診断ではありません。</p>
 </section>
 <section class="cx-notes-column" aria-label="自覚情報と使用品の入力"><div class="cx-notes-heading"><h2>感じたこと・使用品</h2><p>必要な項目だけ入力してください</p></div>${fields.map(f=>fieldCard(d,f)).join('')}
 <div class="cx-transfer"><p>選択部位を文章でも残す場合</p><button type="button" data-append-name ${selected.length?'':'disabled'}>選択した部位名を自覚情報に追加 <span aria-hidden="true">↗</span></button><small>部位の構造化保存は未接続。文章は既存の下書き項目です。</small></div>

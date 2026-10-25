@@ -225,7 +225,7 @@ try{
   assert.equal(await page.locator(".region-tile").count(),12);
   assert.equal(await page.locator(".body-view").count(),3);
   if(mode.name==="desktop"){
-    await page.locator(".region-tile").filter({hasText:"太ももの前"}).click();
+    await page.locator(".region-tile").filter({hasText:"大腿前面"}).click();
   }else{
     assert.equal(await page.locator(".mobile-region-row").count(),5,"mobile result shows a compact five-row preview");
     assert.equal(await page.locator(".mobile-region-row .region-picto").count(),5,"each shown region uses official body-vector artwork");
@@ -233,7 +233,7 @@ try{
     assert.ok(iconsClipped,"SVG icons must crop artwork inside their row bounds");
     await page.locator("[data-expand-regions]").click();
     assert.equal(await page.locator(".mobile-region-row").count(),12,"all official regions remain accessible");
-    await page.locator(".mobile-region-row").filter({hasText:"太ももの前"}).click();
+    await page.locator(".mobile-region-row").filter({hasText:"大腿前面"}).click();
     await page.locator("[data-expand-regions]").click();
     assert.equal(await page.locator(".mobile-region-row").count(),5,"compact list can be collapsed");
   }
@@ -245,7 +245,7 @@ try{
     await page.locator(".mobile-region-row[data-region='BA-DISP-023']").click();
     await page.locator("[data-expand-regions]").click();
   }
-  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/ふくらはぎ/);
+  assert.match(await page.locator("#selected-detail .selected-name").innerText(),/下腿後面/);
   if(mode.name!=="desktop"){
     const layout=await page.evaluate(()=>{
       const rect=sel=>{const e=document.querySelector(sel);if(!e)throw Error("missing "+sel);const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
@@ -516,7 +516,7 @@ try{
   assert.equal(await page.locator(".cx-page").count(),1,"reflection remains an independent routed screen");
   assert.equal(await page.locator('[data-region-focus]').count(),5,"five official front-map targets");
   await page.locator('[data-region-focus="BA-DISP-019"]').evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true})));
-  assert.equal(await page.locator('.cx-context strong').innerText(),'膝の前');
+  assert.equal(await page.locator('.cx-context strong').innerText(),'膝蓋大腿関節部');
   await page.locator('[data-confirm-id="BA-DISP-019"]').click();
   assert.equal(await page.locator('.cx-selected-chip').count(),1);
   await page.locator('[data-map-view="back"]').click();

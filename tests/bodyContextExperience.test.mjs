@@ -26,7 +26,7 @@ test('focus is separate from subjective selection and preserves state across vie
 test('never adds scientific values or persistent subjective fields',()=>{
  assert.deepEqual(DRAFT_KEYS,['bodyObservation','shoeName','memo']);
  const d={bodyObservation:'',shoeName:'',memo:''},ui=makeUi();ui.selected=['BA-DISP-019'];
- assert.equal(addRegionNamesToNote(d,ui),true);assert.equal(d.bodyObservation,'気になった部位：膝の前');
+ assert.equal(addRegionNamesToNote(d,ui),true);assert.equal(d.bodyObservation,'気になった部位：膝蓋大腿関節部');
  assert.equal(addRegionNamesToNote(d,ui),false);
  assert.deepEqual(Object.keys(d),DRAFT_KEYS);
 });
@@ -37,3 +37,5 @@ test('unsafe HTML input is escaped and full screen retains correct labels',()=>{
  assert.match(html,/身体・使用品/);
  assert.equal((html.match(/data-region-focus=/g)||[]).length,5);
 });
+
+test("body and result keep old-app formal anatomical terminology",()=>{const expected=[["BA-DISP-014","股関節部"],["BA-DISP-015","殿部"],["BA-DISP-016","大腿前面"],["BA-DISP-018","大腿後面"],["BA-DISP-019","膝蓋大腿関節部"],["BA-DISP-021","脛骨部"],["BA-DISP-023","下腿後面"],["BA-DISP-024","足関節部"],["BA-DISP-025","アキレス腱部"],["BA-DISP-027","後足部"],["BA-DISP-028","足底中部・内側縦足弓"],["BA-DISP-029","前足部"]];assert.deepEqual(REGIONS.map(x=>[x.id,x.name]),expected);for(const [id,name] of expected)assert.ok(appSource.includes('id:"'+id+'",name:"'+name+'",friendly:"'+name+'"'),id);});

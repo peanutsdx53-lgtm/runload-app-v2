@@ -82,11 +82,11 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
 
 test("v8 release uses cache-busted body resources and a user-controlled update prompt",()=>{
  const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
- assert.match(html,/app\.js\?v=20261025-review-v5/);
- assert.match(html,/bodyContextExperience\.css\?v=20261025-body-v8-r2/);
- assert.match(app,/bodyContextExperience\.js\?v=20261025-body-v8-r2/);
+ assert.match(html,/app\.js\?v=20261025-terminology-v1/);
+ assert.match(html,/bodyContextExperience\.css\?v=20261025-terminology-v1/);
+ assert.match(app,/bodyContextExperience\.js\?v=20261025-terminology-v1/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/review-v5-release-01/);
+ assert.match(sw,/terminology-v1/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
