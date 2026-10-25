@@ -22,12 +22,13 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261025-history-guard-01'));
+ assert.ok(html.includes('app.js?v=20261025-history-v2-01'));
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');
  assert.match(app,/resultExperience\.mountResult\(app\.querySelector\("#runload-result-v4"\),\{\}\)/);
- assert.ok(app.includes('const data=[]; // Until saved-record repository integration'));
- assert.ok(app.includes('data-history-unconnected'));
+ assert.ok(app.includes('historyExperience.mountHistory'));
+ assert.ok(!app.includes('const data=[{day:22')); 
+ assert.ok(read('ui/historyExperience.js').includes('data-history-unconnected')); 
  assert.ok(!app.includes('href="#/${entry.type'));
 });
