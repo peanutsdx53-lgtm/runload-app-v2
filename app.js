@@ -15,6 +15,7 @@
   const measurementExperience=await import("./ui/measurementExperience.js");
   const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-history-v2-01");
+  const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v2-01");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -55,7 +56,9 @@
   const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
-  const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:String(introStored?.nickname||""),purpose:String(introStored?.purpose||"")};
+  const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
+  settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
+  const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
   const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究ツリー",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究ツリー"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -225,7 +228,7 @@
   {title:"RunLoadへようこそ",eyebrow:"WELCOME",body:"走行・休養の記録と、身体の参考値を振り返るアプリです。現在のv2は画面と操作の検証段階です。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>ROF-Jの疲労感</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
   {title:"言語を選ぶ",eyebrow:"LANGUAGE",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
   {title:"利用規約とデータの扱い",eyebrow:"PRIVACY",body:"正式な利用規約・プライバシーポリシーはまだ確定していません。以下はUI確認用の案内であり、法的な同意の取得・記録ではありません。",html:`<div class="onboard-legal"><strong>現在のv2で扱う内容</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。現在のv2ではGPS測定・走行記録の正式保存は接続されていません。ROF-Jの既存イラストを表示する際には、旧RunLoadが管理するGitHub公開画像への通信が発生します。</p><p>位置情報の許可は、正式なGPS測定を開始する操作に合わせて確認する設計です。実装前に文面と導線を確定します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
-  {title:"共有用プロフィール（任意）",eyebrow:"YOUR PROFILE",body:"旧アプリの共有用プロフィールを参考に、最初の設定を用意しました。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>RunLoadを使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><p>性別・年齢帯・身長・体重など旧版の追加項目は、必要性と共有条件を確認した後に移植します。</p></div>`},
+  {title:"共有用プロフィール（任意）",eyebrow:"YOUR PROFILE",body:"旧アプリの共有用プロフィールを参考に、最初の設定を用意しました。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>RunLoadを使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><div class="onboard-extra-profile"><label>身長（cm・任意）<input type="number" min="80" max="250" step="0.1" inputmode="decimal" data-onboard-height placeholder="スキップできます" value="${esc(onboardingState.heightCm)}"></label><label>体重（kg・任意）<input type="number" min="15" max="400" step="0.1" inputmode="decimal" data-onboard-weight placeholder="スキップできます" value="${esc(onboardingState.weightKg)}"></label></div><p>入力内容はこの端末のプロフィールに保存します。探究や測定への接続は今後行います。</p></div>`},
   {title:"始め方を確認",eyebrow:"QUICK TOUR",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究ツリーはスクロールとズームで自由に見られます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS測定は旧版エンジン接続後に利用可能</small></span></div><div><b>2</b><span><strong>ROF-Jの疲労感を記入</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・6軸レーダー・探究ツリー</small></span></div></div>`}
  ];
  const current=steps[onboardingState.step];
@@ -407,26 +410,7 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  <div class="selected-topic-summary"><div><small>選択したテーマ</small><strong>${esc(state.topic)}</strong></div><div class="btn-row">${buttonLink("result","自分の結果を見る")}${buttonLink("history","記録を比べる")}</div></div></div>
  </div>${right}</section>${sheetBody}`;
 }
-    function settings(){
- const sections=[
-  ["♙","利用者情報",[["記録者の情報","自分の記録を管理"],["記録の振り返り","これまでの走行を見る"]]],
-  ["◈","表示と操作",[["文字と表示","自分に合う見た目で利用"],["動きの設定","画面演出の強さを調整"]]],
-  ["♧","通知",[["記録のリマインダー","記録を続けるための通知"],["お知らせ","アプリに関する情報"]]],
-  ["▤","プライバシー・データ",[["記録の管理","保存した記録を確認"],["位置情報","GPS利用時の取り扱い"]]],
-  ["?","ヘルプ",[["各画面の使い方","RunLoadの機能を確認"],["身体の参考値について","12部位比較の見方"]]],
-  ["▦","アプリ情報",[["RunLoadについて","研究・アプリの情報"],["ホーム画面への追加","アプリとしてすぐに開く"]]]
- ];
- return `<section class="home-head"><div><h1>設定</h1><p class="lead">表示・データ管理・アプリの使い方を設定する。</p></div></section>
- <section class="settings-grid">${sections.map(([icon,title,options],idx)=>`<div class="card settings-card"><div class="settings-title"><span>${icon}</span><h2>${title}</h2></div>${options.map(([name,desc],j)=>{
-   const route=name==="記録の振り返り"?"history":name==="身体の参考値について"?"result":name==="各画面の使い方"?"exploration-tree":null;
-   const install=name==="ホーム画面への追加";
-   const intro=name==="記録者の情報"||name==="文字と表示"||name==="各画面の使い方";
-   return route?`<a href="#/${route}" class="settings-row settings-row-link"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></a>`:
-   intro?`<button type="button" class="settings-row settings-row-link" data-onboard-open><div><strong>${name}</strong><p>${desc}・初期案内を開く</p></div><span>›</span></button>`:
-   install?`<button class="settings-row settings-row-link" data-install-app type="button"><div><strong>${name}</strong><p>${desc}</p></div><span>›</span></button>`:
-   `<div class="settings-row"><div><strong>${name}</strong><p>${desc}</p></div></div>`;
-  }).join("")}</div>`).join("")}</section>`;
-}
+    function settings(){return settingsExperience.renderSettings(settingsUi);}
     function secondary(page){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
@@ -488,6 +472,13 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
  }
 }
   app.addEventListener("change",(event)=>{if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value});
+  const reportSettingsNotice=(message)=>{
+    settingsUi.notice=message;
+    const page=app.querySelector('[data-settings-v2]');if(!page)return;
+    let notice=page.querySelector('.s2-notice');
+    if(!notice){notice=document.createElement('p');notice.className='s2-notice';notice.setAttribute('role','status');page.querySelector('.s2-heading')?.after(notice)}
+    notice.textContent=message;
+  };
   app.addEventListener("input",(event)=>{
     const target=event.target,ui=state.recordCourseUi,d=state.recordDraft;
     if(target.matches('.hx-time-control input[type=time]')){
@@ -547,6 +538,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
       }
     }
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
+    if(event.target.matches("[data-onboard-height]"))onboardingState.heightCm=event.target.value;
+    if(event.target.matches("[data-onboard-weight]"))onboardingState.weightKg=event.target.value;
     if(event.target.matches("[data-rof-v4-range]")){
       rofExperience.setRofScore(rofUi,state.recordDraft,event.target.value);
       rofExperience.reflectRofPage(app,state.recordDraft,rofUi);
@@ -584,6 +577,15 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     container.querySelectorAll("["+attr+"]").forEach(node=>node.hidden=node.getAttribute(attr)!==value);
   });
   app.addEventListener("submit",(event)=>{
+    const profileForm=event.target.closest('[data-settings-profile-form]');
+    if(profileForm){
+      event.preventDefault();
+      const fields=Object.fromEntries(new FormData(profileForm).entries());
+      const stored=settingsExperience.saveProfile(onboardStorage,fields);
+      if(stored.ok){settingsUi.profile=stored.value;onboardingState.nickname=stored.value.nickname;onboardingState.purpose=stored.value.purpose;onboardingState.heightCm=String(stored.value.heightCm??'');onboardingState.weightKg=String(stored.value.weightKg??'');reportSettingsNotice('プロフィールをこの端末に保存しました。');}
+      else reportSettingsNotice(stored.message);
+      return;
+    }
     const form=event.target.closest("[data-condition-form]");
     if(!form)return;
     event.preventDefault();
@@ -605,6 +607,18 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     render();
   });
   app.addEventListener("click",(event)=>{
+    const setting=event.target.closest('[data-settings-text],[data-settings-motion]');
+    if(setting){
+      const key=setting.hasAttribute('data-settings-text')?'textSize':'motion';
+      const value=setting.dataset[key==='textSize'?'settingsText':'settingsMotion'];
+      const updated={...settingsUi.display,[key]:value};
+      const saved=settingsExperience.saveDisplay(onboardStorage,updated);
+      if(saved.ok){settingsUi.display=saved.value;settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
+        setting.parentElement?.querySelectorAll('button').forEach(el=>el.setAttribute('aria-pressed',String(el===setting)));
+        reportSettingsNotice('表示設定を保存しました。');
+      }else reportSettingsNotice(saved.message);
+      return;
+    }
     const measurementControl=event.target.closest("[data-gps-preview]");
     if(measurementControl){
       if(measurementExperience.stepMeasurementPreview(measurementUi,measurementControl.dataset.gpsPreview)){
@@ -714,6 +728,8 @@ return hero+tabs+summary+`<section class="explore-main"><div class="card explora
     if(event.target.closest("[data-onboard-next]")){
       if(onboardingState.step<4){onboardingState.step+=1;render();return}
       onboardingState.open=false;
+      const savedProfile=settingsExperience.saveProfile(onboardStorage,{nickname:onboardingState.nickname,purpose:onboardingState.purpose,heightCm:onboardingState.heightCm,weightKg:onboardingState.weightKg,ageBand:onboardingState.ageBand});
+      if(savedProfile.ok)settingsUi.profile=savedProfile.value;
       try{onboardStorage?.setItem(onboardingKey,JSON.stringify({completed:true,language:"ja",nickname:onboardingState.nickname,purpose:onboardingState.purpose,formalTermsAccepted:false}))}catch{}
       render();return;
     }
