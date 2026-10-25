@@ -283,7 +283,7 @@ try{
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
   const fromDraft=await ex.locator('.ex-node.is-related').count();
-  if(fromDraft)assert.match(await ex.locator('.ex-map-head').innerText(),/入力中の走行/,'draft-linked themes are explicitly labeled, never saved records');
+  if(fromDraft)assert.match(await ex.locator('.ex-map-head').innerText(),/入力中の走行|保存済みの生活記録/,'highlight reasons identify either draft or actual lifestyle records');
   // A clean visit without an in-memory unsaved draft must have zero highlighted
   // domains and show the user-controlled visual example instead.
   await page.reload({waitUntil:'networkidle'});
