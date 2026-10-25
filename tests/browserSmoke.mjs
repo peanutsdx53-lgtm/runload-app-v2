@@ -316,7 +316,7 @@ try{
   assert.equal(await ex.locator('.ex-memory-count').count(),1,'saved note creates a visible memory marker');
   assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,1);
   await ex.locator('[data-ex-action="memories"]').first().click();
-  assert.match(await ex.locator('.ex-dialog').innerText(),/次回はコースを変えて振り返る/);
+  assert.match(await ex.locator('.ex-dialog').innerText(),/次は上りと下りで感じ方を確かめたい/);
   await ex.locator('[data-ex-delete]').click();
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),0);
   await ex.locator('[data-ex-action="close"]').click();
@@ -329,9 +329,9 @@ try{
   const dims=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,nav:document.querySelector('.mobile-nav')?.getBoundingClientRect().top,bottom:document.querySelector('.ex-page')?.getBoundingClientRect().bottom}));
   assert.ok(dims.overflow<=3,mode.name+' exploration horizontal overflow '+JSON.stringify(dims));
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v3.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v12.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
-  console.log('PASS',mode.name,'exploration v3 knowledge, arithmetic, notes, catalog');
+  console.log('PASS',mode.name,'exploration v12 learning, selected tools, notes, catalog');
   // The exploration shell deliberately has no legacy top header.
   // Exercise the install control from the Course screen where it is visible.
   await page.goto(host+"#/course",{waitUntil:"networkidle"});
