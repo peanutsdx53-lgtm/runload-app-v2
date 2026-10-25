@@ -288,6 +288,13 @@ try{
   // domains and show the user-controlled visual example instead.
   await page.reload({waitUntil:'networkidle'});
   await ex.waitFor();
+  assert.equal(await ex.locator('.ex-node.is-related').count(),1,'saved daily condition highlights only its own area');
+  assert.match(await ex.locator('[data-ex-category="05"]').getAttribute('aria-label'),/関連あり/);
+  // The home test has saved one real lifestyle entry. Clearing only that
+  // test-created entry isolates the genuine record-free first-run state.
+  await page.evaluate(()=>localStorage.removeItem('runload-v2-life-condition-v1'));
+  await page.reload({waitUntil:'networkidle'});
+  await ex.waitFor();
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
   assert.match(await ex.innerText(),/記録がなくても、すべての分野を開けます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
