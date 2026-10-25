@@ -12,6 +12,7 @@ on:
       - 'assets/**'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/livePagesSmoke.mjs'
       - '.github/workflows/ui-browser.yml'
 permissions:
   contents: read
