@@ -64,6 +64,33 @@ const KNOWLEDGE={
    heading:"睡眠と、走る日の調子",lead:"睡眠は回復や日中の注意・気分とも関係します。短い睡眠や質の低下が続くと運動への影響が懸念されますが、必要な睡眠の長さには個人差があります。",
    cite:"Walsh ほか（2021）",url:"https://doi.org/10.1136/bjsports-2020-102025",warning:"競技者を対象とした研究を含む一般知識です。本人の記録が同じ日に並んでも、睡眠が調子の原因と判断することはできません。"}
 };
+const STARTER_GUIDES=Object.freeze({
+  "距離・時間・ペース": "記録した距離と時間を見て、今日はどんなペースだったか確かめてみましょう。",
+  "自分が感じた疲れ": "運動前と運動後に感じた疲れを、ROF-Jの記録と一緒に見返してみましょう。",
+  "過去の走りとの比較": "距離やコースが近い日の走りを並べると、どこが違ったか考えるきっかけになります。",
+  "気付きと次の確認": "気になったことを一つだけ書いておくと、次に走ったときに見返しやすくなります。",
+  "姿勢と走る動作": "走っているとき、体がどんなふうに動いているか。気になる動きを言葉にしてみましょう。",
+  "体幹と腕の動き": "腕の振りや上半身の動きについて、走っているときに気付いたことはありますか？",
+  "12部位の参考値の見方": "部位ごとの数値を見る前に、その数値が「何と比べた値か」を確認してみましょう。",
+  "路面": "同じ距離でも、舗装路と土の道では走った感じが違うことがあります。自分はどう感じましたか？",
+  "気温・天候": "暑い日、寒い日、雨の日。走りやすかった条件を思い出してみましょう。",
+  "屋外・室内": "外と室内、どちらが走りやすいですか？そう感じた理由をメモできます。",
+  "疲れの感じ方": "走り終えた後の疲れだけでなく、走る前の感覚も振り返ってみましょう。",
+  "筋肉痛・違和感": "どこに、いつ、どんな感じがありましたか？無理に原因を決めず、まず記録を整理しましょう。",
+  "休養と回復": "休んだ次の日はどう感じましたか？休んだ日と調子の記録を見返してみましょう。",
+  "疲れを考える視点": "疲れを考えるときは、その日の運動だけでなく、睡眠や気分なども思い出してみましょう。",
+  "食事・水分": "走る前後に食べたものや飲んだものについて、気になったことはありますか？",
+  "気分・ストレス": "走りたい気分の日も、そうでない日もあります。気持ちの変化を記録してみましょう。",
+  "日々のコンディション": "朝の調子と睡眠の記録を見返して、続けて気付いたことがあるか探してみましょう。",
+  "ウォームアップ": "走り始める前に何をしていますか？次も続けたいことや、気になることを書いておけます。",
+  "走行中の対応": "走っている途中にペースを変えたことや、休んだことはありますか？",
+  "クールダウン・ストレッチ": "走り終えた後、いつも何をしていますか？自分の習慣を整理してみましょう。",
+  "無理をしない判断": "走るのをやめたり、休むことを選んだときは、どんな理由がありましたか？",
+  "走る目的": "何のために走りたいと思いましたか？今の気持ちを短く書いてもかまいません。",
+  "目標との付き合い方": "目標を決めるなら、今の自分にとって無理のないものから考えてみましょう。",
+  "楽しみ方": "景色、音楽、友人との時間など、走って楽しかったことを思い出してみましょう。",
+  "自分に合う記録の使い方": "毎回すべてを記録する必要はありません。何を見返したいかから決めてみましょう。"
+});
 export const LEARNING_TOPICS=Object.freeze({"02|足・膝・股関節":"body-movement","03|上り坂・下り坂":"slope-running","05|睡眠":"sleep-recovery"});
 const followups={
  "body-movement":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],
@@ -72,7 +99,7 @@ const followups={
 };
 function experience(ui,ctx,cat,topic){
  const entry=KNOWLEDGE[topic],key=LEARNING_TOPICS[cat.id+"|"+topic];
- if(!entry||!key)return '<div class="ex-learning ex-learning-empty"><div class="ex-learning-head"><span>気になることを整理しよう</span><button type="button" class="ex-help" data-ex-action="learn-help" aria-label="情報の見方">？</button></div><h3>${esc(topic)}</h3><p class="ex-learning-lead">このテーマの詳しい解説は準備中です。普段の走りで気になることを、まずは自分の言葉で残せます。</p><div class="ex-note-invite"><div><strong>気になったことをメモ</strong><p>次に調べたいことも自由に書けます。</p></div><button type="button" data-ex-action="note">メモを残す ＋</button></div></div>';
+ if(!entry||!key)return '<div class="ex-learning ex-learning-empty"><div class="ex-learning-head"><span>まずは考えてみよう</span><button type="button" class="ex-help" data-ex-action="learn-help" aria-label="情報の見方">？</button></div><h3>'+esc(topic)+'</h3><p class="ex-learning-lead">'+esc(STARTER_GUIDES[topic]||'気になったことを、自分の経験や記録から考えてみましょう。')+'</p><div class="ex-note-invite"><div><strong>自分の言葉で残す</strong><p>今の気持ちや、次に確かめたいことを書いておけます。</p></div><button type="button" data-ex-action="note">メモを残す ＋</button></div></div>';
  const strict=createExplorationContext({draft:ctx.draft,conditions:ctx.conditions});
  const reason=strict.highlights.find(h=>h.themeId===topic);
  const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?`${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:"関連する入力がなくても、内容を自由に学べます";
