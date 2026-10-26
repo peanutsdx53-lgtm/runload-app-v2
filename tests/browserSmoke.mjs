@@ -892,6 +892,7 @@ try{
   const latestFit=await page.locator('.hx-latest').evaluate(card=>({card:card.getBoundingClientRect().right,values:[...card.querySelectorAll('.hx-latest-fig strong')].map(el=>el.getBoundingClientRect().right)}));
   assert.ok(latestFit.values.every(x=>x<=latestFit.card+2),mode.name+' latest run card text clips: '+JSON.stringify(latestFit));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
+   await page.reload({waitUntil:'networkidle'}); // fresh editor state: prove saved-run provenance, not residual unsaved draft
    await page.goto(host+'#/exploration-tree',{waitUntil:'networkidle'});
    const savedExplore=page.locator('[data-experience-v3]');
    await savedExplore.waitFor();
