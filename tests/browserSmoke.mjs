@@ -311,35 +311,43 @@ try{
   const ex=page.locator('[data-experience-v3]');
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
+   assert.equal(await ex.locator('[data-ex-tab="catalog"]').count(),1,'single catalog navigation');
+   assert.equal(await ex.locator('[data-ex-action="catalog"]').count(),0,'no duplicate catalog button');
+   assert.equal(await ex.locator('[data-ex-action="memories"]').count(),2,'memo access from header and context');
+   assert.equal(await ex.locator('.ex-citation').count(),0,'research references do not dominate beginner reading');
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-category-grid-v22.png'),fullPage:false});
   const fromDraft=await ex.locator('.ex-node.is-related').count();
-  if(fromDraft)assert.match(await ex.locator('.ex-map-head').innerText(),/入力中の走行|保存済みの生活記録/,'highlight reasons identify either draft or actual lifestyle records');
+  if(fromDraft)assert.ok((await ex.locator('.ex-focus-intro').innerText()).length>0,'linked field retains a short status');
   // A clean visit without an in-memory unsaved draft must have zero highlighted
   // domains and show the user-controlled visual example instead.
   await page.reload({waitUntil:'networkidle'});
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node.is-related').count(),1,'saved daily condition highlights only its own area');
-  assert.match(await ex.locator('[data-ex-category="05"]').getAttribute('aria-label'),/関連あり/);
+  assert.match(await ex.locator('[data-ex-category="05"]').getAttribute('aria-label'),/つながりあり/);
   // The home test has saved one real lifestyle entry. Clearing only that
   // test-created entry isolates the genuine record-free first-run state.
   await page.evaluate(()=>localStorage.removeItem('runload-v2-life-condition-v1'));
   await page.reload({waitUntil:'networkidle'});
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
-  assert.match(await ex.innerText(),/記録がなくても、すべての分野を開けます/);
+  assert.match(await ex.innerText(),/記録がなくても自由に選べます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
   await ex.locator('[data-ex-action=sample]').click();
   assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
-  assert.match(await ex.locator('.ex-map-head').innerText(),/表示例/);
+  assert.match(await ex.locator('.ex-focus-intro').innerText(),/説明用の例/);
   await ex.locator('[data-ex-category="03"]').click();
   assert.match(await ex.locator('.ex-focus h2').innerText(),/コースと環境/);
   assert.equal(await ex.locator('[data-ex-learning="slope-running"]').count(),1);
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-learning-v22.png'),fullPage:false});
   assert.match(await ex.locator('.ex-learning').innerText(),/上り坂と下り坂/);
   await ex.locator('[data-ex-slope="down"]').click();
   assert.match(await ex.locator('.ex-tool-result').innerText(),/勢いを受け止める/);
   await ex.locator('[data-ex-action="learn-help"]').click();
-  assert.match(await ex.locator('.ex-dialog').innerText(),/健康状態や重要度を判定/);
+  assert.match(await ex.locator('.ex-dialog').innerText(),/参考資料/);
   await ex.locator('[data-ex-action="close"]').click();
-  await ex.locator('[data-ex-next="0"]').click();
+  await ex.locator('[data-ex-action="note"]').click();
+   assert.match(await ex.locator('.ex-dialog').innerText(),/あとで「自分のメモ」から読み返せます/);
+   await ex.locator('[data-ex-next="0"]').click();
   assert.equal(await ex.locator('#ex-note').inputValue(),'次は上りと下りで感じ方を確かめたい');
   await ex.locator('[data-ex-action="save-note"]').click();
   assert.equal(await ex.locator('.ex-memory-count').count(),1,'saved note creates a visible memory marker');
@@ -350,17 +358,19 @@ try{
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),0);
   await ex.locator('[data-ex-action="close"]').click();
   await ex.locator('[data-ex-tab="catalog"]').click();
-  assert.equal(await ex.locator('.ex-catalog-grid button').count(),28,'all initial topics visible');
+  assert.equal(await ex.locator('.ex-catalog-items button').count(),28,'all initial topics visible');
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-catalog-v22.png'),fullPage:false});
+   assert.equal(await ex.locator('.ex-catalog-group').count(),7,'the catalog groups topics by familiar questions');
   await ex.locator('[data-ex-search]').fill('上り坂');
-  assert.equal(await ex.locator('.ex-catalog-grid button').count(),1,'theme search finds matching topic');
-  await ex.locator('.ex-catalog-grid button').first().click();
-  assert.match(await ex.locator('.ex-selected-topic').innerText(),/上り坂・下り坂/);
+  assert.equal(await ex.locator('.ex-catalog-items button').count(),1,'theme search finds matching topic');
+  await ex.locator('.ex-catalog-items button').first().click();
+  assert.match(await ex.locator('.ex-topic.is-picked').innerText(),/上り坂・下り坂/);
   const dims=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,nav:document.querySelector('.mobile-nav')?.getBoundingClientRect().top,bottom:document.querySelector('.ex-page')?.getBoundingClientRect().bottom}));
   assert.ok(dims.overflow<=3,mode.name+' exploration horizontal overflow '+JSON.stringify(dims));
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v12.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v22.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
-  console.log('PASS',mode.name,'exploration v12 learning, selected tools, notes, catalog');
+  console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
   // The exploration shell deliberately has no legacy top header.
   // Exercise the install control from the Course screen where it is visible.
   await page.goto(host+"#/course",{waitUntil:"networkidle"});
