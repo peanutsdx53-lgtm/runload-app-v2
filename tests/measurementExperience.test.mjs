@@ -4,7 +4,7 @@ import {createMeasurementViewState,stepMeasurementPreview,measurementPage} from 
 test('real GPS is not started by mock transitions',()=>{
  const ui=createMeasurementViewState();
  assert.match(measurementPage(ui),/disabled aria-disabled="true"/);
- assert.match(measurementPage(ui),/GPS未接続/);
+ assert.match(measurementPage(ui),/GPSの測定は準備中/);
  assert.equal(stepMeasurementPreview(ui,'show-running'),false);
  assert.equal(ui.phase,'ready');
 });
@@ -23,7 +23,7 @@ test('preview lifecycle never saves metrics or unlocks real start',()=>{
  assert.equal(stepMeasurementPreview(ui,'confirm-end'),true);
  assert.equal(ui.preview,false);
  assert.equal(ui.phase,'ready');
- assert.match(measurementPage(ui),/GPS未接続/);
+ assert.match(measurementPage(ui),/GPSの測定は準備中/);
 });
 test('cannot end from readiness or issue unexpected commands',()=>{
  const ui=createMeasurementViewState();
