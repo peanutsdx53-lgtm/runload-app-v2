@@ -341,6 +341,10 @@ try{
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
   assert.match(await ex.innerText(),/記録がなくても自由に選べます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
+  await ex.locator('[data-ex-category="01"]').click();
+  assert.equal(await ex.locator('[data-ex-learning="distance-time-pace"]').count(),1);
+  assert.match(await ex.locator('.ex-tool-result').innerText(),/保存済みの走行はまだありません/);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-empty-v27.png'),fullPage:false});
     const topicRail=ex.locator('.ex-topic-set');
     const beforeRail=await topicRail.evaluate(el=>({scrollWidth:el.scrollWidth,width:el.clientWidth,layout:getComputedStyle(el).display}));
     assert.equal(beforeRail.layout,'flex','topic navigator is a compact horizontal rail');
@@ -995,6 +999,14 @@ try{
    assert.match(await savedExplore.locator('[data-ex-category="01"]').getAttribute('aria-label'),/保存した走行距離と時間に関連/);
    assert.equal(await savedExplore.locator('.ex-node[data-ex-category="03"].is-related').count(),0,'distance alone does not imply hills');
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-saved-run-glow-v23.png'),fullPage:false});
+   await savedExplore.locator('[data-ex-category="01"]').click();
+   assert.equal(await savedExplore.locator('[data-ex-learning="distance-time-pace"]').count(),1);
+   const paceLesson=await savedExplore.locator('.ex-tool-result').innerText();
+   assert.match(paceLesson,/5.00 km/);
+   assert.match(paceLesson,/30分00秒/);
+   assert.match(paceLesson,/6:00 分\/km/);
+   assert.match(paceLesson,/10.0 km\/h/);
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-saved-v27.png'),fullPage:false});
    await page.goto(host+'#/home',{waitUntil:'networkidle'});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
