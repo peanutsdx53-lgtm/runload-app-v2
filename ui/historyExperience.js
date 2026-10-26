@@ -56,7 +56,7 @@ export function renderHistory(ui,rawRecords=[],options={}){const records=normali
 export function mountHistory(host,{records=[],connected=false,onOpen=null,ui=createHistoryUi()}={}){
  if(!host)return;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
- root.innerHTML='<style data-history-inline-styles>'+HISTORY_STYLES+'</style><div id="hx-view"></div>';
+ root.innerHTML='<style data-history-inline-styles>'+HISTORY_STYLES+'\n.selected-footer{scroll-margin-bottom:calc(110px + env(safe-area-inset-bottom))}</style><div id="hx-view"></div>';
  const safeRecords=connected===true?normalizeRecords(records):[];
  const context={connected:connected===true,onOpen};
  const draw=()=>root.querySelector('#hx-view').innerHTML=renderHistory(ui,safeRecords,context);
@@ -72,6 +72,9 @@ export function mountHistory(host,{records=[],connected=false,onOpen=null,ui=cre
   else if('openRecord'in d){const choice=lookupRecord(filterRecords(safeRecords,ui),ui.selectedId);if(choice&&typeof onOpen==='function')onOpen(choice.id);return;}
   else return;
   const y=window.scrollY;draw();window.scrollTo(0,y);
+  if('selectId' in d&&ui.selectedId&&window.matchMedia('(max-width:800px)').matches){
+   root.querySelector('.selected-footer')?.scrollIntoView({block:'end',behavior:'instant'});
+  }
  });
  root.addEventListener('input',event=>{
   if(event.target.id!=='hx-search')return;
