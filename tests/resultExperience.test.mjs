@@ -64,5 +64,5 @@ test('Result and manual-save surfaces use the approved dark chrome and button st
 test('public-facing result copy omits internal branding and preserves formal names',()=>{
  const js=read('ui/resultExperience.js');
  for(const literal of ['RUNLOAD / RESULTS',"t('RUNLOAD'",'RunLoad_入力中の走行.png','正式保存前','履歴未接続'])assert.equal(js.includes(literal),false,literal);
- assert.ok(js.includes('膝蓋大腿関節部')||read('assets/bodyRegionVisuals.js').includes('膝蓋大腿関節部'));
+ assert.ok(OFFICIAL_NAMES.some(([,name])=>name==='膝蓋大腿関節部'),'official anatomical names are never rewritten');
 });
