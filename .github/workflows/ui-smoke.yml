@@ -32,5 +32,7 @@ jobs:
           node --check ui/gaitExperience.js
           node --check ui/environmentExperience.js
           node --check ui/measurementExperience.js
+          node --check ui/explorationExperience.js
+          node --check ui/explorationReadAdapter.js
       - name: UI and installability contracts
-        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/rofExperience.test.mjs tests/recordDraftReview.test.mjs tests/recordExperience.test.mjs tests/recordReviewExperience.test.mjs tests/resultExperience.test.mjs tests/manualRunStore.test.mjs tests/gaitExperience.test.mjs tests/environmentExperience.test.mjs tests/measurementExperience.test.mjs
+        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/rofExperience.test.mjs tests/recordDraftReview.test.mjs tests/recordExperience.test.mjs tests/recordReviewExperience.test.mjs tests/resultExperience.test.mjs tests/manualRunStore.test.mjs tests/gaitExperience.test.mjs tests/environmentExperience.test.mjs tests/measurementExperience.test.mjs tests/explorationExperience.test.mjs tests/explorationReadAdapter.test.mjs
