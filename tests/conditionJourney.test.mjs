@@ -24,7 +24,7 @@ test('displayed mood is categorical and day notes are escaped',()=>{
  const html=renderConditionJourney(evil,{days:7,selected:b});
  assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
  assert.match(html,/aria-label/);
- assert.match(html,/就床から起床/);
+ assert.match(html,/睡眠時間/);
 });
 test('different input methods are separated, not silently placed on a common trend',()=>{
  const c2={canSave:true,entries:[record(a,420,'良い','','duration'),record(b,470,'ふつう','','clock')]};
