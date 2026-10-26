@@ -54,8 +54,8 @@ export function renderSettings({profile,display,notice=''}){
    item('♧','使用したシューズ','保存候補の管理',`<p>シューズ候補の保存・編集は、正式な走行保存との接続後に利用できます。過去記録は変更しません。</p>`,{hint:'準備中'})
   ]),
   group('◉','記録と測定',[
-   item('◎','位置情報','GPS測定時の権限・位置情報',`<p>位置情報へのアクセスはGPS測定を利用する際に端末が確認します。権限は端末・ブラウザ側で変更できます。RunLoadは設定画面から権限を変更しません。</p>`,{hint:'案内'}),
-   item('◴','測定中のお知らせ','音・振動などの通知',`<p>正式なGPS測定エンジンとの接続後、対応端末で利用できる通知機能を提供します。</p>`,{hint:'準備中'})
+   item('◎','位置情報','GPS測定時の権限・位置情報',`<p>位置情報へのアクセスはGPS測定を利用する際に端末が確認します。権限は端末・ブラウザ側で変更できます。この設定画面では位置情報の許可を変更できません。</p>`,{hint:'案内'}),
+   item('◴','測定中のお知らせ','音・振動などの通知',`<p>GPSでの測定中に音や振動で知らせる機能は、まだ利用できません。</p>`,{hint:'準備中'})
   ]),
   group('▤','データとプライバシー',[
    item('▣','バックアップ・復元','端末内の記録を保護',`<p>データ形式の検査・復元前バックアップ・破損防止が完成してから有効化します。現在、復元や書き出しは実行できません。</p>`,{hint:'準備中'}),
@@ -65,8 +65,8 @@ export function renderSettings({profile,display,notice=''}){
   group('ⓘ','アプリとヘルプ',[
    item('⇩','アプリをインストール','ホーム画面やPCに追加',`<button type="button" class="s2-inline-btn" data-install-app>インストール方法を見る →</button>`,{hint:'案内あり'}),
    item('?','初回ガイド','使い始めの案内を再確認',`<button type="button" class="s2-inline-btn" data-onboard-open>初回ガイドを開く →</button>`,{hint:'案内あり'}),
-   item('ⓘ','RunLoadについて','アプリの現在の状態',`<p>RunLoad v2 — UI/UX再設計版。GPS測定エンジン・科学計算・正式記録保存の接続は未完了です。RunLoadは医学的な診断を行うものではありません。</p>`,{hint:'アプリ情報'})
+   item('ⓘ','このアプリについて','アプリの現在の状態',`<p>手入力した走行は端末に保存できます。GPSによる測定の保存と、身体の部位別の参考値の表示は準備中です。医療上の診断は行いません。</p>`,{hint:'アプリ情報'})
   ])
  ];
- return `<div class="s2-page" data-settings-v2><header class="s2-heading"><div><h1>設定</h1><p>使いやすさと、自分の情報を管理する。</p></div><div class="s2-locale"><span>日本語</span><span class="s2-status-dot" aria-hidden="true"></span><strong>DARK</strong></div></header>${notice?`<p class="s2-notice" role="status">${escape(notice)}</p>`:''}<div class="s2-grid"><div class="s2-column">${groups.slice(0,3).join('')}</div><div class="s2-column">${groups.slice(3).join('')}</div></div><p class="s2-footer">RunLoad v2 · 日本語版 · 個人設定はこの端末内で管理します</p></div>`;
+ return `<div class="s2-page" data-settings-v2><header class="s2-heading"><div><h1>設定</h1><p>使いやすさと、自分の情報を管理する。</p></div><div class="s2-locale"><span>日本語</span><span class="s2-status-dot" aria-hidden="true"></span><strong>暗い画面</strong></div></header>${notice?`<p class="s2-notice" role="status">${escape(notice)}</p>`:''}<div class="s2-grid"><div class="s2-column">${groups.slice(0,3).join('')}</div><div class="s2-column">${groups.slice(3).join('')}</div></div><p class="s2-footer">日本語版 · 設定はこの端末に保存されます</p></div>`;
 }
