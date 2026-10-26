@@ -160,10 +160,16 @@ function sevenBars(entries){
  }
  return '<div class="hx-bars" role="img" aria-label="直近7日間の睡眠・就床の記録時間。未入力日は棒を表示しません">'+pieces.join("")+'</div>';
 }
-export function latestCard(preview){
+export function latestCard(preview,record=null){
+ const recent=!preview&&record?.source==='manual'&&record?.type==='run'&&typeof record?.id==='string'&&Number.isFinite(record.distanceKm)&&Number.isInteger(record.durationSeconds)?record:null;
+ const secs=recent?Math.round(recent.durationSeconds/recent.distanceKm):0;
+ const pace=secs?Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0'):'—';
+ const m=recent?Math.floor(recent.durationSeconds/60):0;
+ const time=recent?(m?m+'分':'')+String(recent.durationSeconds%60).padStart(2,'0')+'秒':'—';
  const body=preview ? '<div class="hx-latest-fig"><div><small>距離</small><strong>7.20 <em>km</em></strong></div><div><small>時間</small><strong>42 <em>分</em></strong></div><div><small>平均ペース</small><strong>5:50 <em>/km</em></strong></div></div>'
-  : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>正式な記録保存との接続後に表示されます</p></div></div>';
- return '<section class="hx-card hx-latest">'+head("最新の走行","run",preview?sample():"")+body+'<div class="hx-orbit" aria-hidden="true"></div></section>';
+  :recent?'<div class="hx-latest-fig"><div><small>距離</small><strong>'+escape(recent.distanceKm.toFixed(2))+' <em>km</em></strong></div><div><small>時間</small><strong>'+escape(time)+'</strong></div><div><small>平均ペース</small><strong>'+escape(pace)+' <em>/km</em></strong></div></div><a class="hx-condition-explore" href="#/result?record='+encodeURIComponent(recent.id)+'">保存した走行の結果を見る <span aria-hidden="true">›</span></a>'
+  : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>手入力した走行を保存すると、ここに表示されます。</p></div></div>';
+ return '<section class="hx-card hx-latest">'+head("最新の走行","run",preview?sample():recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+'<div class="hx-orbit" aria-hidden="true"></div></section>';
 }
 export function conditionCard(storage,preview){
  const state=readConditions(storage),entries=preview?demoEntries():state.entries,map=new Map(entries.map(x=>[x.date,x])),today=map.get(todayLocal());

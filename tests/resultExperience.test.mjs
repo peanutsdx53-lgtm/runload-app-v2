@@ -26,9 +26,18 @@ test('Result v4 view is isolated and precached',()=>{
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');
- assert.match(app,/resultExperience\.mountResult\(app\.querySelector\("#runload-result-v4"\),\{\}\)/);
+ assert.match(app,/manualRunStore\.findManualRun/);assert.match(app,/resultExperience\.mountResult\(app\.querySelector\("#runload-result-v4"\),record\?\.draft\|\|\{\}/);
  assert.ok(app.includes('historyExperience.mountHistory'));
  assert.ok(!app.includes('const data=[{day:22')); 
  assert.ok(read('ui/historyExperience.js').includes('data-history-unconnected')); 
  assert.ok(!app.includes('href="#/${entry.type'));
+});
+
+test('result palette is synchronously rendered inside the shadow root',()=>{
+ const js=read('ui/resultExperience.js');
+ const inline=read('ui/resultInlineStyles.js');
+ assert.match(js,/RESULT_STYLES/);
+ assert.match(js,/style data-result-inline-styles/);
+ assert.doesNotMatch(js,/<link rel=.*stylesheet/);
+ assert.match(inline,/radial-gradient/);
 });
