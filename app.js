@@ -17,7 +17,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-user-copy-v21");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-v22");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
@@ -461,7 +461,7 @@ function recordExtras(){
       const input=event.target,caret=input.selectionStart;
       explorationUi.search=input.value;
       const list=app.querySelector(".ex-catalog-grid");
-      if(list){const all=CATEGORIES.flatMap(c=>c.topics.map(t=>({c,t})));const q=input.value.trim().toLocaleLowerCase("ja");list.innerHTML=all.filter(x=>(x.c.name+x.t).toLocaleLowerCase("ja").includes(q)).map(x=>`<button type="button" data-ex-category="${esc(x.c.id)}" data-ex-pick-topic="${esc(x.t)}"><small>${esc(x.c.name)}</small><strong>${esc(x.t)}</strong><span aria-hidden="true">↗</span></button>`).join("")||"<p>該当するテーマがありません</p>";}
+      if(list)list.innerHTML=explorationExperience.catalogCards(CATEGORIES,input.value);
       return;
     }
     if(event.target.matches("[data-ex-life]")){
