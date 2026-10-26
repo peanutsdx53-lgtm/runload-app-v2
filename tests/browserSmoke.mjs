@@ -253,7 +253,7 @@ try{
   await report.locator('.rv4-region').first().waitFor({timeout:15000});
   assert.equal(await report.locator('.rv4-region').count(),5,"front view has five official region targets");
   assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
-  assert.match(await report.locator('.rv4-notice').innerText(),/正式保存/);
+  assert.match(await report.locator('.rv4-notice').innerText(),/保存された走行記録はまだありません/);
   assert.match(await report.locator('.rv4-big-score').innerText(),/—/,"no synthetic scientific score");
   assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
   await report.locator('[data-view="sole"]').click();
@@ -786,7 +786,7 @@ try{
    const visibleArea=route==="history"?page.locator("#runload-history-v2").locator(".stage"):page.locator("main");
    assert.ok((await visibleArea.innerText()).length>60,route);
    const textContent=await visibleArea.innerText();
-   assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用/.test(textContent),route+" developer-only text found");
+   assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用|RUNLOAD|RunLoad|EXPLORE \/|マイダッシュボード|測定エンジン|科学計算|未接続|正式保存前/.test(textContent),route+" user-facing internal text found");
    const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
@@ -853,7 +853,7 @@ try{
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
-  assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
+  assert.match(await savedResult.locator('.rv4-body').innerText(),/参考値はまだありません/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
