@@ -93,14 +93,13 @@ function experience(ui,ctx,cat,topic){
   tool=`<div class="ex-tool-switch" role="group" aria-label="坂道の方向">${Object.entries(choices).map(([id,item])=>`<button type="button" data-ex-slope="${id}" aria-pressed="${ui.toolChoice===id}">${item.label}</button>`).join('')}</div><div class="ex-tool-result"><strong>${c.title}</strong><p>${c.body}</p></div><div class="ex-course-source">${shares}</div><a class="ex-learning-link" href="#/record-course">自分のコース入力を確認 ↗</a>`;
  }else{
   const life=strict.life,records=life.status==='complete'?life.records:[];
-  const pickA=records.find(v=>v.date===ui.lifeA)||records.at(-2)||null,pickB=records.find(v=>v.date===ui.lifeB)||records.at(-1);
-  const label=t=>t==='time-in-bed'?"就床〜起床までの時間":t==='self-reported'?"申告した睡眠時間":"測定方法が不明";
-  const display=v=>v?`${v.date}　${v.minutes===null?'時間の記録なし':Math.floor(v.minutes/60)+'時間'+String(v.minutes%60)+'分'}　${label(v.source)}　${v.feeling||'調子は未入力'}`:"記録なし";
-  const selectable=records.length>0?`<div class="ex-life-choices"><label>日付A<select data-ex-life="a">${records.map(v=>`<option value="${v.date}" ${pickA?.date===v.date?'selected':''}>${v.date}</option>`).join('')}</select></label><label>日付B<select data-ex-life="b">${records.map(v=>`<option value="${v.date}" ${pickB?.date===v.date?'selected':''}>${v.date}</option>`).join('')}</select></label></div>`:'';
-  const comparison=pickA&&pickB&&pickA.date!==pickB.date?compareLifeDays(life,pickA.date,pickB.date):null;
-  const delta=comparison?.status==='complete'?`時間の差：${comparison.minutesDelta>0?'+':''}${comparison.minutesDelta}分（${label(comparison.source)}）`:
-    comparison?comparison.reason:records.length<2?'比較するには、異なる日付の記録が2件必要です。':'異なる2日を選ぶと比較できます。';
-  tool=`${selectable}<div class="ex-tool-result"><strong>自分の生活記録</strong><p>${h(display(pickA))}</p><p>${h(display(pickB))}</p><small>${h(delta)}</small></div><p class="ex-precaution">同じ日付に記録があっても、睡眠が調子や走りの原因とは判断できません。</p><a class="ex-learning-link" href="#/condition">コンディションの歩みを見る ↗</a>`;
+  const latest=records.at(-1)||null;
+  const fmt=n=>n===null?'時間の記録なし':Math.floor(n/60)+'時間'+String(n%60)+'分';
+  const type=s=>s==='time-in-bed'?'就床から起床までの時間':s==='self-reported'?'記録した睡眠時間':'入力方法が不明';
+  tool='<div class="ex-tool-result"><strong>'+(latest?'いちばん新しい生活記録':'生活記録はまだありません')+'</strong>'
+   +(latest?'<p>'+h(latest.date)+'　'+h(fmt(latest.minutes))+'</p><p>朝の調子：'+h(latest.feeling||'記録なし')+'</p><small>'+h(type(latest.source))+'</small>':'<p>睡眠や朝の調子を記録すると、後から振り返れます。</p>')
+   +'</div><a class="ex-learning-link" href="#/condition">睡眠と朝の調子を見てみる ›</a>';
+
  }
  const saved=ui.notes.filter(n=>n.topicId===key).slice(0,2);
  return '<div class="ex-learning" data-ex-learning="'+key+'"><div class="ex-learning-head"><span>まずは知ってみよう</span><button type="button" data-ex-action="learn-help" class="ex-help" aria-label="研究の出典と注意点">？</button></div><h3>'+h(entry.heading)+'</h3><p class="ex-learning-lead">'+h(entry.lead)+'</p>'
