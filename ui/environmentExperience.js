@@ -26,13 +26,13 @@ export function environmentPage(d={},ui=newEnvironmentUi()){
  <label class="e4-label">気温<span class="e4-temperature"><input data-draft="temperatureC" type="number" min="-50" max="60" inputmode="decimal" step="0.1" placeholder="未入力" value="${safe(d.temperatureC)}" aria-label="気温（摂氏）"><b>℃</b></span></label><p class="e4-help">0℃と未入力は別です。気温を推測して埋めることはありません。</p><div class="e4-divider"></div>
  <p class="e4-label-text">天候を選択</p><div class="e4-chips" role="group" aria-label="天候の選択">${options}</div><p class="e4-help">もう一度押すと選択を解除できます。</p>
  <p class="e4-label-text e4-gap">気になった条件（複数可）</p><div class="e4-flags" role="group" aria-label="環境に関する補足">${checks}</div>
- <p class="e4-draft-note">天候・補足条件は表示確認用の一時選択です。正式な保存仕様は未接続です。</p></section>
+ <p class="e4-draft-note">天候など一部の項目は、画面を移動すると保存されない場合があります。</p></section>
  <section class="rv-panel e4-panel"><div class="e4-top"><h2>環境メモ</h2><small>任意</small></div>
  <label class="e4-label">気づいたこと<textarea data-draft="environmentNote" rows="5" maxlength="500" placeholder="例：向かい風が強かった。日陰は涼しかった。">${safe(d.environmentNote)}</textarea></label>
  <p class="e4-help">入力した内容を天候の選択で自動的に書き換えることはありません。</p>
  <div class="e4-summary"><strong>入力内容の確認</strong><p data-e4-summary>${safe(environmentSummary(d,ui))}</p></div>
  <p class="e4-error" data-e4-error role="alert" ${temperatureError(d.temperatureC)?'':'hidden'}>${safe(temperatureError(d.temperatureC))}</p>
- </section></div><div class="e4-bottom"><p>気温・メモは現在の記録下書きに保持します。天候・補足条件は正式保存に含めません。</p><a class="e4-done" data-e4-done href="#/record">入力を確認</a></div></div>`;
+ </section></div><div class="e4-bottom"><p>気温とメモは記録の確認画面に引き継がれます。天候などは保存されません。</p><a class="e4-done" data-e4-done href="#/record">入力を確認</a></div></div>`;
 }
 export function paintEnvironment(root,d,ui){
  if(!root)return;
