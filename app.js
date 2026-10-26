@@ -404,7 +404,7 @@ function recordExtras(){
    }
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
-    onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);render();window.scrollTo(0,0);}
+    onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);}
    });
  }
  if(page==="condition"){
@@ -604,7 +604,7 @@ function recordExtras(){
       selectedRunId=saved.record.id;manualSaveNotice="";state.recordReviewReturn=false;
       state.toast="手入力の走行記録をこの端末に保存しました";
       location.hash="#/result?record="+encodeURIComponent(saved.record.id);
-      render();window.scrollTo(0,0);return;
+      return;
     }
     const conditionControl=event.target.closest("[data-cj-range],[data-cj-day],[data-cj-save-insight],[data-cj-delete-insight],[data-cj-create-intent]");
     if(conditionControl){
