@@ -809,6 +809,9 @@ try{
   assert.match(page.url(),/#\/result\?record=run-v1-/);
   const savedResult=page.locator('#runload-result-v4');
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.equal(await savedResult.locator('style[data-result-inline-styles]').count(),1,'result shadow styles are available immediately');
+  const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
+  assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
   assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
   await savedResult.evaluate(async host=>{
@@ -842,6 +845,8 @@ try{
   }
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await savedHistory.locator('[data-open-record]').click();
+  assert.equal(await page.locator('#runload-result-v4 style[data-result-inline-styles]').count(),1,'history-to-result retains synchronous styles');
+  assert.match(await page.locator('#runload-result-v4 .rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage),/radial-gradient/);
   assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
   await page.locator('#runload-result-v4').evaluate(async host=>{
     const sheet=host.shadowRoot.querySelector('link[rel="stylesheet"]');
