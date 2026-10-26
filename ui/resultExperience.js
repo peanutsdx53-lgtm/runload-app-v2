@@ -1,4 +1,5 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
+import {RESULT_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
@@ -101,6 +102,6 @@ export function mountResult(host,draft={},options={}){
   t('RUNLOAD',943,553,25,'#55dedd');
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='RunLoad_入力中の走行.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
- if(!root.querySelector('.rv4-app'))root.innerHTML='<link rel="stylesheet" href="./ui/resultExperience.css?v=20261025-result-v4-main-01"><div class="rv4-app"></div>';
+ if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+'</style><div class="rv4-app"></div>';
  draw();
 }
