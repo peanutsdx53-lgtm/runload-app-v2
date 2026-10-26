@@ -17,7 +17,7 @@ test('route position uses geometric distance but clamps at the endpoint',()=>{
 });
 test('SVG never invents altitude across gaps and escaping rejects route names as HTML',()=>{
  const html=renderGpxVisual({...feature,name:'<img src=x onerror=alert(1)>'},1,2,'b');
- assert.match(html,/欠損区間は線をつながず表示/);
+ assert.match(html,/欠損区間は描画しません/);
  assert.match(html,/途切れた区間 1件/);
  assert.match(html,/仮の進行位置A・B/);
  assert.doesNotMatch(html,/onerror=/);
@@ -25,4 +25,17 @@ test('SVG never invents altitude across gaps and escaping rejects route names as
 test('client file reader rejects oversize or wrong suffix before accessing data',async()=>{
  await assert.rejects(readGpxFile({name:'x.gpx',size:GPX_MAX_BYTES+1}),/5MB/);
  await assert.rejects(readGpxFile({name:'x.txt',size:100,text:async()=>'<gpx/>'}),/\.gpx/);
+});
+
+test('v34 2.5D view uses only known elevation runs and marks both scenarios',()=>{
+ const html=renderGpxVisual(feature,.5,2,'a');
+ assert.match(html,/sm-route-grid-v34/);
+ assert.match(html,/sm-route-progress-v34/);
+ assert.match(html,/sm-terrain-fill-v34/);
+ assert.match(html,/高 110m/);
+ assert.match(html,/低 90m/);
+ assert.match(html,/欠損区間は描画しません/);
+ const noElev=renderGpxVisual({...feature,elevationPoints:0,elevationStatus:'none'},.5,2,'a');
+ assert.doesNotMatch(noElev,/sm-gpx-elevation/);
+ assert.match(noElev,/標高データがない/);
 });

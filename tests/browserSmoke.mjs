@@ -552,6 +552,13 @@ try{
   assert.equal(await page.locator('[data-sim-page]').count(),1,'simulation replaces disconnected placeholder');
   assert.equal(await page.locator('.sm-panel').count(),4,'top-to-bottom what-if workflow');
   assert.equal(await page.locator('[data-sm-source]').count(),3,'manual, no-course and GPX are usable; GPS saved history remains gated');
+  assert.equal(await page.locator('.sm-source-option').count(),4,'v34 selector includes disabled GPS future source');
+  assert.equal(await page.locator('.sm-scenario').count(),2,'v34 scenario cards preserve two alternatives');
+  assert.equal(await page.locator('[data-sm-summary-b]').count(),1,'cycle summary is visible');
+  assert.equal(await page.locator('[data-install-app]').isVisible(),false,'unused top-right install arrow is hidden on this screen');
+  const fieldsAligned=await page.evaluate(()=>{const a=document.querySelector('[data-sm-field="presetId"]')?.getBoundingClientRect();const b=document.querySelector('[data-sm-field="distance"]')?.getBoundingClientRect();return !!a&&!!b&&Math.abs(a.y-b.y)<2&&Math.abs(a.height-b.height)<1;});
+  assert.ok(fieldsAligned,'manual select and distance input align despite the km suffix');
+
   await page.locator('[data-sm-field="presetId"]').selectOption({label:'検証用保存コース'});
   assert.match(await page.locator('.sm-source-meta').innerText(),/平坦/,'selected course condition is visible');
   await page.locator('[data-sm-field="distance"]').fill('5');
@@ -562,7 +569,7 @@ try{
   assert.ok(simGeometry.scroll<=simGeometry.width+3,mode.name+' simulation horizontal overflow '+JSON.stringify(simGeometry));
   assert.ok(simGeometry.steps.every((a,j)=>j===0||a[0]>simGeometry.steps[j-1][1]),'simulation steps flow vertically');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v33-with-course.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v34-with-course.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
   // GPX imports are local, ephemeral, and must produce route + elevation graphics only for actual file data.
   await page.locator('[data-sm-source="gpx"]').click();
@@ -574,6 +581,9 @@ try{
   assert.match(await page.locator('.sm-gpx-loaded').innerText(),/小川コース/);
   assert.equal(await page.locator('.sm-gpx-shape').count(),1,'GPX coordinate preview is present');
   assert.equal(await page.locator('.sm-gpx-elevation').count(),1,'GPX elevation is rendered from file data');
+  assert.equal(await page.locator('.sm-gpx-elevation path[fill="url(#sm-terrain-fill-v34)"]').count(),2,'2.5D terrain fill respects GPX segment gaps');
+  assert.equal(await page.locator('.sm-gpx-shape path[stroke="url(#sm-route-progress-v34)"]').count(),1,'selected scenario route has a distinct progress line');
+
   assert.match(await page.locator('.sm-gpx-visual').last().innerText(),/途切れた区間 1件/);
   await page.locator('[data-sm-focus="b"]').click();
   assert.match(await page.locator('.sm-gpx-result-caption').innerText(),/B｜走る＋歩く/);
@@ -583,7 +593,7 @@ try{
   assert.match(await page.locator('.sm-error').first().innerText(),/外部定義/);
   assert.equal(await page.locator('.sm-gpx-shape').count(),1,'import failure preserves current route');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v33-gpx.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v34-gpx.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
   const gpxOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gpxOverflow<=3,mode.name+' GPX preview has no viewport overflow: '+gpxOverflow);

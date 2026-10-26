@@ -57,3 +57,19 @@ test('GPX mode stays useful without a loaded file and never invents position',()
  assert.doesNotMatch(html,/sm-gpx-shape/);
  assert.match(html,/距離目標なし/);
 });
+
+test('v34 source selector and scenario controls preserve provenance and use aligned units',()=>{
+ const html=renderSimulation(newSimulationUi(),{presets:{ok:true,records:[]},manualRuns:{ok:true,records:[]}});
+ assert.match(html,/data-sm-source="manual"/);
+ assert.match(html,/data-sm-source="gpx"/);
+ assert.match(html,/data-sm-source="none"/);
+ assert.match(html,/GPS実走履歴/);
+ assert.match(html,/disabled title="GPS走行軌跡の保存機能/);
+ assert.match(html,/sm-course-fields/);
+ assert.match(html,/sm-input-wrap/);
+ assert.match(html,/仮のコース距離/);
+ assert.match(html,/data-sm-summary-a/);
+ assert.match(html,/data-sm-summary-b/);
+ assert.match(html,/7分サイクル/);
+ assert.match(html,/data-sm-cycle-track/);
+});
