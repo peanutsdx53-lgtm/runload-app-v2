@@ -77,3 +77,8 @@ test('topic catalog groups questions by field and filters without duplicating bu
  assert.equal((html.match(/data-ex-pick-topic=/g)||[]).length,7);
  assert.match(html,/data-ex-search/);
 });
+
+test('all 28 topics have a useful beginner prompt or a sourced learning panel',()=>{
+ const ui=makeUi(memory()),ctx={categories,draft:{},conditions:{entries:[]}};
+ for(const cat of categories){ui.selected=cat.id;for(const topic of cat.topics){ui.topic=topic;const page=render(ui,ctx);assert.match(page,/data-ex-action="note"/);assert.doesNotMatch(page,/このテーマの学習コンテンツは準備中です|学習コンテンツは準備中/);}}
+});
