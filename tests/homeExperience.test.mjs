@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {CONDITION_KEY,validEntry,readConditions,saveCondition,conditionCard,achievementCard,todayLocal,calculatedTimeInBed,conditionEntryFromForm,conditionPanel,latestCard} from "../ui/homeExperience.js";
+import {CONDITION_KEY,validEntry,readConditions,saveCondition,conditionCard,achievementCard,achievementSummary,achievementPanel,todayLocal,calculatedTimeInBed,conditionEntryFromForm,conditionPanel,latestCard} from "../ui/homeExperience.js";
 function store(seed={}) {
  const data=new Map(Object.entries(seed));
  return {getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),raw:k=>data.get(k)};
@@ -30,7 +30,7 @@ test("home never claims unearned or medically inferred score",()=>{
  const empty=conditionCard(s,false);
  assert.match(empty,/未入力/);
  assert.ok(!empty.includes("78\/100"));
- assert.match(achievementCard(false),/実績はまだ表示できません/);
+ assert.match(achievementCard(false),/記録を保存すると実績を確認できます/);
  const preview=achievementCard(true);
  assert.match(preview,/表示例/);
  assert.match(preview,/42\.0/);
@@ -101,4 +101,16 @@ test("latest saved manual run displays minutes without appended seconds",()=>{
  assert.match(fractional,/32\.5分/);
  assert.doesNotMatch(fractional,/30秒/);
  assert.match(fractional,/6:30/);
+});
+
+test("achievements read only confirmed saved manual runs and distinguish broken storage",()=>{
+ const rows=[{source:'manual',type:'run',id:'run-1',distanceKm:5,durationSeconds:2100},{source:'manual',type:'run',id:'run-2',distanceKm:46,durationSeconds:900}];
+ const good={ok:true,records:rows};const a=achievementSummary(good);
+ assert.deepEqual(a.achieved,[true,true,true,false]);assert.equal(a.count,3);assert.equal(a.distance,51);
+ assert.match(achievementCard(false,good),/51.0/);assert.match(achievementPanel(false,good),/30分以上の走行記録を保存（達成）/);
+ assert.match(achievementPanel(false,good),/累計100 km（未達成）/);
+ assert.deepEqual(achievementSummary({ok:true,records:[]}).achieved,[false,false,false,false]);
+ assert.match(achievementCard(false,{ok:false,records:rows,reason:'破損'}),/実績を確認できません/);
+ assert.doesNotMatch(achievementPanel(false,{ok:false,records:rows,reason:'破損'}),/51.0/);
+ assert.equal(achievementSummary({ok:true,records:[{source:'gps',type:'run',id:'gps-1',distanceKm:200,durationSeconds:5000}]}).count,0);
 });

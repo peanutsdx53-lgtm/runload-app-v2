@@ -3,7 +3,7 @@
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
-  const homeExperience=await import("./ui/homeExperience.js?v=20261026-user-copy-v21");
+  const homeExperience=await import("./ui/homeExperience.js?v=20261026-achievement-v29");
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
   const reviewDraft=await import("./ui/recordDraftReview.js");
@@ -181,10 +181,11 @@
  const editing=homeEditState.editing;
  const pref=editing?homeEditState.draft:homePreferenceState.layout;
  const names=dashboardPrefs.HOME_DASHBOARD_WIDGETS;
+ const savedRunState=manualRunStore.readManualRuns(onboardStorage);
  const cards={
   latest:homeExperience.latestCard(homeUi.preview,(()=>{const r=manualRunStore.readManualRuns(onboardStorage);return r.ok?r.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt))[0]||null:null})()),
   condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
-  topics:homeExperience.achievementCard(homeUi.preview),
+  topics:homeExperience.achievementCard(homeUi.preview,savedRunState),
   shortcuts:homeExperience.shortcutsCard(),
   trend:homeExperience.trendCard(homeUi.preview),
   discovery:homeExperience.discoveryCard()
@@ -210,7 +211,7 @@
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="ホームの表示">${widgets}</div>
   ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
  ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
- ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
+ ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview,savedRunState):""}
  </div>`;
 }
     function rofPanel(){

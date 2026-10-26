@@ -455,3 +455,9 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
  #app .hx-duration-picks{gap:5px}
  #app .hx-duration-picks>button{font-size:.76rem;min-height:44px}
 }
+
+/* V29: use the existing achievement visual language with real saved-run data. */
+.home-v3 .hx-achievement,.home-v3 .hx-ach-main,.home-v3 .hx-ach-data{min-width:0}
+.home-v3 .hx-ach-data strong,.home-v3 .hx-ach-data small{overflow-wrap:anywhere}
+.home-v3 .hx-ach-grid span.is-unearned{opacity:.69;border-color:#71818c6c;background:#51606a22}
+@media(max-width:420px){.home-v3 .hx-ach-main{gap:12px}.home-v3 .hx-medal{width:64px;height:64px;flex-basis:64px;font-size:2.3rem}.home-v3 .hx-ach-data strong{font-size:1.32rem}}
