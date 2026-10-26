@@ -346,3 +346,90 @@
  .ex-page .ex-constellation .ex-node.is-related .ex-node-orb{animation:none}
  .ex-page .ex-constellation .ex-node-orb{transition:none}
 }
+
+
+/* V24: scalable one-line topic navigator; never fragment Japanese technical nouns.
+   The reading surface remains one active article, independent of topic count. */
+.ex-page .ex-focus .ex-topic-heading{
+ display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+ gap:5px 12px;margin:12px 0 10px
+}
+.ex-page .ex-focus .ex-topic-label{margin:0;font-size:.88rem;line-height:1.45;letter-spacing:0}
+.ex-page .ex-focus .ex-topic-hint{
+ font-size:.69rem;line-height:1.55;color:#8cbfcf;
+ white-space:nowrap;font-weight:650
+}
+.ex-page .ex-focus .ex-topic-set{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ grid-template-columns:none!important;gap:9px!important;
+ width:100%;min-width:0;max-width:100%;overflow-x:auto!important;
+ overflow-y:hidden!important;overscroll-behavior-x:contain;
+ padding:4px 4px 12px;scroll-snap-type:x proximity;scrollbar-width:thin;
+ scrollbar-color:#438c98 #0d2c3b;-webkit-overflow-scrolling:touch;
+}
+.ex-page .ex-focus .ex-topic{
+ flex:0 0 auto!important;width:auto!important;
+ max-width:calc(100% - 8px)!important;min-width:unset!important;
+ min-height:52px!important;scroll-snap-align:start;
+ padding:11px 13px!important;gap:10px!important;
+ display:inline-flex!important;align-items:center!important;
+ justify-content:flex-start!important;flex-direction:row!important;
+ border-radius:15px!important;background:#082c3c!important;
+ border:1px solid #427182!important;
+ box-shadow:inset 0 1px #beffff08!important;
+ color:#d6eff3;white-space:nowrap!important;word-break:keep-all!important;
+ overflow-wrap:normal!important;line-break:strict;
+}
+.ex-page .ex-focus .ex-topic strong{
+ flex:none!important;min-width:0;
+ display:inline!important;font-size:.83rem!important;line-height:1.35!important;
+ color:#d6eff3;white-space:nowrap!important;word-break:keep-all!important;
+ overflow-wrap:normal!important;text-wrap:nowrap;
+}
+.ex-page .ex-focus .ex-topic span:first-child{
+ flex:none;color:#6fd8d3;font-size:.72rem;font-variant-numeric:tabular-nums;
+}
+.ex-page .ex-focus .ex-topic span:last-child{flex:none;font-size:1rem;color:#74bdc7}
+.ex-page .ex-focus .ex-topic.is-picked{
+ border-color:#74ecdf!important;background:linear-gradient(120deg,#136475,#114859)!important;
+ box-shadow:inset 0 0 0 1px #78e7de30,0 0 0 2px #52ded118!important;
+}
+.ex-page .ex-focus .ex-topic:hover{border-color:#78cfd6!important}
+.ex-page .ex-focus .ex-topic:focus-visible{
+ outline:3px solid #c5fff5;outline-offset:2px
+}
+/* The learner's next action is a concise footer rather than another large card. */
+.ex-page .ex-learning .ex-note-invite{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ gap:14px!important;align-items:center;
+ padding:14px 15px!important;margin-top:2px;
+ border-radius:14px!important;border:1px solid #376a77!important;
+ border-left:3px solid #6dded6!important;
+ background:linear-gradient(115deg,#113945,#102f3f)!important
+}
+.ex-page .ex-learning .ex-note-invite>div{gap:3px!important;min-width:0}
+.ex-page .ex-learning .ex-note-invite strong{
+ font-size:.91rem;word-break:keep-all;overflow-wrap:break-word
+}
+.ex-page .ex-learning .ex-note-invite p{font-size:.75rem;margin:0!important;line-height:1.55}
+.ex-page .ex-learning .ex-note-invite small{font-size:.69rem}
+.ex-page .ex-learning .ex-note-invite button{
+ width:auto!important;min-width:112px;min-height:43px;
+ padding:9px 13px;border-radius:11px;
+ box-shadow:none;font-size:.8rem;white-space:nowrap
+}
+.ex-page .ex-learning .ex-note-invite button span{font-weight:900;margin-left:3px}
+.ex-page .ex-header-memo{font-size:.81rem!important;padding:8px 12px}
+.ex-page .ex-focus h2,.ex-page .ex-learning h3,
+.ex-page .ex-catalog-items button strong,.ex-page .ex-catalog-group-head h3{
+ word-break:keep-all;overflow-wrap:break-word;line-break:strict
+}
+.ex-page .ex-learning h3{font-size:clamp(1.06rem,2.5vw,1.27rem)}
+@media(max-width:420px){
+ .ex-page .ex-focus .ex-topic-hint{font-size:.64rem}
+ .ex-page .ex-focus .ex-topic{min-height:50px!important;padding:10px 12px!important}
+ .ex-page .ex-focus .ex-topic strong{font-size:.8rem!important}
+ .ex-page .ex-learning .ex-note-invite{grid-template-columns:minmax(0,1fr)!important}
+ .ex-page .ex-learning .ex-note-invite button{width:100%!important}
+}
+@media(prefers-reduced-motion:reduce){.ex-page .ex-focus .ex-topic-set{scroll-behavior:auto}}
