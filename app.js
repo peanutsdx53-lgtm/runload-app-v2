@@ -68,10 +68,10 @@
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
   const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
-  const pageLabels={home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
-  const currentPage=()=>{const path=location.hash.replace(/^#\/?/,"").split("?")[0];return pageLabels[path]?path:"home"};
+  const currentPage=()=>{const raw=location.hash.replace(/^#\/?/,"");const path=raw.split("?")[0];return path==="history"&&raw.includes("life=1")?"condition":pageLabels[path]?path:"home"};
   const navIcon=function navIcon(name){
   const shapes={
    home:'<path d="m3 10 9-7 9 7v11H3z"/><path d="M9 21v-9h6v9"/>',
@@ -205,7 +205,6 @@
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>
-  <div class="cj-home-shortcut"><a href="#/history?life=1">コンディションの歩みを見る</a></div>
   ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
  ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
  ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
@@ -342,11 +341,15 @@ function recordExtras(){
 }
     // History records are intentionally not sourced from the unsaved input draft.
     // Saved-history repository integration is a separate protected milestone.
+    // Running history retains its approved, independent visual structure.
     function history(){
-      const show=lifeCompareUi.open||location.hash.includes("life=1");
+      return '<section id="runload-history-v2" aria-label="履歴"></section>';
+    }
+    // Condition inspection lives off the home dashboard, not inside running history.
+    function condition(){
       const conditions=homeExperience.readConditions(onboardStorage);
       const insights=conditionInsights.loadConditionInsights(onboardStorage);
-      return '<section id="runload-history-v2" aria-label="履歴"></section><div class="iv-launch"><button type="button" data-interpret-toggle aria-expanded="'+String(show)+'">'+(show?'コンディションの歩みを閉じる':'コンディションの歩みを見る')+'</button></div>'+(show?conditionJourney.renderConditionJourney(conditions,conditionUi,insights):'');
+      return '<section class="cj-screen" aria-label="コンディションの歩み"><header class="cj-page-head"><a href="#/home" class="cj-back" aria-label="ホームに戻る">‹ ホームへ戻る</a><h1>コンディションの歩み</h1><p>睡眠・就床時間と、その日の調子を振り返る</p></header>'+conditionJourney.renderConditionJourney(conditions,conditionUi,insights)+'</section>';
     }
     function explore(){
       const conditions=homeExperience.readConditions(onboardStorage);
@@ -371,16 +374,16 @@ function recordExtras(){
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
- const page=currentPage(),content={home,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
- const navPage=page==="result"?"result":page==="measurement"?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
+ const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
+ const navPage=page==="condition"?"home":page==="result"?"result":page==="measurement"?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
  // Return links to the common confirmation when a detail was opened from that screen.
  const detailPages=["record-course","record-rof","record-more","record-compare","record-environment","record-reflection"];
  const detailContent=(state.recordReviewReturn&&detailPages.includes(page))
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
+ app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="result")resultExperience.mountResult(app.querySelector("#runload-result-v4"),{}); // No saved-record selection: never treat an unsaved draft as a historical result.
- if(page==="history"){
-   historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{records:[],connected:false,ui:historyUi});
+ if(page==="history")historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{records:[],connected:false,ui:historyUi});
+ if(page==="condition"){
    const strip=app.querySelector("[data-cj-chart]");
    if(strip)strip.scrollLeft=conditionUi.scrollLeft===null?strip.scrollWidth:conditionUi.scrollLeft;
  }
@@ -593,8 +596,6 @@ function recordExtras(){
       }
       render();window.scrollTo(0,y);return;
     }
-    const interpretToggle=event.target.closest("[data-interpret-toggle]");
-    if(interpretToggle){if(location.hash.includes("life=1")){lifeCompareUi.open=false;location.hash="#/history";}else {lifeCompareUi.open=!lifeCompareUi.open;render();}return;}
     const lifeAction=event.target.closest("[data-interpret-save-intent],[data-interpret-mark-reviewed],[data-interpret-pause],[data-interpret-resume],[data-interpret-delete]");
     if(lifeAction){
       const old=actionIntentStore.loadIntent(onboardStorage);
