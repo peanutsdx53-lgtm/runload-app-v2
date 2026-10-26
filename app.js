@@ -3,7 +3,7 @@
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
-  const homeExperience=await import("./ui/homeExperience.js");
+  const homeExperience=await import("./ui/homeExperience.js?v=20261026-home-duration-v19");
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
