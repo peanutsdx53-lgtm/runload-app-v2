@@ -41,7 +41,7 @@ const insightsMarkup=(insights,conditions,compact=false)=>{
 export function renderConditionJourney(conditions,ui={},insights={ok:true,entries:[]}){
  const data=prepareConditionJourney(conditions,ui);
  const range=[7,30,90].map(days=>'<button type="button" data-cj-range="'+days+'" aria-pressed="'+String(data.count===days)+'">'+days+'日</button>').join('');
- const header='<section class="cj-panel" data-condition-journey id="condition-journey"><div class="cj-title"><div><small>履歴 / 生活記録</small><h2>コンディションの歩み</h2></div><span class="cj-hint">日をタップするとメモを確認できます</span></div>';
+ const header='<section class="cj-panel" data-condition-journey id="condition-journey"><div class="cj-title"><div><small>履歴 / 生活記録</small><h2>睡眠と、その日の調子</h2></div><span class="cj-hint">日をタップするとメモを確認できます</span></div>';
  if(data.status!=='ready')return header+'<p role="alert">'+esc(data.reason)+'</p></section>';
  const chosen=data.selected;
  const filters=[['all','すべて'],['good','調子が良かった日'],['other','それ以外'],['memo','メモがある日']];
