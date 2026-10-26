@@ -100,7 +100,7 @@ function experience(ui,ctx,cat,topic){
   const comparison=pickA&&pickB&&pickA.date!==pickB.date?compareLifeDays(life,pickA.date,pickB.date):null;
   const delta=comparison?.status==='complete'?`時間の差：${comparison.minutesDelta>0?'+':''}${comparison.minutesDelta}分（${label(comparison.source)}）`:
     comparison?comparison.reason:records.length<2?'比較するには、異なる日付の記録が2件必要です。':'異なる2日を選ぶと比較できます。';
-  tool=`${selectable}<div class="ex-tool-result"><strong>自分の生活記録</strong><p>${h(display(pickA))}</p><p>${h(display(pickB))}</p><small>${h(delta)}</small></div><p class="ex-precaution">同じ日付に記録があっても、睡眠が調子や走りの原因とは判断できません。</p><a class="ex-learning-link" href="#/history?life=1">生活の記録を比べる ↗</a>`;
+  tool=`${selectable}<div class="ex-tool-result"><strong>自分の生活記録</strong><p>${h(display(pickA))}</p><p>${h(display(pickB))}</p><small>${h(delta)}</small></div><p class="ex-precaution">同じ日付に記録があっても、睡眠が調子や走りの原因とは判断できません。</p><a class="ex-learning-link" href="#/condition">コンディションの歩みを見る ↗</a>`;
  }
  const saved=ui.notes.filter(n=>n.topicId===key).slice(0,2);
  return `<div class="ex-learning" data-ex-learning="${key}">
