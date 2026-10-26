@@ -831,6 +831,15 @@ try{
   const savedHistory=page.locator('#runload-history-v2');
   assert.equal(await savedHistory.locator('.entry').count(),1);
   await savedHistory.locator('.entry').first().click();
+  if(mode.name!=="desktop"){
+   const selectedPlacement=await page.evaluate(()=>{
+    const footer=document.querySelector('#runload-history-v2')?.shadowRoot?.querySelector('.selected-footer');
+    const nav=document.querySelector('.mobile-nav');
+    return {footerBottom:footer?.getBoundingClientRect().bottom,navTop:nav?.getBoundingClientRect().top};
+   });
+   assert.ok(selectedPlacement.footerBottom<=selectedPlacement.navTop-8,
+    mode.name+' saved history result action must clear navigation: '+JSON.stringify(selectedPlacement));
+  }
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await savedHistory.locator('[data-open-record]').click();
   assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
