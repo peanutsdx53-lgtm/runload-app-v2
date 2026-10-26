@@ -656,6 +656,14 @@ try{
   assert.equal(await page.locator('#runload-history-v2').count(),0,'condition detail must not mount the running history');
   assert.equal(await page.locator('.cj-back').count(),1,'return home is available');
   const journey=page.locator('[data-condition-journey]');await journey.waitFor();
+  assert.match(await journey.locator('h2').first().innerText(),/睡眠と、その日の調子/);
+  for(const selector of ['.cj-chart-viewport','.cj-controls','.cj-detail']){
+    const box=await journey.locator(selector).boundingBox();
+    assert.ok(box&&box.x>=-1&&box.x+box.width<=mode.width+1,mode.name+' '+selector+' must fit viewport');
+  }
+  const detailOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+  assert.ok(detailOverflow<=3,mode.name+' condition detail overflow: '+detailOverflow);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-condition-detail-viewport-v16.png'),fullPage:false});
   assert.equal(await journey.locator('[data-cj-day]:not([disabled])').count(),2);
   await journey.locator('[data-cj-day="'+dateA+'"]').click();
   assert.match(await journey.locator('.cj-day-memo').innerText(),/いつもどおり/);
