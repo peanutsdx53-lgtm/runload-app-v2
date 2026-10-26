@@ -31,7 +31,7 @@ const insightsMarkup=(insights,conditions,compact=false)=>{
  if(!insights?.ok)return '<p class="cj-warning" role="alert">'+esc(insights?.reason||'保存した気づきを確認できません')+'</p>';
  const entries=insights.entries.slice().reverse();
  if(!entries.length)return '<p class="cj-muted">まだ気づきの記録はありません。書きたいときだけ残せます。</p>';
- const chosen=compact?entries.slice(0,2):entries.slice(0,12);
+ const chosen=compact?entries.slice(0,2):entries;
  return '<div class="cj-insight-list">'+chosen.map(item=>{
   const status=insightRecordStatus(item,conditions);
   const warning=status==='current'?'':status==='changed'?'元の記録は後から変更されています':status==='missing'?'元の記録は削除されています':'元の記録を照合できません';
@@ -64,7 +64,7 @@ export function renderConditionJourney(conditions,ui={},insights={ok:true,entrie
  return header+'<p class="cj-intro">棒の高さは時間、記号は本人が入力したその日の調子です。長いほど調子が良いという意味ではありません。</p><div class="cj-controls"><div class="cj-range" aria-label="表示期間">'+range+'</div><label>表示する時間<select data-cj-method>'+methods.map(([key,title])=>'<option value="'+key+'" '+(selectedMethod===key?'selected':'')+'>'+title+'</option>').join('')+'</select></label><label>注目する日<select data-cj-focus>'+filters.map(([key,title])=>'<option value="'+key+'" '+(selectedFocus===key?'selected':'')+'>'+title+'</option>').join('')+'</select></label></div><p class="cj-legend">'+esc(label(data.method))+'：'+data.entries.length+'日分 ／ 棒の基準：最大'+esc(minuteText(data.maxMinutes))+'</p><div class="cj-chart-viewport" data-cj-chart><div class="cj-chart-days">'+daysHtml+'</div></div>'+detail+'<div class="cj-context">'+overview+'<details><summary>睡眠とランニングの知識</summary><p>'+esc(KNOWLEDGE.summary)+'</p><p>'+esc(KNOWLEDGE.applicability)+'</p><a href="'+esc(KNOWLEDGE.url)+'" target="_blank" rel="noopener noreferrer">参考研究：'+esc(KNOWLEDGE.citation)+'</a></details></div><div class="cj-saved"><h3>自分の気づき</h3>'+insightsMarkup(insights,conditions)+'</div><p class="cj-disclaimer">2日間の差だけから原因や健康状態、走行能力の良し悪しは判定しません。</p>'+ (ui.notice?'<p class="cj-message" role="status">'+esc(ui.notice)+'</p>':'')+'</section>';
 }
 export function renderHomeConditionFollowup(intent,conditions,insights,warning='',notice=''){
- if(!intent&&!warning&&(!insights?.ok||!insights.entries.length))return '';
+ if(!intent&&!warning&&insights?.ok&&!insights.entries.length)return '';
  const match=intent?evaluateLifeIntent(intent,conditions):null;
  const ready=intent?.status==='active'&&match?.status==='ready';
  const labelStatus=intent?.status==='paused'?'一時停止中':intent?.status==='reviewed'?'以前の確認':ready?'新しい記録と見比べられます':match?.status==='unavailable'?'基準記録を確認できません':'次の記録を待っています';
@@ -76,5 +76,5 @@ export function renderHomeConditionFollowup(intent,conditions,insights,warning='
   main='<p class="cj-muted">'+esc(match?.reason||'本人が選んだ確認事項です')+'</p><p class="cj-muted">基準：'+esc(intent.baseline.date)+'（'+esc(label(intent.baseline.method))+'）</p>';
  }
  const actions=intent?'<div class="cj-home-actions"><a href="#/history?life=1">記録を詳しく見る</a>'+(intent.status==='paused'?'<button type="button" data-interpret-resume>再開</button>':'<button type="button" data-interpret-pause>一時停止</button>')+'<button type="button" data-interpret-delete>確認事項を削除</button></div>':'<a href="#/history?life=1">コンディションの歩みを見る</a>';
- return '<section class="cj-panel cj-home-panel" aria-label="コンディションの次回確認"><div class="cj-title"><div><small>自分で選んだこと</small><h2>次に確認すること</h2></div></div>'+(intent?'<p class="cj-state">'+esc(labelStatus)+'</p>':'')+main+actions+ (insights?.ok&&insights.entries.length?'<div class="cj-saved"><h3>残してきた気づき</h3>'+insightsMarkup(insights,conditions,true)+'</div>':'')+(warning?'<p role="alert">'+esc(warning)+'</p>':'')+(notice?'<p role="status">'+esc(notice)+'</p>':'')+'</section>';
+ return '<section class="cj-panel cj-home-panel" aria-label="コンディションの次回確認"><div class="cj-title"><div><small>自分で選んだこと</small><h2>次に確認すること</h2></div></div>'+(intent?'<p class="cj-state">'+esc(labelStatus)+'</p>':'')+main+actions+ (insights?.ok&&insights.entries.length?'<div class="cj-saved"><h3>残してきた気づき</h3>'+insightsMarkup(insights,conditions,true)+'</div>':'')+(warning||!insights?.ok?'<p role="alert">'+esc(warning||insights?.reason||'気づきの保存を確認できません')+'</p>':'')+(notice?'<p role="status">'+esc(notice)+'</p>':'')+'</section>';
 }
