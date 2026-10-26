@@ -40,3 +40,17 @@ test("course sections never auto-fill empty proportions",()=>{
  ui.sections=2;d.sectionShare0="40";assert.match(courseReadiness(d,ui).join(" "),/合計/);
  d.sectionShare1="60";assert.deepEqual(courseReadiness(d,ui),[]);
 });
+test("course layout presents approved three-step flow without changing the save/record contract",()=>{
+ const d=draft(),ui=initialCourseUi(d);
+ const html=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[]},true);
+ assert.match(html,/rv-course-flow/);
+ assert.equal((html.match(/rv-course-step"/g)||[]).length,3);
+ assert.match(html,/rv-condition-pair/);
+ assert.match(html,/rv-commit-group--apply/);
+ assert.match(html,/rv-commit-group--save/);
+ assert.match(html,/この条件を記録に使う/);
+ assert.match(html,/保存コースは更新されません/);
+ assert.match(html,/次回の走行で再利用できます/);
+ assert.equal((html.match(/data-course-save /g)||[]).length,1);
+ assert.equal((html.match(/data-rv-apply/g)||[]).length,1);
+});

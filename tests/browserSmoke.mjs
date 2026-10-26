@@ -499,6 +499,37 @@ try{
   // Both Home and Record use one course editor and one opt-in preset collection.
   await page.goto(host+"#/course",{waitUntil:"networkidle"});
   assert.equal(await page.locator('.rv-course').count(),1);
+  assert.equal(await page.locator('.rv-course-flow > .rv-panel').count(),3,'approved top-to-bottom course steps');
+  assert.equal(await page.locator('.rv-condition-pair > .rv-panel').count(),2,'same card contains slope and surface');
+  assert.equal(await page.locator('.rv-summary-actions > .rv-commit-group').count(),2,'separate apply and reusable-save choices');
+  const verifyCourseLayout=async(label)=>{
+    const r=await page.locator('.rv-course').evaluate(el=>{
+      const rects=sel=>[...el.querySelectorAll(sel)].map(node=>node.getBoundingClientRect()).map(r=>({top:r.top,bottom:r.bottom,left:r.left,right:r.right}));
+      const cards=rects('.rv-course-flow > .rv-panel');
+      const conditions=rects('.rv-condition-pair > .rv-panel');
+      const commits=rects('.rv-summary-actions > .rv-commit-group');
+      const textOverflow=[];
+      for(const node of el.querySelectorAll('.rv-block-heading small,.rv-flow-rail small,.rv-commit-help,.rv-summary-line strong')){
+        const box=node.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(node);
+        for(const line of range.getClientRects())if(line.width>0&&(line.left<box.left-2||line.right>box.right+2))textOverflow.push(node.textContent.slice(0,20));
+      }
+      return {screen:innerWidth,documentWidth:document.documentElement.scrollWidth,cards,conditions,commits,textOverflow};
+    });
+    assert.equal(r.cards.length,3,label+' step count');
+    assert.ok(r.cards[0].bottom+2<r.cards[1].top&&r.cards[1].bottom+2<r.cards[2].top,label+' vertical flow '+JSON.stringify(r));
+    if(mode.width>800){
+      assert.ok(Math.abs(r.conditions[0].top-r.conditions[1].top)<4,label+' desktop side-by-side conditions '+JSON.stringify(r));
+      assert.ok(Math.abs(r.commits[0].top-r.commits[1].top)<4,label+' desktop side-by-side decisions '+JSON.stringify(r));
+    }else{
+      assert.ok(r.conditions[0].bottom<r.conditions[1].top,label+' phone stacked conditions '+JSON.stringify(r));
+      assert.ok(r.commits[0].bottom<r.commits[1].top,label+' phone stacked decisions '+JSON.stringify(r));
+    }
+    assert.ok(r.documentWidth<=r.screen+3,label+' no viewport overflow '+JSON.stringify(r));
+    assert.deepEqual(r.textOverflow,[],label+' uncut help text '+JSON.stringify(r));
+  };
+  await verifyCourseLayout('empty');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-course-v31c-empty.png'),fullPage:true});
+
   await page.locator('[data-draft="courseName"]').fill('検証用保存コース');
   await page.locator('[data-rv-grade="FLAT"]').click();
   await page.locator('[data-rv-surface-mode="SINGLE"]').click();
@@ -512,6 +543,8 @@ try{
   const geometry=await page.locator('.rv-course').evaluate(el=>({viewport:innerWidth,doc:document.documentElement.scrollWidth,edges:[...el.querySelectorAll('.rv-course-grid > .rv-panel,.rv-preset-item')].map(card=>{const a=card.getBoundingClientRect(),b=el.getBoundingClientRect();return a.left>=b.left-2&&a.right<=b.right+2})}));
   assert.ok(geometry.doc<=geometry.viewport+3&&geometry.edges.every(Boolean),mode.name+' course cards fit '+JSON.stringify(geometry));
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
+  await verifyCourseLayout('saved');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-course-v31c-saved.png'),fullPage:true});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-course-saved-v30.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
   await page.locator('[data-course-delete]').click();

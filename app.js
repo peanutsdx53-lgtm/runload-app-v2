@@ -9,7 +9,7 @@
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261026-user-copy-v21");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261026-courses-v30");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261026-course-layout-v31c");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");

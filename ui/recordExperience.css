@@ -314,3 +314,165 @@
 .record-v3 .rv-course-confirm{flex:1 0 100%;padding:10px;border:1px solid #aa8590;border-radius:10px;background:#4a303c49;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .record-v3 .rv-course-confirm p{flex:1 0 100%;line-height:1.65;margin:0;font-size:.81rem;color:#fff0ef;overflow-wrap:anywhere}
 @media(max-width:420px){.record-v3 .rv-course-save-actions button{width:100%}.record-v3 .rv-preset-actions{width:100%}.record-v3 .rv-preset-actions button{flex:1}}
+
+/* Ver.31 layout preview only: single reading direction on phone and desktop. */
+.record-v3.rv-course{max-width:870px;margin-inline:auto;padding-bottom:64px}
+.record-v3.rv-course .rv-course-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:17px}
+.record-v3.rv-course .rv-course-grid .rv-course-summary{grid-column:auto}
+.record-v3.rv-course .rv-flow-intro{font-size:.89rem;line-height:1.8;color:#bfdae4;margin:-5px 0 22px;padding:0 3px}
+.record-v3.rv-course .rv-panel{padding:clamp(17px,2.8vw,27px);border-radius:19px}
+.record-v3.rv-course .rv-course-step{min-width:0}
+.record-v3.rv-course .rv-section-title{justify-content:flex-start;gap:12px;margin-bottom:17px;font-size:1.03rem;line-height:1.45}
+.record-v3.rv-course .rv-section-title small{margin-left:auto;white-space:nowrap}
+.record-v3.rv-course .rv-step-index{display:inline-grid;place-items:center;flex:0 0 38px;height:34px;border-radius:10px;border:1px solid #5cbdbe80;background:#1670864f;font-size:.78rem;font-variant-numeric:tabular-nums;letter-spacing:.05em;color:#8eecea}
+.record-v3.rv-course .rv-step-lead{font-size:.81rem;line-height:1.7;color:#b3cfdb;margin:-2px 0 16px}
+.record-v3.rv-course .rv-presets .rv-preset-list{margin-top:14px}
+.record-v3.rv-course .rv-presets .rv-preset-item{padding:14px 16px;gap:12px}
+.record-v3.rv-course .rv-course-name .rv-field{margin-top:3px}
+.record-v3.rv-course .rv-summary-actions{margin-top:20px;display:grid;gap:12px}
+.record-v3.rv-course .rv-summary-actions .rv-main-button{margin:0;min-height:54px}
+.record-v3.rv-course .rv-course-save-actions{margin-top:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:11px}
+.record-v3.rv-course .rv-course-save-actions button{background:#124255;border-color:#64a5b4;min-height:49px}
+.record-v3.rv-course .rv-course-save-actions button:first-child{background:#174d60;border-color:#65b9c3}
+.record-v3.rv-course .rv-save-caption{font-size:.75rem;line-height:1.65;color:#abcbd7;margin:0}
+.record-v3.rv-course :is(.rv-preset-item,.rv-panel,.rv-section-title,.rv-summary-line)>*{min-width:0}
+@media(min-width:801px){.record-v3.rv-course .rv-course-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:800px){.record-v3.rv-course{padding-bottom:22px}.record-v3.rv-course .rv-course-grid{gap:12px}.record-v3.rv-course .rv-flow-intro{margin:0 0 17px}.record-v3.rv-course .rv-panel{padding:17px}.record-v3.rv-course .rv-step-index{flex-basis:34px;height:32px}}
+@media(max-width:355px){.record-v3.rv-course .rv-panel{padding:14px}.record-v3.rv-course .rv-section-title{gap:8px;font-size:.94rem}}
+
+/* PC density study — local visual proposal. All course interactions still use the V30 controls. */
+.record-v3.rv-proposed-desk{max-width:980px;margin-inline:auto; padding-bottom:55px}
+.record-v3.rv-proposed-desk .rv-head{margin-bottom:15px;align-items:flex-start}
+.record-v3.rv-proposed-desk .rv-flow-intro{margin:5px 0 0;color:#9fbfcf;line-height:1.55;font-size:.79rem;padding:0}
+.record-v3.rv-proposed-desk .rv-flow-rail{display:flex;align-items:center;gap:12px;color:#c7e1e9;margin:0 0 17px;padding:7px 0;font-size:.76rem;font-weight:750}
+.record-v3.rv-proposed-desk .rv-flow-rail span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.record-v3.rv-proposed-desk .rv-flow-rail b{color:#73eee7;font-size:.72rem;letter-spacing:.04em}
+.record-v3.rv-proposed-desk .rv-flow-rail i{height:1px;max-width:64px;min-width:8px;flex:1;background:#427181}
+.record-v3.rv-proposed-desk .rv-course-flow{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.record-v3.rv-proposed-desk .rv-course-flow > .rv-panel{padding:21px 24px;border-radius:18px}
+.record-v3.rv-proposed-desk .rv-block-heading{display:flex;justify-content:flex-start;gap:11px;align-items:center;margin:0 0 13px}
+.record-v3.rv-proposed-desk .rv-block-heading h2{font-size:1rem;letter-spacing:.015em;margin:0;line-height:1.3}
+.record-v3.rv-proposed-desk .rv-block-heading small{margin-left:auto;font-size:.72rem;color:#9ec5d3}
+.record-v3.rv-proposed-desk .rv-step-index{height:31px;flex-basis:33px;border-radius:9px}
+.record-v3.rv-proposed-desk .rv-course-select-strip{border:1px solid #416c7a;padding:14px 16px;border-radius:12px;background:#0b2a38ac}
+.record-v3.rv-proposed-desk .rv-block-label{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.record-v3.rv-proposed-desk .rv-block-label strong{font-size:.78rem}
+.record-v3.rv-proposed-desk .rv-block-label span{font-size:.72rem;color:#92b7c9}
+.record-v3.rv-proposed-desk .rv-presets .rv-preset-list{margin-top:0}
+.record-v3.rv-proposed-desk .rv-preset-list{display:grid;gap:7px;max-height:180px;overflow-y:auto}
+.record-v3.rv-proposed-desk .rv-preset-item{background:#1040546b;padding:9px 12px;min-height:52px;gap:10px}
+.record-v3.rv-proposed-desk .rv-preset-actions button{min-height:35px;padding:7px 16px}
+.record-v3.rv-proposed-desk .rv-empty-mini{font-size:.77rem;color:#b2ccd8;padding:7px 2px}
+.record-v3.rv-proposed-desk .rv-course-name-inline{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.67fr);align-items:end;gap:18px;padding-top:14px}
+.record-v3.rv-proposed-desk .rv-course-name-inline .rv-field{margin:0}
+.record-v3.rv-proposed-desk .rv-course-name-inline .rv-field input{max-width:none}
+.record-v3.rv-proposed-desk .rv-course-name-inline p{font-size:.71rem;line-height:1.65;margin:0 0 7px;color:#a5c4d0}
+.record-v3.rv-proposed-desk .rv-condition-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;align-items:start}
+.record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible;isolation:auto;padding:2px 18px 2px 2px;min-width:0}
+.record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel::before{display:none}
+.record-v3.rv-proposed-desk .rv-condition-pair > .rv-step-surface{border-left:1px solid #366879;padding:2px 1px 2px 19px}
+.record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel .rv-section-title{margin:0 0 13px;display:flex;gap:8px;color:#e3f7fa;font-size:.90rem}
+.record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel .rv-step-index{background:#153e4c;border:0;height:auto;flex:0 0 auto;padding:3px 6px;font-size:.68rem;color:#75dcdd}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-choice-row{gap:5px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-choice{min-height:40px;padding:8px 3px;font-size:.73rem}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-slopes{gap:5px;margin-top:12px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-slope-tile{min-height:59px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-surfaces{gap:6px;margin-top:12px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-surface-tile{min-height:39px;padding:7px 8px;font-size:.76rem}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-fine{margin-top:12px;padding:9px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-fine-control{gap:7px}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-hint{font-size:.71rem;line-height:1.55;margin-top:10px}
+.record-v3.rv-proposed-desk .rv-course-summary .rv-summary-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.record-v3.rv-proposed-desk .rv-course-summary .rv-summary-line{background:#092936a9;border:1px solid #355c6e;border-radius:10px;padding:10px 12px;display:grid;gap:6px;min-height:67px;min-width:0}
+.record-v3.rv-proposed-desk .rv-course-summary .rv-summary-line span{font-size:.71rem}
+.record-v3.rv-proposed-desk .rv-course-summary .rv-summary-line strong{font-size:.79rem;overflow-wrap:anywhere}
+.record-v3.rv-proposed-desk .rv-summary-actions{display:flex;align-items:stretch;gap:11px;margin:14px 0 10px}
+.record-v3.rv-proposed-desk .rv-summary-actions > .rv-main-button{margin:0;flex:1.25;min-height:47px;font-size:.86rem}
+.record-v3.rv-proposed-desk .rv-course-save-actions{flex:1;display:flex;gap:9px;margin:0;min-width:0}
+.record-v3.rv-proposed-desk .rv-course-save-actions button{flex:1;min-height:47px;padding:6px 10px;font-size:.78rem;line-height:1.35}
+.record-v3.rv-proposed-desk .rv-save-caption{font-size:.71rem;line-height:1.6;margin:3px 0 0}
+@media (max-width:800px){
+ .record-v3.rv-proposed-desk{max-width:100%;padding-bottom:20px}
+ .record-v3.rv-proposed-desk .rv-flow-rail{font-size:.67rem;gap:7px;margin:0 0 9px}
+ .record-v3.rv-proposed-desk .rv-flow-rail i{max-width:29px}
+ .record-v3.rv-proposed-desk .rv-course-flow > .rv-panel{padding:16px}
+ .record-v3.rv-proposed-desk .rv-course-name-inline{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;padding-top:13px}
+ .record-v3.rv-proposed-desk .rv-course-name-inline p{margin:0}
+ .record-v3.rv-proposed-desk .rv-condition-pair{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+ .record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel{padding:0 0 13px;border:0;border-bottom:1px solid #366879}
+ .record-v3.rv-proposed-desk .rv-condition-pair > .rv-step-surface{padding:0;border:0}
+ .record-v3.rv-proposed-desk .rv-course-summary .rv-summary-facts{grid-template-columns:minmax(0,1fr);gap:6px}
+ .record-v3.rv-proposed-desk .rv-course-summary .rv-summary-line{min-height:auto;display:flex;justify-content:space-between;align-items:center;padding:8px 10px}
+ .record-v3.rv-proposed-desk .rv-summary-actions{display:grid;gap:10px}
+ .record-v3.rv-proposed-desk .rv-course-save-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))}
+}
+@media(min-width:801px) and (max-width:980px){
+ .record-v3.rv-proposed-desk .rv-condition-pair{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .record-v3.rv-proposed-desk .rv-course-flow > .rv-panel{padding:19px}
+ .record-v3.rv-proposed-desk .rv-condition-pair > .rv-panel{padding-right:12px}
+ .record-v3.rv-proposed-desk .rv-condition-pair > .rv-step-surface{padding-right:0;padding-left:13px}
+}
+
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-choice{font-size:.80rem}
+.record-v3.rv-proposed-desk .rv-condition-pair .rv-surface-tile{font-size:.79rem}
+@media(max-width:800px){.record-v3.rv-proposed-desk .rv-block-label{align-items:flex-start;flex-direction:column;gap:3px}}
+
+
+/* V31c presentation-only refinements: clearer two outcomes and compact PC step rail. */
+.record-v3.rv-proposed-desk .rv-flow-rail{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+ padding:0;margin-bottom:16px;
+}
+.record-v3.rv-proposed-desk .rv-flow-rail > i{display:none}
+.record-v3.rv-proposed-desk .rv-flow-rail > span{
+ display:flex;justify-content:flex-start;flex-wrap:wrap;align-items:center;align-content:center;
+ padding:10px 13px;gap:3px 8px;min-width:0;white-space:normal;
+ background:linear-gradient(145deg,#113748,#102c39);border:1px solid #315a69;
+ border-radius:10px;font-size:.78rem;color:#e2f2f7;line-height:1.35;
+}
+/* These tiles are a static reading guide, not active navigation; no selected step. */
+.record-v3.rv-proposed-desk .rv-flow-rail > span small{
+ display:block;flex:1 0 100%;padding-left:26px;font-size:.69rem;color:#9fc7d4;
+}
+.record-v3.rv-proposed-desk .rv-flow-rail b{
+ display:grid;place-items:center;width:20px;height:20px;border-radius:7px;
+ background:#1d5364;color:#96f0eb;font-size:.69rem;
+}
+.record-v3.rv-proposed-desk .rv-course-summary .rv-summary-actions{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
+ align-items:stretch;gap:11px;
+}
+.record-v3.rv-proposed-desk .rv-commit-group{
+ min-width:0;padding:11px 13px;border:1px solid #396979;
+ background:#0b2d3db3;border-radius:11px;display:grid;align-content:start;gap:10px;
+}
+.record-v3.rv-proposed-desk .rv-commit-group--apply{border-color:#368d9e;background:#0b3a4ab0}
+.record-v3.rv-proposed-desk .rv-commit-label{display:flex;align-items:center;gap:7px;color:#d9eef3;font-size:.76rem;font-weight:800}
+.record-v3.rv-proposed-desk .rv-commit-label b{display:grid;place-items:center;background:#175e6b;border-radius:6px;width:19px;height:19px;font-size:.7rem;color:#8cf7ec}
+.record-v3.rv-proposed-desk .rv-commit-group--save .rv-commit-label b{background:#274d5c;color:#e4d6b0}
+.record-v3.rv-proposed-desk .rv-summary-actions > .rv-commit-group > .rv-main-button{margin:0;min-height:47px;width:100%;flex:none}
+.record-v3.rv-proposed-desk .rv-commit-group .rv-course-save-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.record-v3.rv-proposed-desk .rv-commit-group .rv-course-save-actions button{flex:1 1 125px;min-width:0;min-height:47px}
+.record-v3.rv-proposed-desk .rv-commit-help{color:#9bbfcf;font-size:.70rem;line-height:1.55;margin:0}
+.record-v3.rv-proposed-desk .rv-course-select-strip{padding:12px 14px}
+.record-v3.rv-proposed-desk .rv-preset-item{border-color:#4c7b89}
+.record-v3.rv-proposed-desk .rv-save-caption{margin-top:9px}
+@media(max-width:800px){
+ .record-v3.rv-proposed-desk .rv-flow-rail{gap:5px;margin-bottom:12px}
+ .record-v3.rv-proposed-desk .rv-flow-rail >span{padding:7px 5px;gap:4px;font-size:.66rem;justify-content:center;text-align:center;border-radius:8px}
+ .record-v3.rv-proposed-desk .rv-flow-rail >span small{display:none}
+ .record-v3.rv-proposed-desk .rv-flow-rail b{width:18px;height:18px;font-size:.64rem}
+ .record-v3.rv-proposed-desk .rv-course-summary .rv-summary-actions{grid-template-columns:minmax(0,1fr);gap:9px}
+ .record-v3.rv-proposed-desk .rv-commit-group{padding:11px}
+ .record-v3.rv-proposed-desk .rv-course-save-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:355px){
+ .record-v3.rv-proposed-desk .rv-flow-rail >span{font-size:.59rem}
+ .record-v3.rv-proposed-desk .rv-flow-rail b{width:15px;height:15px;font-size:.58rem}
+ .record-v3.rv-proposed-desk .rv-commit-group .rv-course-save-actions button{flex-basis:100%}
+}
+/* Keep long explanatory labels inside compact cards on 320px phones. */
+@media(max-width:355px){
+ .record-v3.rv-proposed-desk .rv-block-heading{flex-wrap:wrap;gap:6px 9px}
+ .record-v3.rv-proposed-desk .rv-block-heading small{flex:1 1 100%;margin:0;min-width:0;overflow-wrap:anywhere}
+}

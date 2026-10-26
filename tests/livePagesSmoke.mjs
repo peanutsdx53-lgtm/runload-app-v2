@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
 const root='https://peanutsdx53-lgtm.github.io/runload-app-v2/';
-const tag='20261026-courses-v30';
+const tag='20261026-course-layout-v31c';
 // Check the deployed snapshot against this exact main build. Old version tags must not remain fixed in a future release.
 const probes=['index.html','app.js','ui/explorationExperience.js','ui/historyExperience.js'];
 const expected=probes.map(file=>readFileSync(new URL('../'+file,import.meta.url),'utf8'));
