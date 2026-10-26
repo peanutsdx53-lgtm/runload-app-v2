@@ -376,7 +376,14 @@ try{
   await ex.locator('[data-ex-action="close"]').click();
   const writeAction=ex.locator('.ex-note-invite');
   assert.equal(await ex.locator('.ex-memories').count(),0,'single reflection history access');
-  await writeAction.scrollIntoViewIfNeeded();
+  await writeAction.locator('button').evaluate(el=>{
+    el.scrollIntoView({block:'end',behavior:'instant'});
+    const nav=document.querySelector('.mobile-nav');
+    if(nav&&getComputedStyle(nav).position==='fixed'){
+      const overlap=el.getBoundingClientRect().bottom-nav.getBoundingClientRect().top+18;
+      if(overlap>0)window.scrollBy({top:overlap,behavior:'instant'});
+    }
+  });
   const footerStyle=await writeAction.evaluate(el=>{
     const b=el.querySelector('button').getBoundingClientRect(),r=el.getBoundingClientRect();
     return {buttonWithin:b.left>=r.left-1&&b.right<=r.right+1,
@@ -384,6 +391,12 @@ try{
   });
   assert.ok(footerStyle.buttonWithin,'write action stays within the reading card: '+JSON.stringify(footerStyle));
   assert.ok(footerStyle.fontSize>=12,'readable text in reflection footer');
+  const actionVis=await writeAction.locator('button').evaluate(el=>{
+    const box=el.getBoundingClientRect(),nav=document.querySelector('.mobile-nav'),n=nav?.getBoundingClientRect();
+    const overlay=nav&&getComputedStyle(nav).position==='fixed';
+    return {bottom:box.bottom,navTop:overlay?n.top:innerHeight,top:box.top};
+  });
+  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-8,mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-writing-footer-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action="note"]').click();
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
