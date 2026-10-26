@@ -92,3 +92,17 @@ test("v8 release uses cache-busted body resources and a user-controlled update p
 });
 
 test("settings v2 uses a dark outer shell and full content width",()=>{const css=read("ui/settingsExperience.css"),html=read("index.html");assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-frame/);assert.match(css,/\.app-shell:has\(\[data-settings-v2\]\) \.main-content\{max-width:none/);assert.match(html,/settingsExperience\.css\?v=20261025-settings-surface-05/)});
+
+test("global double-tap suppression preserves accessible pinch zoom and approved condition navigation colors",()=>{
+ const styles=read("styles.css"),condition=read("ui/conditionJourney.css"),html=read("index.html"),sw=read("sw.js");
+ assert.match(styles,/html,body,#app\{touch-action:manipulation\}/);
+ assert.match(styles,/a,button,input,select,textarea,summary,label,\[role="button"\],\[tabindex\]\{touch-action:manipulation\}/);
+ assert.doesNotMatch(html,/user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?:[\s"'&,]|$)/i);
+ assert.doesNotMatch(styles,/touch-action\s*:\s*none\s*;?\s*\}/i);
+ for(const token of ['background:#0c1d2bef','border-top-color:#2e5263','color:#c0cbd5','color:#55dce3','background:transparent']){
+  assert.ok(condition.includes(token),"condition uses approved Home navigation: "+token);
+ }
+ assert.match(html,/styles\.css\?v=20261026-global-touch-v17/);
+ assert.match(html,/conditionJourney\.css\?v=20261026-condition-v17/);
+ assert.match(sw,/interpret-v14-condition-v17-touch/);
+});
