@@ -273,6 +273,34 @@ try{
     await report.locator('[data-tab="body"]').click();
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth),0);
+  // Result must match the headerless dark chrome and never expose the old ⇩ toolbar or white strip.
+  const resultChrome=await page.evaluate(()=>{
+    const css=el=>getComputedStyle(el);
+    const result=document.querySelector('#runload-result-v4'),shell=result?.closest('.app-shell');
+    const top=shell?.querySelector('.topbar'),main=shell?.querySelector('.main-content'),nav=shell?.querySelector('.mobile-nav');
+    const rgb=css(document.body).backgroundColor;
+    return {toolbarHidden:css(top).display==='none',noExtraTop:result.getBoundingClientRect().top,
+      shellBg:css(shell).backgroundColor,bodyBg:rgb,mainBg:css(main).backgroundImage,mainSolid:css(main).backgroundColor,
+      navBg:css(nav).backgroundColor,overflow:document.documentElement.scrollWidth-innerWidth};
+  });
+  assert.ok(resultChrome.toolbarHidden,mode.name+' result should not contain the old ⇩ toolbar');
+  assert.equal(resultChrome.mainBg,'none',mode.name+' result main must not have light gradient');
+  assert.ok(resultChrome.bodyBg!=='rgb(255, 255, 255)'&&resultChrome.shellBg!=='rgb(255, 255, 255)',mode.name+' result backgrounds remain navy');
+  assert.ok(resultChrome.noExtraTop<=35,mode.name+' result must start below no phantom header: '+JSON.stringify(resultChrome));
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result-viewport-v20.png"),fullPage:false});
+  if(mode.name!=="desktop"){
+    await page.evaluate(()=>window.scrollTo(0,document.scrollingElement.scrollHeight));
+    const bottom=await page.evaluate(()=>{
+      const rect=document.querySelector('.mobile-nav').getBoundingClientRect();
+      const rectMain=document.querySelector('#runload-result-v4').getBoundingClientRect();
+      return {navTop:rect.top,scroll:document.scrollingElement.scrollTop,resultBottom:rectMain.bottom,
+      bodyBg:getComputedStyle(document.body).backgroundColor,
+      mainBg:getComputedStyle(document.querySelector('.main-content')).backgroundImage};
+    });
+    assert.ok(bottom.navTop>0&&bottom.mainBg==='none',mode.name+' result bottom remains navy behind fixed tab bar '+JSON.stringify(bottom));
+    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result-bottom-v20.png"),fullPage:false});
+  }
   await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-result-viewport.png"),fullPage:false});
   if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%"});
@@ -804,6 +832,13 @@ try{
   await page.locator('[data-demo-save]').click();
   const review=page.locator('[data-record-review]');await review.waitFor();
   assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
+  const saveAppearance=await review.locator('[data-manual-run-save]').evaluate(button=>({
+    background:getComputedStyle(button).backgroundImage,
+    color:getComputedStyle(button).color,cursor:getComputedStyle(button).cursor
+  }));
+  assert.match(saveAppearance.background,/linear-gradient/,mode.name+' save button should look enabled');
+  assert.equal(saveAppearance.cursor,'pointer');
+  assert.notEqual(saveAppearance.color,'rgb(169, 199, 209)','save button text must have high contrast');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-review-save-v18.png'),fullPage:false});
   await review.locator('[data-manual-run-save]').click();
   assert.match(page.url(),/#\/result\?record=run-v1-/);
