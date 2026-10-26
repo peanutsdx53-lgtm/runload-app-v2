@@ -55,7 +55,9 @@ try{
   await page.locator('[data-ex-category="01"]').click();
   assert.match(await page.locator('.ex-tool-result').innerText(),/保存済みの走行はまだありません/);
   await checkArticle(page,'empty',width);
+  await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
   await page.locator('[data-ex-learning="distance-time-pace"]').screenshot({path:resolve(root,'screenshots',`webkit-${width}-pace-empty-v28.png`)});
+  await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.goto(base+'#/record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="distance"]').fill('5.00');
   await page.locator('[data-draft="minutes"]').fill('35');
@@ -70,8 +72,24 @@ try{
   assert.match(value,/7:00 分\/km/);
   assert.match(value,/8.6 km\/h/);
   await checkArticle(page,'saved',width);
+  await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
   await page.locator('[data-ex-learning="distance-time-pace"]').screenshot({path:resolve(root,'screenshots',`webkit-${width}-pace-saved-v28.png`)});
-  if(width===390||width===320)await page.screenshot({path:resolve(root,'screenshots',`webkit-${width}-exploration-full-v28.png`),fullPage:true});
+  await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
+  // Check that the real fixed navigation leaves the last action reachable on scroll.
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+  const footer=await page.evaluate(()=>{
+   const button=document.querySelector('.ex-note-invite button').getBoundingClientRect();
+   const nav=document.querySelector('.mobile-nav').getBoundingClientRect();
+   return {buttonTop:button.top,buttonBottom:button.bottom,navTop:nav.top,viewportHeight:innerHeight};
+  });
+  assert.ok(footer.buttonTop>=0&&footer.buttonBottom<=footer.navTop-4,
+   'webkit '+width+' fixed navigation covers the reflection action: '+JSON.stringify(footer));
+  await page.screenshot({path:resolve(root,'screenshots',`webkit-${width}-pace-footer-viewport-v28.png`),fullPage:false});
+  if(width===390||width===320){
+   await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
+   await page.screenshot({path:resolve(root,'screenshots',`webkit-${width}-exploration-full-v28.png`),fullPage:true});
+   await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
+  }
   assert.deepEqual(errors,[],'webkit runtime errors '+width);
   await page.close();
  }
