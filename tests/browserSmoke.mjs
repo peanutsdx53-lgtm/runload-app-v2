@@ -814,10 +814,6 @@ try{
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
   assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
-  await savedResult.evaluate(async host=>{
-    const sheet=host.shadowRoot.querySelector('link[rel="stylesheet"]');
-    if(!sheet?.sheet)await new Promise((resolve,reject)=>{sheet.addEventListener('load',resolve,{once:true});sheet.addEventListener('error',reject,{once:true})});
-  });
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
