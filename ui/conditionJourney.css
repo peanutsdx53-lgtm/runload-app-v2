@@ -83,3 +83,16 @@
 .home-v3 .hx-condition-explore:hover{background:#1b7787}
 .home-v3 .hx-condition-explore:focus-visible{outline:3px solid #97f2df;outline-offset:3px}
 @media(max-width:800px){.app-shell:has(.cj-screen) .main-content{padding:calc(12px + env(safe-area-inset-top)) 12px calc(100px + env(safe-area-inset-bottom));box-sizing:border-box}.cj-page-head{margin:0 4px 12px}.cj-screen .cj-panel{margin:0 0 22px}}
+
+/* Visual QA correction: inner chart dimensions must not enlarge the parent. */
+.cj-screen,.cj-panel,.cj-chart-viewport,.cj-detail,.cj-context,.cj-saved{box-sizing:border-box;min-width:0}
+.cj-chart-viewport{max-width:100%}
+.cj-controls label,.cj-controls select{min-width:0;max-width:100%;box-sizing:border-box}
+.cj-chart-days{grid-auto-columns:minmax(42px,46px)}
+.cj-page-head,.cj-screen .cj-panel{overflow-wrap:anywhere}
+@media(min-width:360px) and (max-width:480px){
+ .cj-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .cj-controls .cj-range{grid-column:1/-1}
+ .cj-controls label{min-width:0;flex-basis:auto;font-size:.78rem}
+}
+@media(max-width:359px){.cj-controls{gap:8px}}
