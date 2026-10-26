@@ -75,6 +75,6 @@ export function renderHomeConditionFollowup(intent,conditions,insights,warning='
  }else if(intent){
   main='<p class="cj-muted">'+esc(match?.reason||'本人が選んだ確認事項です')+'</p><p class="cj-muted">基準：'+esc(intent.baseline.date)+'（'+esc(label(intent.baseline.method))+'）</p>';
  }
- const actions=intent?'<div class="cj-home-actions"><a href="#/history?life=1">記録を詳しく見る</a>'+(intent.status==='paused'?'<button type="button" data-interpret-resume>再開</button>':'<button type="button" data-interpret-pause>一時停止</button>')+'<button type="button" data-interpret-delete>確認事項を削除</button></div>':'<a href="#/history?life=1">コンディションの歩みを見る</a>';
+ const actions=intent?'<div class="cj-home-actions"><a href="#/condition">記録を詳しく見る</a>'+(intent.status==='paused'?'<button type="button" data-interpret-resume>再開</button>':'<button type="button" data-interpret-pause>一時停止</button>')+'<button type="button" data-interpret-delete>確認事項を削除</button></div>':'<a href="#/condition">コンディションの歩みを見る</a>';
  return '<section class="cj-panel cj-home-panel" aria-label="コンディションの次回確認"><div class="cj-title"><div><small>自分で選んだこと</small><h2>次に確認すること</h2></div></div>'+(intent?'<p class="cj-state">'+esc(labelStatus)+'</p>':'')+main+actions+ (insights?.ok&&insights.entries.length?'<div class="cj-saved"><h3>残してきた気づき</h3>'+insightsMarkup(insights,conditions,true)+'</div>':'')+(warning||!insights?.ok?'<p role="alert">'+esc(warning||insights?.reason||'気づきの保存を確認できません')+'</p>':'')+(notice?'<p role="status">'+esc(notice)+'</p>':'')+'</section>';
 }
