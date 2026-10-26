@@ -830,6 +830,10 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  await page.goto(host+'#/result',{waitUntil:'networkidle'});
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/,'result navigation defaults to latest saved run');
+  await page.goto(host+'#/result?record=missing-record',{waitUntil:'networkidle'});
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存記録はまだありません/,'invalid explicit ID does not alias a valid run');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const savedHistory=page.locator('#runload-history-v2');
   assert.equal(await savedHistory.locator('.entry').count(),1);
