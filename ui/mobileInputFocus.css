@@ -1,0 +1,31 @@
+/* iOS Safari can auto-zoom the page when editable form controls render below 16px.
+   Keep the viewport scalable for accessibility: never set maximum-scale or user-scalable=no.
+   Scope to phone-size layouts while retaining native date/time and keyboard handling.
+   Range, radio, checkbox and hidden controls intentionally remain untouched. */
+@media (max-width: 800px) {
+  input:is(
+    :not([type]),
+    [type="text"],
+    [type="search"],
+    [type="number"],
+    [type="email"],
+    [type="tel"],
+    [type="url"],
+    [type="password"],
+    [type="date"],
+    [type="time"],
+    [type="datetime-local"],
+    [type="month"],
+    [type="week"]
+  ),
+  textarea,
+  select,
+  [contenteditable="true"] {
+    font-size: 16px !important;
+  }
+
+  /* Primary distance and time metrics are already larger; do not shrink them. */
+  .record-v3 .rv-unit-input input {
+    font-size: clamp(1.35rem, 3vw, 1.85rem) !important;
+  }
+}
