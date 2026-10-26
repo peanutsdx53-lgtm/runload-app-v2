@@ -82,7 +82,7 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
 
 test("v8 release uses cache-busted body resources and a user-controlled update prompt",()=>{
  const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
- assert.match(html,/app\.js\?v=20261026-ios-history-focus-v26/);
+ assert.match(html,/app\.js\?v=20261026-pace-column-v27/);
  assert.match(html,/bodyContextExperience\.css\?v=20261025-terminology-v1/);
  assert.match(app,/bodyContextExperience\.js\?v=20261026-user-copy-v21/);
  assert.match(pwa,/updateViaCache:\"none\"/);
