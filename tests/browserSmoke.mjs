@@ -311,14 +311,19 @@ try{
   const ex=page.locator('[data-experience-v3]');
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
-   const finalCategory=ex.locator('.ex-node').last();
-   const finalLayout=await finalCategory.evaluate(el=>({width:el.getBoundingClientRect().width,parent:el.parentElement.getBoundingClientRect().width}));
-   assert.ok(finalLayout.width>finalLayout.parent*.8,'the last category tile spans the whole row');
+   assert.equal(await ex.locator('.ex-core').count(),1,'constellation has a central discovery orbit');
+   assert.equal(await ex.locator('svg.ex-art').count(),1,'constellation links are visually present');
+   const orbitCoords=await ex.locator('.ex-node').evaluateAll(nodes=>nodes.map(n=>{
+     const a=n.getBoundingClientRect(),b=n.closest('.ex-map').getBoundingClientRect();
+     return {x:Math.round((a.left+a.width/2-b.left)/b.width*100),y:Math.round((a.top+a.height/2-b.top)/b.height*100)};
+   }));
+   assert.ok(orbitCoords.some(x=>x.x<25)&&orbitCoords.some(x=>x.x>70)&&orbitCoords.some(x=>x.y>75),
+    'seven nodes form a constellation, not two-column cards: '+JSON.stringify(orbitCoords));
    assert.equal(await ex.locator('[data-ex-tab="catalog"]').count(),1,'single catalog navigation');
    assert.equal(await ex.locator('[data-ex-action="catalog"]').count(),0,'no duplicate catalog button');
    assert.equal(await ex.locator('[data-ex-action="memories"]').count(),2,'memo access from header and context');
    assert.equal(await ex.locator('.ex-citation').count(),0,'research references do not dominate beginner reading');
-   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-category-grid-v22.png'),fullPage:false});
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-constellation-v23.png'),fullPage:false});
   const fromDraft=await ex.locator('.ex-node.is-related').count();
   if(fromDraft)assert.ok((await ex.locator('.ex-focus-intro').innerText()).length>0,'linked field retains a short status');
   // A clean visit without an in-memory unsaved draft must have zero highlighted
@@ -326,7 +331,7 @@ try{
   await page.reload({waitUntil:'networkidle'});
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node.is-related').count(),1,'saved daily condition highlights only its own area');
-  assert.match(await ex.locator('[data-ex-category="05"]').getAttribute('aria-label'),/つながりあり/);
+  assert.match(await ex.locator('[data-ex-category="05"]').getAttribute('aria-label'),/生活コンディション記録に関連/);
   // The home test has saved one real lifestyle entry. Clearing only that
   // test-created entry isolates the genuine record-free first-run state.
   await page.evaluate(()=>localStorage.removeItem('runload-v2-life-condition-v1'));
@@ -339,6 +344,9 @@ try{
    assert.ok(visibleTopics,'all four topic choices are visible without sideways scrolling');
   await ex.locator('[data-ex-action=sample]').click();
   assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
+  const visualGlow=await ex.locator('.ex-node.is-related .ex-node-orb').first().evaluate(el=>getComputedStyle(el).boxShadow);
+  assert.ok(visualGlow.includes('rgb(')&&visualGlow!=='none','related star must visibly glow');
+  assert.equal(await ex.locator('.ex-constellation-link.is-related').count(),2,'connected lines share the same grounded relevance');
   assert.match(await ex.locator('.ex-focus-intro').innerText(),/説明用の例/);
   await ex.locator('[data-ex-category="03"]').click();
   assert.match(await ex.locator('.ex-focus h2').innerText(),/コースと環境/);
@@ -374,7 +382,7 @@ try{
   const dims=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,nav:document.querySelector('.mobile-nav')?.getBoundingClientRect().top,bottom:document.querySelector('.ex-page')?.getBoundingClientRect().bottom}));
   assert.ok(dims.overflow<=3,mode.name+' exploration horizontal overflow '+JSON.stringify(dims));
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v22.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v23.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
   // The exploration shell deliberately has no legacy top header.
@@ -884,6 +892,15 @@ try{
   const latestFit=await page.locator('.hx-latest').evaluate(card=>({card:card.getBoundingClientRect().right,values:[...card.querySelectorAll('.hx-latest-fig strong')].map(el=>el.getBoundingClientRect().right)}));
   assert.ok(latestFit.values.every(x=>x<=latestFit.card+2),mode.name+' latest run card text clips: '+JSON.stringify(latestFit));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
+   await page.goto(host+'#/exploration-tree',{waitUntil:'networkidle'});
+   const savedExplore=page.locator('[data-experience-v3]');
+   await savedExplore.waitFor();
+   assert.equal(await savedExplore.locator('.ex-node[data-ex-category="01"][data-ex-source="saved-run"].is-related').count(),1,
+      'valid saved run lights running-record constellation even after reload');
+   assert.match(await savedExplore.locator('[data-ex-category="01"]').getAttribute('aria-label'),/保存した走行距離と時間に関連/);
+   assert.equal(await savedExplore.locator('.ex-node[data-ex-category="03"].is-related').count(),0,'distance alone does not imply hills');
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-saved-run-glow-v23.png'),fullPage:false});
+   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
   await page.goto(host+'#/result',{waitUntil:'networkidle'});
