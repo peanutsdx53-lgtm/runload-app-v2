@@ -438,3 +438,39 @@
 @media(max-width:800px){
  .ex-page .ex-learning .ex-note-invite button{scroll-margin-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 }
+
+
+/* V28: a learning card must never grow wider than its reading column.
+   Japanese prose is allowed to wrap; the one-line restriction remains on topic chips. */
+.ex-page .ex-side,
+.ex-page .ex-focus,
+.ex-page .ex-learning,
+.ex-page .ex-tool,
+.ex-page .ex-tool-result,
+.ex-page .ex-learning .ex-note-invite {
+ min-width:0;
+ max-width:100%;
+}
+.ex-page .ex-learning,
+.ex-page .ex-tool,
+.ex-page .ex-tool-result {grid-template-columns:minmax(0,1fr)}
+.ex-page .ex-learning > *,
+.ex-page .ex-tool > *,
+.ex-page .ex-tool-result > * {min-width:0;max-width:100%}
+.ex-page .ex-learning h3,
+.ex-page .ex-learning-lead,
+.ex-page .ex-tool h4,
+.ex-page .ex-tool-result strong,
+.ex-page .ex-tool-result p,
+.ex-page .ex-tool-result small,
+.ex-page .ex-learning-link,
+.ex-page .ex-learning .ex-note-invite :is(strong,p,small) {
+ white-space:normal;
+ word-break:normal;
+ overflow-wrap:anywhere;
+ line-break:strict;
+}
+@media(max-width:420px){
+ .ex-page .ex-learning{padding:clamp(12px,3.5vw,17px)}
+ .ex-page .ex-tool-result{padding:12px}
+}
