@@ -45,7 +45,7 @@ test('sleep column displays saved entries; comparison helper rejects incompatibl
  const life=readLifeEntries(records);
  assert.equal(compareLifeDays(life,'2026-10-23','2026-10-24').status,'complete');
  assert.equal(compareLifeDays(life,'2026-10-23','2026-10-24').minutesDelta,20);
- assert.match(html,/2026-10-24/);assert.match(html,/一般知識/);
+ assert.match(html,/2026-10-24/);assert.match(html,/睡眠と、走る日の調子/);
  const changed={...records,entries:[records.entries[0],{...records.entries[1],sleepSource:'clock',bedTime:'23:00',wakeTime:'06:50',bedDayRule:'previous',bedDayOffset:1}]};
  html=render(u,ctx({},changed));assert.match(html,/就床から起床までの時間/);
  const incompatible=compareLifeDays(readLifeEntries(changed),'2026-10-23','2026-10-24');
