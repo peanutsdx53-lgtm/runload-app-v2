@@ -66,3 +66,9 @@
 /* On phones, match the home dashboard title baseline rather than desktop spacing. */
 @media(max-width:800px){.stage{padding-top:19px}}
 @media(min-width:801px){.hero-title strong{white-space:nowrap}}
+
+/* iPhone keyboard-focus protection. History uses Shadow DOM: page-level CSS cannot style its inputs. */
+@media(max-width:800px){
+  #hx-search,.search input,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select,[contenteditable="true"]{font-size:16px!important}
+  .search{min-height:48px}
+}
