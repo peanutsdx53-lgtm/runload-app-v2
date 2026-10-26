@@ -105,7 +105,7 @@ try{
   assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-empty.png"),fullPage:true});
   await page.locator("[data-home-preview]").click();
-  assert.match(await page.locator(".hx-preview-banner").innerText(),/サンプルデータ/);
+  assert.match(await page.locator(".hx-preview-banner").innerText(),/説明用の数字/);
   assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
   assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
