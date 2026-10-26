@@ -17,7 +17,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-v22");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-orbit-v23");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
@@ -356,7 +356,7 @@ function recordExtras(){
     }
     function explore(){
       const conditions=homeExperience.readConditions(onboardStorage);
-      return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions});
+      return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions,manualRuns:manualRunStore.readManualRuns(onboardStorage)});
     }
     function settings(){return settingsExperience.renderSettings(settingsUi);}
     function secondary(page){
