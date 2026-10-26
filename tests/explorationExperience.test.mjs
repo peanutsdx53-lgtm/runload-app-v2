@@ -59,7 +59,8 @@ test('beginner exploration removes duplicate navigation and hides citations unde
  assert.equal((html.match(/data-ex-tab="catalog"/g)||[]).length,1);
  assert.doesNotMatch(html,/すべてのテーマを見る|data-ex-action="catalog"|ex-selected-topic|これまでの気づき|探究フィールド/);
  assert.match(html,/今日は何が気になる/);
- assert.match(html,/自分のメモ/);
+ assert.match(html,/ふり返り/);
+ assert.equal((html.match(/data-ex-action="memories"/g)||[]).length,1);
  assert.equal((html.match(/class="ex-node /g)||[]).length,7);
  u.selected='03';u.topic='上り坂・下り坂';const reading=render(u,base);
  assert.match(reading,/上り坂と下り坂、走る動きの違い/);
@@ -121,4 +122,23 @@ test('discovery orbit and searchable catalog are structurally different',()=>{
  assert.doesNotMatch(lookup,/class="ex-core"/);
  assert.match(lookup,/class="ex-catalog-grid"/);
  assert.match(lookup,/data-ex-search/);
+});
+
+test('topic layout scales and reflection has one way to review',()=>{
+ const ui=makeUi(memory());
+ const extra=[...categories];
+ extra[1]={...extra[1],topics:['足・膝・股関節','姿勢と走る動作','体幹と腕の動き','12部位の参考値の見方','もうひとつのテーマ','さらに追加のテーマ']};
+ ui.selected='02';ui.topic='足・膝・股関節';
+ const html=render(ui,{categories:extra,draft:{},conditions:{entries:[]}});
+ assert.equal((html.match(/data-ex-topic=/g)||[]).length,6);
+ assert.match(html,/6 テーマ · 横に動かして選ぶ/);
+ assert.match(html,/class="ex-topic-set"/);
+ assert.equal((html.match(/data-ex-action="memories"/g)||[]).length,1);
+ assert.doesNotMatch(html,/class="ex-memories"/);
+ assert.match(html,/書いてみる/);
+ assert.doesNotMatch(html,/メモを残す|メモを見る|自分のメモ/);
+ ui.modal='note';
+ const note=render(ui,{categories:extra,draft:{},conditions:{entries:[]}});
+ assert.match(note,/書き残す内容（500文字まで）/);
+ assert.match(note,/気づきを書く/);
 });
