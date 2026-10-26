@@ -20,6 +20,8 @@
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
+  const conditionJourney=await import("./ui/conditionJourney.js?v=20261026-condition-v15");
+  const conditionInsights=await import("./ui/conditionInsights.js?v=20261026-condition-v15");
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -55,6 +57,7 @@
   const historyUi=historyExperience.createHistoryUi();
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
   const lifeCompareUi={a:"",b:"",open:false,notice:""};
+  const conditionUi={days:30,method:"auto",focus:"all",selected:"",notice:"",scrollLeft:null};
   const environmentUi=environmentExperience.newEnvironmentUi();
   const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
@@ -202,7 +205,8 @@
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="マイダッシュボード">${widgets}</div>
- ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);return interpretationExperience.actionIntentCard(r.intent,homeExperience.readConditions(onboardStorage),r.ok?"":r.reason);})()}
+  <div class="cj-home-shortcut"><a href="#/history?life=1">コンディションの歩みを見る</a></div>
+  ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
  ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
  ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview):""}
  </div>`;
@@ -340,15 +344,9 @@ function recordExtras(){
     // Saved-history repository integration is a separate protected milestone.
     function history(){
       const show=lifeCompareUi.open||location.hash.includes("life=1");
-      const cond=homeExperience.readConditions(onboardStorage);
-      const life=interpretationRules.latestEligibleLifeBaseline(cond);
-      if(!lifeCompareUi.a&&!lifeCompareUi.b){
-        const records=interpretationRules.buildLifePacket(cond,"","").records||[];
-        const valid=records.filter(r=>r.minutes!==null);
-        if(valid.length>=2){lifeCompareUi.a=valid.at(-2).date;lifeCompareUi.b=valid.at(-1).date;}
-      }
-      const state=actionIntentStore.loadIntent(onboardStorage);
-      return `<section id="runload-history-v2" aria-label="履歴"></section><div class="iv-launch"><button type="button" data-interpret-toggle aria-expanded="${show}">${show?"生活の比較を閉じる":"生活の記録を比べる"}</button></div>${show?interpretationExperience.lifeComparisonPanel(cond,{a:lifeCompareUi.a,b:lifeCompareUi.b,notice:lifeCompareUi.notice,intent:state.intent}):""}`;
+      const conditions=homeExperience.readConditions(onboardStorage);
+      const insights=conditionInsights.loadConditionInsights(onboardStorage);
+      return '<section id="runload-history-v2" aria-label="履歴"></section><div class="iv-launch"><button type="button" data-interpret-toggle aria-expanded="'+String(show)+'">'+(show?'コンディションの歩みを閉じる':'コンディションの歩みを見る')+'</button></div>'+(show?conditionJourney.renderConditionJourney(conditions,conditionUi,insights):'');
     }
     function explore(){
       const conditions=homeExperience.readConditions(onboardStorage);
@@ -368,6 +366,8 @@ function recordExtras(){
     let stopHomeDrag=null;
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
+      const previousConditionStrip=app.querySelector("[data-cj-chart]");
+      if(previousConditionStrip)conditionUi.scrollLeft=previousConditionStrip.scrollLeft;
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
@@ -379,7 +379,11 @@ function recordExtras(){
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="result")resultExperience.mountResult(app.querySelector("#runload-result-v4"),{}); // No saved-record selection: never treat an unsaved draft as a historical result.
- if(page==="history")historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{records:[],connected:false,ui:historyUi});
+ if(page==="history"){
+   historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{records:[],connected:false,ui:historyUi});
+   const strip=app.querySelector("[data-cj-chart]");
+   if(strip)strip.scrollLeft=conditionUi.scrollLeft===null?strip.scrollWidth:conditionUi.scrollLeft;
+ }
  document.body.classList.toggle("runload-dialog-open",Boolean(app.querySelector("[data-home-overlay],[data-gps-overlay]")));
  if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(page==="record-compare")gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
@@ -407,6 +411,12 @@ function recordExtras(){
 }
   app.addEventListener("change",(event)=>{
     if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value;
+    if(event.target.matches("[data-cj-method],[data-cj-focus]")){
+      if(event.target.matches("[data-cj-method]"))conditionUi.method=event.target.value;
+      else conditionUi.focus=event.target.value;
+      conditionUi.selected="";conditionUi.scrollLeft=null;
+      const y=window.scrollY;render();window.scrollTo(0,y);return;
+    }
     if(event.target.matches("[data-interpret-date]")){
       lifeCompareUi[event.target.dataset.interpretDate]=event.target.value;
       const y=window.scrollY;render();window.scrollTo(0,y);
@@ -558,6 +568,23 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",(event)=>{
+    const conditionControl=event.target.closest("[data-cj-range],[data-cj-day],[data-cj-save-insight],[data-cj-delete-insight]");
+    if(conditionControl){
+      const y=window.scrollY;
+      if(conditionControl.hasAttribute("data-cj-range")){
+        conditionUi.days=Number(conditionControl.dataset.cjRange);conditionUi.selected="";conditionUi.scrollLeft=null;
+      }else if(conditionControl.hasAttribute("data-cj-day")){
+        conditionUi.selected=conditionControl.dataset.cjDay;
+      }else if(conditionControl.hasAttribute("data-cj-save-insight")){
+        const note=conditionControl.closest(".cj-write")?.querySelector("[data-cj-note]")?.value||"";
+        const result=conditionInsights.addConditionInsight(onboardStorage,homeExperience.readConditions(onboardStorage),conditionControl.dataset.cjOrigin,note);
+        conditionUi.notice=result.ok?"気づきを保存しました":result.reason;
+      }else{
+        const result=conditionInsights.removeConditionInsight(onboardStorage,conditionControl.dataset.cjDeleteInsight);
+        conditionUi.notice=result.ok?"気づきを削除しました":result.reason;
+      }
+      render();window.scrollTo(0,y);return;
+    }
     const interpretToggle=event.target.closest("[data-interpret-toggle]");
     if(interpretToggle){if(location.hash.includes("life=1")){lifeCompareUi.open=false;location.hash="#/history";}else {lifeCompareUi.open=!lifeCompareUi.open;render();}return;}
     const lifeAction=event.target.closest("[data-interpret-save-intent],[data-interpret-mark-reviewed],[data-interpret-pause],[data-interpret-resume],[data-interpret-delete]");
