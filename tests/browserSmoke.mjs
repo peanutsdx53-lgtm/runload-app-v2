@@ -763,7 +763,7 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v15-condition-journey.png'),fullPage:false});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const historicalReport=page.locator("#runload-result-v4");
-  assert.match(await historicalReport.locator(".rv4-notice").innerText(),/表示できる保存記録はまだありません/);
+  assert.match(await historicalReport.locator(".rv4-notice").innerText(),/保存された走行記録はまだありません/);
   assert.equal((await historicalReport.locator(".rv4-distance strong").innerText()).trim(),"—","unsaved input must not leak into result");
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
