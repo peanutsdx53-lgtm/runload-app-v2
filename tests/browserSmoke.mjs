@@ -38,7 +38,8 @@ try{
     const intro=await browser.newPage({viewport:{width:390,height:844},reducedMotion:"reduce"});
     await intro.goto(host+"#/home",{waitUntil:"networkidle"});
     assert.equal(await intro.locator(".onboard-dialog").count(),1,"first run tutorial should appear");
-    assert.match(await intro.locator("#onboard-title").innerText(),/ようこそ/);
+    assert.match(await intro.locator("#onboard-title").innerText(),/記録と振り返りを始めましょう/);
+     assert.doesNotMatch(await intro.locator(".onboard-dialog").innerText(),/RUNLOAD|RunLoad|WELCOME|試作版|現在のv2/,'first-time guide has no developer wording');
     await intro.screenshot({path:resolve(root,"screenshots","mobile-onboarding-welcome.png"),fullPage:false});
     await intro.locator("[data-onboard-next]").click();
     assert.equal(await intro.locator("input[name=onboard-language]:checked").inputValue(),"ja");
