@@ -8,6 +8,7 @@
   const rofExperience=await import("./ui/rofExperience.js");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js");
+  const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
   const recordExperience=await import("./ui/recordExperience.js");
   const gaitExperience=await import("./ui/gaitExperience.js");
   const environmentExperience=await import("./ui/environmentExperience.js");
@@ -57,6 +58,8 @@
   const historyUi=historyExperience.createHistoryUi();
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
   const lifeCompareUi={a:"",b:"",open:false,notice:""};
+  let manualSaveNotice="";
+  let selectedRunId=null;
   const conditionUi={days:30,method:"auto",focus:"all",selected:"",notice:"",scrollLeft:null};
   const environmentUi=environmentExperience.newEnvironmentUi();
   const bodyUi=bodyExperience.makeUi();
@@ -295,7 +298,7 @@ function recordExtras(){
   }
   function record(){return recordExperience.manualPage(state);}
   function recordReview(){return recordReviewExperience.reviewView(state.recordDraft,{
-    recordType:state.recordType,source:state.recordReviewSource,courseUi:state.recordCourseUi,bodySelected:bodyUi.selected
+    recordType:state.recordType,source:state.recordReviewSource,courseUi:state.recordCourseUi,bodySelected:bodyUi.selected,saveNotice:manualSaveNotice
   });}
   function recordCourse(){return recordExperience.coursePage(state,state.recordCourseUi);}
   function recordRof(){return rofExperience.rofPage(state.recordDraft,rofUi);}
@@ -381,8 +384,19 @@ function recordExtras(){
  const detailContent=(state.recordReviewReturn&&detailPages.includes(page))
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
- if(page==="result")resultExperience.mountResult(app.querySelector("#runload-result-v4"),{}); // No saved-record selection: never treat an unsaved draft as a historical result.
- if(page==="history")historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{records:[],connected:false,ui:historyUi});
+ if(page==="result"){
+   const runId=new URLSearchParams(location.hash.split("?")[1]||"").get("record")||selectedRunId;
+   const found=manualRunStore.findManualRun(onboardStorage,runId);
+   const record=found.ok?found.record:null;
+   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id}:{});
+ }
+ if(page==="history"){
+   const saved=manualRunStore.readManualRuns(onboardStorage);
+   historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
+    records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
+    onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);render();window.scrollTo(0,0);}
+   });
+ }
  if(page==="condition"){
    const strip=app.querySelector("[data-cj-chart]");
    if(strip)strip.scrollLeft=conditionUi.scrollLeft===null?strip.scrollWidth:conditionUi.scrollLeft;
@@ -571,6 +585,17 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",(event)=>{
+    if(event.target.closest("[data-manual-run-save]")){
+      if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
+        manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
+      }
+      const saved=manualRunStore.saveManualRun(onboardStorage,state.recordDraft,{source:state.recordReviewSource,type:state.recordType});
+      if(!saved.ok){manualSaveNotice=saved.reason;const y=window.scrollY;render();window.scrollTo(0,y);return;}
+      selectedRunId=saved.record.id;manualSaveNotice="";state.recordReviewReturn=false;
+      state.toast="手入力の走行記録をこの端末に保存しました";
+      location.hash="#/result?record="+encodeURIComponent(saved.record.id);
+      render();window.scrollTo(0,0);return;
+    }
     const conditionControl=event.target.closest("[data-cj-range],[data-cj-day],[data-cj-save-insight],[data-cj-delete-insight],[data-cj-create-intent]");
     if(conditionControl){
       const y=window.scrollY;
@@ -836,7 +861,7 @@ function recordExtras(){
     if(filter){const y=window.scrollY;state.historyMode=filter.dataset.historyMode;render();window.scrollTo(0,y);return}
     if(event.target.closest("[data-demo-save]")){
       state.recordReviewSource="manual";
-      state.recordReviewReturn=false;
+      state.recordReviewReturn=false;manualSaveNotice="";
       location.hash="#/record-review";
       render();window.scrollTo(0,0);return;
     }
