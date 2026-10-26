@@ -846,12 +846,12 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await savedHistory.locator('[data-open-record]').click();
   assert.equal(await page.locator('#runload-result-v4 style[data-result-inline-styles]').count(),1,'history-to-result retains synchronous styles');
-  assert.match(await page.locator('#runload-result-v4 .rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage),/radial-gradient/);
+  await page.waitForFunction(()=>{
+    const host=document.querySelector('#runload-result-v4');
+    const root=host?.shadowRoot,el=root?.querySelector('.rv4-app');
+    return !!el&&el.isConnected&&!!root.querySelector('style[data-result-inline-styles]')&&getComputedStyle(el).backgroundImage.includes('radial-gradient');
+  },null,{timeout:12000});
   assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
-  await page.locator('#runload-result-v4').evaluate(async host=>{
-    const sheet=host.shadowRoot.querySelector('link[rel="stylesheet"]');
-    if(!sheet?.sheet)await new Promise((resolve,reject)=>{sheet.addEventListener('load',resolve,{once:true});sheet.addEventListener('error',reject,{once:true})});
-  });
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-from-history-v18.png'),fullPage:false});
   await page.close();
   console.log("PASS",mode.name,"manual save / reload / result / home / history");
