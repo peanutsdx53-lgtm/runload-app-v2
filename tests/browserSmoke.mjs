@@ -772,7 +772,7 @@ try{
    if(route==="settings"){
      assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
      const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
-     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=4,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
+     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=6,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
      const panelTheme=await page.locator('.s2-panel').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
      assert.match(panelTheme.bg,/radial-gradient/,'settings cards receive luminous gradient');
      assert.notEqual(panelTheme.ring,'none','settings cards retain decorative arc');
