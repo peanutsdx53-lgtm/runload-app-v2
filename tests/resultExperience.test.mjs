@@ -11,8 +11,8 @@ test('Result v4 references all formal region names, with immutable official iden
 test('Result v4 does not fabricate biomechanical comparisons or history',()=>{
  const js=read('ui/resultExperience.js');
  assert.match(js,/value:null/);
- assert.match(js,/履歴未接続/);
- assert.match(js,/正式保存前/);
+ assert.match(js,/比較する記録はありません/);
+ assert.match(js,/まだ保存していない記録/);
  assert.ok(!js.includes('distance:8.20'));
  assert.ok(!js.includes('rofBefore:6,rofAfter:8'));
  assert.ok(!js.includes('12部位比較値'));
@@ -59,4 +59,10 @@ test('Result and manual-save surfaces use the approved dark chrome and button st
  ]) assert.ok(review.includes(style),style);
  assert.match(html,/result-chrome-v20/);
  assert.match(html,/save-button-v20/);
+});
+
+test('public-facing result copy omits internal branding and preserves formal names',()=>{
+ const js=read('ui/resultExperience.js');
+ for(const literal of ['RUNLOAD / RESULTS',"t('RUNLOAD'",'RunLoad_入力中の走行.png','正式保存前','履歴未接続'])assert.equal(js.includes(literal),false,literal);
+ assert.ok(js.includes('膝蓋大腿関節部')||read('assets/bodyRegionVisuals.js').includes('膝蓋大腿関節部'));
 });
