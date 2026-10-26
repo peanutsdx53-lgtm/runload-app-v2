@@ -6,7 +6,8 @@ const positive=v=>{const n=number(v);return n!==null&&n>0?n:null};
 const format=(n,d=0)=>n===null||!Number.isFinite(n)?'—':n.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
 const icon=(name)=>({body:'◈',run:'↗',time:'◷',pace:'◉',fatigue:'♡',radar:'⬡',memo:'▤',save:'⇩',location:'⌁'})[name]||'◈';
 export const OFFICIAL_NAMES=Object.freeze(REGIONS.map(r=>Object.freeze([r.id,r.name])));
-export function mountResult(host,draft={}){
+export function mountResult(host,draft={},options={}){
+ const fromSaved=options.saved===true&&typeof options.recordId==="string"&&options.recordId.length>0;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
  let chosen='BA-DISP-019',view='front',tab='body',picker=false;
  const distance=positive(draft.distance),h=number(draft.hours),m=number(draft.minutes),s=number(draft.seconds);
@@ -28,9 +29,9 @@ export function mountResult(host,draft={}){
  const radar=()=>'<section class="rv4-card rv4-history" data-pane="radar"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('radar')+'</span><div><h2>過去と比較</h2><p>走行の特徴を見比べる</p></div></div>'+chart()+'<p class="rv4-caption">履歴の正式保存・尺度の接続後に比較を表示します。架空の走行を補うことはありません。</p></section>';
  const extras=()=>'<details class="rv4-details"><summary><span class="rv4-icon">'+icon('memo')+'</span><span><strong>その日の記録</strong><small>使用品・コース・メモ</small></span><b>⌄</b></summary><div class="rv4-extra-grid"><div><small>シューズ</small><strong>'+clean(draft.shoeName||'—')+'</strong></div><div><small>歩数</small><strong>'+(positive(draft.steps)!==null?format(positive(draft.steps))+' 歩':'—')+'</strong></div><div><small>上り割合</small><strong>'+(number(draft.upPercent)!==null?format(number(draft.upPercent))+'%':'—')+'</strong></div></div><div class="rv4-note"><small>メモ</small><p>'+clean(draft.memo||'記録がありません')+'</p></div></details>';
  const summary=()=>!hasInput?'走行記録がありません。':distance!==null&&duration>0?'距離と時間から平均ペースを確認できます。':'入力した内容を確認できます。';
- const hero=()=>'<section class="rv4-hero"><div class="rv4-hero-glow"></div><div class="rv4-hero-left"><small class="rv4-date">'+titleDate+'　<span>走行</span></small><div class="rv4-measures"><div class="rv4-distance"><small>距離</small><strong>'+format(distance,2)+'</strong><span>km</span></div><div class="rv4-secondary"><div><small>時間</small><strong>'+(duration>0?format(duration,0)+' 分':'—')+'</strong></div><div><small>平均ペース</small><strong>'+pace+' <em>/km</em></strong></div></div></div></div><div class="rv4-hero-report"><span>今回の走り</span><h2>'+summary()+'</h2><div class="rv4-today-chips"><span>運動前 <b>'+(before??'—')+'</b></span><span>運動後 <b>'+(after??'—')+'</b></span></div><small>入力中・正式保存前</small></div></section>';
+ const hero=()=>'<section class="rv4-hero"><div class="rv4-hero-glow"></div><div class="rv4-hero-left"><small class="rv4-date">'+titleDate+'　<span>走行</span></small><div class="rv4-measures"><div class="rv4-distance"><small>距離</small><strong>'+format(distance,2)+'</strong><span>km</span></div><div class="rv4-secondary"><div><small>時間</small><strong>'+(duration>0?format(duration,0)+' 分':'—')+'</strong></div><div><small>平均ペース</small><strong>'+pace+' <em>/km</em></strong></div></div></div></div><div class="rv4-hero-report"><span>今回の走り</span><h2>'+summary()+'</h2><div class="rv4-today-chips"><span>運動前 <b>'+(before??'—')+'</b></span><span>運動後 <b>'+(after??'—')+'</b></span></div><small>'+(fromSaved?'この端末に保存した手入力記録':'入力中・正式保存前')+'</small></div></section>';
  function draw(){
-  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><span>RUNLOAD / RESULTS</span><h1>結果</h1></div><div class="rv4-actions"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存 ↓</button><button type="button" data-print>印刷</button></div></header><p class="rv4-notice">'+(hasInput?'入力中の内容です。正式保存・科学計算結果とは未接続です。':'表示できる保存記録はまだありません。正式保存機能との接続は未完了です。')+'</p>'+hero()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+'</div>';
+  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><span>RUNLOAD / RESULTS</span><h1>結果</h1></div><div class="rv4-actions"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存 ↓</button><button type="button" data-print>印刷</button></div></header><p class="rv4-notice">'+(fromSaved?'この端末に保存した手入力の走行記録です。身体部位の科学計算結果は未接続です。':hasInput?'入力中の内容です。正式保存・科学計算結果とは未接続です。':'表示できる保存記録はまだありません。正式保存機能との接続は未完了です。')+'</p>'+hero()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+'</div>';
   root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;const v=selectedView();if(!v.paths.some(x=>x[0]===chosen))chosen=v.paths[0][0];picker=false;draw()}));
   root.querySelectorAll('[data-region]').forEach(b=>{const select=()=>{chosen=b.dataset.region;draw()};b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}})});
   // Accept taps on the SVG itself when a thin/nonconvex region is hit but the
@@ -94,7 +95,7 @@ export function mountResult(host,draft={}){
   t('RUNLOAD  /  走行結果',70,100,28);t(clean(draft.date||''),70,148,20,'#9ecbd7');
   t('距離',70,205,22,'#9ecbd7');t(format(distance,2)+' km',65,333,100);
   t('時間  '+format(duration,0)+' 分',70,414,28);t('平均ペース  '+pace+' /km',70,465,28);
-  t('入力中の記録・正式保存前',70,553,20,'#9ecbd7');
+  t(fromSaved?'端末保存済み・手入力':'入力中の記録・正式保存前',70,553,20,'#9ecbd7');
   t('身体部位の計算結果は未接続です',685,258,20,'#abd6de');
   t('疲労感  '+(before??'—')+' → '+(after??'—'),685,320,29,'#f6d7b4');
   t('RUNLOAD',943,553,25,'#55dedd');
