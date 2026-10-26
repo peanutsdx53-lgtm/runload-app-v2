@@ -218,3 +218,11 @@
 @media(max-width:420px){.ex-heading h1{font-size:1.7rem}.ex-map-head h2{font-size:1.25rem}.ex-node-title{font-size:.85rem!important}.ex-node-copy small{font-size:.63rem}.ex-node{min-height:122px}.ex-node-orb{height:41px!important;width:41px!important}.ex-node-meta{right:10px;top:13px}.ex-topic{min-width:160px}}
 @media(max-width:340px){.ex-node{min-height:136px}.ex-map{gap:7px}.ex-catalog-head .ex-count{display:none}.ex-switch button{font-size:.76rem}}
 @media(prefers-reduced-motion:reduce){.ex-page .ex-node{transition:none}}
+
+/* V22 visual review: avoid an orphan 7th tile and reveal all four topics without hidden sideways scrolling. */
+.ex-node:last-child:nth-child(odd){grid-column:span 2;min-height:104px;flex-direction:row;align-items:center;gap:13px!important}
+.ex-node:last-child:nth-child(odd) .ex-node-copy{padding-right:24px}
+.ex-node:last-child:nth-child(odd) .ex-node-meta{top:50%;transform:translateY(-50%)}
+.ex-topic-set{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;scroll-snap-type:none;padding:2px 0 12px}
+.ex-topic{min-width:0;max-width:none;min-height:67px;scroll-snap-align:none;line-height:1.4}
+@media(max-width:420px){.ex-node:last-child:nth-child(odd){min-height:96px}.ex-topic{padding:9px 8px;min-height:75px}.ex-topic strong{font-size:.72rem}}
