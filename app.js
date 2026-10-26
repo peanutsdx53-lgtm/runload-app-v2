@@ -14,7 +14,7 @@
   const environmentExperience=await import("./ui/environmentExperience.js");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261025-terminology-v1");
   const measurementExperience=await import("./ui/measurementExperience.js");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261025-result-v4-main-01");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261026-manual-v18-inline-styles");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261025-settings-v4-01");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-v14");
@@ -385,13 +385,23 @@ function recordExtras(){
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="RunLoadをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}`;
  if(page==="result"){
-   const runId=new URLSearchParams(location.hash.split("?")[1]||"").get("record")||selectedRunId;
+   const params=new URLSearchParams(location.hash.split("?")[1]||"");
+   const stored=manualRunStore.readManualRuns(onboardStorage);
+   const recent=stored.ok?stored.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt))[0]||null:null;
+   // An invalid explicit ID never silently displays a different run.
+   const runId=params.has("record")?params.get("record"):selectedRunId||recent?.id||null;
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id}:{});
  }
  if(page==="history"){
    const saved=manualRunStore.readManualRuns(onboardStorage);
+   if(!saved.ok){
+     const alert=document.createElement("p");
+     alert.setAttribute("role","alert");alert.className="toast-notice";
+     alert.textContent=saved.reason;
+     app.querySelector("#runload-history-v2")?.before(alert);
+   }
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
     onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);render();window.scrollTo(0,0);}
