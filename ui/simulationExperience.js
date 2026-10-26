@@ -63,7 +63,7 @@ export function renderSimulation(ui,{presets,manualRuns}={}){
  const summary=courseDescription(p);
  const record=manualRuns?.ok?manualRuns.records.find(r=>r.id===ui.recordId):null;
  return `<div class="sm-page" data-sim-page>
- <header class="sm-heading"><a class="sm-back" href="#/home" aria-label="ホームへ戻る">‹</a><div><span>WHAT IF / RUNLOAD</span><h1>走りのシミュレーション</h1><p>「仮にこう走るなら？」を、時間と距離の違いから考える</p></div></header>
+ <header class="sm-heading"><a class="sm-back" href="#/home" aria-label="ホームへ戻る">‹</a><div><span>WHAT IF / もしもの比較</span><h1>走りのシミュレーション</h1><p>「仮にこう走るなら？」を、時間と距離の違いから考える</p></div></header>
  <div class="sm-steps" aria-label="操作の順序"><span>01 コース</span><span>02 仮の走り方</span><span>03 比較結果</span><span>04 次につなぐ</span></div>
  <section class="sm-panel" aria-labelledby="sm-s1">${row('01','コースを用意する','GPS・GPXがなくても条件を試せます。')}
  <div class="sm-source-row" role="group" aria-label="コースの入力方法"><button type="button" data-sm-source="manual" aria-pressed="${ui.source==='manual'}" class="${ui.source==='manual'?'is-picked':''}">手動・保存コース<small>利用できます</small></button><button type="button" data-sm-source="none" aria-pressed="${ui.source==='none'}" class="${ui.source==='none'?'is-picked':''}">コースなし<small>時間だけ試す</small></button><button disabled type="button" title="GPS軌跡の保存接続後に利用できます">GPS実走履歴<small>今後接続</small></button><button disabled type="button" title="GPX読込は次の工程で接続します">GPX読込<small>次工程</small></button></div>
