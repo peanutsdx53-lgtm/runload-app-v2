@@ -6,6 +6,41 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
+// Inspect card descendants and text fragments; document scrollWidth misses clipped text.
+async function assertPaceColumnLayout(ex,mode,state){
+ const report=await ex.locator('[data-ex-learning="distance-time-pace"]').evaluate(article=>{
+  const card=article.getBoundingClientRect(),focus=article.closest('.ex-focus').getBoundingClientRect();
+  const clipped=[],overlaps=[];
+  const targets=[article,...article.querySelectorAll('h3,.ex-learning-lead,.ex-tool,.ex-tool h4,.ex-tool-result,.ex-tool-result > *, .ex-learning-link,.ex-note-invite,.ex-note-invite > *')];
+  for(const el of targets){
+   const r=el.getBoundingClientRect();
+   if(r.left<card.left-1.5||r.right>card.right+1.5||el.scrollWidth>el.clientWidth+2)
+    clipped.push({item:el.className||el.tagName,right:Math.round(r.right),limit:Math.round(card.right),scroll:el.scrollWidth,client:el.clientWidth});
+  }
+  for(const el of article.querySelectorAll('h3,.ex-learning-lead,.ex-tool-result > *, .ex-learning-link, .ex-note-invite p, .ex-note-invite strong')){
+   const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node;
+   while(node=walker.nextNode()){
+    if(!node.textContent.trim())continue;
+    const range=document.createRange();range.selectNodeContents(node);
+    for(const r of range.getClientRects())if(r.width>0&&(r.left<card.left-1.5||r.right>card.right+1.5))
+     clipped.push({text:node.textContent.slice(0,20),right:Math.round(r.right),limit:Math.round(card.right)});
+   }
+  }
+  const flow=[...article.children].filter(el=>getComputedStyle(el).display!=='none');
+  for(let i=1;i<flow.length;i++)if(flow[i].getBoundingClientRect().top+1<flow[i-1].getBoundingClientRect().bottom)
+   overlaps.push({first:flow[i-1].className,second:flow[i].className});
+  return {viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,cardRight:card.right,focusRight:focus.right,
+   clipped,overlaps,headingBreak:getComputedStyle(article.querySelector('h3')).wordBreak,
+   paragraphBreak:getComputedStyle(article.querySelector('.ex-learning-lead')).overflowWrap};
+ });
+ assert.ok(report.scrollWidth<=report.viewport+3,mode.name+' '+state+' viewport overflow '+JSON.stringify(report));
+ assert.ok(report.cardRight<=report.focusRight-8,mode.name+' '+state+' article escapes panel '+JSON.stringify(report));
+ assert.deepEqual(report.clipped,[],mode.name+' '+state+' clipped article '+JSON.stringify(report));
+ assert.deepEqual(report.overlaps,[],mode.name+' '+state+' overlapping card sections '+JSON.stringify(report));
+ assert.equal(report.headingBreak,'normal');
+ assert.equal(report.paragraphBreak,'anywhere');
+ console.log('PASS',mode.name,state,'pace card text and geometry');
+}
 const server=createServer(async(req,res)=>{
  try{
   const name=decodeURIComponent(new URL(req.url,"http://127.0.0.1").pathname);
@@ -344,6 +379,8 @@ try{
   await ex.locator('[data-ex-category="01"]').click();
   assert.equal(await ex.locator('[data-ex-learning="distance-time-pace"]').count(),1);
   assert.match(await ex.locator('.ex-tool-result').innerText(),/保存済みの走行はまだありません/);
+  await assertPaceColumnLayout(ex,mode,'empty');
+  await ex.locator('[data-ex-learning="distance-time-pace"]').screenshot({path:resolve(root,'screenshots',mode.name+'-pace-card-empty-v28.png')});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-empty-v27.png'),fullPage:false});
     const topicRail=ex.locator('.ex-topic-set');
     const beforeRail=await topicRail.evaluate(el=>({scrollWidth:el.scrollWidth,width:el.clientWidth,layout:getComputedStyle(el).display}));
@@ -1006,6 +1043,8 @@ try{
    assert.match(paceLesson,/30分00秒/);
    assert.match(paceLesson,/6:00 分\/km/);
    assert.match(paceLesson,/10.0 km\/h/);
+   await assertPaceColumnLayout(savedExplore,mode,'saved');
+   await savedExplore.locator('[data-ex-learning="distance-time-pace"]').screenshot({path:resolve(root,'screenshots',mode.name+'-pace-card-saved-v28.png')});
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-saved-v27.png'),fullPage:false});
    await page.goto(host+'#/home',{waitUntil:'networkidle'});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
