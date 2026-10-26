@@ -489,9 +489,9 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
   // The exploration shell deliberately has no legacy top header.
-  // The Course shortcut now uses the same full-screen record editor; Settings retains the install control.
-  await page.goto(host+"#/settings",{waitUntil:"networkidle"});
-  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on Settings route");
+  // Course and Settings use dedicated full-screen surfaces. The install control remains available on a standard page.
+  await page.goto(host+"#/simulation",{waitUntil:"networkidle"});
+  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on a standard route");
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
