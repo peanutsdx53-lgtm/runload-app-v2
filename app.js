@@ -17,7 +17,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-pace-column-v27");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
