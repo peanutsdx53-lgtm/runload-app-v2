@@ -33,7 +33,7 @@ try{
   assert.match(await page.locator('.rr-metrics').innerText(),/32:30/);
   assert.match(await page.locator('.rr-metrics').innerText(),/6:15/);
   assert.equal(await page.locator('[data-review-link]').count(),5);
-  assert.equal(await page.locator('.rr-save').isDisabled(),true);
+  assert.equal(await page.locator('[data-manual-run-save]').isEnabled(),true,'current public release can save eligible manual run');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),0);
   if(mode.name==='mobile')await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:'screenshots/live-review-v5-'+mode.name+'.png',fullPage:true});
