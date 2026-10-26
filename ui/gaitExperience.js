@@ -52,7 +52,7 @@ export function gaitPage(d={}){
       <label>走った時間<span class="g4-number"><input data-draft="runWalkRunningDurationMinutes" type="number" inputmode="decimal" step="0.1" min="0.01" max="100000" placeholder="未入力" value="${clean(d.runWalkRunningDurationMinutes)}"><small>分</small></span></label>
      </div>
      <div data-g4-bar-container class="g4-compare" hidden><div class="g4-bar-title">全体距離に占める走行部分 <strong data-g4-percent>—</strong></div><div class="g4-bar" role="img" aria-label="全体距離に占める走行部分の割合"><span data-g4-run></span><span class="g4-rest"></span></div><div class="g4-bar-legend"><span data-g4-run-text>—</span><span data-g4-other>—</span></div></div>
-     <p class="g4-note">残り（差分）は歩行の実測距離ではありません。詳細な走歩区間の保存は未接続です。</p>
+     <p class="g4-note">残り（差分）は歩行の実測距離ではありません。走る区間と歩く区間の詳細はまだ保存できません。</p>
     </div>
     <p data-g4-issue class="g4-issue" role="alert" hidden></p>
     <div class="g4-summary" aria-label="入力内容の要約">
@@ -62,7 +62,7 @@ export function gaitPage(d={}){
     </div>
    </section>
   </div>
-  <div class="g4-footer"><p>入力内容は記録の下書きに保持します。正式な走行保存には未接続です。</p><button type="button" data-g4-apply class="g4-apply">入力内容を反映</button></div>
+  <div class="g4-footer"><p>入力内容は手入力の確認画面に引き継がれます。保存できる項目は確認画面で確かめてください。</p><button type="button" data-g4-apply class="g4-apply">入力内容を反映</button></div>
  </div>`;
 }
 export function paintGait(page,d={}){
