@@ -649,10 +649,38 @@ try{
   await page.evaluate(entries=>localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify(entries)),lifeSeed);
   assert.equal(await page.locator('[data-condition-journey]').count(),0,'running history must not contain condition tracking');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
+  const homeNavStyle=await page.evaluate(()=>{
+    const nav=document.querySelector('.mobile-nav'),item=nav?.querySelector('.mobile-link:not(.is-active)'),active=nav?.querySelector('.mobile-link.is-active');
+    const side=document.querySelector('.sidebar'),selected=side?.querySelector('.side-link.is-active');
+    return {mobileBg:getComputedStyle(nav).backgroundColor,mobileBorder:getComputedStyle(nav).borderTopColor,
+      itemColor:getComputedStyle(item).color,selectedColor:getComputedStyle(active).color,
+      selectedBg:getComputedStyle(active).backgroundColor,
+      sidebarBg:getComputedStyle(side).backgroundImage,sidebarSelected:getComputedStyle(selected).backgroundColor};
+  });
+  const touchPolicy=await page.evaluate(()=>({
+    html:getComputedStyle(document.documentElement).touchAction,
+    body:getComputedStyle(document.body).touchAction,
+    card:getComputedStyle(document.querySelector('.hx-condition-explore')).touchAction,
+    viewport:document.querySelector('meta[name="viewport"]')?.content||''
+  }));
+  assert.equal(touchPolicy.html,'manipulation','double-tap zoom disabled globally');
+  assert.equal(touchPolicy.body,'manipulation');
+  assert.equal(touchPolicy.card,'manipulation');
+  assert.ok(!/user-scalable\s*=\s*no|maximum-scale\s*=\s*1/i.test(touchPolicy.viewport),'pinch zoom must remain allowed');
   const conditionLink=page.locator('.hx-condition .hx-condition-explore');
   assert.equal(await conditionLink.count(),1,'condition detail lives inside the home condition card');
   await conditionLink.click();
   assert.ok(page.url().includes('#/condition'));
+  const conditionNavStyle=await page.evaluate(()=>{
+    const nav=document.querySelector('.mobile-nav'),item=nav?.querySelector('.mobile-link:not(.is-active)'),active=nav?.querySelector('.mobile-link.is-active');
+    const side=document.querySelector('.sidebar'),selected=side?.querySelector('.side-link.is-active');
+    return {mobileBg:getComputedStyle(nav).backgroundColor,mobileBorder:getComputedStyle(nav).borderTopColor,
+      itemColor:getComputedStyle(item).color,selectedColor:getComputedStyle(active).color,
+      selectedBg:getComputedStyle(active).backgroundColor,
+      sidebarBg:getComputedStyle(side).backgroundImage,sidebarSelected:getComputedStyle(selected).backgroundColor};
+  });
+  assert.deepEqual(conditionNavStyle,homeNavStyle,mode.name+' Home vs condition navigation theme');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-condition-nav-parity-v17.png'),fullPage:false});
   assert.equal(await page.locator('#runload-history-v2').count(),0,'condition detail must not mount the running history');
   assert.equal(await page.locator('.cj-back').count(),1,'return home is available');
   const journey=page.locator('[data-condition-journey]');await journey.waitFor();
