@@ -32,3 +32,12 @@ test('History does not read unsaved input or present fake saved-record links',()
  assert.ok(read('ui/historyExperience.js').includes('data-history-unconnected')); 
  assert.ok(!app.includes('href="#/${entry.type'));
 });
+
+test('result palette is synchronously rendered inside the shadow root',()=>{
+ const js=read('ui/resultExperience.js');
+ const inline=read('ui/resultInlineStyles.js');
+ assert.match(js,/RESULT_STYLES/);
+ assert.match(js,/style data-result-inline-styles/);
+ assert.doesNotMatch(js,/<link rel=.*stylesheet/);
+ assert.match(inline,/radial-gradient/);
+});
