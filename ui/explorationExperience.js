@@ -177,7 +177,7 @@ function field(ui,ctx){
   return '<button type="button" class="ex-node '+(related?'is-related ':'')+(chosen?'is-selected':'')+'" data-ex-category="'+esc(c.id)+'" data-ex-source="'+esc(source)+'" style="--ex-accent:'+p.accent+';--ex-x:'+p.x+'%;--ex-y:'+p.y+'%" aria-pressed="'+chosen+'" aria-label="'+esc(c.name)+(related?'、'+esc(links.linked.get(c.id)):'')+'"><span class="ex-node-orb"><span class="ex-node-icon" aria-hidden="true">'+p.glyph+'</span>'+(related?'<span class="ex-node-signal" aria-hidden="true"></span>':'')+'</span><span class="ex-node-copy"><strong class="ex-node-title">'+esc(c.name)+'</strong></span>'+(n?'<span class="ex-memory-count" aria-label="'+n+'件のメモ">'+n+'</span>':'')+'</button>';
  }).join("");
  const currentTopic=selected.topics.includes(ui.topic)?ui.topic:selected.topics[0]||selected.name;
- const summary=links.sample?'光る分野は説明用の表示例です。自分の記録ではありません。':linked?linked:'記録がなくても自由に選べます。';
+ const summary=links.sample?'光る星は説明用の例です。自分の記録ではありません。':linked?linked:'記録がなくても自由に選べます。';
  const any=links.linked.size>0;
  return '<section class="ex-workspace ex-orbit-workspace"><div class="ex-map-card ex-constellation"><div class="ex-map-head"><div><span class="ex-eyebrow">記録からも広がる発見</span><h2>今日は何が気になる？</h2><p>気になる星をタップしてみましょう。</p></div><button type="button" class="ex-help" data-ex-action="field-help" aria-label="星が光る理由と表示の意味">？</button></div>'
  +'<div class="ex-map" role="group" aria-label="星座型の7分野から探す">'+art(links)+'<div class="ex-core" aria-hidden="true"><span>気になることから</span><strong>探究</strong><small>好きな星を選ぼう</small></div>'+nodes+'</div>'
