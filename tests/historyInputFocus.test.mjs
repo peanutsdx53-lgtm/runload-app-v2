@@ -17,7 +17,7 @@ test("history shadow styles match source and set mobile editable fields to 16px"
  assert.match(html,/mobileInputFocus\.css\?v=20261026-ios-input-v25/);
 });
 test("typing in history retains a single focused field, not repeated draw and focus",()=>{
- const handler=history.slice(history.lastIndexOf("root.addEventListener('input'"));
+ const handler=history.slice(history.lastIndexOf("root.addEventListener('input'"),history.lastIndexOf('\n });')+5);
  assert.ok(handler.includes("event.target.value"));
  assert.ok(handler.includes("template.content.querySelector('.list-panel')"));
  assert.ok(handler.includes("previous.replaceWith(replacement)"));
