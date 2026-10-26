@@ -153,7 +153,7 @@ function experience(ui,ctx,cat,topic){
    tool='<div class="ex-tool-result"><strong>いちばん新しい保存済みの走行（手入力）</strong>'
     +'<p>'+h(run.date)+'</p><p>距離：'+h(run.distanceKm.toFixed(2))+' km</p><p>経過時間：'+h(elapsed)+'</p>'
     +'<p>平均ペース：<strong>'+h(pace)+' 分/km</strong></p><p>平均速度：'+h(kmh)+' km/h</p>'
-    +'<small>保存済みの距離 ÷ 時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
+    +'<small>保存済みの距離と経過時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
     +'<a class="ex-learning-link" href="#/history">履歴で保存した走行を確認 ›</a>';
   }
  }else if(key==='body-movement'){
