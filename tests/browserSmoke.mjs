@@ -321,7 +321,8 @@ try{
     'seven nodes form a constellation, not two-column cards: '+JSON.stringify(orbitCoords));
    assert.equal(await ex.locator('[data-ex-tab="catalog"]').count(),1,'single catalog navigation');
    assert.equal(await ex.locator('[data-ex-action="catalog"]').count(),0,'no duplicate catalog button');
-   assert.equal(await ex.locator('[data-ex-action="memories"]').count(),2,'memo access from header and context');
+   assert.equal(await ex.locator('[data-ex-action="memories"]').count(),1,'only one reflection entry point in header');
+   assert.equal(await ex.locator('.ex-memories').count(),0,'avoid duplicate reflection panel');
    assert.equal(await ex.locator('.ex-citation').count(),0,'research references do not dominate beginner reading');
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-constellation-v23.png'),fullPage:false});
   const fromDraft=await ex.locator('.ex-node.is-related').count();
@@ -340,8 +341,23 @@ try{
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
   assert.match(await ex.innerText(),/記録がなくても自由に選べます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
-   const visibleTopics=await ex.locator('.ex-topic').evaluateAll(els=>els.every(el=>{const p=el.parentElement.getBoundingClientRect(),r=el.getBoundingClientRect();return r.left>=p.left-2&&r.right<=p.right+2}));
-   assert.ok(visibleTopics,'all four topic choices are visible without sideways scrolling');
+    const topicRail=ex.locator('.ex-topic-set');
+    const beforeRail=await topicRail.evaluate(el=>({scrollWidth:el.scrollWidth,width:el.clientWidth,layout:getComputedStyle(el).display}));
+    assert.equal(beforeRail.layout,'flex','topic navigator is a compact horizontal rail');
+    assert.ok(beforeRail.scrollWidth>beforeRail.width+10,'extra topics scroll horizontally instead of expanding vertically');
+    await ex.locator('[data-ex-category="02"]').click();
+    const longTopic=ex.locator('[data-ex-topic="足・膝・股関節"]');
+    const topicText=await longTopic.locator('strong').evaluate(el=>({whiteSpace:getComputedStyle(el).whiteSpace,scroll:el.scrollHeight,height:el.getBoundingClientRect().height}));
+    assert.equal(topicText.whiteSpace,'nowrap','股関節 is not split across lines');
+    assert.ok(topicText.scroll<topicText.height+3,'topic text is not multi-line');
+    await ex.locator('[data-ex-topic="12部位の参考値の見方"]').click();
+    const activeVisibility=await ex.locator('.ex-topic.is-picked').evaluate(el=>{
+      const p=el.closest('.ex-topic-set').getBoundingClientRect(),r=el.getBoundingClientRect();
+      return {left:r.left-p.left,right:p.right-r.right,width:r.width};
+    });
+    assert.ok(activeVisibility.left>=-3&&activeVisibility.right>=-3,'last topic is visible: '+JSON.stringify(activeVisibility));
+    await ex.locator('[data-ex-topic="足・膝・股関節"]').click();
+    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-topic-rail-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action=sample]').click();
   assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
   const visualGlow=await ex.locator('.ex-node.is-related .ex-node-orb').first().evaluate(el=>getComputedStyle(el).boxShadow);
@@ -358,13 +374,38 @@ try{
   await ex.locator('[data-ex-action="learn-help"]').click();
   assert.match(await ex.locator('.ex-dialog').innerText(),/参考資料/);
   await ex.locator('[data-ex-action="close"]').click();
+  const writeAction=ex.locator('.ex-note-invite');
+  assert.equal(await ex.locator('.ex-memories').count(),0,'single reflection history access');
+  await writeAction.locator('button').evaluate(el=>{
+    el.scrollIntoView({block:'end',behavior:'instant'});
+    const nav=document.querySelector('.mobile-nav');
+    if(nav&&getComputedStyle(nav).position==='fixed'){
+      const overlap=el.getBoundingClientRect().bottom-nav.getBoundingClientRect().top+18;
+      if(overlap>0)window.scrollBy({top:overlap,behavior:'instant'});
+    }
+  });
+  const footerStyle=await writeAction.evaluate(el=>{
+    const b=el.querySelector('button').getBoundingClientRect(),r=el.getBoundingClientRect();
+    return {buttonWithin:b.left>=r.left-1&&b.right<=r.right+1,
+      fontSize:parseFloat(getComputedStyle(el.querySelector('strong')).fontSize)};
+  });
+  assert.ok(footerStyle.buttonWithin,'write action stays within the reading card: '+JSON.stringify(footerStyle));
+  assert.ok(footerStyle.fontSize>=12,'readable text in reflection footer');
+  const actionVis=await writeAction.locator('button').evaluate(el=>{
+    const box=el.getBoundingClientRect(),nav=document.querySelector('.mobile-nav'),n=nav?.getBoundingClientRect();
+    const overlay=nav&&getComputedStyle(nav).position==='fixed';
+    return {bottom:box.bottom,navTop:overlay?n.top:innerHeight,top:box.top,overlay};
+  });
+  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-(actionVis.overlay?8:0),mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-writing-footer-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action="note"]').click();
-   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v22.png'),fullPage:false});
-   assert.match(await ex.locator('.ex-dialog').innerText(),/あとで「自分のメモ」から読み返せます/);
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
+   assert.match(await ex.locator('.ex-dialog').innerText(),/画面上部の「ふり返り」で読み返せます/);
    await ex.locator('[data-ex-next="0"]').click();
   assert.equal(await ex.locator('#ex-note').inputValue(),'次は上りと下りで感じ方を確かめたい');
   await ex.locator('[data-ex-action="save-note"]').click();
   assert.equal(await ex.locator('.ex-memory-count').count(),1,'saved note creates a visible memory marker');
+   assert.match(await ex.locator('.ex-header-memo').innerText(),/ふり返り/);
   assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,1);
   await ex.locator('[data-ex-action="memories"]').first().click();
   assert.match(await ex.locator('.ex-dialog').innerText(),/次は上りと下りで感じ方を確かめたい/);

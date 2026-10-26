@@ -17,7 +17,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-orbit-v23");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-detail-v24");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
@@ -802,7 +802,18 @@ function recordExtras(){
       return;
     }
     const exploreTopic=event.target.closest("[data-ex-topic]");
-    if(exploreTopic){explorationUi.topic=exploreTopic.dataset.exTopic;explorationUi.followup="";render();return;}
+    if(exploreTopic){
+       const before=exploreTopic.closest('.ex-topic-set');
+       const oldLeft=before?.scrollLeft||0;
+       explorationUi.topic=exploreTopic.dataset.exTopic;explorationUi.followup="";
+       render();
+       const rail=app.querySelector('.ex-topic-set'),active=rail?.querySelector('.ex-topic.is-picked');
+       if(rail&&active){
+         const r=rail.getBoundingClientRect(),b=active.getBoundingClientRect();
+         rail.scrollLeft=Math.max(0,oldLeft+b.left-r.left-(r.width-b.width)/2);
+       }
+       return;
+     }
     const exploreTab=event.target.closest("[data-ex-tab]");
     if(exploreTab){explorationUi.tab=exploreTab.dataset.exTab;explorationUi.notice="";render();return;}
     const bodyChoice=event.target.closest("[data-ex-body]");
@@ -819,7 +830,7 @@ function recordExtras(){
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
       if(action==="save-note"){
         const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value);
-        explorationUi.notice=result.ok?"メモを保存しました":result.reason;if(result.ok)explorationUi.followup="";
+        explorationUi.notice=result.ok?"書いたことを保存しました":result.reason;if(result.ok)explorationUi.followup="";
         if(result.ok)explorationUi.modal="";
         render();return;
       }
@@ -831,7 +842,7 @@ function recordExtras(){
       explorationUi.modal=action;explorationUi.notice="";render();app.querySelector(".ex-dialog-head button")?.focus();return;
     }
     const exploreDelete=event.target.closest("[data-ex-delete]");
-    if(exploreDelete){const success=explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete);explorationUi.notice=success?"メモを削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
+    if(exploreDelete){const success=explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete);explorationUi.notice=success?"削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const expandRegions=event.target.closest("[data-expand-regions]");
     if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
