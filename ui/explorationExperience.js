@@ -1,4 +1,4 @@
-import {createExplorationContext, compareLifeDays} from "./explorationReadAdapter.js";
+import {createExplorationContext, compareLifeDays, readCourseDraft} from "./explorationReadAdapter.js";
 // RunLoad exploration field v3. Relevance is a traceable link to available data,
 // not a diagnosis, performance ranking, inferred cause, or physiological score.
 // Separate opt-in exploration notes never mutate or read the run history store.
@@ -27,32 +27,62 @@ export function makeUi(storage){
  }catch{ui.canSave=false;ui.notice="メモを読み取れません。保存済みのデータは変更していません。";}
  return ui;
 }
-export function signals(draft,conditions){
+
+/* Only validated local manual-run records may light a saved-activity theme.
+   Do not derive any injury, body loading or health interpretation here. */
+function latestSavedManualRun(read){
+ if(read?.ok!==true||!Array.isArray(read.records))return null;
+ return read.records.filter(r=>r?.source==="manual"&&r.type==="run"&&r.schema===1&&
+    /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
+    Number.isInteger(r.durationSeconds)&&r.durationSeconds>0)
+  .slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt).localeCompare(String(a.createdAt)))[0]||null;
+}
+export function signals(draft,conditions,manualRuns=null){
  const linked=new Map();
  const strict=createExplorationContext({draft,conditions});
- // Only eligible input can light these topics. Draft must never become saved history.
+ const sources=new Map(),recentRun=latestSavedManualRun(manualRuns);
+ const mark=(id,label,source)=>{if(!linked.has(id)){linked.set(id,label);sources.set(id,source);}};
+ // Current draft is kept separate from confirmed saved runs.
  if(draft&&[draft.distance,draft.hours,draft.minutes,draft.seconds,draft.steps].some(isProvided))
-  linked.set("01","入力中の走行距離・時間などに関連");
+  mark("01","入力中の走行距離・時間などに関連","draft");
  if(strict.highlights.some(h=>h.themeId==="上り坂・下り坂"))
-  linked.set("03","入力中の上り坂・下り坂の情報に関連");
- if(draft&&(draft.rofBefore!==null&&draft.rofBefore!==undefined||draft.rofAfter!==null&&draft.rofAfter!==undefined))
-  linked.set("04","入力中の運動前後の疲れに関連");
- if(draft&&isProvided(draft.bodyObservation))linked.set("02","入力中の身体に関するメモに関連");
+  mark("03","入力中の上り坂・下り坂の情報に関連","draft");
+ if(draft&&(draft.rofBefore!==null&&draft.rofBefore!==undefined&&String(draft.rofBefore).trim()!==""||
+   draft.rofAfter!==null&&draft.rofAfter!==undefined&&String(draft.rofAfter).trim()!==""))
+  mark("04","入力中の運動前後の疲れに関連","draft");
+ if(draft&&isProvided(draft.bodyObservation))mark("02","入力中の身体に関するメモに関連","draft");
+ if(recentRun){
+  const date=recentRun.date;
+  mark("01",date+" に保存した走行距離と時間に関連","saved-run");
+  const course=readCourseDraft(recentRun.draft);
+  if(course.status==="complete"&&(course.shares.up>0||course.shares.down>0))
+   mark("03",date+" に保存した坂道の入力に関連","saved-run");
+  if([recentRun.rofBefore,recentRun.rofAfter].some(x=>typeof x==="number"&&Number.isFinite(x)&&x>=0&&x<=10))
+   mark("04",date+" に保存したROF-Jの入力に関連","saved-run");
+  if(isProvided(recentRun.draft?.bodyObservation))
+   mark("02",date+" に保存した身体に関するメモに関連","saved-run");
+ }
  const recent=strict.life.status==="complete"?strict.life.records.filter(n=>n.minutes!==null).at(-1):null;
- if(recent)linked.set("05",`${recent.date} の生活コンディション記録に関連`);
- return {linked,hasDraft:[...linked.keys()].some(k=>k!=="05"),hasCondition:linked.has("05"),conditionDate:recent?.date||null,strict};
+ if(recent)mark("05",recent.date+" の生活コンディション記録に関連","saved-life");
+ return {linked,sources,hasDraft:[...sources.values()].includes("draft"),hasSavedRun:[...sources.values()].includes("saved-run"),
+  hasCondition:linked.has("05"),conditionDate:recent?.date||null,recentRunDate:recentRun?.date||null,strict};
 }
 
 function relevance(ui,ctx){
- if(ui.sample)return {linked:new Map([["01","表示例：走行距離の入力"],["03","表示例：上り坂の入力"]]),hasDraft:false,hasCondition:false,sample:true};
- return {...signals(ctx.draft,ctx.conditions),sample:false};
+ if(ui.sample)return {linked:new Map([["01","表示例：走行距離の入力"],["03","表示例：上り坂の入力"]]),sources:new Map([["01","sample"],["03","sample"]]),hasDraft:false,hasCondition:false,sample:true};
+ return {...signals(ctx.draft,ctx.conditions,ctx.manualRuns),sample:false};
 }
 function buttonAction(name,label,kind="") {return `<button type="button" class="ex-action ${kind}" data-ex-action="${name}">${label}</button>`;}
-function art(){
- const stars=Array.from({length:62},(_,i)=>{const x=(i*73+31)%760,y=(i*47+(i%5)*37+17)%520,r=i%7===0?1.75:.85;return `<circle cx="${x}" cy="${y}" r="${r}" fill="#c4efff" opacity="${i%4===0?.53:.19}"/>`}).join("");
- const routes=Object.entries(meta).map(([id,p])=>`<path d="M380 253 Q${380+(p.x*7.6-380)*.48} ${253+(p.y*5.1-253)*.62-18} ${p.x*7.6} ${p.y*5.1}" stroke="${p.accent}" opacity=".25" stroke-width="1.5" fill="none"/>`).join("");
- return `<svg class="ex-art" viewBox="0 0 760 520" preserveAspectRatio="none" aria-hidden="true"><defs><radialGradient id="ex-glow"><stop stop-color="#59efd9" stop-opacity=".27"/><stop offset="1" stop-color="#59efd9" stop-opacity="0"/></radialGradient></defs>${stars}<path class="ex-contours" d="M-70 370 Q125 120 310 356 T820 192 M-70 405 Q125 155 310 391 T820 227 M-70 438 Q125 188 310 424 T820 260 M-70 470 Q125 220 310 456 T820 290 M-70 502 Q125 252 310 488 T820 323" fill="none" stroke="#85d4cd" opacity=".11" stroke-width="2"/>${routes}<circle cx="380" cy="253" r="155" fill="url(#ex-glow)" opacity=".34"/></svg>`;
+
+function art(links){
+ const stars=Array.from({length:72},(_,i)=>{const x=(i*73+31)%760,y=(i*47+(i%5)*37+17)%520,r=i%7===0?1.75:.85;return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#c4efff" opacity="'+(i%4===0?.52:.16)+'"/>';}).join("");
+ const routes=Object.entries(meta).map(([id,p])=>{
+  const active=links.linked.has(id);
+  return '<path class="'+(active?'ex-constellation-link is-related':'ex-constellation-link')+'" d="M380 253 Q'+(380+(p.x*7.6-380)*.48)+' '+(253+(p.y*5.1-253)*.62-18)+' '+p.x*7.6+' '+p.y*5.1+'" stroke="'+p.accent+'" stroke-width="'+(active?'2.7':'1.5')+'" fill="none" opacity="'+(active?'.75':'.19')+'"/>';
+ }).join("");
+ return '<svg class="ex-art" viewBox="0 0 760 520" preserveAspectRatio="none" aria-hidden="true"><defs><radialGradient id="ex-glow"><stop stop-color="#59efd9" stop-opacity=".4"/><stop offset="1" stop-color="#59efd9" stop-opacity="0"/></radialGradient></defs>'+stars+'<path class="ex-contours" d="M-70 370 Q125 120 310 356 T820 192 M-70 405 Q125 155 310 391 T820 227 M-70 438 Q125 188 310 424 T820 260 M-70 470 Q125 220 310 456 T820 290 M-70 502 Q125 252 310 488 T820 323" fill="none" stroke="#85d4cd" opacity=".12" stroke-width="2"/>'+routes+'<circle cx="380" cy="253" r="155" fill="url(#ex-glow)" opacity=".3"/></svg>';
 }
+
 const KNOWLEDGE={
  "足・膝・股関節":{
    heading:"走るとき、脚の関節はどう働く？",lead:"地面を押して前に進むとき、股関節・膝・足首が連携して動きます。走る速さが変わると、関節の動きや仕事の分担も変化し得ます。",
@@ -135,22 +165,29 @@ function experience(ui,ctx,cat,topic){
  +'<div class="ex-note-invite"><div><small>03　自分の言葉で</small><strong>気になったこと、覚えておく？</strong><p>感じたことや、次の走りで試したいことを自由に残せます。</p></div><button type="button" data-ex-action="note">メモを残す ＋</button></div>'
  +(saved.length?'<div class="ex-note-preview"><strong>前に書いたメモ</strong>'+saved.map(n=>'<p>'+h(n.text)+'</p>').join('')+'</div>':'')+'</div>';
 }
+
 function field(ui,ctx){
  const links=relevance(ui,ctx),cats=ctx.categories;
  const counts=Object.create(null);for(const n of ui.notes)counts[n.category]=(counts[n.category]||0)+1;
  const selected=cats.find(c=>c.id===ui.selected)||cats[0],linked=links.linked.get(selected.id);
- const hint={ "01":"自分のペースが気になる","02":"走るときの体を知りたい","03":"坂道や路面を知りたい","04":"疲れの理由を考えたい","05":"睡眠や調子が気になる","06":"走る前後に何をする？","07":"楽しく続けるには？" };
  const nodes=cats.map(c=>{
-   const p=meta[c.id]||{glyph:"○",accent:"#69d5d7"},chosen=c.id===selected.id,related=links.linked.has(c.id),n=counts[c.id]||0;
-   return '<button type="button" class="ex-node '+(related?'is-related ':'')+(chosen?'is-selected':'')+'" data-ex-category="'+esc(c.id)+'" style="--ex-accent:'+p.accent+'" aria-pressed="'+chosen+'" aria-label="'+esc(c.name)+(related?'、記録とのつながりあり':'')+'"><span class="ex-node-orb"><span class="ex-node-icon" aria-hidden="true">'+p.glyph+'</span></span><span class="ex-node-copy"><strong class="ex-node-title">'+esc(c.name)+'</strong><small>'+esc(hint[c.id]||'気になることを探す')+'</small></span><span class="ex-node-meta">'+(n?'<span class="ex-memory-count">'+n+' メモ</span>':related?'<span class="ex-related-dot" aria-label="記録あり"></span>':'')+'<span aria-hidden="true">›</span></span></button>';
+  const p=meta[c.id]||{glyph:"○",accent:"#69d5d7",x:50,y:50};
+  const chosen=c.id===selected.id,related=links.linked.has(c.id),n=counts[c.id]||0;
+  const source=links.sources.get(c.id)||"none";
+  return '<button type="button" class="ex-node '+(related?'is-related ':'')+(chosen?'is-selected':'')+'" data-ex-category="'+esc(c.id)+'" data-ex-source="'+esc(source)+'" style="--ex-accent:'+p.accent+';--ex-x:'+p.x+'%;--ex-y:'+p.y+'%" aria-pressed="'+chosen+'" aria-label="'+esc(c.name)+(related?'、'+esc(links.linked.get(c.id)):'')+'"><span class="ex-node-orb"><span class="ex-node-icon" aria-hidden="true">'+p.glyph+'</span>'+(related?'<span class="ex-node-signal" aria-hidden="true"></span>':'')+'</span><span class="ex-node-copy"><strong class="ex-node-title">'+esc(c.name)+'</strong></span>'+(n?'<span class="ex-memory-count" aria-label="'+n+'件のメモ">'+n+'</span>':'')+'</button>';
  }).join("");
  const currentTopic=selected.topics.includes(ui.topic)?ui.topic:selected.topics[0]||selected.name;
- const summary=links.sample?'光る印は説明用の例です。自分の記録ではありません。':linked?(linked.includes('入力中')?'入力中の情報と関係があります。':'保存した記録と関係があります。'):'記録がなくても自由に選べます。';
- return '<section class="ex-workspace"><div class="ex-map-card"><div class="ex-map-head"><div><span class="ex-eyebrow">01　気になることを選ぶ</span><h2>今日は何が気になる？</h2><p>下の7つから、いちばん近いものを選んでください。</p></div><button type="button" class="ex-help" data-ex-action="field-help" aria-label="分野の印について詳しく">？</button></div><div class="ex-map" role="group" aria-label="知りたいことを選ぶ">'+nodes+'</div><div class="ex-map-foot">'+(!links.linked.size&&!links.sample?buttonAction("sample","記録があるときの表示例を見る","quiet"):links.sample?buttonAction("sample","表示例を終了","quiet"):'')+'</div></div>'
- +'<div class="ex-side"><section class="ex-focus" id="ex-topic-content"><div class="ex-focus-label"><span>02　テーマを読む</span>'+(linked?'<span class="ex-related-label">自分の記録とつながる</span>':'')+'</div><h2>'+esc(selected.name)+'</h2><p class="ex-focus-intro">'+esc(summary)+'</p><div class="ex-topic-label">どれから読んでみる？</div><div class="ex-topic-set" role="group" aria-label="読むテーマ">'+selected.topics.map((name,i)=>'<button type="button" data-ex-topic="'+esc(name)+'" aria-pressed="'+(currentTopic===name)+'" class="ex-topic '+(currentTopic===name?'is-picked':'')+'"><span aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(name)+'</strong><span aria-hidden="true">›</span></button>').join('')+'</div>'
+ const summary=links.sample?'光る分野は説明用の表示例です。自分の記録ではありません。':linked?linked:'記録がなくても自由に選べます。';
+ const any=links.linked.size>0;
+ return '<section class="ex-workspace ex-orbit-workspace"><div class="ex-map-card ex-constellation"><div class="ex-map-head"><div><span class="ex-eyebrow">記録からも広がる発見</span><h2>今日は何が気になる？</h2><p>気になる星をタップしてみましょう。</p></div><button type="button" class="ex-help" data-ex-action="field-help" aria-label="星が光る理由と表示の意味">？</button></div>'
+ +'<div class="ex-map" role="group" aria-label="星座型の7分野から探す">'+art(links)+'<div class="ex-core" aria-hidden="true"><span>RUNNING DISCOVERY</span><strong>探究</strong><small>好きな星を選ぼう</small></div>'+nodes+'</div>'
+ +'<div class="ex-legend ex-signal-legend"><span class="ex-legend-glow" aria-hidden="true"></span><span>'+(any?'光る星は、入力や記録とつながる分野です。':'どの星からでも自由に始められます。')+'</span></div>'
+ +'<div class="ex-map-foot">'+(!any&&!links.sample?buttonAction("sample","光る星の表示例を見る","quiet"):links.sample?buttonAction("sample","表示例を終了","quiet"):'')+'</div></div>'
+ +'<div class="ex-side"><section class="ex-focus" id="ex-topic-content"><div class="ex-focus-label"><span>選んだ分野</span>'+(linked?'<span class="ex-related-label">記録とつながる</span>':'')+'</div><h2>'+esc(selected.name)+'</h2><p class="ex-focus-intro">'+esc(summary)+'</p><div class="ex-topic-label">どれから読んでみる？</div><div class="ex-topic-set" role="group" aria-label="読むテーマ">'+selected.topics.map((name,i)=>'<button type="button" data-ex-topic="'+esc(name)+'" aria-pressed="'+(currentTopic===name)+'" class="ex-topic '+(currentTopic===name?'is-picked':'')+'"><span aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(name)+'</strong><span aria-hidden="true">›</span></button>').join('')+'</div>'
  +experience(ui,ctx,selected,currentTopic)+'</section>'
- +'<section class="ex-memories"><div class="ex-side-head"><h3>自分のメモ</h3><span>'+ui.notes.length+' 件</span></div><p>'+ (ui.notes.length?'前に書いたことを読み返せます。':'気になったことは、あとで見返せるように残せます。')+'</p>'+buttonAction("memories","メモを見る","quiet")+'</section></div></section>';
+ +'<section class="ex-memories"><div class="ex-side-head"><h3>自分のメモ</h3><span>'+ui.notes.length+' 件</span></div><p>'+(ui.notes.length?'前に書いたことを読み返せます。':'気になったことは、あとで見返せるように残せます。')+'</p>'+buttonAction("memories","メモを見る","quiet")+'</section></div></section>';
 }
+
 export function catalogCards(categories,search=""){
  const q=String(search).trim().toLocaleLowerCase("ja");
  const all=categories.flatMap(c=>c.topics.map((title,i)=>({category:c,title,i})));
@@ -170,12 +207,12 @@ export function render(ui,ctx){
  return '<section class="ex-page" data-experience-v3><header class="ex-heading"><h1>探究</h1><button type="button" class="ex-header-memo" data-ex-action="memories">自分のメモ <span>'+ui.notes.length+'</span></button></header>'+(ui.notice?'<p class="ex-notice" role="status">'+esc(ui.notice)+'</p>':'')+'<div class="ex-switch" role="group" aria-label="探し方"><button type="button" data-ex-tab="field" aria-pressed="'+(ui.tab==="field")+'">気になることから</button><button type="button" data-ex-tab="catalog" aria-pressed="'+(ui.tab==="catalog")+'">テーマから探す</button></div>'+(ui.tab==="catalog"?catalog(ui,ctx):field(ui,ctx))+modal(ui,ctx)+'</section>';
 }
 function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find(c=>c.id===ui.selected)||ctx.categories[0],title=ui.topic||category.topics[0]||category.name,links=relevance(ui,ctx);let body="";
- if(ui.modal==="field-help")body='<p>光る印は、入力中の情報や保存した生活記録と関係する分野です。優先順位や、身体への負担の大きさを示すものではありません。</p><p>記録がなくても、どの分野も自由に選べます。</p>';
+ if(ui.modal==="field-help")body='<p>光る星は、現在入力している情報や、保存した走行・生活記録とつながる分野です。優先順位や、身体への負担の大きさを示すものではありません。</p><p>記録がなくても、どの分野も自由に選べます。</p>';
  if(ui.modal==="learn-help"){
   const k=KNOWLEDGE[title];
   body='<p>学びの内容は一般的な知識です。あなたの身体や調子の原因を自動的に判定しているわけではありません。</p>'
   +(k?'<div class="ex-dialog-block"><strong>研究で分かっている範囲</strong><p>'+esc(k.warning)+'</p></div><p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>このテーマの詳しい説明や研究資料は準備中です。</p>')
-  +'<p class="ex-muted">光る分野は、記録との関連を示す目印であり、重要度や危険度を示すものではありません。</p>';
+  +'<p class="ex-muted">光る星は、入力・保存記録とのつながりを表す目印です。重要度や危険度を示すものではありません。</p>';
  }
  if(ui.modal==="know")body=`<p>「${esc(title)}」に関連する知識を確認する場所です。</p><div class="ex-dialog-block"><strong>自分の情報との接点</strong><p>${esc(links.linked.get(category.id)||"このテーマを調べるのに記録は必要ありません。")}</p></div><div class="ex-dialog-block"><strong>読み取るときの注意</strong><p>記録や感覚の違いだけでは、原因や身体の状態を判断できません。</p></div><p class="ex-muted">根拠審査済みのコラム本文は今後接続します。未確認の医学的な説明は表示しません。</p>`;
  if(ui.modal==="try")body=`<p>距離と時間を動かして、平均ペースと平均速度の関係を確かめられます。</p><div class="ex-range-label"><label for="ex-distance">距離</label><output data-ex-distance-value>${ui.trialDistance.toFixed(1)} km</output></div><input id="ex-distance" type="range" min="1" max="15" step=".5" value="${ui.trialDistance}" data-ex-distance/><div class="ex-range-label"><label for="ex-minutes">時間</label><output data-ex-minutes-value>${ui.trialMinutes} 分</output></div><input id="ex-minutes" type="range" min="10" max="100" step="1" value="${ui.trialMinutes}" data-ex-minutes/><div class="ex-metric-grid"><div><small>平均ペース</small><strong data-ex-pace>—</strong><em>分/km</em></div><div><small>平均速度</small><strong data-ex-speed>—</strong><em>km/h</em></div></div><p class="ex-muted">算術計算のみ。個人の将来の走りや身体への負荷・ケガを予測するものではありません。</p>`;
