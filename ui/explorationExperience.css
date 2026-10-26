@@ -433,3 +433,8 @@
  .ex-page .ex-learning .ex-note-invite button{width:100%!important}
 }
 @media(prefers-reduced-motion:reduce){.ex-page .ex-focus .ex-topic-set{scroll-behavior:auto}}
+
+/* Mobile bottom navigation must never conceal the single reflection action. */
+@media(max-width:800px){
+ .ex-page .ex-learning .ex-note-invite button{scroll-margin-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+}
