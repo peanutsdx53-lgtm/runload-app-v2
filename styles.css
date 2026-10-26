@@ -1778,3 +1778,11 @@ html, body { background-color:#061725; }
     padding-bottom:calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* All-screen direct touch handling, 2026-10-26.
+   'manipulation' disables browser double-tap zoom while keeping scrolling and
+   accessibility pinch zoom. Do not use user-scalable=no or preventDefault on touchstart. */
+html,body,#app{touch-action:manipulation}
+/* Reinforce Safari handling on frequently double-tapped controls. */
+a,button,input,select,textarea,summary,label,[role="button"],[tabindex]{touch-action:manipulation}
+/* Specialized drag/map controls can retain their own touch-action policies. */
