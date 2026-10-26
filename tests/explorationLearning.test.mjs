@@ -50,7 +50,7 @@ test('sleep correctly distinguishes methods and displays only comparable dates',
 test('unsupported topics do not inherit unrelated experiment tools',()=>{
  const u=makeUi(memory());u.selected='06';u.topic='ウォームアップ';const html=render(u,ctx());
  assert.match(html,/学習コンテンツは準備中/);assert.doesNotMatch(html,/data-ex-slope="up"/);
- assert.equal(Object.keys(LEARNING_TOPICS).length,3);
+ assert.equal(Object.keys(LEARNING_TOPICS).length,4);
 });
 test('next check can be explicitly saved and recovered by stable topic key, without changing run or life records',()=>{
  const storage=memory(),u=makeUi(storage);u.selected='03';u.topic='上り坂・下り坂';
@@ -59,4 +59,30 @@ test('next check can be explicitly saved and recovered by stable topic key, with
  after.selected='03';after.topic='上り坂・下り坂';const out=render(after,ctx());
  assert.match(out,/以前に残したこと：次は上りと下りで感じ方を確かめたい/);
  assert.deepEqual([...storage.map.keys()],['runload-v2-exploration-notes-v1']);
+});
+
+test('distance and pace column reads only confirmed manual runs, never an unsaved editor draft',()=>{
+ const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
+ const draft={distance:'99',minutes:'9'};
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950};
+ const initial=render(u,{...ctx(draft),manualRuns:{ok:true,records:[]}});
+ assert.match(initial,/保存済みの走行はまだありません/);
+ assert.doesNotMatch(initial,/99 km/);
+ const page=render(u,{...ctx(draft),manualRuns:{ok:true,records:[run]}});
+ assert.match(page,/data-ex-learning="distance-time-pace"/);
+ assert.match(page,/2026-10-25/);
+ assert.match(page,/距離：5.20 km/);
+ assert.match(page,/経過時間：32分30秒/);
+ assert.match(page,/6:15 分\/km/);
+ assert.match(page,/9.6 km\/h/);
+ assert.match(page,/手入力/);
+ assert.doesNotMatch(page,/99 km/);
+ assert.match(page,/href="#\/history"/);
+ const invalid=render(u,{...ctx(draft),manualRuns:{ok:false,records:[run]}});
+ assert.match(invalid,/走行記録を読み取れません/);
+ assert.doesNotMatch(invalid,/6:15 分\/km/);
+ u.sample=true;
+ const sample=render(u,{...ctx(draft),manualRuns:{ok:true,records:[run]}});
+ assert.match(sample,/表示例を終了すると/);
+ assert.doesNotMatch(sample,/6:15 分\/km/);
 });

@@ -1,22 +1,25 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 const root='https://peanutsdx53-lgtm.github.io/runload-app-v2/';
-const tag='20261025-review-v5';
-const probes=[['index.html','app.js?v=20261026-interpret-v14'],['index.html','recordReviewExperience.css?v='+tag],['app.js','recordReviewExperience.js'],['ui/recordReviewExperience.js','data-record-review']];
+const tag='20261026-pace-column-v27';
+// Check the deployed snapshot against this exact main build. Old version tags must not remain fixed in a future release.
+const probes=['index.html','app.js','ui/explorationExperience.js','ui/historyExperience.js'];
+const expected=probes.map(file=>readFileSync(new URL('../'+file,import.meta.url),'utf8'));
 let valid=false;
 for(let i=1;i<=30;i++){
  try{
-  const data=await Promise.all(probes.map(async ([file])=>{
+  const data=await Promise.all(probes.map(async file=>{
    const r=await fetch(new URL(file+'?check='+tag+'-'+i,root),{cache:'no-store'});
    assert.equal(r.status,200,'HTTP '+file);return r.text();
   }));
-  valid=probes.every((entry,n)=>data[n].includes(entry[1]));
+  valid=probes.every((_,n)=>data[n]===expected[n]);
   if(valid)break;
  }catch(e){console.log('Live Pages pending',i,e.message)}
  await new Promise(resolve=>setTimeout(resolve,5000));
 }
-assert.ok(valid,'GitHub Pages has not deployed common review v5 from main');
+assert.ok(valid,'GitHub Pages has not deployed the matching checked-out main snapshot');
 const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 try{
  await mkdir('screenshots',{recursive:true});

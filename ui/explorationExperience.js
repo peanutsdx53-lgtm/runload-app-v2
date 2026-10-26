@@ -84,6 +84,11 @@ function art(links){
 }
 
 const KNOWLEDGE={
+ "距離・時間・ペース":{
+   heading:"距離と時間から、平均ペースを読んでみよう",
+   lead:"平均ペースは1 km進むためにかかった平均時間、平均速度は1時間に進む距離です。どちらも距離と経過時間から計算できます。同じ記録を、時間の単位を変えて表したものです。",
+   warning:"平均値には速く走った区間もゆっくり進んだ区間も含まれます。手入力された距離と経過時間の計算であり、GPS測定や身体負荷の判定ではありません。"
+ },
  "足・膝・股関節":{
    heading:"走るとき、脚の関節はどう働く？",lead:"地面を押して前に進むとき、股関節・膝・足首が連携して動きます。走る速さが変わると、関節の動きや仕事の分担も変化し得ます。",
    cite:"Fukuchi ほか（2017）",url:"https://doi.org/10.7717/peerj.3298",warning:"一定条件で走った人々の研究に基づく一般知識です。あなたの関節への負荷やけがの可能性を判定するものではありません。"},
@@ -121,7 +126,7 @@ const STARTER_GUIDES=Object.freeze({
   "楽しみ方": "景色、音楽、友人との時間など、走って楽しかったことを思い出してみましょう。",
   "自分に合う記録の使い方": "毎回すべてを記録する必要はありません。何を見返したいかから決めてみましょう。"
 });
-export const LEARNING_TOPICS=Object.freeze({"02|足・膝・股関節":"body-movement","03|上り坂・下り坂":"slope-running","05|睡眠":"sleep-recovery"});
+export const LEARNING_TOPICS=Object.freeze({"01|距離・時間・ペース":"distance-time-pace","02|足・膝・股関節":"body-movement","03|上り坂・下り坂":"slope-running","05|睡眠":"sleep-recovery"});
 const followups={
  "body-movement":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],
  "slope-running":["次は上りと下りで感じ方を確かめたい","坂道のある日とない日の記録を見比べたい"],
@@ -135,7 +140,23 @@ function experience(ui,ctx,cat,topic){
  const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?`${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:"関連する入力がなくても、内容を自由に学べます";
  const h=(text)=>esc(text);
  let tool='';
- if(key==='body-movement'){
+ if(key==='distance-time-pace'){
+  const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns);
+  if(ui.sample)tool='<div class="ex-tool-result"><strong>表示例を見ています</strong><p>この画面では実際の走行記録と表示例を混ぜません。表示例を終了すると保存済みの値を確認できます。</p></div>';
+  else if(ctx.manualRuns?.ok===false)tool='<div class="ex-tool-result"><strong>走行記録を読み取れません</strong><p>保存データの読み取りに問題があります。記録は変更せず、数値の表示を中止しています。</p></div>';
+  else if(!run)tool='<div class="ex-tool-result"><strong>保存済みの走行はまだありません</strong><p>距離と時間を手入力で保存すると、ここに平均ペースと平均速度が表示されます。入力途中の数値は保存済みとして扱いません。</p></div><a class="ex-learning-link" href="#/record-start">記録を始める ›</a>';
+  else{
+   const paceSeconds=Math.round(run.durationSeconds/run.distanceKm);
+   const pace=`${Math.floor(paceSeconds/60)}:${String(paceSeconds%60).padStart(2,'0')}`;
+   const elapsed=`${Math.floor(run.durationSeconds/60)}分${String(run.durationSeconds%60).padStart(2,'0')}秒`;
+   const kmh=(run.distanceKm*3600/run.durationSeconds).toFixed(1);
+   tool='<div class="ex-tool-result"><strong>いちばん新しい保存済みの走行（手入力）</strong>'
+    +'<p>'+h(run.date)+'</p><p>距離：'+h(run.distanceKm.toFixed(2))+' km</p><p>経過時間：'+h(elapsed)+'</p>'
+    +'<p>平均ペース：<strong>'+h(pace)+' 分/km</strong></p><p>平均速度：'+h(kmh)+' km/h</p>'
+    +'<small>保存済みの距離 ÷ 時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
+    +'<a class="ex-learning-link" href="#/history">履歴で保存した走行を確認 ›</a>';
+  }
+ }else if(key==='body-movement'){
   const parts={hip:{label:"股関節",body:"脚を前後に動かす関節。走るときに身体を前へ進める動きに関係します。"},knee:{label:"膝",body:"着地して体を支える間に曲げ伸ばしし、力を受け止める動きに関わります。"},ankle:{label:"足首",body:"地面を押して進むときや、着地の姿勢を調整するときに働きます。"}};
   const part=parts[ui.bodyChoice]||parts.hip;
   tool=`<div class="ex-tool-switch" role="group" aria-label="注目する関節">${Object.entries(parts).map(([id,p])=>`<button type="button" data-ex-body="${id}" aria-pressed="${ui.bodyChoice===id}">${p.label}</button>`).join('')}</div>
@@ -211,7 +232,7 @@ function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find
  if(ui.modal==="learn-help"){
   const k=KNOWLEDGE[title];
   body='<p>学びの内容は一般的な知識です。あなたの身体や調子の原因を自動的に判定しているわけではありません。</p>'
-  +(k?'<div class="ex-dialog-block"><strong>研究で分かっている範囲</strong><p>'+esc(k.warning)+'</p></div><p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>このテーマの詳しい説明や研究資料は準備中です。</p>')
+  +(k?'<div class="ex-dialog-block"><strong>内容と適用上の注意</strong><p>'+esc(k.warning)+'</p></div>'+(k.url?'<p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>このテーマは距離と経過時間による算術上の定義を説明します。個人への効果や医学的な主張を根拠付ける文献引用ではありません。</p>'):'<p>このテーマの詳しい説明や研究資料は準備中です。</p>')
   +'<p class="ex-muted">光る星は、入力・保存記録とのつながりを表す目印です。重要度や危険度を示すものではありません。</p>';
  }
  if(ui.modal==="know")body=`<p>「${esc(title)}」に関連する知識を確認する場所です。</p><div class="ex-dialog-block"><strong>自分の情報との接点</strong><p>${esc(links.linked.get(category.id)||"このテーマを調べるのに記録は必要ありません。")}</p></div><div class="ex-dialog-block"><strong>読み取るときの注意</strong><p>記録や感覚の違いだけでは、原因や身体の状態を判断できません。</p></div><p class="ex-muted">根拠審査済みのコラム本文は今後接続します。未確認の医学的な説明は表示しません。</p>`;
