@@ -557,7 +557,7 @@ try{
   assert.equal(await page.locator('[data-draft="distance"]').inputValue(),"7.25");
   await page.locator('[data-demo-save]').click();
   await page.locator('[data-record-review]').waitFor();
-  assert.match(await page.locator('[data-record-review]').innerText(),/正式な保存機能は未接続/);
+  assert.match(await page.locator('[data-record-review]').innerText(),/手入力した走行を端末内に保存/);
   assert.match(await page.locator('[data-record-review]').innerText(),/川沿い往復/);
   assert.match(await page.locator('.rr-metrics').innerText(),/7.25/);
   assert.match(await page.locator('.rr-metrics').innerText(),/45:30/);
@@ -625,7 +625,7 @@ try{
   assert.ok(totalDays>=28&&totalDays<=31,"calendar shows actual number of days");
   assert.equal(await historyRoot.locator('.day-grid button.has-record').count(),0,"no invented saved dates");
   assert.equal(await historyRoot.locator('.entry').count(),0,"no invented saved-record links");
-  assert.match(await historyRoot.locator('[data-history-unconnected]').innerText(),/保存済みの履歴はまだ接続されていません/);
+  assert.match(await historyRoot.locator('[data-history-unconnected]').innerText(),/この条件の記録はありません/);
   await historyRoot.locator('[data-day="12"]').click();
   assert.match(await historyRoot.locator('.results-counter').innerText(),/12日の記録/);
   await historyRoot.locator('[data-clear-day]').click();
@@ -796,7 +796,39 @@ try{
   assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+" horizontal overflow: "+overflow);
+  // Saved manual run E2E: real storage and explicit ID, no simulated GPS input.
+  await page.reload({waitUntil:'networkidle'});
+  await page.goto(host+"#/record",{waitUntil:'networkidle'});
+  await page.locator('[data-draft="distance"]').fill('5.00');
+  await page.locator('[data-draft="minutes"]').fill('30');
+  await page.locator('[data-demo-save]').click();
+  const review=page.locator('[data-record-review]');await review.waitFor();
+  assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-review-save-v18.png'),fullPage:false});
+  await review.locator('[data-manual-run-save]').click();
+  assert.match(page.url(),/#\/result\?record=run-v1-/);
+  const savedResult=page.locator('#runload-result-v4');
+  assert.match(await savedResult.locator('.rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
+  assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
+  const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
+  assert.equal(recordIds.length,1);
+  await page.reload({waitUntil:'networkidle'});
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  await page.goto(host+'#/home',{waitUntil:'networkidle'});
+  assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
+  await page.locator('.hx-latest a[href^="#/result?record="]').click();
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  await page.goto(host+'#/history',{waitUntil:'networkidle'});
+  const savedHistory=page.locator('#runload-history-v2');
+  assert.equal(await savedHistory.locator('.entry').count(),1);
+  await savedHistory.locator('.entry').first().click();
+  await savedHistory.locator('[data-open-record]').click();
+  assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await page.close();
-  console.log("PASS",mode.name,"home / 12-regions / body maps / tree / install dialog / overflow");
+  console.log("PASS",mode.name,"manual save / reload / result / home / history");
+
  }
 }finally{await browser.close();server.close()}
