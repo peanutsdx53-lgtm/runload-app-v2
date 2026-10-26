@@ -15,7 +15,7 @@
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261026-user-copy-v21");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
-  const historyExperience=await import("./ui/historyExperience.js?v=20261025-mobile-shell-01");
+  const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-detail-v24");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");

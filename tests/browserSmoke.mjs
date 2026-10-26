@@ -420,6 +420,18 @@ try{
   assert.equal(await ex.locator('.ex-catalog-items button').count(),28,'all initial topics visible');
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-catalog-v22.png'),fullPage:false});
    assert.equal(await ex.locator('.ex-catalog-group').count(),7,'the catalog groups topics by familiar questions');
+  const editableFonts=await page.evaluate(()=>{
+    const out=[];
+    const visit=root=>{
+      root.querySelectorAll('input,textarea,select,[contenteditable="true"]').forEach(el=>{
+        const type=(el.getAttribute('type')||'text').toLowerCase();
+        if(['hidden','checkbox','radio','range','button','submit','reset','file','color'].includes(type)||!el.getClientRects().length)return;
+        out.push({name:el.id||el.getAttribute('name')||el.tagName,font:parseFloat(getComputedStyle(el).fontSize)});
+      });
+      root.querySelectorAll('*').forEach(el=>{if(el.shadowRoot)visit(el.shadowRoot)});
+    };visit(document);return out;
+  });
+  if(mode.width<=800)assert.ok(editableFonts.every(c=>c.font>=16),mode.name+' focusable fields under 16px: '+JSON.stringify(editableFonts.filter(c=>c.font<16)));
   await ex.locator('[data-ex-search]').focus();
   const searchFont=await ex.locator('[data-ex-search]').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
   assert.ok(mode.width>800||searchFont>=16,mode.name+' search input has iOS safe font size: '+searchFont);
@@ -740,6 +752,19 @@ try{
   assert.equal(await historyRoot.locator('.entry').count(),0);
   await historyRoot.locator('[data-record-kind="run"]').click();
   assert.equal(await historyRoot.locator('.entry').count(),0);
+  const focusInput=historyRoot.locator('#hx-search');
+  const historyInputSize=await focusInput.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  assert.ok(mode.width>800||historyInputSize>=16,mode.name+' history shadow input must prevent iOS auto-zoom: '+historyInputSize);
+  await focusInput.focus();
+  const beforeFocus=await focusInput.evaluate(el=>{el.__runloadFocusCheck=true;return {scrollY:scrollY,scale:visualViewport?.scale??1};});
+  await focusInput.fill('コース');
+  const retained=await historyRoot.evaluate(host=>{
+    const input=host.shadowRoot.querySelector('#hx-search');
+    return {focus:host.shadowRoot.activeElement===input,value:input.value,same:input.__runloadFocusCheck===true,scale:visualViewport?.scale??1};
+  });
+  assert.ok(retained.focus&&retained.same&&retained.value==='コース',mode.name+' filtering retains the same keyboard field '+JSON.stringify(retained));
+  assert.equal(retained.scale,beforeFocus.scale,'focus does not modify Chromium visual viewport zoom');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-history-focused-input-v26.png'),fullPage:false});
   await historyRoot.locator('#hx-search').fill('未保存入力と異なる検索文字');
   assert.equal(await historyRoot.locator('.entry').count(),0);
   await historyRoot.locator('[data-month="-1"]').click();
@@ -848,6 +873,20 @@ try{
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
+   if(mode.width<=800){
+     const fields=await page.evaluate(()=>{
+       const out=[];
+       const scan=root=>{
+         root.querySelectorAll('input,textarea,select,[contenteditable="true"]').forEach(el=>{
+           const kind=(el.getAttribute('type')||'text').toLowerCase();
+           if(['hidden','checkbox','radio','range','file','color','button','submit','reset'].includes(kind)||!el.getClientRects().length)return;
+           out.push({field:el.id||el.name||el.tagName,size:parseFloat(getComputedStyle(el).fontSize)});
+         });
+         root.querySelectorAll('*').forEach(el=>{if(el.shadowRoot)scan(el.shadowRoot)});
+       };scan(document);return out;
+     });
+     assert.ok(fields.every(x=>x.size>=16),mode.name+' '+route+' has an auto-zoom-prone field: '+JSON.stringify(fields.filter(x=>x.size<16)));
+   }
    if(route==="settings"){
      assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
      const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
