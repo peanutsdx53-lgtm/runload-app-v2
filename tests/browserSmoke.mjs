@@ -756,13 +756,13 @@ try{
   const historyInputSize=await focusInput.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
   assert.ok(mode.width>800||historyInputSize>=16,mode.name+' history shadow input must prevent iOS auto-zoom: '+historyInputSize);
   await focusInput.focus();
-  const beforeFocus=await focusInput.evaluate(el=>({node:el,scrollY:scrollY,scale:visualViewport?.scale??1}));
+  const beforeFocus=await focusInput.evaluate(el=>{el.__runloadFocusCheck=true;return {scrollY:scrollY,scale:visualViewport?.scale??1};});
   await focusInput.fill('コース');
   const retained=await historyRoot.evaluate(host=>{
     const input=host.shadowRoot.querySelector('#hx-search');
-    return {focus:host.shadowRoot.activeElement===input,value:input.value,scale:visualViewport?.scale??1};
+    return {focus:host.shadowRoot.activeElement===input,value:input.value,same:input.__runloadFocusCheck===true,scale:visualViewport?.scale??1};
   });
-  assert.ok(retained.focus&&retained.value==='コース',mode.name+' filtering retains the same keyboard field '+JSON.stringify(retained));
+  assert.ok(retained.focus&&retained.same&&retained.value==='コース',mode.name+' filtering retains the same keyboard field '+JSON.stringify(retained));
   assert.equal(retained.scale,beforeFocus.scale,'focus does not modify Chromium visual viewport zoom');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-history-focused-input-v26.png'),fullPage:false});
   await historyRoot.locator('#hx-search').fill('未保存入力と異なる検索文字');
@@ -873,6 +873,20 @@ try{
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
+   if(mode.width<=800){
+     const fields=await page.evaluate(()=>{
+       const out=[];
+       const scan=root=>{
+         root.querySelectorAll('input,textarea,select,[contenteditable="true"]').forEach(el=>{
+           const kind=(el.getAttribute('type')||'text').toLowerCase();
+           if(['hidden','checkbox','radio','range','file','color','button','submit','reset'].includes(kind)||!el.getClientRects().length)return;
+           out.push({field:el.id||el.name||el.tagName,size:parseFloat(getComputedStyle(el).fontSize)});
+         });
+         root.querySelectorAll('*').forEach(el=>{if(el.shadowRoot)scan(el.shadowRoot)});
+       };scan(document);return out;
+     });
+     assert.ok(fields.every(x=>x.size>=16),mode.name+' '+route+' has an auto-zoom-prone field: '+JSON.stringify(fields.filter(x=>x.size<16)));
+   }
    if(route==="settings"){
      assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
      const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
