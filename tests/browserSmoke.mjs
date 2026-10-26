@@ -311,6 +311,9 @@ try{
   const ex=page.locator('[data-experience-v3]');
   await ex.waitFor();
   assert.equal(await ex.locator('.ex-node').count(),7,'exploration offers seven areas');
+   const finalCategory=ex.locator('.ex-node').last();
+   const finalLayout=await finalCategory.evaluate(el=>({width:el.getBoundingClientRect().width,parent:el.parentElement.getBoundingClientRect().width}));
+   assert.ok(finalLayout.width>finalLayout.parent*.8,'the last category tile spans the whole row');
    assert.equal(await ex.locator('[data-ex-tab="catalog"]').count(),1,'single catalog navigation');
    assert.equal(await ex.locator('[data-ex-action="catalog"]').count(),0,'no duplicate catalog button');
    assert.equal(await ex.locator('[data-ex-action="memories"]').count(),2,'memo access from header and context');
@@ -332,6 +335,8 @@ try{
   assert.equal(await ex.locator('.ex-node.is-related').count(),0,'no fabricated saved activity highlights');
   assert.match(await ex.innerText(),/記録がなくても自由に選べます/);
   assert.equal(await ex.locator('.ex-topic').count(),4,'selected area exposes actual topics');
+   const visibleTopics=await ex.locator('.ex-topic').evaluateAll(els=>els.every(el=>{const p=el.parentElement.getBoundingClientRect(),r=el.getBoundingClientRect();return r.left>=p.left-2&&r.right<=p.right+2}));
+   assert.ok(visibleTopics,'all four topic choices are visible without sideways scrolling');
   await ex.locator('[data-ex-action=sample]').click();
   assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
   assert.match(await ex.locator('.ex-focus-intro').innerText(),/説明用の例/);
@@ -346,6 +351,7 @@ try{
   assert.match(await ex.locator('.ex-dialog').innerText(),/参考資料/);
   await ex.locator('[data-ex-action="close"]').click();
   await ex.locator('[data-ex-action="note"]').click();
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v22.png'),fullPage:false});
    assert.match(await ex.locator('.ex-dialog').innerText(),/あとで「自分のメモ」から読み返せます/);
    await ex.locator('[data-ex-next="0"]').click();
   assert.equal(await ex.locator('#ex-note').inputValue(),'次は上りと下りで感じ方を確かめたい');
