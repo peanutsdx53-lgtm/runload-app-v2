@@ -70,9 +70,10 @@ try{
  await explorationCheck.locator('[data-ex-learning="body-movement"]').waitFor();
  await explorationCheck.locator('[data-ex-category="05"]').click();
  await explorationCheck.locator('[data-ex-learning="sleep-recovery"]').waitFor();
- assert.ok(await explorationCheck.locator('.ex-citation[href^="https://doi.org/"]').count()===1);
+ await explorationCheck.locator('[data-ex-action="learn-help"]').click();
+  assert.equal(await explorationCheck.locator('.ex-dialog-source[href^="https://doi.org/"]').count(),1,'current learning help links to its source');
  assert.equal(await explorationCheck.evaluate(()=>document.documentElement.scrollWidth-innerWidth),0);
  await explorationCheck.screenshot({path:'screenshots/live-exploration-v12-mobile.png',fullPage:true});
 }finally{await explorationCheck.close()}
 }finally{await browser.close()}
-console.log('PUBLIC PAGES PASS: record review v5, results and exploration v12');
+console.log('PUBLIC PAGES PASS: matching main release, record review, results and exploration learning');
