@@ -367,7 +367,7 @@ function recordExtras(){
     function render(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
       const previousConditionStrip=app.querySelector("[data-cj-chart]");
-      if(previousConditionStrip)conditionUi.scrollLeft=previousConditionStrip.scrollLeft;
+      if(previousConditionStrip&&conditionUi.scrollLeft!==null)conditionUi.scrollLeft=previousConditionStrip.scrollLeft;
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
@@ -568,14 +568,21 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",(event)=>{
-    const conditionControl=event.target.closest("[data-cj-range],[data-cj-day],[data-cj-save-insight],[data-cj-delete-insight]");
+    const conditionControl=event.target.closest("[data-cj-range],[data-cj-day],[data-cj-save-insight],[data-cj-delete-insight],[data-cj-create-intent]");
     if(conditionControl){
       const y=window.scrollY;
       if(conditionControl.hasAttribute("data-cj-range")){
         conditionUi.days=Number(conditionControl.dataset.cjRange);conditionUi.selected="";conditionUi.scrollLeft=null;
       }else if(conditionControl.hasAttribute("data-cj-day")){
+        conditionUi.scrollLeft=app.querySelector("[data-cj-chart]")?.scrollLeft??null;
         conditionUi.selected=conditionControl.dataset.cjDay;
+      }else if(conditionControl.hasAttribute("data-cj-create-intent")){
+        const conditions=homeExperience.readConditions(onboardStorage);
+        const data=conditionJourney.prepareConditionJourney(conditions,{...conditionUi,selected:conditionControl.dataset.cjOrigin});
+        const result=data.selected?.date===conditionControl.dataset.cjOrigin?actionIntentStore.createLifeIntent(onboardStorage,data.selected):{ok:false,reason:"基準記録を確認できません"};
+        conditionUi.notice=result.ok?"次回の確認事項をホームに保存しました":result.reason;
       }else if(conditionControl.hasAttribute("data-cj-save-insight")){
+        conditionUi.scrollLeft=app.querySelector("[data-cj-chart]")?.scrollLeft??null;
         const note=conditionControl.closest(".cj-write")?.querySelector("[data-cj-note]")?.value||"";
         const result=conditionInsights.addConditionInsight(onboardStorage,homeExperience.readConditions(onboardStorage),conditionControl.dataset.cjOrigin,note);
         conditionUi.notice=result.ok?"気づきを保存しました":result.reason;
