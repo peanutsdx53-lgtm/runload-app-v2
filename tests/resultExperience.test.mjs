@@ -22,7 +22,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261026-course-layout-v31c'));
+ assert.ok(html.includes('app.js?v=20261026-simulation-v32'));
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');

@@ -11,6 +11,7 @@
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
   const recordExperience=await import("./ui/recordExperience.js?v=20261026-course-layout-v31c");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
+  const simulationExperience=await import("./ui/simulationExperience.js?v=20261026-simulation-v32");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
@@ -56,6 +57,7 @@
   const homeEditState={editing:false,draft:null,notice:""};
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   const measurementUi=measurementExperience.createMeasurementViewState();
+  const simulationUi=simulationExperience.newSimulationUi();
   const historyUi=historyExperience.createHistoryUi();
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
   const lifeCompareUi={a:"",b:"",open:false,notice:""};
@@ -366,7 +368,10 @@ function recordExtras(){
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
  if(page==="measurement")return measurementExperience.measurementPage(measurementUi);
    if(page==="course")return recordCourse(true);
- if(page==="simulation")return top+`<section class="grid-2"><div class="card stack"><h2>比較する条件</h2><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label><label class="field">傾斜<select><option>平坦</option><option>上り</option><option>下り</option></select></label><label class="field">路面<select><option>舗装路</option><option>トラック</option><option>天然芝</option><option>土道</option></select></label></div><div class="info-note">比較する条件を整理できます。利用可能なモデルにより、結果を表示できる範囲は異なります。</div></div><div class="card stack"><h2>比較結果</h2><div class="empty-state"><span style="font-size:2.5rem">▥</span><strong>条件の比較結果はありません</strong><p class="lead">比較可能な科学的根拠がある場合だけ、対応する値を表示します。</p></div>${buttonLink("result","結果へ戻る")}</div></section>`;
+ if(page==="simulation")return simulationExperience.renderSimulation(simulationUi,{
+  presets:coursePresets.readCoursePresets(onboardStorage),
+  manualRuns:manualRunStore.readManualRuns(onboardStorage)
+ });
  if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">身体部位の参考値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
  const cur=regionData(state.region);
  return top+`<section class="grid-2"><div class="card stack"><h2>${esc(cur.name===cur.friendly?cur.name:cur.name+"（"+cur.friendly+"）")}</h2><div class="detail-value">${valid(cur.value)?cur.value.toFixed(1):"—"}</div><div class="info-note">この部位自身の文献基準を100とした参考値であり、実測した身体負荷・傷害リスクではありません。</div><div class="chart-card">${historyChart(cur)}</div></div><div class="card stack"><h2>ほかの部位を見る</h2><div class="region-grid">${regionTiles()}</div>${buttonLink("result","全12部位へ戻る")}</div></section>`;
@@ -395,6 +400,11 @@ function recordExtras(){
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id}:{});
+ }
+ if(page==="simulation"){
+   const panel=app.querySelector("[data-sim-page]");
+   simulationExperience.bindSimulation(panel,simulationUi);
+   panel?.addEventListener("sim-redraw",()=>{const y=window.scrollY;render();window.scrollTo(0,y);});
  }
  if(page==="history"){
    const saved=manualRunStore.readManualRuns(onboardStorage);
