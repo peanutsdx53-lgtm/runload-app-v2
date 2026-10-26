@@ -96,9 +96,9 @@ test("latest saved manual run displays minutes without appended seconds",()=>{
  assert.match(card,/35分/);
  assert.doesNotMatch(card,/35分00秒|35分0秒/);
  assert.match(card,/7:00/);
- assert.match(card,/5\\.00/);
+ assert.match(card,/5\.00/);
  const fractional=latestCard(false,{...record,durationSeconds:1950});
- assert.match(fractional,/32\\.5分/);
+ assert.match(fractional,/32\.5分/);
  assert.doesNotMatch(fractional,/30秒/);
  assert.match(fractional,/6:30/);
 });
