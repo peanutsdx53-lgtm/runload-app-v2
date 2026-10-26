@@ -9,7 +9,8 @@
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261026-user-copy-v21");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261026-user-copy-v21");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261026-courses-v30");
+  const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
@@ -301,7 +302,7 @@ function recordExtras(){
   function recordReview(){return recordReviewExperience.reviewView(state.recordDraft,{
     recordType:state.recordType,source:state.recordReviewSource,courseUi:state.recordCourseUi,bodySelected:bodyUi.selected,saveNotice:manualSaveNotice
   });}
-  function recordCourse(){return recordExperience.coursePage(state,state.recordCourseUi);}
+  function recordCourse(fromHome=false){return recordExperience.coursePage(state,state.recordCourseUi,coursePresets.readCoursePresets(onboardStorage),fromHome);}
   function recordRof(){return rofExperience.rofPage(state.recordDraft,rofUi);}
   function recordMore(kind="both"){
     const all=recordExtras();
@@ -364,7 +365,7 @@ function recordExtras(){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
  if(page==="measurement")return measurementExperience.measurementPage(measurementUi);
-  if(page==="course")return top+`<section class="grid-2"><div class="card stack"><div class="section-title"><h2>コースの基本情報</h2></div><label class="field">コース名<input placeholder="コース名を入力"></label><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" placeholder="0.0"></label><label class="field">走る場所<select><option>屋外</option><option>室内</option></select></label></div><h3>路面の種類</h3><div class="form-grid"><label class="field">主要な路面<select><option>選択してください</option><option>舗装路</option><option>陸上トラック</option><option>土道・トレイル</option><option>天然芝</option><option>砂地</option></select></label><label class="field">坂の条件<select><option>選択してください</option><option>ほぼ平坦</option><option>上りがある</option><option>下りがある</option><option>上り・下りがある</option></select></label></div></div><div class="card stack"><h2>コースを確認する</h2><div class="route-large-empty"><div class="route-empty-icon">⌁</div><strong>位置情報の登録はありません</strong><p class="lead">GPSで測定した走行は、保存された軌跡がある場合にのみ地図へ表示します。</p></div>${buttonLink("measurement","測定へ")}</div></section>`;
+   if(page==="course")return recordCourse(true);
  if(page==="simulation")return top+`<section class="grid-2"><div class="card stack"><h2>比較する条件</h2><div class="form-grid"><label class="field">距離（km）<input type="number" inputmode="decimal" value="8.2"></label><label class="field">時間（分）<input type="number" inputmode="decimal" value="45"></label><label class="field">傾斜<select><option>平坦</option><option>上り</option><option>下り</option></select></label><label class="field">路面<select><option>舗装路</option><option>トラック</option><option>天然芝</option><option>土道</option></select></label></div><div class="info-note">比較する条件を整理できます。利用可能なモデルにより、結果を表示できる範囲は異なります。</div></div><div class="card stack"><h2>比較結果</h2><div class="empty-state"><span style="font-size:2.5rem">▥</span><strong>条件の比較結果はありません</strong><p class="lead">比較可能な科学的根拠がある場合だけ、対応する値を表示します。</p></div>${buttonLink("result","結果へ戻る")}</div></section>`;
  if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">身体部位の参考値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
  const cur=regionData(state.region);
@@ -378,7 +379,7 @@ function recordExtras(){
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
- const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
+ const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,course:()=>recordCourse(true),"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
  const navPage=page==="condition"?"home":page==="result"?"result":page==="measurement"?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
  // Return links to the common confirmation when a detail was opened from that screen.
  const detailPages=["record-course","record-rof","record-more","record-compare","record-environment","record-reflection"];
@@ -678,6 +679,33 @@ function recordExtras(){
       return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
+    const courseButton=event.target.closest('[data-course-save],[data-course-save-new],[data-course-use],[data-course-delete],[data-course-confirm-delete],[data-course-cancel-delete]');
+    if(courseButton){
+      const key=courseButton.dataset;
+      const current=coursePresets.readCoursePresets(onboardStorage);
+      const refresh=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
+      if(key.courseCancelDelete!==undefined){ui.pendingDelete='';refresh();return;}
+      if(key.courseDelete){ui.pendingDelete=key.courseDelete;ui.notice='';refresh();return;}
+      if(key.courseConfirmDelete){
+        if(ui.pendingDelete!==key.courseConfirmDelete){ui.notice='削除対象を再確認してください';refresh();return;}
+        const result=coursePresets.deleteCoursePreset(onboardStorage,key.courseConfirmDelete);
+        if(result.ok){if(ui.selectedPresetId===key.courseConfirmDelete)ui.selectedPresetId='';ui.notice='保存したコースを削除しました。現在の入力内容や走行記録は変更されません';}
+        else ui.notice=result.reason;
+        ui.pendingDelete='';refresh();return;
+      }
+      if(key.courseUse){
+        const found=current.ok?current.records.find(r=>r.id===key.courseUse):null;
+        const applied=coursePresets.applyCoursePreset(d,found);
+        if(!applied.ok){ui.notice=current.ok?applied.reason:current.reason;refresh();return;}
+        state.recordDraft=applied.draft;
+        state.recordCourseUi={...applied.ui,selectedPresetId:found.id,pendingDelete:'',notice:'「'+found.data.courseName+'」を今回のコースとして読み込みました'};
+        refresh();return;
+      }
+      const saving=coursePresets.saveCoursePreset(onboardStorage,d,ui,key.courseSaveNew!==undefined?'':(ui.selectedPresetId||''));
+      if(saving.ok){ui.selectedPresetId=saving.preset.id;ui.pendingDelete='';ui.notice='「'+saving.preset.data.courseName+'」を保存しました';}
+      else ui.notice=saving.reason;
+      refresh();return;
+    }
     const bodyRoot=event.target.closest('[data-cx-page]');
     if(bodyRoot){
       const obj=event.target.closest('[data-map-view],[data-region-focus],[data-confirm-id],[data-picker-id],[data-unselect],[data-picker-toggle],[data-clear-all],[data-append-name],[data-apply]');
@@ -742,7 +770,7 @@ function recordExtras(){
     if(event.target.closest("[data-rv-apply]")){
       const err=recordExperience.courseReadiness(d,ui);
       if(err.length){ui.notice=err.join(" ");drawRecord();return;}
-      ui.notice="";location.hash="#/record";return;
+      ui.notice="";location.hash=currentPage()==="course"?"#/record":"#/record";return;
     }
     const pick=event.target.closest("[data-duration-minute]");
     if(pick){

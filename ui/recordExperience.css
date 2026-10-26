@@ -296,3 +296,21 @@
  }
  #app .rl-date-value{font-size:16px}
 }
+
+/* V30: one course editor for the Home shortcut and recording details. */
+.record-v3.rv-course{min-width:0;width:100%}
+.record-v3 .rv-presets{min-width:0}
+.record-v3 .rv-course-save-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.record-v3 .rv-course-save-actions button,.record-v3 .rv-preset-actions button,.record-v3 .rv-course-confirm button{min-height:44px;border:1px solid #4c94a3;border-radius:11px;padding:9px 13px;background:#155566;color:#eaffff;font-size:.84rem;font-weight:750;cursor:pointer}
+.record-v3 .rv-course-save-actions button:first-child{background:#167184;border-color:#67dbd7}
+.record-v3 .rv-course-save-actions button:disabled{opacity:.4;cursor:default}
+.record-v3 .rv-preset-list{display:grid;gap:10px}
+.record-v3 .rv-preset-item{min-width:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:12px;background:#0c2c3b;border:1px solid #3b7182;border-radius:13px}
+.record-v3 .rv-preset-item>div:first-child{min-width:0;display:grid;gap:6px;flex:1 1 145px}
+.record-v3 .rv-preset-item strong{color:#f4fcff;font-size:.87rem;overflow-wrap:anywhere}
+.record-v3 .rv-preset-item small{color:#adcdd7;font-size:.72rem;line-height:1.5;overflow-wrap:anywhere}
+.record-v3 .rv-preset-actions{display:flex;flex-wrap:wrap;gap:7px}
+.record-v3 .rv-preset-actions button:last-child,.record-v3 .rv-course-confirm button:first-of-type{background:#48313b;border-color:#af7786}
+.record-v3 .rv-course-confirm{flex:1 0 100%;padding:10px;border:1px solid #aa8590;border-radius:10px;background:#4a303c49;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.record-v3 .rv-course-confirm p{flex:1 0 100%;line-height:1.65;margin:0;font-size:.81rem;color:#fff0ef;overflow-wrap:anywhere}
+@media(max-width:420px){.record-v3 .rv-course-save-actions button{width:100%}.record-v3 .rv-preset-actions{width:100%}.record-v3 .rv-preset-actions button{flex:1}}

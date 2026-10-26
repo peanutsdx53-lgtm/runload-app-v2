@@ -136,6 +136,7 @@ try{
   }
   assert.equal(await page.locator(".hx-condition").count(),1);
   assert.equal(await page.locator(".hx-achievement").count(),1);
+  assert.match(await page.locator('.hx-achievement').innerText(),/記録を保存すると実績を確認できます/);
   assert.equal(await page.locator(".hx-shortcuts a").count(),3,"shortcuts only point to supplementary functions");
   assert.equal(await page.locator(".home-welcome").count(),0,"no decorative greeting");
   assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
@@ -488,13 +489,41 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
   // The exploration shell deliberately has no legacy top header.
-  // Exercise the install control from the Course screen where it is visible.
-  await page.goto(host+"#/course",{waitUntil:"networkidle"});
-  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on Course route");
+  // The Course shortcut now uses the same full-screen record editor; Settings retains the install control.
+  await page.goto(host+"#/settings",{waitUntil:"networkidle"});
+  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on Settings route");
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
   assert.equal(await page.locator(".install-dialog").count(),0);
+  // Both Home and Record use one course editor and one opt-in preset collection.
+  await page.goto(host+"#/course",{waitUntil:"networkidle"});
+  assert.equal(await page.locator('.rv-course').count(),1);
+  await page.locator('[data-draft="courseName"]').fill('検証用保存コース');
+  await page.locator('[data-rv-grade="FLAT"]').click();
+  await page.locator('[data-rv-surface-mode="SINGLE"]').click();
+  await page.locator('[data-rv-surface="paved"]').click();
+  await page.locator('[data-course-save]').click();
+  assert.equal(await page.locator('[data-course-row]').count(),1,'saved course appears in library');
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-course-row]').count(),1,'saved course survives reload');
+  await page.locator('[data-course-use]').click();
+  assert.equal(await page.locator('[data-draft="courseName"]').inputValue(),'検証用保存コース');
+  const geometry=await page.locator('.rv-course').evaluate(el=>({viewport:innerWidth,doc:document.documentElement.scrollWidth,edges:[...el.querySelectorAll('.rv-course-grid > .rv-panel,.rv-preset-item')].map(card=>{const a=card.getBoundingClientRect(),b=el.getBoundingClientRect();return a.left>=b.left-2&&a.right<=b.right+2})}));
+  assert.ok(geometry.doc<=geometry.viewport+3&&geometry.edges.every(Boolean),mode.name+' course cards fit '+JSON.stringify(geometry));
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-course-saved-v30.png'),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
+  await page.locator('[data-course-delete]').click();
+  assert.equal(await page.locator('[data-course-confirm-delete]').count(),1);
+  await page.locator('[data-course-cancel-delete]').click();
+  assert.equal(await page.locator('[data-course-row]').count(),1);
+  await page.locator('[data-course-delete]').click();
+  await page.locator('[data-course-confirm-delete]').click();
+  assert.equal(await page.locator('[data-course-row]').count(),0);
+  const savedData=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-course-presets-v1')));
+  assert.equal(savedData.records.length,0,'course delete leaves empty collection');
+  console.log('PASS',mode.name,'shared course editor: save / reload / reuse / delete');
   await page.goto(host+"#/record",{waitUntil:"networkidle"});
   assert.equal(await page.locator(".rv-manual").count(),1,"PC and mobile share manual screen");
   assert.equal(await page.locator("[data-record-type]").count(),2);
@@ -1027,6 +1056,16 @@ try{
   const latestFit=await page.locator('.hx-latest').evaluate(card=>({card:card.getBoundingClientRect().right,values:[...card.querySelectorAll('.hx-latest-fig strong')].map(el=>el.getBoundingClientRect().right)}));
   assert.ok(latestFit.values.every(x=>x<=latestFit.card+2),mode.name+' latest run card text clips: '+JSON.stringify(latestFit));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
+  const actualAchievements=page.locator('.hx-achievement');
+  assert.match(await actualAchievements.innerText(),/保存済み手入力走行から確認/);
+  assert.match(await actualAchievements.innerText(),/2 \/ 4 項目/);
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%';});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-achievement-saved-v29.png'),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='';});
+  await page.locator('[data-achievement-open]').click();
+  assert.match(await page.locator('.hx-ach-dialog').innerText(),/30分以上の走行記録を保存（達成）/);
+  await page.locator('.hx-ach-dialog').screenshot({path:resolve(root,'screenshots',mode.name+'-achievement-dialog-v29.png')});
+  await page.locator('.hx-ach-dialog [data-home-close]').click();
    await page.reload({waitUntil:'networkidle'}); // fresh editor state: prove saved-run provenance, not residual unsaved draft
    await page.goto(host+'#/exploration-tree',{waitUntil:'networkidle'});
    const savedExplore=page.locator('[data-experience-v3]');

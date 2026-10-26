@@ -90,12 +90,16 @@ function surfaceSection(d,ui){
  <p class="rv-hint ${valid?'rv-ok':'rv-invalid'}" data-rv-surface-warning>${valid?'割合の合計は100%です。':'選択した路面に割合を入力し、合計100%にしてください。'}</p>`:''}
  </section>`;
 }
-export function coursePage(state,ui){
+export function coursePage(state,ui,library={ok:true,records:[]},fromHome=false){
  const d=state.recordDraft,s=courseSummary(d,ui),summary=state.recordCourseUi?.notice||'';
- return `<div class="record-v3 rv-course"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>コース・走行条件</h1></header>
- <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>任意</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">コースの一覧から選ぶ機能は準備中です。</p></section>
+ const selected=ui.selectedPresetId||'',pending=ui.pendingDelete||'',records=library.ok?library.records:[];
+ const listing=library.ok?records.slice().reverse().map(p=>`<article class="rv-preset-item" data-course-row="${escape(p.id)}"><div><strong>${escape(p.data.courseName)}</strong><small>${escape(courseSummary(p.data,initialCourseUi(p.data)).slope)} / ${escape(courseSummary(p.data,initialCourseUi(p.data)).surface)}</small></div><div class="rv-preset-actions"><button type="button" data-course-use="${escape(p.id)}">使う</button><button type="button" data-course-delete="${escape(p.id)}">削除</button></div>${pending===p.id?`<div class="rv-course-confirm" role="group" aria-label="コース削除の確認"><p>「${escape(p.data.courseName)}」を削除しますか？保存済みの走行記録は変わりません。</p><button type="button" data-course-confirm-delete="${escape(p.id)}">削除を確定</button><button type="button" data-course-cancel-delete>キャンセル</button></div>`:''}</article>`).join(''):'<p class="rv-error" role="alert">'+escape(library.reason)+'</p>';
+ return `<div class="record-v3 rv-course"><header class="rv-head"><a href="${fromHome?'#/home':'#/record'}" class="rv-back" aria-label="${fromHome?'ホーム':'手入力'}へ戻る">‹</a><h1>コース・走行条件</h1></header>
+ <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>保存するときは必須</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">コースを保存すると、次回の記録でも同じ坂道・路面条件を使えます。距離・時間・疲労感は保存コースに含みません。</p>
+ <div class="rv-course-save-actions"><button type="button" data-course-save ${!library.ok?'disabled':''}>${selected?'このコースを更新':'コースを保存'}</button>${selected?'<button type="button" data-course-save-new>別のコースとして保存</button>':''}</div></section>
+ <section class="rv-panel rv-presets"><h2 class="rv-section-title">保存したコース <small>${records.length}件</small></h2>${records.length?`<div class="rv-preset-list">${listing}</div>`:library.ok?'<p class="rv-hint">保存済みのコースはまだありません。</p>':listing}</section>
  ${slopeSection(d,ui)}${surfaceSection(d,ui)}
- <section class="rv-panel rv-course-summary"><h2 class="rv-section-title">設定内容</h2><div class="rv-summary-line"><span>坂道</span><strong data-rv-summary-slope>${escape(s.slope)}</strong></div><div class="rv-summary-line"><span>路面</span><strong data-rv-summary-surface>${escape(s.surface)}</strong></div><button type="button" data-rv-apply class="rv-main-button">この条件を使う</button>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}</section></div>
+ <section class="rv-panel rv-course-summary"><h2 class="rv-section-title">設定内容</h2><div class="rv-summary-line"><span>坂道</span><strong data-rv-summary-slope>${escape(s.slope)}</strong></div><div class="rv-summary-line"><span>路面</span><strong data-rv-summary-surface>${escape(s.surface)}</strong></div><button type="button" data-rv-apply class="rv-main-button">${fromHome?'この条件で記録を始める':'この条件を使う'}</button>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}</section></div>
  </div>`;
 }
 export function courseReadiness(d,ui){
