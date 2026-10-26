@@ -1786,3 +1786,17 @@ html,body,#app{touch-action:manipulation}
 /* Reinforce Safari handling on frequently double-tapped controls. */
 a,button,input,select,textarea,summary,label,[role="button"],[tabindex]{touch-action:manipulation}
 /* Specialized drag/map controls can retain their own touch-action policies. */
+
+/* Result screen V20: use the same headerless navy shell as Home/History.
+   Keep the page and iOS safe-area background dark, including rubber-band overscroll. */
+html:has(#runload-result-v4),body:has(#runload-result-v4),body:has(#runload-result-v4) #app{background:#061725;color:#effbff}
+.app-shell:has(#runload-result-v4){min-height:100dvh;background:#061725}
+.app-shell:has(#runload-result-v4) .topbar{display:none}
+.app-shell:has(#runload-result-v4) .main-frame{min-height:100dvh;background:radial-gradient(ellipse at 60% -8%,#13536e58,transparent 40%),#061925}
+.app-shell:has(#runload-result-v4) .main-content{background:transparent;min-height:100dvh;box-sizing:border-box}
+@media(max-width:800px){
+ .app-shell:has(#runload-result-v4) .main-content{padding-top:0;padding-bottom:calc(95px + env(safe-area-inset-bottom,0px))}
+ .app-shell:has(#runload-result-v4) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
+ .app-shell:has(#runload-result-v4) .mobile-link{color:#c0cbd5}
+ .app-shell:has(#runload-result-v4) .mobile-link.is-active{color:#55dce3}
+}

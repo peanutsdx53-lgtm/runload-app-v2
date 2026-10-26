@@ -41,3 +41,22 @@ test('result palette is synchronously rendered inside the shadow root',()=>{
  assert.doesNotMatch(js,/<link rel=.*stylesheet/);
  assert.match(inline,/radial-gradient/);
 });
+
+test('Result and manual-save surfaces use the approved dark chrome and button states',()=>{
+ const styles=read('styles.css');
+ const review=read('ui/recordReviewExperience.css');
+ const html=read('index.html');
+ for(const style of [
+  '.app-shell:has(#runload-result-v4) .topbar{display:none}',
+  '.app-shell:has(#runload-result-v4) .main-content{background:transparent;',
+  'body:has(#runload-result-v4) #app{background:#061725',
+  'padding-bottom:calc(95px + env(safe-area-inset-bottom',
+ ]) assert.ok(styles.includes(style),style);
+ for(const style of [
+  '.rr-page .rr-foot-actions .rr-save:not(:disabled){background:linear-gradient',
+  '.rr-page .rr-foot-actions .rr-save:disabled{background:#1e4859',
+  '.rr-page .rr-foot-actions .rr-save:focus-visible{outline:3px',
+ ]) assert.ok(review.includes(style),style);
+ assert.match(html,/result-chrome-v20/);
+ assert.match(html,/save-button-v20/);
+});

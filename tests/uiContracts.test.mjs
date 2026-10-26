@@ -102,7 +102,7 @@ test("global double-tap suppression preserves accessible pinch zoom and approved
  for(const token of ['background:#0c1d2bef','border-top-color:#2e5263','color:#c0cbd5','color:#55dce3','background:transparent']){
   assert.ok(condition.includes(token),"condition uses approved Home navigation: "+token);
  }
- assert.match(html,/styles\.css\?v=20261026-global-touch-v17/);
+ assert.match(html,/styles\.css\?v=20261026-result-chrome-v20/);
  assert.match(html,/conditionJourney\.css\?v=20261026-condition-v17/);
  assert.match(sw,/interpret-v14-condition-v17-touch/);
 });

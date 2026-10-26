@@ -31,3 +31,10 @@ button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button:f
 .rr-page .rr-metric-head{display:flex;align-items:center;gap:7px}
 @media(max-width:800px){.app-shell:has(.rr-page) .main-content{padding:15px 12px calc(95px + env(safe-area-inset-bottom))}.rr-page .rr-main-wrap{padding:0 0 10px;min-height:0}.rr-page .rr-foot{gap:13px}.rr-page .rr-row{min-height:72px}}
 @media(max-width:380px){.app-shell:has(.rr-page) .main-content{padding:12px 8px calc(95px + env(safe-area-inset-bottom))}.rr-page .rr-main-wrap{padding:0}.rr-page .rr-origin{font-size:10px;padding:5px}.rr-page .rr-metric strong{font-size:27px}}
+
+/* Actual manual-save affordance: clearly enabled turquoise, readable disabled state. */
+.rr-page .rr-foot-actions .rr-save{min-height:52px;min-width:200px;color:#f3feff;font-weight:850;opacity:1;transition:background-color .12s,border-color .12s,box-shadow .12s}
+.rr-page .rr-foot-actions .rr-save:not(:disabled){background:linear-gradient(115deg,#137e91,#14b3b9);border:1px solid #72dfde;box-shadow:0 5px 20px #0a98a54d;cursor:pointer}
+.rr-page .rr-foot-actions .rr-save:not(:disabled):hover{background:linear-gradient(115deg,#1695a4,#20c5c4)}
+.rr-page .rr-foot-actions .rr-save:disabled{background:#1e4859;border:1px solid #527f90;color:#c5dce4;box-shadow:none;cursor:not-allowed;opacity:1}
+.rr-page .rr-foot-actions .rr-save:focus-visible{outline:3px solid #91f5eb;outline-offset:3px}
