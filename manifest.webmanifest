@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "RunLoad",
-  "short_name": "RunLoad",
+  "name": "走行記録と振り返り",
+  "short_name": "走行記録",
   "description": "走るほど、自分への理解が育つ。",
   "lang": "ja",
   "start_url": "./#/home",
