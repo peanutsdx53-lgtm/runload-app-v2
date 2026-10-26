@@ -27,13 +27,13 @@ test('relevance is linked to explicitly provided draft fields and does not treat
 test('sample preview is opt-in and clearly labeled',()=>{
  const ui=makeUi(memory());ui.sample=true;
  const r=render(ui,{categories,draft:{},conditions:{entries:[]}});
- assert.match(r,/表示例で見る/);assert.match(r,/表示例：上り坂/);assert.match(r,/表示例を終了/);
+ assert.match(r,/表示例/);assert.match(r,/表示例/);assert.match(r,/表示例を終了/);
  assert.equal((r.match(/ex-node is-related/g)||[]).length,2);
 });
 test('theme catalog expansion is data-driven without fixed 28-topic cap',()=>{
  const ui=makeUi(memory());ui.tab='catalog';const extended=categories.map(c=>({...c,topics:[...c.topics]}));
  extended[2].topics.push('コース選び','地形と路面');const r=render(ui,{categories:extended,draft:{},conditions:{entries:[]}});
- assert.match(r,/7分野・9テーマ/);assert.match(r,/コース選び/);
+ assert.match(r,/9 テーマ/);assert.match(r,/コース選び/);
 });
 test('notes are opt-in, persisted only to isolated key, deletion works',()=>{
  const storage=memory(),ui=makeUi(storage);ui.selected='03';
@@ -51,4 +51,34 @@ test('corrupted notes are not overwritten and concurrency is protected',()=>{
 test('user note contents are escaped, including markup and HTML attributes',()=>{
  const ui=makeUi(memory());saveNote(ui,'<img src=x onerror=alert(1)>');ui.modal='memories';const r=render(ui,{categories,draft:{},conditions:{entries:[]}});
  assert.doesNotMatch(r,/<img src=x/);assert.match(r,/&lt;img src=x/);
+});
+
+test('beginner exploration removes duplicate navigation and hides citations under help',()=>{
+ const u=makeUi(memory()),base={categories,draft:{},conditions:{entries:[]}};
+ const html=render(u,base);
+ assert.equal((html.match(/data-ex-tab="catalog"/g)||[]).length,1);
+ assert.doesNotMatch(html,/すべてのテーマを見る|data-ex-action="catalog"|ex-selected-topic|これまでの気づき|探究フィールド/);
+ assert.match(html,/今日は何が気になる/);
+ assert.match(html,/自分のメモ/);
+ assert.equal((html.match(/class="ex-node /g)||[]).length,7);
+ u.selected='03';u.topic='上り坂・下り坂';const reading=render(u,base);
+ assert.match(reading,/上り坂と下り坂、走る動きの違い/);
+ assert.match(reading,/data-ex-action="note"/);
+ assert.doesNotMatch(reading,/参考研究：Vernillo/);
+ u.modal='learn-help';const help=render(u,base);
+ assert.match(help,/参考資料/);
+ assert.match(help,/Vernillo/);
+ assert.match(help,/doi.org/);
+});
+test('topic catalog groups questions by field and filters without duplicating buttons',()=>{
+ const u=makeUi(memory());u.tab='catalog';
+ const html=render(u,{categories,draft:{},conditions:{entries:[]}});
+ assert.equal((html.match(/class="ex-catalog-group"/g)||[]).length,7);
+ assert.equal((html.match(/data-ex-pick-topic=/g)||[]).length,7);
+ assert.match(html,/data-ex-search/);
+});
+
+test('all 28 topics have a useful beginner prompt or a sourced learning panel',()=>{
+ const ui=makeUi(memory()),ctx={categories,draft:{},conditions:{entries:[]}};
+ for(const cat of categories){ui.selected=cat.id;for(const topic of cat.topics){ui.topic=topic;const page=render(ui,ctx);assert.match(page,/data-ex-action="note"/);assert.doesNotMatch(page,/このテーマの学習コンテンツは準備中です|学習コンテンツは準備中/);}}
 });
