@@ -811,6 +811,10 @@ try{
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/端末に保存した手入力/);
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
   assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
+  await savedResult.evaluate(async host=>{
+    const sheet=host.shadowRoot.querySelector('link[rel="stylesheet"]');
+    if(!sheet?.sheet)await new Promise((resolve,reject)=>{sheet.addEventListener('load',resolve,{once:true});sheet.addEventListener('error',reject,{once:true})});
+  });
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
@@ -818,15 +822,23 @@ try{
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
+  const latestFit=await page.locator('.hx-latest').evaluate(card=>({card:card.getBoundingClientRect().right,values:[...card.querySelectorAll('.hx-latest-fig strong')].map(el=>el.getBoundingClientRect().right)}));
+  assert.ok(latestFit.values.every(x=>x<=latestFit.card+2),mode.name+' latest run card text clips: '+JSON.stringify(latestFit));
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const savedHistory=page.locator('#runload-history-v2');
   assert.equal(await savedHistory.locator('.entry').count(),1);
   await savedHistory.locator('.entry').first().click();
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await savedHistory.locator('[data-open-record]').click();
   assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
+  await page.locator('#runload-result-v4').evaluate(async host=>{
+    const sheet=host.shadowRoot.querySelector('link[rel="stylesheet"]');
+    if(!sheet?.sheet)await new Promise((resolve,reject)=>{sheet.addEventListener('load',resolve,{once:true});sheet.addEventListener('error',reject,{once:true})});
+  });
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-from-history-v18.png'),fullPage:false});
   await page.close();
   console.log("PASS",mode.name,"manual save / reload / result / home / history");
 
