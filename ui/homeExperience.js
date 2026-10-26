@@ -164,8 +164,9 @@ export function latestCard(preview,record=null){
  const recent=!preview&&record?.source==='manual'&&record?.type==='run'&&typeof record?.id==='string'&&Number.isFinite(record.distanceKm)&&Number.isInteger(record.durationSeconds)?record:null;
  const secs=recent?Math.round(recent.durationSeconds/recent.distanceKm):0;
  const pace=secs?Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0'):'—';
- const m=recent?Math.floor(recent.durationSeconds/60):0;
- const time=recent?(m?m+'分':'')+String(recent.durationSeconds%60).padStart(2,'0')+'秒':'—';
+ // The manual editor accepts minutes (including decimals); preserve that unit on Home.
+ // A rounded seconds store must not produce a misleading "35分00秒" label.
+ const time=recent?String(Number((recent.durationSeconds/60).toFixed(2)))+'分':'—';
  const body=preview ? '<div class="hx-latest-fig"><div><small>距離</small><strong>7.20 <em>km</em></strong></div><div><small>時間</small><strong>42 <em>分</em></strong></div><div><small>平均ペース</small><strong>5:50 <em>/km</em></strong></div></div>'
   :recent?'<div class="hx-latest-fig"><div><small>距離</small><strong>'+escape(recent.distanceKm.toFixed(2))+' <em>km</em></strong></div><div><small>時間</small><strong>'+escape(time)+'</strong></div><div><small>平均ペース</small><strong>'+escape(pace)+' <em>/km</em></strong></div></div><a class="hx-condition-explore" href="#/result?record='+encodeURIComponent(recent.id)+'">保存した走行の結果を見る <span aria-hidden="true">›</span></a>'
   : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>手入力した走行を保存すると、ここに表示されます。</p></div></div>';

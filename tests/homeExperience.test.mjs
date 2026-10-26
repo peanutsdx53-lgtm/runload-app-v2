@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {CONDITION_KEY,validEntry,readConditions,saveCondition,conditionCard,achievementCard,todayLocal,calculatedTimeInBed,conditionEntryFromForm,conditionPanel} from "../ui/homeExperience.js";
+import {CONDITION_KEY,validEntry,readConditions,saveCondition,conditionCard,achievementCard,todayLocal,calculatedTimeInBed,conditionEntryFromForm,conditionPanel,latestCard} from "../ui/homeExperience.js";
 function store(seed={}) {
  const data=new Map(Object.entries(seed));
  return {getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),raw:k=>data.get(k)};
@@ -87,4 +87,18 @@ test("legacy entries persist alongside new v2 entries and edit without forced co
  const newPanel=conditionPanel(s,false,"2026-10-23");
  assert.match(newPanel,/data-sleep-mode="clock"/);
  assert.match(newPanel,/name="wakeTime" value="06:00"/);
+});
+
+// Minutes-only home display must agree with the editor; persistence and pace stay unchanged.
+test("latest saved manual run displays minutes without appended seconds",()=>{
+ const record={id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:5,durationSeconds:2100};
+ const card=latestCard(false,record);
+ assert.match(card,/35分/);
+ assert.doesNotMatch(card,/35分00秒|35分0秒/);
+ assert.match(card,/7:00/);
+ assert.match(card,/5\.00/);
+ const fractional=latestCard(false,{...record,durationSeconds:1950});
+ assert.match(fractional,/32\.5分/);
+ assert.doesNotMatch(fractional,/30秒/);
+ assert.match(fractional,/6:30/);
 });

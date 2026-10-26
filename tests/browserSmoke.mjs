@@ -821,6 +821,9 @@ try{
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
+  const savedHomeTime=await page.locator('.hx-latest .hx-latest-fig>div:nth-child(2) strong').innerText();
+  assert.equal(savedHomeTime.trim(),'30分','home must show editor minutes, never padded seconds');
+  assert.doesNotMatch(savedHomeTime,/秒/);
   const latestFit=await page.locator('.hx-latest').evaluate(card=>({card:card.getBoundingClientRect().right,values:[...card.querySelectorAll('.hx-latest-fig strong')].map(el=>el.getBoundingClientRect().right)}));
   assert.ok(latestFit.values.every(x=>x<=latestFit.card+2),mode.name+' latest run card text clips: '+JSON.stringify(latestFit));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-home-latest-v18.png'),fullPage:false});
