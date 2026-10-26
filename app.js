@@ -15,7 +15,9 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261026-user-copy-v21");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261026-gps-live-v35");
+  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261026-gps-live-v35");
+  const gpsStore=await import("./ui/gpsMeasurementStore.js?v=20261026-gps-live-v35");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
@@ -56,7 +58,23 @@
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
-  const measurementUi=measurementExperience.createMeasurementViewState();
+  let gpsController=null;
+  let gpsTicker=null;
+  let pendingGpsDelete="";
+  const ensureGps=()=>{
+    if(!gpsController)gpsController=gpsCore.createGpsSession({
+      geo:(()=>{try{return navigator.geolocation}catch{return null}})(),
+      onChange:current=>measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),current,gpsController?.elapsed()||0)
+    });
+    return gpsController;
+  };
+  function refreshGpsTicker(){
+    if(gpsTicker!==null){clearInterval(gpsTicker);gpsTicker=null;}
+    if(gpsController?.state.phase==='running'&&currentPage()==='measurement')gpsTicker=setInterval(()=>{
+      if(currentPage()!=='measurement'){clearInterval(gpsTicker);gpsTicker=null;return;}
+      gpsController.checkGoal();measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),gpsController.state,gpsController.elapsed());
+    },1000);
+  }
   const simulationUi=simulationExperience.newSimulationUi();
   const historyUi=historyExperience.createHistoryUi();
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
@@ -244,9 +262,9 @@
  const steps=[
   {title:"記録と振り返りを始めましょう",eyebrow:"はじめに",body:"走行や休養を記録して、自分の変化を振り返れます。手入力した走行を端末に保存できます。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>運動前後の疲れ</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
   {title:"言語を選ぶ",eyebrow:"表示する言語",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
-  {title:"利用規約とデータの扱い",eyebrow:"情報の扱い",body:"利用規約とプライバシーに関する正式な説明は準備中です。この案内で同意を求めることはありません。",html:`<div class="onboard-legal"><strong>保存する情報について</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。手入力した走行記録はこの端末に保存できます。GPSで測定した走行の保存はまだ利用できません。ROF-Jのイラストを表示する際には、公開画像を読み込むための通信が発生します。</p><p>GPSによる記録は準備中です。位置情報を使うときは端末側で許可を確認します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
+  {title:"利用規約とデータの扱い",eyebrow:"情報の扱い",body:"利用規約とプライバシーに関する正式な説明は準備中です。この案内で同意を求めることはありません。",html:`<div class="onboard-legal"><strong>保存する情報について</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。手入力した走行記録はこの端末に保存できます。GPSで測定した記録は別の端末内保存領域に保管されます。GPS軌跡の保存は明示的に選択できます。ROF-Jのイラストを表示する際には、公開画像を読み込むための通信が発生します。</p><p>GPSの実走測定を利用できます。位置情報を使うときは端末側で許可を確認します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
   {title:"共有用プロフィール（任意）",eyebrow:"あなたの設定",body:"最初にプロフィールを設定できます。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>記録を使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><div class="onboard-extra-profile"><label>身長（cm・任意）<input type="number" min="80" max="250" step="0.1" inputmode="decimal" data-onboard-height placeholder="スキップできます" value="${esc(onboardingState.heightCm)}"></label><label>体重（kg・任意）<input type="number" min="15" max="400" step="0.1" inputmode="decimal" data-onboard-weight placeholder="スキップできます" value="${esc(onboardingState.weightKg)}"></label></div><p>入力内容はこの端末のプロフィールに保存します。設定した情報が外部へ自動送信されることはありません。</p></div>`},
-  {title:"始め方を確認",eyebrow:"使い方",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究では、分野を選んで知識や記録との接点を調べられます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPSでの記録は準備中</small></span></div><div><b>2</b><span><strong>運動前後の疲れを記録</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・走りの記録・探究</small></span></div></div>`}
+  {title:"始め方を確認",eyebrow:"使い方",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究では、分野を選んで知識や記録との接点を調べられます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS計測は権限を許可した場合に利用可能</small></span></div><div><b>2</b><span><strong>運動前後の疲れを記録</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・走りの記録・探究</small></span></div></div>`}
  ];
  const current=steps[onboardingState.step];
  return `<div class="onboard-overlay" data-onboard-overlay><section class="onboard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboard-title"><div class="onboard-top"><strong>初めての方へ</strong><span>使い方のご案内</span><button type="button" data-onboard-close aria-label="案内を閉じる">×</button></div><div class="onboard-progress" aria-label="${onboardingState.step+1} / ${steps.length}">${steps.map((_,i)=>`<span class="${i<=onboardingState.step?"is-active":""}"></span>`).join("")}</div><div class="onboard-main"><p class="eyebrow">${current.eyebrow}</p><h2 id="onboard-title">${current.title}</h2><p class="onboard-description">${current.body}</p>${current.html}</div><div class="onboard-footer"><button type="button" class="btn" data-onboard-back ${onboardingState.step===0?"disabled":""}>戻る</button><span>${onboardingState.step+1} / ${steps.length}</span><button type="button" class="btn primary" data-onboard-next>${onboardingState.step===steps.length-1?"試用を始める":"次へ"}</button></div></section></div>`;
@@ -366,12 +384,18 @@ function recordExtras(){
     function secondary(page){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
- if(page==="measurement")return measurementExperience.measurementPage(measurementUi);
+ if(page==="measurement")return measurementExperience.measurementPage(ensureGps().state,ensureGps().elapsed());
    if(page==="course")return recordCourse(true);
- if(page==="simulation")return simulationExperience.renderSimulation(simulationUi,{
+ if(page==="simulation"){
+  const savedGps=gpsStore.readGpsRuns(onboardStorage);
+  const chosen=savedGps.ok?savedGps.records.find(r=>r.id===simulationUi.gpsId):null;
+  simulationUi.gpsFeature=chosen?gpsStore.gpsRecordToFeature(chosen):null;
+  if(simulationUi.source==='gps'&&simulationUi.gpsFeature)simulationUi.distance=String(simulationUi.gpsFeature.distanceKm);
+  return simulationExperience.renderSimulation(simulationUi,{
   presets:coursePresets.readCoursePresets(onboardStorage),
-  manualRuns:manualRunStore.readManualRuns(onboardStorage)
- });
+  manualRuns:manualRunStore.readManualRuns(onboardStorage),
+  gpsRuns:savedGps
+ });}
  if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">身体部位の参考値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
  const cur=regionData(state.region);
  return top+`<section class="grid-2"><div class="card stack"><h2>${esc(cur.name===cur.friendly?cur.name:cur.name+"（"+cur.friendly+"）")}</h2><div class="detail-value">${valid(cur.value)?cur.value.toFixed(1):"—"}</div><div class="info-note">この部位自身の文献基準を100とした参考値であり、実測した身体負荷・傷害リスクではありません。</div><div class="chart-card">${historyChart(cur)}</div></div><div class="card stack"><h2>ほかの部位を見る</h2><div class="region-grid">${regionTiles()}</div>${buttonLink("result","全12部位へ戻る")}</div></section>`;
@@ -414,6 +438,10 @@ function recordExtras(){
      alert.textContent=saved.reason;
      app.querySelector("#runload-history-v2")?.before(alert);
    }
+   const gpsSaved=gpsStore.readGpsRuns(onboardStorage);
+   const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
+   gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?'軌跡保存あり':'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
+   app.querySelector('#runload-history-v2')?.before(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
     onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);}
@@ -449,6 +477,10 @@ function recordExtras(){
  }
 }
   app.addEventListener("change",(event)=>{
+    if(event.target.matches('[data-gps-activity]')){const gps=ensureGps();gps.setActivity(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
+    if(event.target.matches('[data-gps-goal-mode]')){ensureGps().setGoalMode(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
+    if(event.target.matches('[data-gps-goal-value]')){ensureGps().setGoalValue(event.target.value);return;}
+    if(event.target.matches('[data-gps-segment]')){ensureGps().setSegment(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
     if(event.target.matches("[data-onboard-purpose]"))onboardingState.purpose=event.target.value;
     if(event.target.matches("[data-cj-method],[data-cj-focus]")){
       if(event.target.matches("[data-cj-method]"))conditionUi.method=event.target.value;
@@ -469,6 +501,7 @@ function recordExtras(){
     notice.textContent=message;
   };
   app.addEventListener("input",(event)=>{
+    if(event.target.matches('[data-gps-goal-value]')){ensureGps().setGoalValue(event.target.value);return;}
     if(event.target.matches("[data-ex-search]")){
       const input=event.target,caret=input.selectionStart;
       explorationUi.search=input.value;
@@ -671,22 +704,28 @@ function recordExtras(){
       }else reportSettingsNotice(saved.message);
       return;
     }
-    const measurementControl=event.target.closest("[data-gps-preview]");
-    if(measurementControl){
-      if(measurementExperience.stepMeasurementPreview(measurementUi,measurementControl.dataset.gpsPreview)){
-        if(measurementControl.dataset.gpsPreview==="confirm-end"){
-          state.recordReviewSource="gps";
-          state.recordReviewReturn=false;
-          location.hash="#/record-review";
-          render();window.scrollTo(0,0);return;
-        }
-        render();
-        window.scrollTo(0,0);
-        if(measurementUi.phase==="confirm"){
-          app.querySelector('[data-gps-preview="cancel-end"]')?.focus({preventScroll:true});
-        }
+    const gpsUse=event.target.closest('[data-gps-use]');
+    if(gpsUse){simulationUi.source='gps';simulationUi.gpsId=gpsUse.dataset.gpsUse;location.hash='#/simulation';return;}
+    const gpsDelete=event.target.closest('[data-gps-delete],[data-gps-confirm-delete],[data-gps-cancel-delete]');
+    if(gpsDelete){if(gpsDelete.hasAttribute('data-gps-cancel-delete'))pendingGpsDelete='';else if(gpsDelete.hasAttribute('data-gps-delete'))pendingGpsDelete=gpsDelete.dataset.gpsDelete;else if(pendingGpsDelete===gpsDelete.dataset.gpsConfirmDelete){const res=gpsStore.removeGpsRun(onboardStorage,pendingGpsDelete);state.toast=res.ok?'GPS記録を削除しました':res.reason;pendingGpsDelete='';}render();return;}
+    const gpsAction=event.target.closest('[data-gps-action]');
+    if(gpsAction){
+      const gps=ensureGps(),action=gpsAction.dataset.gpsAction;
+      if(action==='start'){
+        if(!window.isSecureContext){gps.state.notice='GPS計測はHTTPSで開いてください';render();return;}
+        gps.start();
+      }else if(action==='pause')gps.pause();
+      else if(action==='resume')gps.resume();
+      else if(action==='finish')gps.finish();
+      else if(action==='discard'){gps.discard();gpsController=null;location.hash='#/record-start';return;}
+      else if(action==='save'){
+        const saveRoute=!!app.querySelector('[data-gps-save-route]')?.checked;
+        const local=new Date(),date=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}`;
+        const saved=gpsStore.saveGpsRun(onboardStorage,gps.getSnapshot(),{saveRoute,date});
+        if(saved.ok){state.toast='GPS実走の記録を端末に保存しました';gpsController=null;location.hash='#/history';return;}
+        gps.state.notice=saved.reason;
       }
-      return;
+      refreshGpsTicker();render();return;
     }
     const ui=state.recordCourseUi,d=state.recordDraft;
     const courseButton=event.target.closest('[data-course-save],[data-course-save-new],[data-course-use],[data-course-delete],[data-course-confirm-delete],[data-course-cancel-delete]');
@@ -944,6 +983,9 @@ function recordExtras(){
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
-  window.addEventListener("hashchange",()=>{state.toast="";render();if(location.hash.includes("life=1"))app.querySelector("#interpret-life")?.scrollIntoView({block:"start",behavior:"instant"});else window.scrollTo(0,0)});
+  window.addEventListener("hashchange",()=>{
+    if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();}
+    // GPS saves and deletes show toast; do not immediately erase them on navigation.
+    const retainedToast=state.toast;render();state.toast='';if(location.hash.includes("life=1"))app.querySelector("#interpret-life")?.scrollIntoView({block:"start",behavior:"instant"});else window.scrollTo(0,0)});
   render();
 })();

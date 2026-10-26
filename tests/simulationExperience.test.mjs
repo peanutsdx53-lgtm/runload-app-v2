@@ -64,7 +64,7 @@ test('v34 source selector and scenario controls preserve provenance and use alig
  assert.match(html,/data-sm-source="gpx"/);
  assert.match(html,/data-sm-source="none"/);
  assert.match(html,/GPS実走履歴/);
- assert.match(html,/disabled title="GPS走行軌跡の保存機能/);
+ assert.match(html,/data-sm-source="gps"/);
  assert.match(html,/sm-course-fields/);
  assert.match(html,/sm-input-wrap/);
  assert.match(html,/仮のコース距離/);

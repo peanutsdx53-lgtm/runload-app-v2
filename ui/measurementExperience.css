@@ -98,3 +98,50 @@
  }
  .app-shell:has(.gps-v2--demo-active) .mobile-nav{display:none}
 }
+/* V35: explicit GPS measurement + single activity selector */
+.gps-v35{max-width:1120px;display:grid;gap:16px}
+.gps-v35 .gps-v2-header{margin:0;align-items:center}
+.gps-live-eyebrow{display:block;color:#72e5e0;font-size:.69rem;letter-spacing:.13em;font-weight:800;margin-bottom:4px}
+.gps-live-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gps-live-steps span{border:1px solid #497786;background:#123849;padding:10px 8px;border-radius:11px;font-size:.73rem;font-weight:800;text-align:center;white-space:nowrap}
+.gps-v35-panel{min-width:0;border:1px solid #467584;border-radius:20px;padding:20px;background:radial-gradient(circle at 94% 0%,#1b687744,transparent 42%),linear-gradient(120deg,#143849,#102b39)}
+.gps-live-section-head{display:flex;align-items:center;gap:14px;padding-bottom:15px;border-bottom:1px solid #5683936b;margin-bottom:17px}
+.gps-live-section-head>b{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border:1px solid #4bd9db;background:#115b6e;border-radius:14px;font-size:1.1rem;color:#adfffa}
+.gps-live-section-head h2{font-size:1.07rem;color:white;margin:0 0 4px}.gps-live-section-head p{color:#b5d2df;font-size:.77rem;line-height:1.5;margin:0}
+.gps-activity-surface{border:1px solid #4eb7be;background:linear-gradient(120deg,#12586d,#164459);border-radius:17px;overflow:hidden}
+.gps-activity-surface label{display:flex;gap:14px;align-items:center;padding:16px;min-width:0}
+.gps-activity-icon{flex-shrink:0;display:grid;place-items:center;width:48px;height:48px;border-radius:13px;border:1px solid #6cdeda;background:#36e2db1a;color:#8ff3ed}
+.gps-activity-surface label>span:nth-child(2){min-width:0;flex:1;display:grid;gap:3px}.gps-activity-surface small{display:block;color:#a9dbe1;font-size:.72rem}
+.gps-activity-surface select{appearance:none;-webkit-appearance:none;width:100%;border:0;min-height:34px;background:transparent;color:#fff;font-weight:850;font-size:1.2rem;outline-offset:4px;cursor:pointer}
+.gps-activity-surface select option{background:#0b2c3b;color:white}.gps-activity-arrow{font-size:1.6rem;color:#8ce8e4;font-weight:900;pointer-events:none}
+.gps-activity-surface p{padding:12px 16px;border-top:1px solid #70a8b555;color:#bfe2e8;font-size:.78rem;line-height:1.6}
+.gps-live-prep-grid{margin-top:17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.gps-live-prep-grid label,.gps-live-segment{display:grid;gap:8px;color:#cbe7ee;font-size:.83rem;font-weight:800;min-width:0}
+.gps-live-prep-grid label[hidden]{display:none}
+.gps-live-prep-grid select,.gps-live-segment select,.gps-goal-input{height:50px;width:100%;background:#082d3f;border:1px solid #6595a6;border-radius:11px;color:#f2feff;padding:9px 12px;font-size:.9rem;font-weight:750;color-scheme:dark}
+.gps-goal-input{display:flex;align-items:center;gap:5px;padding:0 12px}.gps-goal-input input{flex:1;min-width:0;border:0;background:transparent;color:white;width:100%;height:100%;font-weight:850}.gps-goal-input small{font-size:.7rem;color:#b4d7e1}
+.gps-live-disclaimer{margin:17px 0;color:#b8d2dc;font-size:.78rem;line-height:1.7}
+.gps-live-prep>.gps-v2-primary{width:100%}
+.gps-live-status{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:.78rem;color:#b2d5df}.gps-live-status>span{margin-left:auto;font-size:.74rem}.gps-live-status strong{color:#f1fffe}
+.gps-live-time{text-align:center;margin:16px 0}.gps-live-time small{font-size:.76rem;color:#b4d8e4}.gps-live-time strong{display:block;font-size:clamp(2.6rem,7vw,4.3rem);font-weight:900;letter-spacing:-.055em;color:white;font-variant-numeric:tabular-nums}
+.gps-live-route{margin-top:16px;border:1px solid #426e7d;background:#0b2c3a;border-radius:14px;padding:14px;overflow:hidden}
+.gps-live-route>strong{display:block;color:#e0f6f9;font-size:.86rem;margin-bottom:9px}.gps-live-route>strong small{color:#a4c2cc;font-weight:500;font-size:.68rem;margin-left:8px}
+.gps-live-route .sm-gpx-preview{display:grid;grid-template-columns:1fr;gap:12px}.gps-live-route .sm-gpx-visual{background:#113a49;border:1px solid #3c6a79;border-radius:12px;padding:10px;min-width:0}.gps-live-route .sm-gpx-visual svg{display:block;width:100%;height:auto;max-height:225px}.gps-live-route .sm-gpx-visual strong{font-size:.75rem;display:block}.gps-live-route .sm-gpx-visual small{font-size:.68rem;color:#b4ced7;line-height:1.6}.gps-live-route .sm-gpx-elevation{max-height:145px}
+.gps-live-empty{text-align:center;color:#b5d4db;min-height:115px;display:grid;place-content:center;line-height:1.7;font-size:.82rem}
+.gps-live-notice{font-size:.77rem;line-height:1.7;color:#d1e8ed;margin:14px 0}.gps-live-segment{padding:14px;border:1px solid #52b2be;border-radius:12px;margin:14px 0}.gps-live-segment small{color:#b4d4dd;line-height:1.5;font-size:.71rem;font-weight:400}
+.gps-live-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+.gps-live-finish>p{font-size:.82rem;line-height:1.7;color:#cee8ee}.gps-live-checkbox{display:flex;gap:11px;align-items:flex-start;margin-top:14px;padding:14px;border:1px solid #568794;border-radius:12px;background:#143e4e}.gps-live-checkbox input{accent-color:#55e1de;width:20px;height:20px;flex-shrink:0;margin-top:2px}.gps-live-checkbox span{display:grid;gap:5px}.gps-live-checkbox b{font-size:.8rem}.gps-live-checkbox small{font-size:.73rem;color:#b0ccd5;line-height:1.5}
+.gps-live-info{border:1px solid #3b6b79;border-radius:15px;padding:16px;background:#0c2a39}.gps-live-info strong{font-size:.82rem}.gps-live-info p{font-size:.75rem;line-height:1.75;color:#b5d1da;margin-top:7px}.gps-live-leave{font-size:.74rem;color:#eccfa2}
+@media(max-width:800px){.gps-v35 .gps-v2-header{padding-top:0}.gps-v35-panel{padding:16px}.gps-v35 .gps-v2-metrics strong{font-size:1.55rem}.gps-live-time strong{font-size:3.1rem}}
+@media(max-width:350px){.gps-live-steps span{font-size:.62rem;padding:9px 3px}.gps-live-prep-grid{grid-template-columns:1fr}.gps-live-status>span{margin-left:0}.gps-live-actions .gps-v2-button{font-size:.86rem;min-width:0}}
+/* GPS records are visually separated from legacy manual/scientific history */
+.gps-history-section{margin:0 0 16px;padding:18px;border-radius:19px;background:linear-gradient(135deg,#143847,#102d3d);border:1px solid #3b7182;color:#e9f8fc;display:grid;gap:10px}
+.gps-history-section h2{color:#f8fcfe;font-size:1.07rem;margin:0}.gps-history-section>p{font-size:.76rem;line-height:1.65;color:#b7d0d9}
+.gps-history-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;border:1px solid #3c6979;background:#0d2b3a;padding:13px;border-radius:13px;align-items:center}
+.gps-history-item span{display:grid;gap:5px;min-width:0}.gps-history-item strong{font-size:.85rem;color:#e6f7fa}.gps-history-item small{font-size:.71rem;color:#b0cbd6;overflow-wrap:anywhere}
+.gps-history-item>div{display:flex;gap:6px;flex-wrap:wrap}.gps-history-item button{background:#1a5667;color:#e9ffff;border:1px solid #55a9b6;padding:9px 12px;border-radius:10px;font-size:.73rem;font-weight:800}
+.gps-history-item aside{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.8rem;color:#ffd5c5}
+.gps-history-item aside button:first-of-type{background:#6a3438;border-color:#ad7b7b}
+.gps-history-empty{color:#b4cfd7;padding:14px;font-size:.8rem}
+.app-shell:has(.gps-v35[data-phase="running"]) .mobile-nav,.app-shell:has(.gps-v35[data-phase="paused"]) .mobile-nav{display:none}
+@media(max-width:800px){.gps-history-item{grid-template-columns:1fr}.gps-history-item>div{justify-content:flex-start}}

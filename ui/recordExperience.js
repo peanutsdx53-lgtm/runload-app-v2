@@ -51,7 +51,7 @@ export function manualPage(state){
 }
 export function recordMethodPage(){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
- <a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>位置情報を使って走行を記録</small><em>GPSでの測定は準備中</em></span><span class="rv-chevron">›</span></a>
+ <a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>位置情報を使って走行を記録</small><em>走った距離と軌跡を端末で測る</em></span><span class="rv-chevron">›</span></a>
  <a class="rv-method-card rv-method-manual" href="#/record"><span class="rv-method-mark">✎</span><span><strong>手入力で記録</strong><small>走行距離・時間などを入力</small></span><span class="rv-chevron">›</span></a>
  </div></div>`;}
 function courseValue(d,key){return escape(d[key]);}
