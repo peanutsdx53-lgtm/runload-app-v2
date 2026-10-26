@@ -96,3 +96,15 @@
  .cj-controls label{min-width:0;flex-basis:auto;font-size:.78rem}
 }
 @media(max-width:359px){.cj-controls{gap:8px}}
+
+/* The new condition detail is a child of Home and must use the exact Home nav palette.
+   Previous screen inherited the light global navigation theme. */
+.app-shell:has(.cj-screen) .sidebar{background:linear-gradient(180deg,#0c2533,#071923);border-right-color:#254655}
+.app-shell:has(.cj-screen) .side-link{color:#b8d5df}
+.app-shell:has(.cj-screen) .side-link:hover,
+.app-shell:has(.cj-screen) .side-link.is-active{color:#85eff0;background:#1e5666}
+@media(max-width:800px){
+  .app-shell:has(.cj-screen) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
+  .app-shell:has(.cj-screen) .mobile-link{color:#c0cbd5}
+  .app-shell:has(.cj-screen) .mobile-link.is-active{color:#55dce3;background:transparent}
+}
