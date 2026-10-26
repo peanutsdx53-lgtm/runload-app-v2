@@ -93,7 +93,7 @@ function surfaceSection(d,ui){
 export function coursePage(state,ui){
  const d=state.recordDraft,s=courseSummary(d,ui),summary=state.recordCourseUi?.notice||'';
  return `<div class="record-v3 rv-course"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>コース・走行条件</h1></header>
- <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>任意</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">保存コースの選択・作成は、ライブラリ連携後に利用できます。</p></section>
+ <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>任意</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">コースの一覧から選ぶ機能は準備中です。</p></section>
  ${slopeSection(d,ui)}${surfaceSection(d,ui)}
  <section class="rv-panel rv-course-summary"><h2 class="rv-section-title">設定内容</h2><div class="rv-summary-line"><span>坂道</span><strong data-rv-summary-slope>${escape(s.slope)}</strong></div><div class="rv-summary-line"><span>路面</span><strong data-rv-summary-surface>${escape(s.surface)}</strong></div><button type="button" data-rv-apply class="rv-main-button">この条件を使う</button>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}</section></div>
  </div>`;
