@@ -639,37 +639,51 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-history-v2-approved.png"),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
-  // V14: Saved life entries are separate from unsaved running drafts and exploration notes.
+  // Condition journey v15: a browsable graph, real-day notes, opt-in follow-up and inline home review.
+  const localDay=offset=>{const d=new Date();d.setDate(d.getDate()+offset);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+  const dateA=localDay(-3),dateB=localDay(-2),dateC=localDay(-1);
   const lifeSeed=[
-   {date:'2026-10-20',sleepMinutes:360,sleepSource:'duration',feeling:'ふつう',memo:''},
-   {date:'2026-10-22',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}
+   {date:dateA,sleepMinutes:360,sleepSource:'duration',feeling:'ふつう',memo:'いつもどおり'},
+   {date:dateB,sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:'朝は調子が良い'}
   ];
   await page.evaluate(entries=>localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify(entries)),lifeSeed);
   await page.goto(host+'#/history?life=1',{waitUntil:'networkidle'});
-  const lifePanel=page.locator('[data-interpretation-life]');await lifePanel.waitFor();
-  assert.match(await lifePanel.locator('.iv-packet').innerText(),/1時間30分の差/);
-  assert.match(await lifePanel.locator('.iv-packet').innerText(),/原因やランニングへの影響は判断できません/);
-  assert.equal(await page.locator('#runload-history-v2').count(),1,'approved history cards remain intact');
-  await lifePanel.locator('[data-interpret-save-intent]').click();
-  assert.match(await page.locator('.iv-feedback').innerText(),/確認事項を更新しました/);
+  const journey=page.locator('[data-condition-journey]');await journey.waitFor();
+  assert.equal(await journey.locator('[data-cj-day]:not([disabled])').count(),2);
+  await journey.locator('[data-cj-day="'+dateA+'"]').click();
+  assert.match(await journey.locator('.cj-day-memo').innerText(),/いつもどおり/);
+  await journey.locator('[data-cj-range="90"]').click();
+  assert.equal(await journey.locator('[data-cj-day]').count(),90);
+  await journey.locator('[data-cj-method]').selectOption('self-reported');
+  await journey.locator('[data-cj-day="'+dateB+'"]').click();
+  await journey.locator('[data-cj-note]').fill('朝は調子が良かった');
+  await journey.locator('[data-cj-save-insight]').click();
+  assert.match(await journey.locator('.cj-saved').innerText(),/朝は調子が良かった/);
+  await journey.locator('[data-cj-create-intent]').click();
+  assert.match(await journey.locator('[role="status"]').last().innerText(),/ホームに保存しました/);
+  assert.equal(await page.locator('#runload-history-v2').count(),1,'existing history shell is protected');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
-  assert.match(await page.locator('[data-interpretation-action]').innerText(),/記録待ち/);
+  const followup=page.locator('.cj-home-panel');
+  assert.match(await followup.innerText(),/次の記録を待っています/);
   await page.reload({waitUntil:'networkidle'});
-  assert.match(await page.locator('[data-interpretation-action]').innerText(),/記録待ち/,'confirmed local preservation');
-  await page.evaluate(()=>{
+  assert.match(await followup.innerText(),/次の記録を待っています/);
+  await page.evaluate(date=>{
    const key='runload-v2-life-condition-v1',rows=JSON.parse(localStorage.getItem(key));
-   rows.push({date:'2026-10-24',sleepMinutes:420,sleepSource:'duration',feeling:'ふつう',memo:''});
+   rows.push({date,sleepMinutes:420,sleepSource:'duration',feeling:'疲れ気味',memo:'少し眠い'});
    localStorage.setItem(key,JSON.stringify(rows));
-  });
+  },dateC);
   await page.reload({waitUntil:'networkidle'});
-  assert.match(await page.locator('[data-interpretation-action]').innerText(),/見返せます/);
-  assert.equal(await page.locator('[data-interpretation-action] [data-interpret-mark-reviewed]').count(),1);
-  await page.locator('[data-interpret-mark-reviewed]').click();
-  assert.match(await page.locator('[data-interpretation-action]').innerText(),/見返した内容/);
+  assert.match(await followup.innerText(),/新しい記録と見比べられます/);
+  assert.match(await followup.innerText(),/30分の差/);
+  assert.equal(await followup.locator('[data-interpret-mark-reviewed]').count(),0,'no mechanical review badge');
+  await followup.locator('[data-cj-note]').fill('時間だけでは分からない');
+  await followup.locator('[data-cj-save-insight]').click();
+  assert.match(await page.locator('.cj-home-panel .cj-saved').innerText(),/時間だけでは分からない/);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-condition-insights-v1')).entries.length),2);
   await page.locator('[data-interpret-delete]').click();
-  assert.equal(await page.locator('[data-interpretation-action]').count(),0);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-action-intents-v1')),null);
   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-exploration-notes-v1')!==null),true,'old exploration notes kept');
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v14-interpretation-flow.png'),fullPage:false});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v15-condition-journey.png'),fullPage:false});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const historicalReport=page.locator("#runload-result-v4");
   assert.match(await historicalReport.locator(".rv4-notice").innerText(),/表示できる保存記録はまだありません/);
