@@ -9,6 +9,7 @@ on:
       - 'sw.js'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/explorationWebkitSmoke.mjs'
       - '.github/workflows/ui-browser.yml'
   push:
     branches: [main]
@@ -22,6 +23,7 @@ on:
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
+      - 'tests/explorationWebkitSmoke.mjs'
       - 'ui/resultExperience.js'
       - 'ui/resultExperience.css'
       - '.github/workflows/ui-browser.yml'
@@ -87,5 +89,35 @@ jobs:
         with:
           name: runload-ui-next-screenshots
           path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  webkit-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebKit browser and dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps webkit
+      - name: Ensure Japanese glyph support
+        run: |
+          if ! fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao'; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends fonts-ipafont-gothic
+            fc-cache -f
+          fi
+      - name: WebKit smartphone reading card and screenshot inspection
+        run: node tests/explorationWebkitSmoke.mjs
+      - name: Upload WebKit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-exploration-webkit-screenshots
+          path: screenshots/webkit-*.png
           if-no-files-found: ignore
           retention-days: 14
