@@ -78,8 +78,19 @@ export function mountHistory(host,{records=[],connected=false,onOpen=null,ui=cre
  });
  root.addEventListener('input',event=>{
   if(event.target.id!=='hx-search')return;
-  const query=event.target.value,pos=event.target.selectionStart,y=window.scrollY;
-  ui.query=query;ui.selectedId=null;draw();const input=root.querySelector('#hx-search');input?.focus();input?.setSelectionRange(pos,pos);window.scrollTo(0,y);
+  // Keep the *same* focused input while filtering. Replacing and refocusing it
+  // on every keystroke makes iOS Safari pan/zoom and can disturb the keyboard.
+  ui.query=event.target.value;ui.selectedId=null;
+  const panel=root.querySelector('.list-panel');
+  if(!panel)return;
+  const template=document.createElement('template');
+  template.innerHTML=list(ui,safeRecords,context.connected,typeof context.onOpen==='function');
+  const updated=template.content.querySelector('.list-panel');
+  for(const selector of ['.results-counter','.timeline']){
+   const previous=panel.querySelector(selector),replacement=updated?.querySelector(selector);
+   if(previous&&replacement)previous.replaceWith(replacement);
+  }
+  panel.querySelector('.selected-footer')?.remove();
  });
  draw();
 }
