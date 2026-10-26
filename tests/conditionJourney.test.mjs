@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {prepareConditionJourney,renderConditionJourney,renderHomeConditionFollowup} from '../ui/conditionJourney.js';
+import {addConditionInsight,loadConditionInsights,removeConditionInsight,insightRecordStatus,CONDITION_INSIGHTS_KEY} from '../ui/conditionInsights.js';
+import {createLifeIntent} from '../ui/actionIntentStore.js';
+const localDay=offset=>{const d=new Date();d.setDate(d.getDate()+offset);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+const record=(date,minutes=420,feeling='良い',memo='',source='duration')=>({date,sleepMinutes:minutes,sleepSource:source,feeling,memo});
+const store=()=>{const map=new Map();return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
+const a=localDay(-3),b=localDay(-2),c=localDay(-1);
+const conditions={canSave:true,entries:[record(a,360,'ふつう','気持ちが普通'),record(b,450,'良い','朝は元気'),record(c,420,'疲れ気味','寝付けなかった')]};
+test('long-term journey lists actual dates and highlights without inferring personal causes',()=>{
+ const day7=prepareConditionJourney(conditions,{days:7,selected:b});
+ assert.equal(day7.status,'ready');
+ assert.equal(day7.days.length,7);assert.equal(day7.entries.length,3);assert.equal(day7.selected.date,b);
+ assert.equal(prepareConditionJourney(conditions,{days:90}).days.length,90);
+ const html=renderConditionJourney(conditions,{days:30,selected:b,focus:'good'});
+ assert.match(html,/気づきを保存する/);assert.match(html,/次の記録で確かめる/);
+ assert.match(html,/朝は元気/);assert.match(html,/調子が良かった日/);
+ assert.doesNotMatch(html,/data-interpret-date/,'no manual two-date selection is necessary');
+ assert.match(html,/原因やランニングへの影響/);
+});
+test('displayed mood is categorical and day notes are escaped',()=>{
+ const evil={canSave:true,entries:[record(b,450,'良い','<script>alert(1)</script>')]};
+ const html=renderConditionJourney(evil,{days:7,selected:b});
+ assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
+ assert.match(html,/aria-label/);
+ assert.match(html,/就床から起床/);
+});
+test('different input methods are separated, not silently placed on a common trend',()=>{
+ const c2={canSave:true,entries:[record(a,420,'良い','','duration'),record(b,470,'ふつう','','clock')]};
+ const journey=prepareConditionJourney(c2,{days:7,method:'self-reported'});
+ assert.equal(journey.entries.length,1);
+ const other=prepareConditionJourney(c2,{days:7,method:'time-in-bed'});
+ assert.equal(other.entries.length,1);
+ assert.equal(other.method,'time-in-bed');
+});
+test('reflections are voluntary, bound to saved source, and independent of other stores',()=>{
+ const s=store();s.setItem('runload-v2-action-intents-v1','unmodified');
+ assert.equal(addConditionInsight(s,conditions,b,'').ok,false);
+ assert.equal(loadConditionInsights(s).entries.length,0);
+ const saved=addConditionInsight(s,conditions,b,'前の日より元気に感じた','2026-10-26T00:00:00Z');
+ assert.equal(saved.ok,true);assert.equal(loadConditionInsights(s).entries.length,1);
+ assert.equal(s.getItem('runload-v2-action-intents-v1'),'unmodified');
+ const item=loadConditionInsights(s).entries[0];
+ assert.equal(insightRecordStatus(item,conditions),'current');
+ assert.equal(insightRecordStatus(item,{canSave:true,entries:[...conditions.entries.filter(e=>e.date!==b),record(b,451)]}),'changed');
+ assert.equal(insightRecordStatus(item,{canSave:true,entries:conditions.entries.filter(e=>e.date!==b)}),'missing');
+ assert.equal(removeConditionInsight(s,item.id).ok,true);
+ assert.equal(loadConditionInsights(s).entries.length,0);
+});
+test('corruption and failed writes never overwrite stored data',()=>{
+ const s=store();s.setItem(CONDITION_INSIGHTS_KEY,'{corrupt');
+ const raw=s.getItem(CONDITION_INSIGHTS_KEY);
+ assert.equal(addConditionInsight(s,conditions,b,'確認').ok,false);
+ assert.equal(s.getItem(CONDITION_INSIGHTS_KEY),raw);
+ const q=store();q.setItem=()=>{throw Error('quota')};
+ assert.equal(addConditionInsight(q,conditions,b,'確認').ok,false);
+ assert.equal(q.getItem(CONDITION_INSIGHTS_KEY),null);
+});
+test('home presents real next-entry comparison inline and offers reflection instead of a click-to-complete badge',()=>{
+ const s=store();const r=createLifeIntent(s,{date:b,source:'self-reported',minutes:450});
+ assert.equal(r.ok,true);
+ const waiting=renderHomeConditionFollowup(r.intent,{canSave:true,entries:conditions.entries.slice(0,2)},loadConditionInsights(s));
+ assert.match(waiting,/次の記録を待っています/);
+ const ready=renderHomeConditionFollowup(r.intent,conditions,loadConditionInsights(s));
+ assert.match(ready,/新しい記録と見比べられます/);
+ assert.match(ready,/気づきを保存する/);
+ assert.match(ready,/30分/);
+ assert.doesNotMatch(ready,/data-interpret-mark-reviewed/);
+});
