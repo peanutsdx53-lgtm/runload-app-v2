@@ -832,10 +832,15 @@ try{
   await page.locator('[data-demo-save]').click();
   const review=page.locator('[data-record-review]');await review.waitFor();
   assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
-  const saveAppearance=await review.locator('[data-manual-run-save]').evaluate(button=>({
-    background:getComputedStyle(button).backgroundImage,
-    color:getComputedStyle(button).color,cursor:getComputedStyle(button).cursor
-  }));
+  await page.waitForFunction(()=>{
+    const b=document.querySelector('[data-manual-run-save]');
+    return !!b&&b.isConnected&&!b.disabled&&getComputedStyle(b).backgroundImage.includes('gradient');
+  },null,{timeout:12000}); // re-renders can detach the button between Playwright operations
+  const saveAppearance=await page.evaluate(()=>{
+    const button=document.querySelector('[data-manual-run-save]');
+    return {background:getComputedStyle(button).backgroundImage,
+      color:getComputedStyle(button).color,cursor:getComputedStyle(button).cursor};
+  });
   assert.match(saveAppearance.background,/linear-gradient/,mode.name+' save button should look enabled');
   assert.equal(saveAppearance.cursor,'pointer');
   assert.notEqual(saveAppearance.color,'rgb(169, 199, 209)','save button text must have high contrast');
