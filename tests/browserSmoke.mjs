@@ -374,6 +374,17 @@ try{
   await ex.locator('[data-ex-action="learn-help"]').click();
   assert.match(await ex.locator('.ex-dialog').innerText(),/参考資料/);
   await ex.locator('[data-ex-action="close"]').click();
+  const writeAction=ex.locator('.ex-note-invite');
+  assert.equal(await ex.locator('.ex-memories').count(),0,'single reflection history access');
+  await writeAction.scrollIntoViewIfNeeded();
+  const footerStyle=await writeAction.evaluate(el=>{
+    const b=el.querySelector('button').getBoundingClientRect(),r=el.getBoundingClientRect();
+    return {buttonWithin:b.left>=r.left-1&&b.right<=r.right+1,
+      fontSize:parseFloat(getComputedStyle(el.querySelector('strong')).fontSize)};
+  });
+  assert.ok(footerStyle.buttonWithin,'write action stays within the reading card: '+JSON.stringify(footerStyle));
+  assert.ok(footerStyle.fontSize>=12,'readable text in reflection footer');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-writing-footer-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action="note"]').click();
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
    assert.match(await ex.locator('.ex-dialog').innerText(),/画面上部の「ふり返り」で読み返せます/);
