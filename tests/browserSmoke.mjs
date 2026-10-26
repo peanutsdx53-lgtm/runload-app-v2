@@ -592,6 +592,7 @@ try{
   await page.locator('[data-sm-source="gpx"]').click();
   await page.reload({waitUntil:'networkidle'});
   assert.equal(await page.locator('.sm-gpx-shape').count(),0,'GPX route is ephemeral; not silently persisted');
+  await page.locator('[data-sm-source="gpx"]').click();
   assert.match(await page.locator('.sm-gpx-await').innerText(),/まだ読み込まれていません/);
   await page.locator('[data-sm-source="manual"]').click();
   await page.locator('[data-sm-source="none"]').click();
