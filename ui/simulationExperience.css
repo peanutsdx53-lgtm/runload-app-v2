@@ -7,7 +7,7 @@
 .app-shell:has(.sm-page) .mobile-nav{background:#0b2231f2;border-top-color:#3d6577}
 .app-shell:has(.sm-page) .mobile-link{color:#b8cedb}
 .app-shell:has(.sm-page) .mobile-link.is-active{color:#55e3df}
-.app-shell:has(.sm-page) .topbar{display:none}
+.app-shell:has(.sm-page) .topbar{background:#0b2634;border-bottom-color:#315565;color:#e9fafb}
 .sm-page{width:min(100%,1010px);margin:auto;display:grid;gap:15px;padding-bottom:24px;--sm-border:#446f7e;--sm-muted:#b7d1db;--sm-teal:#65e5dd;font-size:.88rem;line-height:1.55;min-width:0}
 .sm-page *{box-sizing:border-box;min-width:0}
 .sm-page h1,.sm-page h2,.sm-page h3,.sm-page p{margin:0}
