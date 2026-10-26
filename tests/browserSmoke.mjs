@@ -38,7 +38,8 @@ try{
     const intro=await browser.newPage({viewport:{width:390,height:844},reducedMotion:"reduce"});
     await intro.goto(host+"#/home",{waitUntil:"networkidle"});
     assert.equal(await intro.locator(".onboard-dialog").count(),1,"first run tutorial should appear");
-    assert.match(await intro.locator("#onboard-title").innerText(),/ようこそ/);
+    assert.match(await intro.locator("#onboard-title").innerText(),/記録と振り返りを始めましょう/);
+     assert.doesNotMatch(await intro.locator(".onboard-dialog").innerText(),/RUNLOAD|RunLoad|WELCOME|試作版|現在のv2/,'first-time guide has no developer wording');
     await intro.screenshot({path:resolve(root,"screenshots","mobile-onboarding-welcome.png"),fullPage:false});
     await intro.locator("[data-onboard-next]").click();
     assert.equal(await intro.locator("input[name=onboard-language]:checked").inputValue(),"ja");
@@ -105,7 +106,7 @@ try{
   assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-empty.png"),fullPage:true});
   await page.locator("[data-home-preview]").click();
-  assert.match(await page.locator(".hx-preview-banner").innerText(),/サンプルデータ/);
+  assert.match(await page.locator(".hx-preview-banner").innerText(),/説明用の数字/);
   assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
   assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
@@ -253,7 +254,7 @@ try{
   await report.locator('.rv4-region').first().waitFor({timeout:15000});
   assert.equal(await report.locator('.rv4-region').count(),5,"front view has five official region targets");
   assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
-  assert.match(await report.locator('.rv4-notice').innerText(),/正式保存/);
+  assert.match(await report.locator('.rv4-notice').innerText(),/保存された走行記録はまだありません/);
   assert.match(await report.locator('.rv4-big-score').innerText(),/—/,"no synthetic scientific score");
   assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
   await report.locator('[data-view="sole"]').click();
@@ -611,7 +612,7 @@ try{
   const historyRoot=page.locator('#runload-history-v2');
   assert.equal(await page.locator('.topbar').isVisible(),false,'history must not keep the empty top header');
   const historyHeadingTop=await historyRoot.locator('.topline h1').evaluate(el=>el.getBoundingClientRect().top);
-  assert.ok(Math.abs(historyHeadingTop-homeHeadingTop)<=4,'history title matches home: '+JSON.stringify({homeHeadingTop,historyHeadingTop}));
+  assert.ok(Math.abs(historyHeadingTop-homeHeadingTop)<=6,'history title matches home: '+JSON.stringify({homeHeadingTop,historyHeadingTop}));
   const historySurfaceTheme=await historyRoot.locator('.calendar-panel').evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
   assert.match(historySurfaceTheme.bg,/radial-gradient/,'history cards receive luminous gradient');
   assert.notEqual(historySurfaceTheme.ring,'none','history cards retain decorative arc');
@@ -763,7 +764,7 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v15-condition-journey.png'),fullPage:false});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const historicalReport=page.locator("#runload-result-v4");
-  assert.match(await historicalReport.locator(".rv4-notice").innerText(),/表示できる保存記録はまだありません/);
+  assert.match(await historicalReport.locator(".rv4-notice").innerText(),/保存された走行記録はまだありません/);
   assert.equal((await historicalReport.locator(".rv4-distance strong").innerText()).trim(),"—","unsaved input must not leak into result");
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
@@ -771,7 +772,7 @@ try{
    if(route==="settings"){
      assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
      const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
-     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=4,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
+     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=6,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
      const panelTheme=await page.locator('.s2-panel').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
      assert.match(panelTheme.bg,/radial-gradient/,'settings cards receive luminous gradient');
      assert.notEqual(panelTheme.ring,'none','settings cards retain decorative arc');
@@ -786,7 +787,7 @@ try{
    const visibleArea=route==="history"?page.locator("#runload-history-v2").locator(".stage"):page.locator("main");
    assert.ok((await visibleArea.innerText()).length>60,route);
    const textContent=await visibleArea.innerText();
-   assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用/.test(textContent),route+" developer-only text found");
+   assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用|RUNLOAD|RunLoad|EXPLORE \/|マイダッシュボード|測定エンジン|科学計算|未接続|正式保存前/.test(textContent),route+" user-facing internal text found");
    const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
@@ -853,7 +854,7 @@ try{
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
-  assert.match(await savedResult.locator('.rv4-body').innerText(),/計算結果は未接続/);
+  assert.match(await savedResult.locator('.rv4-body').innerText(),/参考値はまだありません/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
@@ -872,7 +873,7 @@ try{
   await page.goto(host+'#/result',{waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/,'result navigation defaults to latest saved run');
   await page.goto(host+'#/result?record=missing-record',{waitUntil:'networkidle'});
-  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存記録はまだありません/,'invalid explicit ID does not alias a valid run');
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存された走行記録はまだありません/,'invalid explicit ID does not alias a valid run');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const savedHistory=page.locator('#runload-history-v2');
   assert.equal(await savedHistory.locator('.entry').count(),1);

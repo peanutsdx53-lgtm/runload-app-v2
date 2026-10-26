@@ -30,7 +30,7 @@ test("home never claims unearned or medically inferred score",()=>{
  const empty=conditionCard(s,false);
  assert.match(empty,/未入力/);
  assert.ok(!empty.includes("78\/100"));
- assert.match(achievementCard(false),/未接続/);
+ assert.match(achievementCard(false),/実績はまだ表示できません/);
  const preview=achievementCard(true);
  assert.match(preview,/表示例/);
  assert.match(preview,/42\.0/);

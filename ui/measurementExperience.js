@@ -33,7 +33,7 @@ function previewTabs(ui){
 }
 function stateTitle(phase){return phase==='ready'?'測定の準備':phase==='paused'?'一時停止中':'GPS測定';}
 function safetyNote(ready){return ready?
- `<div class="gps-v2-note"><strong>測定開始の前に</strong><p>位置情報の権限と測位状態を確認してから計測を開始する設計です。現在はGPSエンジン未接続のため開始できません。</p></div>`:
+ `<div class="gps-v2-note"><strong>測定開始の前に</strong><p>位置情報の権限と測位状態を確認してから計測を開始する設計です。GPSを使った測定はまだ利用できません。</p></div>`:
  `<div class="gps-v2-note"><strong>測定中の安全性</strong><p>停止と終了は別の操作にし、終了時には確認を挟みます。表示中の値は実際の測定結果ではありません。</p></div>`;
 }
 export function measurementPage(ui){
@@ -41,7 +41,7 @@ export function measurementPage(ui){
  const ready=!preview||phase==='ready',paused=preview&&phase==='paused',confirmed=preview&&phase==='confirm';
  const running=preview&&!ready;
  const metricPhase=ready?'ready':phase;
- const status=ready?'GPS未接続':paused?'一時停止（例）':'測定中（例）';
+ const status=ready?'GPSの測定は準備中':paused?'一時停止（例）':'測定中（例）';
  const stateName=ready?'開始前':paused?'停止中':'表示例';
  const note=ready?'GPS測定機能は現在利用できません。準備画面のデザインと操作説明を確認できます。':'表示例：時間・距離・ペースはサンプル値です。位置情報の取得や記録の保存は行っていません。';
  return `<div class="gps-v2 ${running?'gps-v2--demo-active':''}" data-measurement-v2 data-measurement-phase="${esc(phase)}" data-preview="${preview}">

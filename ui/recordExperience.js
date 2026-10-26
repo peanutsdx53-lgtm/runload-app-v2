@@ -47,11 +47,11 @@ export function manualPage(state){
  '<p class="rv-muted">休養日は距離・時間を入力しません。必要に応じてメモを追加できます。</p>'}
  </section><section class="rv-panel rv-secondary"><h2 class="rv-section-title">追加情報 <small>任意</small></h2>
  <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${icon}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
- <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">正式な記録保存・科学計算は現在未接続です。</p></div></div>`;
+ <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">手入力した走行は確認後に端末へ保存できます。身体の部位別の参考値はまだ表示できません。</p></div></div>`;
 }
 export function recordMethodPage(){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
- <a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>位置情報を使って走行を記録</small><em>測定エンジン連携前</em></span><span class="rv-chevron">›</span></a>
+ <a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>位置情報を使って走行を記録</small><em>GPSでの測定は準備中</em></span><span class="rv-chevron">›</span></a>
  <a class="rv-method-card rv-method-manual" href="#/record"><span class="rv-method-mark">✎</span><span><strong>手入力で記録</strong><small>走行距離・時間などを入力</small></span><span class="rv-chevron">›</span></a>
  </div></div>`;}
 function courseValue(d,key){return escape(d[key]);}
@@ -93,7 +93,7 @@ function surfaceSection(d,ui){
 export function coursePage(state,ui){
  const d=state.recordDraft,s=courseSummary(d,ui),summary=state.recordCourseUi?.notice||'';
  return `<div class="record-v3 rv-course"><header class="rv-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><h1>コース・走行条件</h1></header>
- <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>任意</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">保存コースの選択・作成は、ライブラリ連携後に利用できます。</p></section>
+ <div class="rv-course-grid"><section class="rv-panel rv-course-name"><h2 class="rv-section-title">今回のコース</h2><label class="rv-field"><span>コース名 <small>任意</small></span><input type="text" maxlength="80" data-draft="courseName" value="${courseValue(d,'courseName')}" placeholder="コース名を入力"></label><p class="rv-hint">コースの一覧から選ぶ機能は準備中です。</p></section>
  ${slopeSection(d,ui)}${surfaceSection(d,ui)}
  <section class="rv-panel rv-course-summary"><h2 class="rv-section-title">設定内容</h2><div class="rv-summary-line"><span>坂道</span><strong data-rv-summary-slope>${escape(s.slope)}</strong></div><div class="rv-summary-line"><span>路面</span><strong data-rv-summary-surface>${escape(s.surface)}</strong></div><button type="button" data-rv-apply class="rv-main-button">この条件を使う</button>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}</section></div>
  </div>`;

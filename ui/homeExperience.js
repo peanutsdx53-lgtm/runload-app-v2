@@ -184,11 +184,11 @@ export function conditionCard(storage,preview){
 }
 export function achievementCard(preview){
  const track=preview?'<div class="hx-ach-main"><div class="hx-medal" aria-hidden="true">★</div><div class="hx-ach-data"><small>獲得 2 件 · 次の目標</small><strong>42.0 <em>/ 50 km</em></strong><div class="hx-progress"><span style="width:84%"></span></div><small>累計走行距離　84%</small></div></div><div class="hx-awards" aria-label="獲得済み2件、未獲得2件"><span class="won">★</span><span class="won">✦</span><span class="locked">◇</span><span class="locked">◇</span></div>'
- : '<div class="hx-ach-main"><div class="hx-medal hx-unearned" aria-hidden="true">☆</div><div class="hx-ach-data"><strong>実績データは未接続</strong><small>正式な走行記録に基づく実績判定を接続後に表示します</small></div></div>';
+ : '<div class="hx-ach-main"><div class="hx-medal hx-unearned" aria-hidden="true">☆</div><div class="hx-ach-data"><strong>実績はまだ表示できません</strong><small>実績を確認する機能は準備中です</small></div></div>';
  return '<section class="hx-card hx-achievement"><button type="button" class="hx-title-button" data-achievement-open aria-label="実績の詳細を開く">'+head("実績","trophy",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+track+'</section>';
 }
 export function shortcutsCard(){
- const links=[["course","コース設計","map"],["simulation","シミュレーション","sim"],["consultation","相談・共有","share"]];
+ const links=[["course","コース設計","map"],["simulation","条件を変えて考える","sim"],["consultation","相談・共有","share"]];
  return '<section class="hx-card hx-shortcuts">'+head("クイックアクセス","bolt")+'<div class="hx-shortcut-grid">'+links.map(([url,label,ico])=>'<a href="#/'+url+'" class="hx-shortcut hx-shortcut-'+ico+'"><span>'+icon(ico)+'</span><strong>'+label+'</strong></a>').join("")+'</div></section>';
 }
 export function trendCard(preview){
@@ -242,5 +242,5 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
 export function achievementPanel(preview){
  return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog hx-ach-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-ach-label"><div class="hx-dialog-head"><h2 id="hx-ach-label">実績</h2><button type="button" data-home-close aria-label="閉じる">×</button></div>'+
  (preview?'<p>表示例：獲得2件、累計42.0 / 50 km（84%）</p><div class="hx-ach-grid"><span>★ 走行を始めた</span><span>✦ 初めての30分</span><span>◇ 累計50 km（未達成）</span><span>◇ 累計100 km（未達成）</span></div><p>※ サンプル値です。正式な達成条件・実績判定とは連動していません。</p>'
- :'<p>正式な走行記録・実績エンジンとの接続がまだ完了していません。未獲得と確定したわけではありません。</p>')+'</section></div>';
+ :'<p>実績の記録機能は準備中です。まだ実績がないと判定したわけではありません。</p>')+'</section></div>';
 }

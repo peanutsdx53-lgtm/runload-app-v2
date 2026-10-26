@@ -64,16 +64,22 @@ jobs:
           fi
       - name: Install Japanese glyphs for faithful UI screenshots
         run: |
-          if fc-list :lang=ja | grep -qi 'Noto'; then
-            echo "Japanese Noto fonts already present"
+          # The full Noto CJK package is 61MB and periodically times out on CI mirrors.
+          # IPA Gothic is a small Japanese font and supports Kana/Kanji screenshots.
+          if fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao'; then
+            echo "Japanese fonts already present"
           else
-            sudo timeout 150s apt-get install -y --no-install-recommends fonts-noto-cjk
+            sudo timeout 90s apt-get install -y --no-install-recommends fonts-ipafont-gothic
             fc-cache -f
           fi
+          fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao' || { echo "Japanese glyphs unavailable"; exit 1; }
           fc-match :lang=ja
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
       - name: Verify the actual public Pages screen
+        # Pull requests preview candidate code locally; the deployed site contains main, not PR changes.
+        # Check the deployed URL only on main builds, not as a pre-merge gate.
+        if: github.event_name == 'push'
         run: node tests/livePagesSmoke.mjs
       - name: Upload visual inspection screenshots
         if: always()

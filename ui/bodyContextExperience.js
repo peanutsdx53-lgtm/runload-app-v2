@@ -49,9 +49,9 @@ ${ui.pickerOpen?`<div class="cx-picker" role="group" aria-label="${current.title
 <p class="cx-science-note">選択は本人の自覚記録であり、身体部位の参考値や医学的診断ではありません。</p>
 </section>
 <section class="cx-notes-column" aria-label="自覚情報と使用品の入力"><div class="cx-notes-heading"><h2>感じたこと・使用品</h2><p>必要な項目だけ入力してください</p></div>${fields.map(f=>fieldCard(d,f)).join('')}
-<div class="cx-transfer"><p>選択部位を文章でも残す場合</p><button type="button" data-append-name ${selected.length?'':'disabled'}>選択した部位名を自覚情報に追加 <span aria-hidden="true">↗</span></button><small>部位の構造化保存は未接続。文章は既存の下書き項目です。</small></div>
+<div class="cx-transfer"><p>選択部位を文章でも残す場合</p><button type="button" data-append-name ${selected.length?'':'disabled'}>選択した部位名を自覚情報に追加 <span aria-hidden="true">↗</span></button><small>選択した部位を文章に追加できます。</small></div>
 </section></div>
-<footer class="cx-footer"><p>正式な走行保存・科学計算には接続していません。</p><button class="cx-apply" type="button" data-apply>入力を反映する <span aria-hidden="true">→</span></button></footer>
+<footer class="cx-footer"><p>身体の部位別の参考値はまだ計算できません。入力した内容は確認画面で確かめてください。</p><button class="cx-apply" type="button" data-apply>入力を反映する <span aria-hidden="true">→</span></button></footer>
 <div class="cx-status" data-status role="status" aria-live="polite">${safe(ui.notice)}</div>
 </div>`;
 }
