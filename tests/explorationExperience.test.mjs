@@ -82,3 +82,43 @@ test('all 28 topics have a useful beginner prompt or a sourced learning panel',(
  const ui=makeUi(memory()),ctx={categories,draft:{},conditions:{entries:[]}};
  for(const cat of categories){ui.selected=cat.id;for(const topic of cat.topics){ui.topic=topic;const page=render(ui,ctx);assert.match(page,/data-ex-action="note"/);assert.doesNotMatch(page,/このテーマの学習コンテンツは準備中です|学習コンテンツは準備中/);}}
 });
+
+test('saved manual run lights only supported categories and identifies its provenance',()=>{
+ const run={source:'manual',type:'run',schema:1,date:'2026-10-25',createdAt:'2026-10-25T07:00:00Z',
+   distanceKm:5,durationSeconds:1800,rofBefore:0,rofAfter:null,
+   draft:{gradeMode:'SUMMARY',upPercent:'20',downPercent:'10',bodyObservation:''}};
+ const signalsSaved=signals({}, {entries:[]}, {ok:true,records:[run]});
+ assert.deepEqual([...signalsSaved.linked.keys()],['01','03','04']);
+ assert.equal(signalsSaved.sources.get('03'),'saved-run');
+ assert.match(signalsSaved.linked.get('03'),/2026-10-25 に保存した坂道/);
+ assert.equal(signalsSaved.hasSavedRun,true);
+ const html=render(makeUi(memory()),{categories,draft:{},conditions:{entries:[]},manualRuns:{ok:true,records:[run]}});
+ assert.match(html,/data-ex-source="saved-run"/);
+ assert.match(html,/ex-node-signal/);
+ assert.equal((html.match(/class="ex-node is-related/g)||[]).length,3);
+});
+test('bad saved store, GPS and empty noneligible records never create saved-run glow',()=>{
+ const cases=[{ok:false,records:[]},{ok:true,records:[{source:'gps',type:'run',schema:1,distanceKm:5,durationSeconds:1800,date:'2026-10-25'}]},
+  {ok:true,records:[{source:'manual',type:'run',schema:1,distanceKm:0,durationSeconds:0,date:'2026-10-25'}]}];
+ for(const read of cases){
+  const found=signals({}, {entries:[]},read);
+  assert.equal(found.hasSavedRun,false);
+  assert.equal(found.linked.size,0);
+ }
+ const draftOnly=signals({distance:'5'}, {entries:[]},cases[0]);
+ assert.equal(draftOnly.sources.get('01'),'draft');
+ assert.equal(draftOnly.hasSavedRun,false);
+});
+test('discovery orbit and searchable catalog are structurally different',()=>{
+ const u=makeUi(memory()),ctx={categories,draft:{distance:'5'},conditions:{entries:[]}};
+ const orbit=render(u,ctx);
+ assert.match(orbit,/class="ex-map"/);
+ assert.match(orbit,/class="ex-core"/);
+ assert.match(orbit,/class="ex-art"/);
+ assert.match(orbit,/data-ex-source="draft"/);
+ u.tab='catalog';
+ const lookup=render(u,ctx);
+ assert.doesNotMatch(lookup,/class="ex-core"/);
+ assert.match(lookup,/class="ex-catalog-grid"/);
+ assert.match(lookup,/data-ex-search/);
+});
