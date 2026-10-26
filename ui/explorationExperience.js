@@ -85,8 +85,8 @@ function art(links){
 
 const KNOWLEDGE={
  "距離・時間・ペース":{
-   heading:"距離と時間から、平均ペースを読んでみよう",
-   lead:"平均ペースは1 km進むためにかかった平均時間、平均速度は1時間に進む距離です。どちらも距離と経過時間から計算できます。同じ記録を、時間の単位を変えて表したものです。",
+   heading:"平均ペースと平均速度の見方",
+   lead:"平均ペースは1 km進むためにかかる平均時間です。平均速度は1時間に進む平均距離です。どちらも記録した距離と経過時間から求められます。",
    warning:"平均値には速く走った区間もゆっくり進んだ区間も含まれます。手入力された距離と経過時間の計算であり、GPS測定や身体負荷の判定ではありません。"
  },
  "足・膝・股関節":{
@@ -150,7 +150,7 @@ function experience(ui,ctx,cat,topic){
    const pace=`${Math.floor(paceSeconds/60)}:${String(paceSeconds%60).padStart(2,'0')}`;
    const elapsed=`${Math.floor(run.durationSeconds/60)}分${String(run.durationSeconds%60).padStart(2,'0')}秒`;
    const kmh=(run.distanceKm*3600/run.durationSeconds).toFixed(1);
-   tool='<div class="ex-tool-result"><strong>いちばん新しい保存済みの走行（手入力）</strong>'
+   tool='<div class="ex-tool-result"><strong>最新の保存済み走行（手入力）</strong>'
     +'<p>'+h(run.date)+'</p><p>距離：'+h(run.distanceKm.toFixed(2))+' km</p><p>経過時間：'+h(elapsed)+'</p>'
     +'<p>平均ペース：<strong>'+h(pace)+' 分/km</strong></p><p>平均速度：'+h(kmh)+' km/h</p>'
     +'<small>保存済みの距離と経過時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
