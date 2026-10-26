@@ -891,6 +891,31 @@ try{
   },null,{timeout:12000});
   assert.ok(decodeURIComponent(page.url()).includes('record='+recordIds[0]));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-from-history-v18.png'),fullPage:false});
+  // Cross-screen visual audit: screen width, ordinary navigation and residual top chrome.
+  const audited=['home','record','record-review','history','exploration-tree','condition','settings','result'];
+  for(const route of audited){
+    await page.goto(host+'#/'+route,{waitUntil:'networkidle'});
+    const audit=await page.evaluate(()=>{
+      const main=document.querySelector('.main-content'),nav=document.querySelector('.mobile-nav'),shell=document.querySelector('.app-shell');
+      return {overflow:document.documentElement.scrollWidth-innerWidth,
+       main:!!main,nav:!!nav,shell:!!shell,
+       header:getComputedStyle(document.querySelector('.topbar')).display,
+       background:getComputedStyle(main).backgroundImage,
+       scrollWidth:document.documentElement.scrollWidth,
+       width:innerWidth};
+    });
+    assert.ok(audit.main&&audit.nav&&audit.shell,mode.name+' '+route+' essential shell exists');
+    assert.ok(audit.overflow<=3,mode.name+' '+route+' horizontal overflow: '+JSON.stringify(audit));
+    if(['home','history','result','condition','record-review'].includes(route)){
+      assert.equal(audit.header,'none',mode.name+' '+route+' should not show legacy top toolbar');
+    }
+    if(['result','home','history','condition'].includes(route)){
+      assert.ok(!audit.background.includes('rgb(255, 255, 255)'),mode.name+' '+route+' white surface detected');
+    }
+    if(['mobile','desktop'].includes(mode.name)){
+      await page.screenshot({path:resolve(root,'screenshots',mode.name+'-cross-audit-'+route+'-v20.png'),fullPage:false});
+    }
+  }
   await page.close();
   console.log("PASS",mode.name,"manual save / reload / result / home / history");
 
