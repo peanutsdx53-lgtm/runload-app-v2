@@ -647,7 +647,14 @@ try{
    {date:dateB,sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:'朝は調子が良い'}
   ];
   await page.evaluate(entries=>localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify(entries)),lifeSeed);
-  await page.goto(host+'#/history?life=1',{waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-condition-journey]').count(),0,'running history must not contain condition tracking');
+  await page.goto(host+'#/home',{waitUntil:'networkidle'});
+  const conditionLink=page.locator('.hx-condition .hx-condition-explore');
+  assert.equal(await conditionLink.count(),1,'condition detail lives inside the home condition card');
+  await conditionLink.click();
+  assert.ok(page.url().includes('#/condition'));
+  assert.equal(await page.locator('#runload-history-v2').count(),0,'condition detail must not mount the running history');
+  assert.equal(await page.locator('.cj-back').count(),1,'return home is available');
   const journey=page.locator('[data-condition-journey]');await journey.waitFor();
   assert.equal(await journey.locator('[data-cj-day]:not([disabled])').count(),2);
   await journey.locator('[data-cj-day="'+dateA+'"]').click();
@@ -661,7 +668,7 @@ try{
   assert.match(await journey.locator('.cj-saved').innerText(),/朝は調子が良かった/);
   await journey.locator('[data-cj-create-intent]').click();
   assert.match(await journey.locator('[role="status"]').last().innerText(),/ホームに保存しました/);
-  assert.equal(await page.locator('#runload-history-v2').count(),1,'existing history shell is protected');
+  assert.equal(await page.locator('#runload-history-v2').count(),0,'condition detail uses its own screen');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   const followup=page.locator('.cj-home-panel');
   assert.match(await followup.innerText(),/次の記録を待っています/);
@@ -682,6 +689,12 @@ try{
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-condition-insights-v1')).entries.length),2);
   await page.locator('[data-interpret-delete]').click();
   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-action-intents-v1')),null);
+  await page.goto(host+'#/history',{waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-condition-journey]').count(),0);
+  assert.equal(await page.locator('[data-interpret-toggle]').count(),0);
+  assert.equal(await page.locator('#runload-history-v2').count(),1);
+  await page.goto(host+'#/condition',{waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-condition-journey]').count(),1);
   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-exploration-notes-v1')!==null),true,'old exploration notes kept');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v15-condition-journey.png'),fullPage:false});
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
