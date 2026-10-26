@@ -77,6 +77,9 @@ jobs:
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
       - name: Verify the actual public Pages screen
+        # Pull requests preview candidate code locally; the deployed site contains main, not PR changes.
+        # Check the deployed URL only on main builds, not as a pre-merge gate.
+        if: github.event_name == 'push'
         run: node tests/livePagesSmoke.mjs
       - name: Upload visual inspection screenshots
         if: always()
