@@ -401,6 +401,10 @@ try{
   await ex.locator('[data-ex-action="note"]').click();
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
    assert.match(await ex.locator('.ex-dialog').innerText(),/画面上部の「ふり返り」で読み返せます/);
+   await ex.locator('#ex-note').focus();
+   const noteFont=await ex.locator('#ex-note').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+   assert.ok(mode.width>800||noteFont>=16,mode.name+' note textarea has iOS safe font size: '+noteFont);
+   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-focus-note-v25.png'),fullPage:false});
    await ex.locator('[data-ex-next="0"]').click();
   assert.equal(await ex.locator('#ex-note').inputValue(),'次は上りと下りで感じ方を確かめたい');
   await ex.locator('[data-ex-action="save-note"]').click();
@@ -416,6 +420,10 @@ try{
   assert.equal(await ex.locator('.ex-catalog-items button').count(),28,'all initial topics visible');
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-catalog-v22.png'),fullPage:false});
    assert.equal(await ex.locator('.ex-catalog-group').count(),7,'the catalog groups topics by familiar questions');
+  await ex.locator('[data-ex-search]').focus();
+  const searchFont=await ex.locator('[data-ex-search]').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  assert.ok(mode.width>800||searchFont>=16,mode.name+' search input has iOS safe font size: '+searchFont);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-focus-search-v25.png'),fullPage:false});
   await ex.locator('[data-ex-search]').fill('上り坂');
   assert.equal(await ex.locator('.ex-catalog-items button').count(),1,'theme search finds matching topic');
   await ex.locator('.ex-catalog-items button').first().click();
@@ -439,6 +447,12 @@ try{
   assert.equal(await page.locator("[data-record-type]").count(),2);
   assert.equal(await page.locator("[data-activity-type]").count(),0);
   assert.equal(await page.locator(".rv-unit-input").count(),2,"distance and total minutes side by side");
+  const recordFonts=await page.locator('.record-v3 input:not([type=hidden]):not([type=range]):not([type=checkbox]), .record-v3 select, .record-v3 textarea').evaluateAll(els=>els.filter(el=>el.getClientRects().length).map(el=>({
+    field:el.getAttribute('data-draft')||el.getAttribute('type')||el.tagName,
+    size:parseFloat(getComputedStyle(el).fontSize)
+  })));
+  if(mode.width<=800)assert.ok(recordFonts.every(x=>x.size>=16),mode.name+' editable record fields must be >=16px '+JSON.stringify(recordFonts.filter(x=>x.size<16)));
+
   assert.equal(await page.locator('[data-draft="hours"]').count(),0,"hours are not separate input");
   assert.equal(await page.locator('[data-draft="seconds"]').count(),0,"seconds are not separate input");
   assert.equal(await page.locator(".rv-link").count(),5,"five distinct optional entry cards");
