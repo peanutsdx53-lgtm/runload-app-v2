@@ -845,7 +845,7 @@ try{
   }
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-history-v18.png'),fullPage:false});
   await savedHistory.locator('[data-open-record]').click();
-  await page.locator('#runload-result-v4 style[data-result-inline-styles]').waitFor({timeout:12000}); // hashchange navigation completes asynchronously
+  await page.locator('#runload-result-v4 style[data-result-inline-styles]').waitFor({state:'attached',timeout:12000}); // hashchange navigation completes asynchronously
   await page.waitForFunction(()=>{
     const host=document.querySelector('#runload-result-v4');
     const root=host?.shadowRoot,el=root?.querySelector('.rv4-app');
