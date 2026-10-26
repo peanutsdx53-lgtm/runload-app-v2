@@ -38,7 +38,7 @@ test('saved presets are described but neither their distances nor routes are inf
  const html=renderSimulation(newSimulationUi(),{presets:{ok:true,records:[preset]},manualRuns:{ok:true,records:[]}});
  assert.match(html,/川沿い/);
  assert.match(html,/距離を入力/);
- assert.match(html,/地図上の到達地点/);
+ assert.match(html,/地図上の位置/);
  assert.doesNotMatch(html,/実際のGPS/);
  const desc=courseDescription(preset);assert.match(desc.slope,/平坦/);
 });
@@ -46,4 +46,14 @@ test('untrusted course names are escaped and storage errors are surfaced without
  const preset={id:'1',data:{courseName:'<script>bad</script>',gradeMode:'UNKNOWN',surfaceMode:'UNKNOWN'}};
  const html=renderSimulation(newSimulationUi(),{presets:{ok:true,records:[preset]},manualRuns:{ok:false,reason:'読み取れません',records:[]}});
  assert.doesNotMatch(html,/<script>/);assert.match(html,/&lt;script&gt;/);assert.match(html,/読み取れません/);
+});
+
+test('GPX mode stays useful without a loaded file and never invents position',()=>{
+ const s={...newSimulationUi(),source:'gpx',gpxRoutes:[],distance:'3.5'};
+ const r=computeComparison(s);
+ assert.equal(r.ok,true);assert.equal(r.goal,null);
+ const html=renderSimulation(s,{presets:{ok:true,records:[]},manualRuns:{ok:true,records:[]}});
+ assert.match(html,/GPXがまだ読み込まれていません/);
+ assert.doesNotMatch(html,/sm-gpx-shape/);
+ assert.match(html,/距離目標なし/);
 });

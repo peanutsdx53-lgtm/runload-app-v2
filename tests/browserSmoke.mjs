@@ -551,7 +551,7 @@ try{
   await page.goto(host+"#/simulation",{waitUntil:"networkidle"});
   assert.equal(await page.locator('[data-sim-page]').count(),1,'simulation replaces disconnected placeholder');
   assert.equal(await page.locator('.sm-panel').count(),4,'top-to-bottom what-if workflow');
-  assert.equal(await page.locator('[data-sm-source]').count(),2,'manual and no-course are the only enabled sources');
+  assert.equal(await page.locator('[data-sm-source]').count(),3,'manual, no-course and GPX are usable; GPS saved history remains gated');
   await page.locator('[data-sm-field="presetId"]').selectOption({label:'検証用保存コース'});
   assert.match(await page.locator('.sm-source-meta').innerText(),/平坦/,'selected course condition is visible');
   await page.locator('[data-sm-field="distance"]').fill('5');
@@ -562,8 +562,38 @@ try{
   assert.ok(simGeometry.scroll<=simGeometry.width+3,mode.name+' simulation horizontal overflow '+JSON.stringify(simGeometry));
   assert.ok(simGeometry.steps.every((a,j)=>j===0||a[0]>simGeometry.steps[j-1][1]),'simulation steps flow vertically');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
-  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v32-with-course.png'),fullPage:true});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v33-with-course.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
+  // GPX imports are local, ephemeral, and must produce route + elevation graphics only for actual file data.
+  await page.locator('[data-sm-source="gpx"]').click();
+  assert.equal(await page.locator('[data-sm-gpx-file]').count(),1,'GPX can be imported alongside manual courses');
+  const gpx=`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="RunLoad-QA" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>小川コース</name><trkseg>
+  <trkpt lat="35.000" lon="138.000"><ele>100</ele></trkpt><trkpt lat="35.005" lon="138.003"><ele>125</ele></trkpt><trkpt lat="35.010" lon="138.006"><ele>115</ele></trkpt>
+  </trkseg><trkseg><trkpt lat="35.015" lon="138.009"><ele>90</ele></trkpt><trkpt lat="35.020" lon="138.012"><ele>95</ele></trkpt></trkseg></trk></gpx>`;
+  await page.locator('[data-sm-gpx-file]').setInputFiles({name:'qa-sample.gpx',mimeType:'application/gpx+xml',buffer:Buffer.from(gpx)});
+  assert.match(await page.locator('.sm-gpx-loaded').innerText(),/小川コース/);
+  assert.equal(await page.locator('.sm-gpx-shape').count(),1,'GPX coordinate preview is present');
+  assert.equal(await page.locator('.sm-gpx-elevation').count(),1,'GPX elevation is rendered from file data');
+  assert.match(await page.locator('.sm-gpx-visual').last().innerText(),/途切れた区間 1件/);
+  await page.locator('[data-sm-focus="b"]').click();
+  assert.match(await page.locator('.sm-gpx-result-caption').innerText(),/B｜走る＋歩く/);
+  assert.equal(await page.locator('[data-sm-focus="b"]').getAttribute('aria-pressed'),'true');
+  // Failed imports retain the previous valid route, so a mistaken file does not destroy the preview.
+  await page.locator('[data-sm-gpx-file]').setInputFiles({name:'not-gpx.gpx',mimeType:'application/gpx+xml',buffer:Buffer.from('<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><gpx/>')});
+  assert.match(await page.locator('.sm-error').first().innerText(),/外部定義/);
+  assert.equal(await page.locator('.sm-gpx-shape').count(),1,'import failure preserves current route');
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%'});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-simulation-v33-gpx.png'),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
+  const gpxOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+  assert.ok(gpxOverflow<=3,mode.name+' GPX preview has no viewport overflow: '+gpxOverflow);
+  await page.locator('[data-sm-source="manual"]').click();
+  assert.equal(await page.locator('[data-sm-field="distance"]').inputValue(),'5','manual target preserved across GPX import');
+  await page.locator('[data-sm-source="gpx"]').click();
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await page.locator('.sm-gpx-shape').count(),0,'GPX route is ephemeral; not silently persisted');
+  assert.match(await page.locator('.sm-gpx-await').innerText(),/まだ読み込まれていません/);
+  await page.locator('[data-sm-source="manual"]').click();
   await page.locator('[data-sm-source="none"]').click();
   assert.match(await page.locator('[data-sm-results]').innerText(),/距離目標なし/);
   assert.ok(!await page.locator('[data-sm-field="distance"]').count(),'no-course never invents a target');
