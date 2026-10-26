@@ -172,7 +172,7 @@ export function conditionCard(storage,preview){
  const stat='<div class="hx-condition-stats"><div><small>'+sleepLabel+'</small><strong>'+escape(sleep)+'</strong>'+(today?.sleepSource==="clock"?'<span class="hx-wake-time">起床 '+escape(today.wakeTime)+'</span>':'')+'</div><div><small>起床時の調子</small><strong>'+escape(feeling)+'</strong></div><div><small>直近7日の入力</small><strong>'+count+'<em> / 7日</em></strong></div></div>';
  return '<section class="hx-card hx-condition">'+
  '<button type="button" class="hx-title-button" data-condition-open aria-label="コンディションの入力と詳細を開く">'+head("コンディション","moon",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+
- stat+'<div class="hx-chart-label">記録時間の推移 <span>直近7日</span></div>'+sevenBars(entries)+
+ stat+'<div class="hx-chart-label">記録時間の推移 <span>直近7日</span></div>'+sevenBars(entries)+'<a class="hx-condition-explore" href="#/condition" aria-label="コンディションの歩みを開き、長期の変化とメモを確認">コンディションの歩みを見る <span aria-hidden="true">›</span></a>'+
  (!state.canSave&&!preview?'<p class="hx-warning">'+escape(state.reason)+'</p>':"")+'</section>';
 }
 export function achievementCard(preview){
