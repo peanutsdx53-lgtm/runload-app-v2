@@ -182,7 +182,7 @@
  const pref=editing?homeEditState.draft:homePreferenceState.layout;
  const names=dashboardPrefs.HOME_DASHBOARD_WIDGETS;
  const cards={
-  latest:homeExperience.latestCard(homeUi.preview),
+  latest:homeExperience.latestCard(homeUi.preview,(()=>{const r=manualRunStore.readManualRuns(onboardStorage);return r.ok?r.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt))[0]||null:null})()),
   condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
   topics:homeExperience.achievementCard(homeUi.preview),
   shortcuts:homeExperience.shortcutsCard(),
