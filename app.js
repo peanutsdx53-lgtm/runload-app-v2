@@ -579,7 +579,8 @@ function recordExtras(){
       }else if(conditionControl.hasAttribute("data-cj-create-intent")){
         const conditions=homeExperience.readConditions(onboardStorage);
         const data=conditionJourney.prepareConditionJourney(conditions,{...conditionUi,selected:conditionControl.dataset.cjOrigin});
-        const result=data.selected?.date===conditionControl.dataset.cjOrigin?actionIntentStore.createLifeIntent(onboardStorage,data.selected):{ok:false,reason:"基準記録を確認できません"};
+        const existing=actionIntentStore.loadIntent(onboardStorage);
+        const result=!existing.ok?{ok:false,reason:existing.reason}:existing.intent?{ok:false,reason:"次回確認がすでに保存されています。ホームで確認事項を整理してから登録してください"}:data.selected?.date===conditionControl.dataset.cjOrigin?actionIntentStore.createLifeIntent(onboardStorage,data.selected):{ok:false,reason:"基準記録を確認できません"};
         conditionUi.notice=result.ok?"次回の確認事項をホームに保存しました":result.reason;
       }else if(conditionControl.hasAttribute("data-cj-save-insight")){
         conditionUi.scrollLeft=app.querySelector("[data-cj-chart]")?.scrollLeft??null;
