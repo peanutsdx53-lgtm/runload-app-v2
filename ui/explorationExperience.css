@@ -226,3 +226,123 @@
 .ex-topic-set{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;scroll-snap-type:none;padding:2px 0 12px}
 .ex-topic{min-width:0;max-width:none;min-height:67px;scroll-snap-align:none;line-height:1.4}
 @media(max-width:420px){.ex-node:last-child:nth-child(odd){min-height:96px}.ex-topic{padding:9px 8px;min-height:75px}.ex-topic strong{font-size:.72rem}}
+
+
+/* V23 constellation mode: a genuinely different discovery experience from the catalog.
+   Glow is an explicit data-provenance cue (draft / validated saved run / life), not a
+   biomechanical score, danger signal, or ranking. All choices remain accessible without it. */
+.ex-page .ex-orbit-workspace{grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:20px}
+.ex-page .ex-constellation{background:radial-gradient(ellipse at 50% 55%,#155f6d55,transparent 48%),radial-gradient(ellipse at 95% 0%,#1757685b,transparent 52%),linear-gradient(150deg,#0c2c40,#061c2d 66%,#071e2d)}
+.ex-page .ex-constellation::before{opacity:.42}
+.ex-page .ex-constellation .ex-map-head{padding:26px 25px 11px}
+.ex-page .ex-constellation .ex-map-head h2{font-size:clamp(1.3rem,2vw,1.7rem)}
+.ex-page .ex-constellation .ex-map-head p{color:#b8dce5}
+.ex-page .ex-constellation .ex-map{
+ display:block!important;position:relative!important;
+ height:500px!important;margin:0 10px!important;
+ padding:0!important;overflow:hidden!important;isolation:isolate
+}
+.ex-page .ex-constellation .ex-art{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.ex-page .ex-constellation .ex-constellation-link.is-related{filter:drop-shadow(0 0 4px #6debd7)}
+.ex-page .ex-constellation .ex-core{
+ display:flex!important;z-index:1;top:49%;left:50%;
+ width:123px;height:123px;pointer-events:none;
+ border:1.5px solid #83e8db;
+ background:radial-gradient(circle at 32% 18%,#168997,#0b4457 66%,#08283d);
+ box-shadow:0 0 0 9px #55e5d00d,0 0 0 23px #47eccc07,0 0 60px #40ddce4a
+}
+.ex-page .ex-constellation .ex-node{
+ position:absolute!important;left:var(--ex-x)!important;top:var(--ex-y)!important;
+ transform:translate(-50%,-50%)!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;text-align:center!important;gap:6px!important;
+ grid-column:auto!important;min-height:92px!important;width:106px!important;
+ padding:5px 2px!important;margin:0!important;border:0!important;
+ background:none!important;box-shadow:none!important;overflow:visible!important;
+ isolation:isolate;z-index:3;border-radius:18px!important;
+}
+.ex-page .ex-constellation .ex-node:hover{background:none!important;border:0!important}
+.ex-page .ex-constellation .ex-node:hover .ex-node-orb{transform:translateY(-3px)}
+.ex-page .ex-constellation .ex-node:active{transform:translate(-50%,-50%)!important}
+.ex-page .ex-constellation .ex-node-orb,
+.ex-page .ex-constellation .ex-node:last-child:nth-child(odd) .ex-node-orb{
+ position:relative!important;width:62px!important;height:62px!important;
+ border-radius:50%!important;flex:none!important;
+ background:radial-gradient(circle at 26% 22%,#22566c,#0b3045 72%)!important;
+ border:1px solid #518797!important;
+ box-shadow:0 7px 18px #0008!important;
+ transition:box-shadow .35s ease,transform .2s ease,border-color .25s ease;
+}
+.ex-page .ex-constellation .ex-node.is-related .ex-node-orb{
+ border:1.5px solid var(--ex-accent)!important;
+ box-shadow:0 0 0 7px #66f7d50d,0 0 28px 9px color-mix(in srgb,var(--ex-accent) 55%,transparent),0 0 51px 13px #65f2cf2c,0 8px 16px #000a!important;
+ animation:ex-star-glow 4s ease-in-out infinite;
+}
+.ex-page .ex-constellation .ex-node.is-selected .ex-node-orb{
+ border:2.5px solid #e7fffa!important;
+ outline:2px solid #72e6d2;outline-offset:4px;
+ box-shadow:0 0 0 9px #61f5d413,0 0 31px #67f2d45a!important;
+}
+.ex-page .ex-constellation .ex-node.is-selected.is-related .ex-node-orb{
+ box-shadow:0 0 0 9px #61f5d41b,0 0 31px 7px color-mix(in srgb,var(--ex-accent) 60%,transparent),0 0 50px #67f2d44e!important;
+}
+.ex-page .ex-constellation .ex-node-icon{font-size:1.44rem;color:var(--ex-accent)}
+.ex-page .ex-constellation .ex-node-copy{display:block;max-width:100%;min-width:0}
+.ex-page .ex-constellation .ex-node-title{
+ display:block;color:#c8dce3;font-size:.79rem!important;
+ font-weight:850;line-height:1.35;text-align:center;white-space:normal!important;
+ text-shadow:0 2px 8px #021622
+}
+.ex-page .ex-constellation .ex-node.is-related .ex-node-title{color:#f3ffff}
+.ex-page .ex-constellation .ex-node-meta{display:none}
+.ex-page .ex-constellation .ex-node-signal{
+ position:absolute;right:-3px;top:0;width:13px;height:13px;
+ border:2px solid #0d3140;border-radius:50%;background:#a7ffdb;
+ box-shadow:0 0 9px 2px #58edb5
+}
+.ex-page .ex-constellation .ex-memory-count{
+ right:13px;top:1px;z-index:3;width:18px;height:18px;
+ border-radius:100%;background:#845f34;color:#fff1d7;
+ font-size:.62rem;line-height:15px;
+}
+.ex-page .ex-constellation .ex-signal-legend{
+ display:flex;gap:10px;min-height:30px;padding:0 23px 12px;
+ font-size:.74rem;line-height:1.65;color:#b6dbe3;align-items:center
+}
+.ex-page .ex-constellation .ex-legend-glow{width:13px;height:13px;flex:none}
+.ex-page .ex-constellation .ex-map-foot{padding:0 23px 19px}
+.ex-page .ex-constellation .ex-map-foot .ex-action{min-height:40px;border-color:#36758a}
+.ex-page .ex-switch button[aria-pressed="true"]{box-shadow:0 0 0 1px #7adfd52b,inset 0 1px #effffd29,0 6px 14px #001622}
+.ex-page .ex-catalog{background:linear-gradient(150deg,#12394c,#0a2739);border-top:2px solid #4aaabd}
+.ex-page .ex-catalog .ex-catalog-head{border-bottom:1px solid #305669;padding-bottom:16px}
+@keyframes ex-star-glow{
+ 0%,100%{filter:brightness(.94)}
+ 50%{filter:brightness(1.17)}
+}
+@media(max-width:1150px){
+ .ex-page .ex-orbit-workspace{grid-template-columns:1fr}
+ .ex-page .ex-constellation .ex-map{height:490px!important}
+}
+@media(max-width:800px){
+ .ex-page .ex-constellation .ex-map-head{padding:24px 18px 8px}
+ .ex-page .ex-constellation .ex-map{height:454px!important;margin:0 0!important}
+ .ex-page .ex-constellation .ex-node{width:91px!important;min-height:85px!important;gap:4px!important}
+ .ex-page .ex-constellation .ex-node-orb{width:55px!important;height:55px!important}
+ .ex-page .ex-constellation .ex-node-title{font-size:.71rem!important}
+ .ex-page .ex-constellation .ex-core{width:106px;height:106px}
+ .ex-page .ex-constellation .ex-core strong{font-size:1.3rem}
+ .ex-page .ex-constellation .ex-signal-legend{padding:0 17px 13px}
+ .ex-page .ex-constellation .ex-map-foot{padding:0 17px 16px}
+}
+@media(max-width:360px){
+ .ex-page .ex-constellation .ex-map{height:444px!important}
+ .ex-page .ex-constellation .ex-node{width:80px!important}
+ .ex-page .ex-constellation .ex-node-orb{width:50px!important;height:50px!important}
+ .ex-page .ex-constellation .ex-node-title{font-size:.67rem!important}
+ .ex-page .ex-constellation .ex-core{width:96px;height:96px}
+ .ex-page .ex-constellation .ex-core strong{font-size:1.22rem}
+}
+@media(prefers-reduced-motion:reduce){
+ .ex-page .ex-constellation .ex-node.is-related .ex-node-orb{animation:none}
+ .ex-page .ex-constellation .ex-node-orb{transition:none}
+}
