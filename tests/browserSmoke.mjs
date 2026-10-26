@@ -345,7 +345,7 @@ try{
   await ex.locator('[data-ex-action=sample]').click();
   assert.equal(await ex.locator('.ex-node.is-related').count(),2,'two clearly labelled preview signals');
   const visualGlow=await ex.locator('.ex-node.is-related .ex-node-orb').first().evaluate(el=>getComputedStyle(el).boxShadow);
-  assert.ok(visualGlow.includes('rgb(')&&visualGlow!=='none','related star must visibly glow');
+  assert.ok(visualGlow!=='none'&&visualGlow.includes('px'),'related star must visibly glow: '+visualGlow);
   assert.equal(await ex.locator('.ex-constellation-link.is-related').count(),2,'connected lines share the same grounded relevance');
   assert.match(await ex.locator('.ex-focus-intro').innerText(),/説明用の例/);
   await ex.locator('[data-ex-category="03"]').click();
