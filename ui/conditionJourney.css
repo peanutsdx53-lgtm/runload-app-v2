@@ -63,3 +63,23 @@
 @media(prefers-reduced-motion:reduce){.cj-panel *{scroll-behavior:auto!important;transition:none!important}}
 
 .cj-next-step{margin:16px 0 0;border-top:1px solid #305f70;padding-top:12px}.cj-next-step button{border:1px solid #4b9bab;border-radius:12px;color:#f1fbfc;background:#155264;font-weight:650;padding:12px 15px;min-height:44px}.cj-next-step p{color:#bcd9df;font-size:.88rem}
+
+/* Dedicated condition screen. Keep main history exactly as designed. */
+.app-shell:has(.cj-screen) .topbar{display:none}
+.app-shell:has(.cj-screen) .main-frame{background:radial-gradient(ellipse at 92% 0%,#174d60 0%,transparent 47%),linear-gradient(145deg,#091824,#0d2634 50%,#091620);min-height:100dvh}
+.app-shell:has(.cj-screen) .main-content{max-width:1180px;width:100%;margin:0 auto;background:transparent;color:#ebf8fc;padding-top:22px;padding-bottom:calc(105px + env(safe-area-inset-bottom))}
+.cj-screen{width:100%;min-width:0;max-width:1120px;margin:0 auto}
+.cj-page-head{margin:0 8px 16px;padding:0 6px}
+.cj-page-head h1{color:#f0f9fd;font-size:clamp(1.45rem,4vw,1.95rem);margin:14px 0 5px;font-weight:850}
+.cj-page-head p{font-size:.94rem;color:#b6d3df;margin:0}
+.cj-back{display:inline-flex;align-items:center;min-height:44px;padding:5px 12px;border:1px solid #518599;background:#103746;color:#b5f0ed;border-radius:11px;text-decoration:none;font-size:.9rem;font-weight:650}
+.cj-back:focus-visible{outline:3px solid #97f2df;outline-offset:3px}
+.cj-screen .cj-panel{max-width:100%;margin:0 6px 28px;box-shadow:0 14px 30px #00142055}
+.cj-screen .cj-title>div>small{display:none}
+.cj-screen .cj-title h2{font-size:1.15rem;margin:2px 0 8px}
+.cj-chart-days{min-width:100%}
+.home-v3 .hx-condition-explore{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#edffff;font-weight:750;font-size:.88rem;text-decoration:none;background:#146071;border:1px solid #62c1cf;border-radius:12px;min-height:46px;padding:10px 15px;margin-top:18px}
+.home-v3 .hx-condition-explore span{font-size:1.4rem;line-height:1}
+.home-v3 .hx-condition-explore:hover{background:#1b7787}
+.home-v3 .hx-condition-explore:focus-visible{outline:3px solid #97f2df;outline-offset:3px}
+@media(max-width:800px){.app-shell:has(.cj-screen) .main-content{padding:calc(12px + env(safe-area-inset-top)) 12px calc(100px + env(safe-area-inset-bottom));box-sizing:border-box}.cj-page-head{margin:0 4px 12px}.cj-screen .cj-panel{margin:0 0 22px}}
