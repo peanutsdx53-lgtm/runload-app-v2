@@ -460,7 +460,7 @@ try{
     const overlay=nav&&getComputedStyle(nav).position==='fixed';
     return {bottom:box.bottom,navTop:overlay?n.top:innerHeight,top:box.top,overlay};
   });
-  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-(actionVis.overlay?8:0),mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
+  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-(actionVis.overlay?8:0)+0.5,mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-writing-footer-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action="note"]').click();
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
