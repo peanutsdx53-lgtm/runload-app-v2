@@ -433,12 +433,12 @@ function recordExtras(){
  if(page==="simulation"){
   const savedGps=gpsStore.readGpsRuns();
   const chosen=savedGps.ok?savedGps.records.find(r=>r.id===simulationUi.gpsId):null;
-  simulationUi.gpsFeature=chosen?gpsStore.gpsRecordToFeature(chosen):null;
+  simulationUi.gpsFeature=chosen?gpsStore.gpsRecordToFeature(chosen):simulationUi.gpsId?.startsWith('gps-v2-')?simulationUi.gpsFeature:null;
   if(simulationUi.source==='gps'&&simulationUi.gpsFeature)simulationUi.distance=String(simulationUi.gpsFeature.distanceKm);
   return simulationExperience.renderSimulation(simulationUi,{
   presets:coursePresets.readCoursePresets(onboardStorage),
   manualRuns:manualRunStore.readManualRuns(onboardStorage),
-  gpsRuns:savedGps
+  gpsRuns:savedGps.ok?{ok:true,records:[...savedGps.records,...(gpsV2Cache.ok?gpsV2Cache.records.filter(r=>r.detailSaved).map(r=>({...r,track:[{},{}]})):[])]}:savedGps
  });}
  if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">身体部位の参考値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
  const cur=regionData(state.region);
@@ -510,7 +510,7 @@ function recordExtras(){
    gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?(r.trackSimplified?'軌跡保存あり（形状は間引き済み）':'軌跡保存あり'):'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
    if(gpsV2Cache.ok){
     const recent=gpsV2Cache.records.slice().reverse();
-    const markup=recent.length?recent.map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.detailSaved?'動的結果データあり':'概要のみ'}</small></span><div><a class="btn soft" href="#/result?gps=${encodeURIComponent(r.id)}">結果を見る</a>${r.detailSaved&&r.activity!=='MIXED'?`<a class="btn soft" href="#/dynamic-result?record=${encodeURIComponent(r.id)}">動的結果</a>`:''}<button data-gps-v2-delete="${esc(r.id)}">削除</button></div></article>`).join(''):'<p class="lead">まだ新形式のGPS記録はありません。</p>';
+    const markup=recent.length?recent.map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.detailSaved?'動的結果データあり':'概要のみ'}</small></span><div><a class="btn soft" href="#/result?gps=${encodeURIComponent(r.id)}">結果を見る</a>${r.detailSaved&&r.activity!=='MIXED'?`<a class="btn soft" href="#/dynamic-result?record=${encodeURIComponent(r.id)}">動的結果</a>`:''}${r.detailSaved?`<button data-gps-v2-use="${esc(r.id)}">コースを試す</button>`:""}<button data-gps-v2-delete="${esc(r.id)}">削除</button></div></article>`).join(''):'<p class="lead">まだ新形式のGPS記録はありません。</p>';
     gpsPanel.insertAdjacentHTML('beforeend','<section class="gps-v2-history"><h3>GPS動的結果対応の記録</h3>'+markup+'</section>');
    }
    gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-backup"><h3>GPS動的結果（新形式）のバックアップ</h3><p>従来のGPSバックアップとは別に保存します。位置情報を含む場合があり、暗号化されません。</p><div class="gps-history-backup-actions"><button data-gps-v2-backup-export type="button">新形式の記録を書き出す</button><label>新形式のバックアップを読み込む<input data-gps-v2-backup-file type="file" accept=".json,application/json"></label></div>${gpsV2BackupNotice?`<p role="status" class="gps-history-backup-notice">${esc(gpsV2BackupNotice)}</p>`:''}${pendingGpsV2Backup?`<div class="gps-history-backup-confirm"><p>${pendingGpsV2Backup.count}件（詳細保存 ${pendingGpsV2Backup.detailCount}件）を検証しました。</p><button data-gps-v2-backup-confirm type="button">新形式の復元を確定</button><button data-gps-v2-backup-cancel type="button">キャンセル</button></div>`:''}</div>`);
@@ -886,6 +886,16 @@ function recordExtras(){
         render();app.querySelector(pending==='resume'?'[data-gps-action="resume"]':'[data-gps-action="start"]')?.focus();
       }
       return;
+    }
+    const gpsV2Use=event.target.closest('[data-gps-v2-use]');
+    if(gpsV2Use){
+     const saved=await gpsV2.readGpsV2Detail(gpsV2Use.dataset.gpsV2Use);
+     if(!saved.ok){state.toast=saved.reason;render();return;}
+     const feature=gpsV2.gpsV2DetailToFeature(saved.summary,saved.detail);
+     if(!feature){state.toast='コースを読み込めませんでした';render();return;}
+     simulationUi.source='gps';simulationUi.gpsId=saved.summary.id;
+     simulationUi.gpsFeature=feature;simulationUi.distance=String(feature.distanceKm);
+     location.hash='#/simulation';return;
     }
     const gpsV2Delete=event.target.closest('[data-gps-v2-delete],[data-gps-v2-confirm-delete],[data-gps-v2-cancel-delete]');
     if(gpsV2Delete){
