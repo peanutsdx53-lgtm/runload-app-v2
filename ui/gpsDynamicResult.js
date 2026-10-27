@@ -4,7 +4,7 @@
  */
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {deriveReplaySpeeds,evaluateGpsReplayReference,gpsBodyRegionId} from './gpsReplayReference.js';
-import {bodyReferenceRow,bodyReferenceColor,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
+import {bodyReferenceRow,bodyReferenceColor,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
 export const GPS_REPLAY_BODY_NAMES={
  'BA-DISP-014':'股関節部','BA-DISP-015':'殿部','BA-DISP-016':'大腿前面',
@@ -62,7 +62,7 @@ export function mountGpsDynamicResult(host,summary,detail){
  const origin=speed[0].t;
  const elapsed=f=>f.activeMs===null||f.activeMs===undefined?f.t-origin:f.activeMs;
  const duration=elapsed(speed.at(-1));
- let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null,playElapsed=0;
+ let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null,playElapsed=0,showBodyNumbers=false;
  const geom=routeGeometry(detail.route);
  const labels=detail.flags||[];
  const nearest=t=>{
@@ -91,7 +91,7 @@ export function mountGpsDynamicResult(host,summary,detail){
    return '<path tabindex="0" role="button" aria-label="'+esc(names[id])+'" data-body-region="'+id+'" class="gd-body-path'+(selected===id?' selected':'')+'" data-state="'+tint.state+'" style="fill:'+tint.fill+'" d="'+d+'"><title>'+esc(names[id])+'</title></path>';
   }).join('');
   return '<svg class="gd-body" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の部位別文献参考値">'
-    +'<g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+renderBodyReferenceLabels(v,ref?.rows||[])+'</svg>';
+    +'<g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+(showBodyNumbers?renderBodyReferenceLabels(v,ref?.rows||[]):'')+'</svg>';
  };
  const courseSvg=()=>{
   const frame=getFrame(),target=detail.route.reduce((best,p)=>Math.abs(p.t-frame.t)<Math.abs(best.t-frame.t)?p:best,detail.route[0]);
@@ -130,6 +130,7 @@ export function mountGpsDynamicResult(host,summary,detail){
   const frame=getFrame(),ref=refAt();
   const v=gpsReplayRowForBody(ref?.rows,selected);
   const text=v?.calculationState==='CALCULATED'&&Number.isFinite(v.value)?v.value.toFixed(1):'—';
+  const diff=text==='—'?'':'基準との差 '+(v.value>=100?'+':'')+(v.value-100).toFixed(1);
   const speedText=Number.isFinite(frame.speedMps)?(frame.speedMps*3.6).toFixed(1):'—';
   const note=labels.find(f=>Math.abs(f.t-frame.t)<=1500);
   host.innerHTML='<section class="gd-root" aria-label="GPS動的結果">'
@@ -137,15 +138,18 @@ export function mountGpsDynamicResult(host,summary,detail){
    +'<div class="gd-metrics"><div class="gd-metric"><span>経過時間</span><strong>'+time(elapsed(frame))+'</strong></div><div class="gd-metric"><span>走行距離</span><strong>'+frame.km.toFixed(2)+' <em>km</em></strong></div><div class="gd-metric"><span>GPS速度</span><strong>'+speedText+' <em>km/h</em></strong></div></div>'
    +'<div class="gd-main"><section class="gd-panel"><header class="gd-panel-head"><strong>12部位の変化</strong><div class="gd-tabs">'
    +BODY_REGION_VIEWS.map(v=>'<button data-view="'+v.key+'" aria-pressed="'+(v.key===view)+'">'+v.title+'</button>').join('')+'</div></header>'
-   +'<div class="gd-stage">'+bodySvg(ref)+'</div><div class="gd-panel-foot"><span>'+esc(names[selected])+'</span><span class="gd-value">'+text+'</span></div></section>'
+   +'<div class="gd-stage">'+bodySvg(ref)+'</div><div class="gd-panel-foot"><span>'+esc(names[selected])+'</span><span class="gd-value">'+text+'</span></div>'
+   +'<div class="gd-body-extra"><span class="gd-body-diff">'+diff+'</span><button type="button" data-body-label-toggle aria-pressed="'+showBodyNumbers+'">'+(showBodyNumbers?'図の数値を隠す':'図に数値を表示')+'</button></div></section>'
    +'<section class="gd-panel"><header class="gd-panel-head"><strong>コース軌跡</strong><small>⚑ '+labels.length+' 地点</small></header>'
    +'<div class="gd-stage">'+courseSvg()+'</div><div class="gd-panel-foot"><span>現在地点</span><span>'+frame.km.toFixed(2)+' km</span></div></section></div>'
+   +'<div class="gd-palette-legend" aria-label="部位内基準100を中心とした連続した色の変化"><span>100より低い</span><div class="gd-palette-track" style="background:'+BODY_REFERENCE_GRADIENT+'"><i></i></div><span>100より高い</span></div>'
    +'<section class="gd-speed-block"><div class="gd-speed-head"><strong>速度の変化</strong><small>シークバー・コース・人体図が連動</small></div>'
    +speedSvg()+'<div class="gd-controls"><button data-play class="gd-play">'+(playing?'一時停止':'▶ 再生')+'</button>'
    +'<input class="gd-scrub" data-seek type="range" min="0" max="'+(speed.length-1)+'" value="'+index+'" aria-label="再生位置"/>'
    +'<span class="gd-duration">'+time(elapsed(frame))+' / '+time(duration)+'</span></div>'
    +(note?'<div class="gd-flag-note">⚑ '+esc(note.note||'フラッグ地点')+'</div>':'')
    +'<p class="gd-note">人体図は速度条件に対応する文献参考値です。個人の身体負荷や損傷リスクの実測値ではありません。灰色は計算不能です。GPS欠損中の参考値は補完しません。</p></section></section>';
+  host.querySelector('[data-body-label-toggle]')?.addEventListener('click',()=>{showBodyNumbers=!showBodyNumbers;render();});
   host.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;selected=(BODY_REGION_VIEWS.find(v=>v.key===view)?.paths[0]||['BA-DISP-014'])[0];render();}));
   host.querySelectorAll('[data-body-region]').forEach(b=>{
    const select=()=>{selected=b.dataset.bodyRegion;render();};
