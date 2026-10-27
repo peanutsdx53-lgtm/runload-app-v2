@@ -1374,6 +1374,7 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'continuous reference map opens clean without covering body segments');
   assert.ok(await savedResult.locator('[data-label-toggle]').isVisible());
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-continuous-palette-clean.png'),fullPage:false});
   await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,
    'user can optionally show verified scientific numbers on the anatomy');
