@@ -94,6 +94,7 @@
   };
   let pendingGpsDelete="";
   let pendingGpsBackup=null,gpsBackupNotice="";
+  let pendingGpsV2Backup=null,gpsV2BackupNotice="";
   let gpsCapacity=null,gpsCapacityNotice="";
   // GPS access needs a fresh, app-level affirmative choice on every start/resume.
   // Browser OS permission persistence is not equivalent to session consent.
@@ -512,6 +513,7 @@ function recordExtras(){
     const markup=recent.length?recent.map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.detailSaved?'動的結果データあり':'概要のみ'}</small></span><div><a class="btn soft" href="#/result?gps=${encodeURIComponent(r.id)}">結果を見る</a>${r.detailSaved&&r.activity!=='MIXED'?`<a class="btn soft" href="#/dynamic-result?record=${encodeURIComponent(r.id)}">動的結果</a>`:''}<button data-gps-v2-delete="${esc(r.id)}">削除</button></div></article>`).join(''):'<p class="lead">まだ新形式のGPS記録はありません。</p>';
     gpsPanel.insertAdjacentHTML('beforeend','<section class="gps-v2-history"><h3>GPS動的結果対応の記録</h3>'+markup+'</section>');
    }
+   gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-backup"><h3>GPS動的結果（新形式）のバックアップ</h3><p>従来のGPSバックアップとは別に保存します。位置情報を含む場合があり、暗号化されません。</p><div class="gps-history-backup-actions"><button data-gps-v2-backup-export type="button">新形式の記録を書き出す</button><label>新形式のバックアップを読み込む<input data-gps-v2-backup-file type="file" accept=".json,application/json"></label></div>${gpsV2BackupNotice?`<p role="status" class="gps-history-backup-notice">${esc(gpsV2BackupNotice)}</p>`:''}${pendingGpsV2Backup?`<div class="gps-history-backup-confirm"><p>${pendingGpsV2Backup.count}件（詳細保存 ${pendingGpsV2Backup.detailCount}件）を検証しました。</p><button data-gps-v2-backup-confirm type="button">新形式の復元を確定</button><button data-gps-v2-backup-cancel type="button">キャンセル</button></div>`:''}</div>`);
    gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-backup"><h3>GPS記録のバックアップ</h3><p>位置情報を含む未暗号化のJSONファイルを端末に保存・復元できます。ファイルの保管場所に注意してください。外部サービスには送信しません。</p><div class="gps-history-backup-actions"><button type="button" data-gps-backup-export>GPS記録をファイルに保存</button><label>バックアップを読み込む<input data-gps-backup-file type="file" accept=".json,application/json"></label></div>${gpsBackupNotice?`<p role="status" class="gps-history-backup-notice">${esc(gpsBackupNotice)}</p>`:''}${pendingGpsBackup?`<div class="gps-history-backup-confirm"><p>GPS記録 ${pendingGpsBackup.count}件（軌跡あり ${pendingGpsBackup.routeCount}件）を検証しました。重複はスキップし、異なる内容の同じIDがある場合は復元を中止します。</p><button type="button" data-gps-backup-confirm>復元を確定</button><button type="button" data-gps-backup-cancel>キャンセル</button></div>`:''}</div>`);
    gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-capacity"><h3>端末の保存状況</h3><p>このサイト全体（GPS以外の記録・キャッシュを含む）のブラウザーによる概算です。保存容量に余裕があっても消去される場合があります。</p><div data-gps-capacity-status role="status">${gpsCapacity?(gpsCapacity.ok?(gpsCapacity.percent===null?'容量の割合は取得できません':`サイト全体の使用率 ${gpsCapacity.percent}%／使用 ${gpsCapacity.usageMiB} MiB・上限目安 ${gpsCapacity.quotaMiB} MiB`)+`。永続化：${gpsCapacity.persistent===true?'許可済み':gpsCapacity.persistent===false?'未許可':'確認できません'}。`+(gpsCapacity.warning?'容量不足に注意してください。バックアップを推奨します。':''):esc(gpsCapacity.reason)):'容量は未確認です'}</div><div class="gps-history-backup-actions"><button type="button" data-gps-capacity-check>容量を確認</button><button type="button" data-gps-persist-request>保存領域の永続化を依頼</button></div>${gpsCapacityNotice?`<p role="status" class="gps-history-capacity-notice">${esc(gpsCapacityNotice)}</p>`:''}<p>永続化はブラウザーが拒否する場合があり、端末故障・手動削除からは保護されません。</p>${gpsStorageHealth.sharedGithubPagesOrigin(location.href)?'<p class="gps-history-origin-warning">注意：GitHub Pagesのプロジェクトは同じオリジンの他アプリと保存領域を共有します。GPSデータを分離するには専用ドメイン等で独立したオリジンが必要です。</p>':''}</div>`);
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
@@ -558,6 +560,18 @@ function recordExtras(){
  }
 }
   app.addEventListener("change",async(event)=>{
+     const v2BackupFile=event.target.closest('[data-gps-v2-backup-file]');
+     if(v2BackupFile){
+      const file=v2BackupFile.files?.[0];pendingGpsV2Backup=null;gpsV2BackupNotice='';
+      if(!file){render();return;}
+      if(file.size>50_000_000){gpsV2BackupNotice='バックアップは50MB以内にしてください';render();return;}
+      try{
+       const text=await file.text(),checked=gpsV2.inspectGpsV2Backup(text);
+       if(!checked.ok)gpsV2BackupNotice=checked.reason;
+       else{pendingGpsV2Backup={text,count:checked.count,detailCount:checked.detailCount};gpsV2BackupNotice='検証が完了しました。復元する場合は確定してください。';}
+      }catch{gpsV2BackupNotice='バックアップを読み取れませんでした';}
+      render();return;
+     }
      const backupFile=event.target.closest('[data-gps-backup-file]');
      if(backupFile){
        const file=backupFile.files?.[0];pendingGpsBackup=null;gpsBackupNotice="";
@@ -809,6 +823,29 @@ function recordExtras(){
       }else gpsCapacityNotice='';
       gpsCapacity=await gpsStorageHealth.readGpsOriginStorage();
       render();return;
+    }
+    const v2BackupAction=event.target.closest('[data-gps-v2-backup-export],[data-gps-v2-backup-confirm],[data-gps-v2-backup-cancel]');
+    if(v2BackupAction){
+     if(v2BackupAction.hasAttribute('data-gps-v2-backup-export')){
+      const result=await gpsV2.exportGpsV2Backup();
+      if(result.ok){
+       try{
+        const blob=new Blob([result.text],{type:'application/json;charset=utf-8'});
+        const url=URL.createObjectURL(blob),a=document.createElement('a');
+        a.href=url;a.download='runload-gps-v2-backup-'+new Date().toISOString().slice(0,10)+'.json';
+        document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+        gpsV2BackupNotice='新形式のバックアップをダウンロードしました。保存先を確認してください。';
+       }catch{gpsV2BackupNotice='バックアップファイルを生成できませんでした';}
+      }else gpsV2BackupNotice=result.reason;
+     }else if(v2BackupAction.hasAttribute('data-gps-v2-backup-cancel')){
+      pendingGpsV2Backup=null;gpsV2BackupNotice='復元を取り消しました';
+     }else if(pendingGpsV2Backup){
+      const result=await gpsV2.importGpsV2Backup(pendingGpsV2Backup.text);
+      pendingGpsV2Backup=null;
+      gpsV2BackupNotice=result.ok?`新形式のGPS記録を${result.added}件復元しました。`:result.reason;
+      gpsV2Cache=await gpsV2.readGpsV2Summaries();
+     }
+     render();return;
     }
     const gpsBackupAction=event.target.closest('[data-gps-backup-export],[data-gps-backup-confirm],[data-gps-backup-cancel]');
     if(gpsBackupAction){
