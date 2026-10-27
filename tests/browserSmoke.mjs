@@ -872,7 +872,9 @@ try{
   assert.match(await page.locator('[data-record-review]').innerText(),/川沿い往復/);
   assert.match(await page.locator('.rr-metrics').innerText(),/7.25/);
   assert.match(await page.locator('.rr-metrics').innerText(),/45:30/);
-  assert.equal(await page.locator('.rr-alert.is-warning').count(),0);
+  assert.equal(await page.locator('.rr-alert.is-warning').count(),1,
+   'record review must warn when required activity has not been selected');
+  assert.match(await page.locator('.rr-alert.is-warning').innerText(),/活動種目を選択してください/);
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-record-review-v5.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
@@ -1326,11 +1328,28 @@ try{
   // Saved manual run E2E: real storage and explicit ID, no simulated GPS input.
   await page.reload({waitUntil:'networkidle'});
   await page.goto(host+"#/record",{waitUntil:'networkidle'});
+  assert.match(await page.locator('.rv-required-progress').innerText(),/距離・時間・活動種目/);
+  await page.locator('[data-demo-save]').click();
+  await page.locator('[data-record-review]').waitFor();
+  assert.equal(await page.locator('[data-manual-run-save]').isDisabled(),true);
+  const missingAll=await page.locator('.rr-alert').innerText();
+  for(const item of ['距離','時間','活動種目'])assert.match(missingAll,new RegExp(item));
+  await page.goto(host+"#/record",{waitUntil:'networkidle'});
   await page.locator('[data-draft="distance"]').fill('5.00');
   await page.locator('[data-draft="minutes"]').fill('30');
+  assert.equal(await page.locator('[data-manual-gait]').count(),3,'activity choices appear in the manual basic form');
   await page.locator('[data-demo-save]').click();
   const review=page.locator('[data-record-review]');await review.waitFor();
-  assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
+  assert.ok(await review.locator('[data-manual-run-save]').isDisabled(),
+    'a manual run is not savable without an activity category');
+  assert.equal(await review.locator('[data-review-gait]').count(),3,
+   'missing activity is disclosed as an explicitly required field');
+  assert.match(await review.locator('.rr-alert').innerText(),/活動種目を選択してください/);
+  assert.match(await review.locator('.rr-save-required-warning').innerText(),/入力が完了すると保存/);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-required-warning-v19.png'),fullPage:false});
+  await review.locator('[data-review-gait="RUNNING"]').click();
+  assert.ok(await review.locator('[data-manual-run-save]').isEnabled(),
+    'selecting an activity makes a valid manual record eligible to save');
   await page.waitForFunction(()=>{
     const b=document.querySelector('[data-manual-run-save]');
     return !!b&&b.isConnected&&!b.disabled&&getComputedStyle(b).backgroundImage.includes('gradient');
@@ -1352,15 +1371,52 @@ try{
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
+  assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,
+   'newly saved classified manual run shows real calculated body labels');
+  // Simulate a record written by an older app version, which could save UNKNOWN.
+  // Existing records must stay readable and offer an explicit repair path.
+  const legacyBefore=await page.evaluate(()=>{
+   const key='runload-v2-manual-runs-v1';
+   const history=JSON.parse(localStorage.getItem(key));
+   const record=history.records[0],original={id:record.id,distance:record.distanceKm,time:record.durationSeconds};
+   record.draft.activityGait='UNKNOWN';
+   history.revision+=1;localStorage.setItem(key,JSON.stringify(history));
+   return original;
+  });
+  await page.reload({waitUntil:'networkidle'});
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/活動種別が未選択/,'legacy/unspecified runs have no inferred activity');
   assert.equal((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—','no fabricated score without explicit activity');
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'unknown manual activity never creates fabricated reference values');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
+  assert.equal(await savedResult.locator('[data-result-gait]').count(),3,
+   'existing saved unknown activity offers in-place repair');
+  await savedResult.locator('[data-result-gait="RUNNING"]').click();
+  await savedResult.locator('.rv4-mini').waitFor();
+  assert.match(await savedResult.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/);
+  assert.equal(await savedResult.locator('[data-result-gait]').count(),0,
+   'activity selection disappears after successful verified persistence');
+  assert.notEqual((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—');
+  assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-gait-repaired.png'),fullPage:false});
+  const classification=await page.evaluate(()=>{
+   const content=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1'));
+   return {revision:content.revision,count:content.records.length,
+     gait:content.records[0].draft.activityGait,distance:content.records[0].distanceKm,
+     duration:content.records[0].durationSeconds,id:content.records[0].id};
+  });
+  assert.equal(classification.count,1,'retrofitting activity never creates a new record');
+  assert.equal(classification.gait,'RUNNING');
+  assert.equal(classification.distance,legacyBefore.distance);
+  assert.equal(classification.duration,legacyBefore.time);
+  assert.equal(classification.id,legacyBefore.id,'old record ID is unchanged after classification');
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.equal(await page.locator('#runload-result-v4 [data-result-gait]').count(),0);
+  assert.ok(await page.locator('#runload-result-v4 [data-body-reference-label]').count()>0,
+    'saved activity correction and anatomy references persist after reload');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
   const savedHomeTime=await page.locator('.hx-latest .hx-latest-fig>div:nth-child(2) strong').innerText();

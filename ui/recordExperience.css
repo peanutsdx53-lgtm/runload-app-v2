@@ -476,3 +476,29 @@
  .record-v3.rv-proposed-desk .rv-block-heading{flex-wrap:wrap;gap:6px 9px}
  .record-v3.rv-proposed-desk .rv-block-heading small{flex:1 1 100%;margin:0;min-width:0;overflow-wrap:anywhere}
 }
+
+/* Explicit activity selection next to manual distance/time: the numerical
+ * reference is conditional on user-classified gait, never inferred from pace. */
+.record-v3 .rv-gait-entry{margin-top:14px;padding:14px 13px;background:linear-gradient(130deg,#123f51,#082c3c);border:1px solid #4d8998;border-radius:13px}
+.record-v3 .rv-gait-entry-title{display:flex;gap:5px 12px;align-items:baseline;flex-wrap:wrap;margin-bottom:11px}
+.record-v3 .rv-gait-entry-title strong{font-size:14px;color:#edfcff}
+.record-v3 .rv-gait-entry-title small{font-size:11px;color:#b4d2db}
+.record-v3 .rv-gait-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.record-v3 .rv-gait-options button{min-width:0;min-height:45px;padding:7px 3px;background:#082535;border:1px solid #457589;border-radius:9px;color:#d3edf3;font-size:clamp(11px,1.65vw,13px);font-weight:750}
+.record-v3 .rv-gait-options button[aria-pressed="true"]{color:#fff;border-color:#43e4d8;background:linear-gradient(110deg,#14829a,#129eaa)}
+.record-v3 .rv-gait-options button:focus-visible{outline:2px solid #a9f9ed;outline-offset:3px}
+.record-v3 .rv-gait-hint{margin:9px 0 0;color:#b6d6df;font-size:11px;line-height:1.6}
+@media(max-width:375px){.record-v3 .rv-gait-entry{padding:10px 8px}.record-v3 .rv-gait-options{gap:4px}.record-v3 .rv-gait-options button{font-size:11px}}
+
+/* Three explicit required fields; same hierarchy on mobile and desktop. */
+.record-v3 .rv-required-overview{font-size:12px;color:#c8e5e9;line-height:1.6;background:#0e3446;border:1px solid #4c8697;padding:11px 12px;border-radius:10px;margin:8px 0}
+.record-v3 .rv-required-overview b{color:#f5feff}
+.record-v3 .rv-required-overview>span,.record-v3 .rv-required-mark{font-style:normal;background:#6b472d;border:1px solid #c29a6a;border-radius:5px;color:#ffebc9;padding:2px 5px;font-size:10px;white-space:nowrap}
+.record-v3 .rv-required-progress{font-size:12px;line-height:1.5;margin:8px 0 15px}
+.record-v3 .rv-required-pending{color:#ffe0aa}
+.record-v3 .rv-required-all-done{color:#86f0e2}
+.record-v3 [data-required-field][data-required-ok="false"]>.rv-unit-input input{border-color:#bf9973}
+.record-v3 .rv-gait-entry[data-required-ok="false"]{border-color:#a98258}
+.record-v3 .rv-field>span{display:flex;align-items:center;gap:8px}
+.record-v3 .rv-gait-entry-title strong{display:flex;align-items:center;gap:7px}
+@media(max-width:800px){.record-v3 .rv-required-overview{font-size:11px;padding:10px}.record-v3 .rv-required-progress{font-size:11px}.record-v3 .rv-gait-entry{margin-top:13px}}

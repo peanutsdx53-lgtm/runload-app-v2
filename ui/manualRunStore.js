@@ -2,7 +2,7 @@
  * This is NOT the legacy scientific-engine store and never runs a biomechanical calculation.
  * Source and persistence status are explicit; GPS previews / drafts cannot be saved as runs.
  */
-import {checkRecordDraft,legacyRecordDraftFields} from './recordDraftReview.js';
+import {checkRecordDraft,checkManualRequiredFields,legacyRecordDraftFields} from './recordDraftReview.js';
 import {secondsFromDraft} from './recordReviewExperience.js';
 export const MANUAL_RUN_KEY='runload-v2-manual-runs-v1';
 const MAX_RECORDS=500, MAX_CHARS=600;
@@ -49,6 +49,8 @@ export function readManualRuns(storage){
 export function validateManualRunDraft(draft,{source='manual',type='run'}={}){
  if(source!=='manual'||type!=='run')return {ok:false,reason:'この保存方式は手入力の走行記録に限ります'};
  if(!draft||typeof draft!=='object')return {ok:false,reason:'入力を読み取れません'};
+ const required=checkManualRequiredFields(draft);
+ if(!required.ok)return {ok:false,reason:required.errors.join('、'),fields:required.fields};
  const audit=checkRecordDraft(draft,true);
  if(audit.errors.length)return {ok:false,reason:audit.errors.join('、')};
  if(!isoDate(draft.date))return {ok:false,reason:'実在する日付を入力してください'};
@@ -105,6 +107,35 @@ export function saveManualRun(storage,draft,options={}){
    return {ok:false,reason:'保存後のデータ照合に失敗しました'};
   return {ok:true,record:item};
  }catch{return {ok:false,reason:'保存できませんでした。入力内容は画面に残っています'};}
+}
+/** User-directed classification of an existing UNKNOWN-activity manual run.
+ * Do not infer gait from speed, title, or distance. Preserve its ID and all
+ * measurements. This does not convert mixed RUN_WALK into a single activity.
+ */
+export function classifySavedManualRun(storage,id,activityGait){
+ if(!['RUNNING','JOGGING','WALK'].includes(activityGait))return {ok:false,reason:'活動種別を選択してください'};
+ if(typeof id!=='string'||!/^run-v1-[0-9a-f-]{36}$/.test(id))return {ok:false,reason:'記録IDが正しくありません'};
+ const before=readManualRuns(storage);
+ if(!before.ok)return before;
+ const original=before.records.find(r=>r.id===id);
+ if(!original)return {ok:false,reason:'対象の走行記録が見つかりません'};
+ if(!['','UNKNOWN'].includes(String(original.draft?.activityGait??'UNKNOWN')))
+  return {ok:false,reason:'この記録にはすでに活動種別が設定されています'};
+ // Even explicitly choosing a gait cannot authorize a RUN_WALK reference.
+ const updated={...original,draft:{...original.draft,activityGait}};
+ if(!validRecord(updated))return {ok:false,reason:'変更後の記録を検証できません'};
+ try{
+  const oldRaw=storage.getItem(MANUAL_RUN_KEY);
+  const current=readManualRuns(storage);
+  if(!current.ok||current.revision!==before.revision||storage.getItem(MANUAL_RUN_KEY)!==oldRaw)
+   return {ok:false,reason:'保存領域が変更されたため、もう一度確認してください'};
+  const records=before.records.map(r=>r.id===id?updated:r);
+  const next=JSON.stringify({version:1,revision:before.revision+1,records});
+  storage.setItem(MANUAL_RUN_KEY,next);
+  if(storage.getItem(MANUAL_RUN_KEY)!==next)
+   return {ok:false,reason:'更新後の記録を照合できません'};
+  return {ok:true,record:updated};
+ }catch{return {ok:false,reason:'この端末の記録を更新できませんでした'};}
 }
 export function findManualRun(storage,id){
  const read=readManualRuns(storage);

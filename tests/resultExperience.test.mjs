@@ -24,7 +24,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261027-body-reference-v4'));
+ assert.ok(html.includes('app.js?v=20261027-manual-gait-v5'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.js'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.css'));
 });
@@ -62,11 +62,21 @@ test('Result and manual-save surfaces use the approved dark chrome and button st
   '.rr-page .rr-foot-actions .rr-save:focus-visible{outline:3px',
  ]) assert.ok(review.includes(style),style);
  assert.match(html,/result-chrome-v20/);
- assert.match(html,/save-button-v20/);
+ assert.match(html,/recordReviewExperience\.css\?v=20261027-manual-gait-v5/);
 });
 
 test('public-facing result copy omits internal branding and preserves formal names',()=>{
  const js=read('ui/resultExperience.js');
  for(const literal of ['RUNLOAD / RESULTS',"t('RUNLOAD'",'RunLoad_入力中の走行.png','正式保存前','履歴未接続'])assert.equal(js.includes(literal),false,literal);
  assert.ok(OFFICIAL_NAMES.some(([,name])=>name==='膝蓋大腿関節部'),'official anatomical names are never rewritten');
+});
+
+test('saved UNKNOWN manual record has explicit repair choices with no inferred activity',()=>{
+ const result=read('ui/resultExperience.js');
+ const store=read('ui/manualRunStore.js');
+ assert.match(result,/missingActivityPanel/);
+ assert.match(result,/data-result-gait/);
+ assert.match(result,/options\.onAssignGait/);
+ assert.match(store,/classifySavedManualRun/);
+ assert.match(result,/GAIT_NOT_SELECTED/);
 });

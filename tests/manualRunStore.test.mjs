@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readManualRuns,saveManualRun,findManualRun,toHistoryRows,MANUAL_RUN_KEY} from '../ui/manualRunStore.js';
+import {readManualRuns,saveManualRun,findManualRun,classifySavedManualRun,toHistoryRows,MANUAL_RUN_KEY} from '../ui/manualRunStore.js';
 import {normalizeRecords} from '../ui/historyExperience.js';
+import {calculateActivityReference} from '../core/activity/activityReference.js';
 import {reviewView} from '../ui/recordReviewExperience.js';
 const store=()=>{const map=new Map();return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
-const draft=()=>({date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',memo:'朝のランニング',courseName:'川沿い',shoeName:'靴'});
+const draft=()=>({date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',memo:'朝のランニング',courseName:'川沿い',shoeName:'靴'});
 test('valid manual run saves stable explicit ID and survives reload',()=>{
  const s=store(),r=saveManualRun(s,draft());assert.equal(r.ok,true,r.reason);
  const read=readManualRuns(s);
@@ -55,6 +56,57 @@ test('new save leaves existing saved condition, insight and exploration stores b
 test('record confirmation saves only eligible manual runs',()=>{
  const input=draft();
  assert.match(reviewView(input,{source:'manual',recordType:'run'}),/data-manual-run-save(?! disabled)/);
- assert.match(reviewView(input,{source:'gps',recordType:'run'}),/data-manual-run-save disabled/);
- assert.match(reviewView(input,{source:'manual',recordType:'rest'}),/data-manual-run-save disabled/);
+ assert.match(reviewView(input,{source:'gps',recordType:'run'}),/data-manual-run-save[^>]* disabled/);
+ assert.match(reviewView(input,{source:'manual',recordType:'rest'}),/data-manual-run-save[^>]* disabled/);
+});
+
+test('new manual save requires three inputs independently and does not alter storage on failure',()=>{
+ for(const change of [
+  {distance:''},{distance:'0'},{distance:'NaN'},{distance:'   '},
+  {minutes:'',hours:'',seconds:''},{minutes:'0',hours:'',seconds:''},
+  {activityGait:''},{activityGait:'UNKNOWN'},{activityGait:'RUN_WALK'},{activityGait:'INVALID'}
+ ]){
+  const s=store(),bad=saveManualRun(s,{...draft(),...change});
+  assert.equal(bad.ok,false,'must reject '+JSON.stringify(change));
+  assert.equal(s.getItem(MANUAL_RUN_KEY),null);
+  assert.match(bad.reason,/距離|時間|活動種目/);
+ }
+ const s=store(),r=saveManualRun(s,draft());
+ assert.equal(r.ok,true,r.reason);
+ assert.equal(readManualRuns(s).records.length,1);
+});
+test('old unspecified saved manual record can be classified only by an explicit valid user choice',()=>{
+ const storage=store(),created=saveManualRun(storage,draft());
+ assert.equal(created.ok,true,created.reason);
+ const history=readManualRuns(storage);
+ const legacy=history.records[0];
+ storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:1,revision:history.revision+1,
+  records:[{...legacy,draft:{...legacy.draft,activityGait:''}}]}));
+ const before=readManualRuns(storage),id=created.record.id;
+ assert.equal(before.records[0].draft.activityGait,'');
+ const beforeRaw=structuredClone(before.records[0]);
+ assert.equal(classifySavedManualRun(storage,id,'UNKNOWN').ok,false);
+ assert.equal(classifySavedManualRun(storage,id,'RUN_WALK').ok,false);
+ assert.equal(readManualRuns(storage).revision,before.revision);
+ const changed=classifySavedManualRun(storage,id,'RUNNING');
+ assert.equal(changed.ok,true,changed.reason);
+ assert.equal(changed.record.id,id);
+ const after=readManualRuns(storage);
+ assert.equal(after.revision,before.revision+1);
+ assert.equal(after.records.length,1,'activity correction cannot duplicate user runs');
+ assert.deepEqual({...after.records[0],draft:{...after.records[0].draft,activityGait:''}},beforeRaw,
+   'date, distance, time, fatigue, notes and original ID are preserved');
+ assert.equal(after.records[0].draft.activityGait,'RUNNING');
+ assert.equal(classifySavedManualRun(storage,id,'JOGGING').ok,false,'existing explicit classification must not be silently overwritten');
+ assert.ok(calculateActivityReference(after.records[0]).count>0,'original engine can calculate after user classification');
+});
+test('saved manual gait classification fails closed for corrupted storage, unknown IDs and quota failure',()=>{
+ const s=store(),r=saveManualRun(s,draft());assert.equal(r.ok,true);
+ assert.equal(classifySavedManualRun(s,'run-v1-00000000-0000-4000-8000-000000000001','WALK').ok,false);
+ const before=s.getItem(MANUAL_RUN_KEY);s.setItem=()=>{throw Error('quota')};
+ assert.equal(classifySavedManualRun(s,r.record.id,'WALK').ok,false);
+ assert.equal(s.getItem(MANUAL_RUN_KEY),before);
+ const c=store();c.setItem(MANUAL_RUN_KEY,'{broken');
+ assert.equal(classifySavedManualRun(c,r.record.id,'WALK').ok,false);
+ assert.equal(c.getItem(MANUAL_RUN_KEY),'{broken');
 });

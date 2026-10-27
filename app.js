@@ -7,9 +7,9 @@
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
   const reviewDraft=await import("./ui/recordDraftReview.js");
-  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-scope-close-v46");
-  const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261027-scope-close-v46");
+  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
+  const manualRunStore=await import("./ui/manualRunStore.js?v=20261027-manual-gait-v5");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261027-scope-close-v46");
@@ -21,7 +21,7 @@
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261027-body-reference-v4");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261027-body-reference-v4");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261027-manual-gait-v5");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
@@ -475,7 +475,14 @@ function recordExtras(){
    const runId=params.has("record")?params.get("record"):selectedRunId||recent?.id||null;
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
-   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id,record}:{});
+   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
+    saved:true,recordId:record.id,record,
+    onAssignGait:gait=>{
+     const changed=manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait);
+     state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
+     render();
+    }
+   }:{});
    }
  }
  if(page==="dynamic-result"){
@@ -751,6 +758,24 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",async(event)=>{
+    const manualGait=event.target.closest("[data-manual-gait]");
+    if(manualGait&&currentPage()==='record'){
+      const gait=manualGait.dataset.manualGait;
+      if(['RUNNING','JOGGING','WALK'].includes(gait)){
+       state.recordDraft.activityGait=gait;
+       const y=window.scrollY;render();window.scrollTo(0,y);
+      }
+      return;
+    }
+    const reviewGait=event.target.closest("[data-review-gait]");
+    if(reviewGait&&currentPage()==='record-review'){
+     const gait=reviewGait.dataset.reviewGait;
+     if(['RUNNING','JOGGING','WALK'].includes(gait)){
+      state.recordDraft.activityGait=gait;
+      const y=window.scrollY;render();window.scrollTo(0,y);
+     }
+     return;
+    }
     if(event.target.closest("[data-manual-run-save]")){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
