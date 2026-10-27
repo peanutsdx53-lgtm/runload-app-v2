@@ -93,7 +93,7 @@ export function mountGpsDynamicResult(host,summary,detail){
   const marks=labels.map((f,i)=>{
    const [x,y]=geom.coords(f);
    return '<g data-jump-flag="'+i+'" role="button" tabindex="0" aria-label="フラッグ '+(i+1)+'" class="gd-map-flag" transform="translate('+x+' '+y+')">'
-    +'<path class="gd-flag-icon" d="M0 7 V-17 L17 -11 L0 -4 Z"/><circle cx="0" cy="7" r="3.5" fill="#ffd397"/></g>';
+    +'<circle cx="5" cy="-6" r="22" fill="transparent" pointer-events="all"/><path class="gd-flag-icon" d="M0 7 V-17 L17 -11 L0 -4 Z"/><circle cx="0" cy="7" r="3.5" fill="#ffd397"/></g>';
   }).join('');
   return '<svg viewBox="0 0 400 320" role="group" aria-label="記録されたGPSコースと現在位置" class="gd-map-svg">'
     +'<path class="gd-map-grid" d="M0 80H400 M0 160H400 M0 240H400 M80 0V320 M160 0V320 M240 0V320 M320 0V320"/>'
