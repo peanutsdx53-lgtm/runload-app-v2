@@ -81,3 +81,23 @@ export function renderBodyReferenceLabels(view,rows,{prefix='reference'}={}){
    'font-size="19" font-family="system-ui,sans-serif" font-weight="800">'+label+'</text></g>';
  }).join('');
 }
+
+
+/* Raised appearance is non-data visual shading. Region fill remains the actual
+ * seven-stop scientific reference value. Hidden and unavailable values stay neutral. */
+export const referenceReliefDefs=prefix=>`<linearGradient id="${prefix}-relief" x1="0%" y1="6%" x2="100%" y2="72%">
+ <stop offset="0%" stop-color="#f1ffff" stop-opacity=".30"/>
+ <stop offset="24%" stop-color="#e5ffff" stop-opacity=".16"/>
+ <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+ <stop offset="67%" stop-color="#021927" stop-opacity=".11"/>
+ <stop offset="100%" stop-color="#011724" stop-opacity=".36"/>
+ </linearGradient>
+ <linearGradient id="${prefix}-satin" x1="0%" y1="0%" x2="100%" y2="0%">
+ <stop offset="0%" stop-color="#d9fbfb" stop-opacity=".16"/>
+ <stop offset="17%" stop-color="#d9fbfb" stop-opacity=".06"/>
+ <stop offset="48%" stop-color="#ffffff" stop-opacity="0"/>
+ <stop offset="100%" stop-color="#000e1b" stop-opacity=".17"/>
+ </linearGradient>`;
+export const referenceReliefOverlays=(path,prefix,state)=>
+ `<path d="${path}" class="body-reference-relief${state==='missing'?' is-unavailable':''}" fill="url(#${prefix}-relief)" aria-hidden="true" pointer-events="none"/>`+
+ `<path d="${path}" class="body-reference-satin${state==='missing'?' is-unavailable':''}" fill="url(#${prefix}-satin)" aria-hidden="true" pointer-events="none"/>`;

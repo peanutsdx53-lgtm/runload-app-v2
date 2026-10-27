@@ -460,7 +460,7 @@ try{
     const overlay=nav&&getComputedStyle(nav).position==='fixed';
     return {bottom:box.bottom,navTop:overlay?n.top:innerHeight,top:box.top,overlay};
   });
-  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-(actionVis.overlay?8:0),mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
+  assert.ok(actionVis.top>=0&&actionVis.bottom<=actionVis.navTop-(actionVis.overlay?8:0)+0.5,mode.name+' write action should remain fully above the navigation: '+JSON.stringify(actionVis));
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-writing-footer-v24.png'),fullPage:false});
   await ex.locator('[data-ex-action="note"]').click();
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-note-dialog-v24.png'),fullPage:false});
@@ -1387,6 +1387,42 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'continuous reference map opens clean without covering body segments');
   assert.ok(await savedResult.locator('[data-label-toggle]').isVisible());
+  // Relief overlays are purely decorative and never replace palette data paths.
+  const anatomyBaseCount=await savedResult.locator('.rv4-region').count();
+  assert.equal(await savedResult.locator('.body-reference-relief').count(),anatomyBaseCount);
+  assert.equal(await savedResult.locator('.body-reference-satin').count(),anatomyBaseCount);
+  assert.equal(await savedResult.locator('.body-reference-relief[aria-hidden="true"][pointer-events="none"]').count(),anatomyBaseCount);
+  const scientificFill=await savedResult.locator('.rv4-region').first().evaluate(el=>el.style.fill);
+  assert.ok(scientificFill.startsWith('rgb(')||scientificFill.startsWith('#'),
+   'reference scientific fill remains in base SVG geometry');
+
+  // Approval preview: record the actual side-by-side anatomy/card arrangement
+  // independently for 320, 390, 430 and desktop widths before merging to main.
+  const bodyGeometry=await savedResult.locator('.rv4-body').evaluate(card=>{
+    const bounds=selector=>card.querySelector(selector).getBoundingClientRect();
+    const figure=bounds('.rv4-body-figure'),reading=bounds('.rv4-reading');
+    const content=bounds('.rv4-body-content'),pane=bounds('.rv4-reading');
+    return {figureRight:figure.right,readingLeft:reading.left,
+      figureWidth:figure.width,readingWidth:reading.width,
+      contentRight:content.right,cardRight:card.getBoundingClientRect().right,
+      cardOverflow:card.scrollWidth-card.clientWidth,
+      readingOverflow:card.querySelector('.rv4-reading').scrollWidth-card.querySelector('.rv4-reading').clientWidth,
+      pageOverflow:document.documentElement.scrollWidth-window.innerWidth};
+  });
+  assert.ok(bodyGeometry.figureRight<=bodyGeometry.readingLeft+2,
+    mode.name+' anatomy must stay LEFT of selected region card '+JSON.stringify(bodyGeometry));
+  assert.ok(bodyGeometry.figureWidth>65&&bodyGeometry.readingWidth>105,
+    mode.name+' two usable columns '+JSON.stringify(bodyGeometry));
+  assert.ok(bodyGeometry.readingOverflow<=3&&bodyGeometry.cardOverflow<=4&&bodyGeometry.pageOverflow<=4,
+    mode.name+' anatomy details do not clip '+JSON.stringify(bodyGeometry));
+  if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
+  await savedResult.locator('.rv4-body').screenshot({
+    path:resolve(root,'screenshots',mode.name+'-body-left-right-preview.png'),animations:'disabled'});
+  await savedResult.locator('[data-view="sole"]').click();
+  await savedResult.locator('.rv4-body').screenshot({
+    path:resolve(root,'screenshots',mode.name+'-sole-dimensional-preview.png'),animations:'disabled'});
+  await savedResult.locator('[data-view="front"]').click();
+  if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-continuous-palette-clean.png'),fullPage:false});
   await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,

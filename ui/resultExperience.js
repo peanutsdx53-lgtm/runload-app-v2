@@ -1,6 +1,6 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
-import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
-import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES} from './resultInlineStyles.js';
+import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays} from './bodyReferencePresentation.js';
+import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
 const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -44,14 +44,14 @@ export function mountResult(host,draft={},options={}){
    const paths=v.paths.map(([id,path])=>{
     const item=data.find(r=>r.id===id),row=bodyReferenceRow(reference?.rows,id),tone=bodyReferenceColor(row);
     const label=item?.name||id,reading=item?.value===null?'算出できません':format(item.value,1);
-    return '<path d="'+path+'" class="rv4-region '+(id===chosen?'selected':'')+
+    return '<g class="rv4-region-stack"><path d="'+path+'" class="rv4-region '+(id===chosen?'selected':'')+
       '" data-region="'+id+'" data-reference-state="'+tone.state+'" style="fill:'+tone.fill+
       '" tabindex="0" role="button" aria-label="'+clean(label)+'：'+reading+
-      '" aria-pressed="'+(id===chosen)+'"><title>'+clean(label)+'：'+reading+'</title></path>';
+      '" aria-pressed="'+(id===chosen)+'"><title>'+clean(label)+'：'+reading+'</title></path>'+referenceReliefOverlays(path,'rv4',tone.state)+'</g>';
    }).join('');
    return '<svg class="rv4-body-svg" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の身体図と部位別参考値">'+
       '<defs><linearGradient id="rv4skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22687e"/>'+
-      '<stop offset="1" stop-color="#09283a"/></linearGradient></defs>'+
+      '<stop offset="1" stop-color="#09283a"/></linearGradient>'+referenceReliefDefs('rv4')+'</defs>'+
       '<g class="rv4-silhouette" fill="url(#rv4skin)">'+v.silhouette+'</g>'+
       paths+(showBodyNumbers?renderBodyReferenceLabels(v,reference?.rows||[]):'')+
       '</svg>';
@@ -159,6 +159,6 @@ export function mountResult(host,draft={},options={}){
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
- if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+'</style><div class="rv4-app"></div>';
+ if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+RESULT_ANATOMY_RELIEF_STYLES+'</style><div class="rv4-app"></div>';
  draw();
 }

@@ -87,6 +87,14 @@ jobs:
         # Check the deployed URL only on main builds, not as a pre-merge gate.
         if: github.event_name == 'push'
         run: node tests/livePagesSmoke.mjs
+      - name: Upload anatomy left-right layout preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-body-layout-proposal
+          path: screenshots/*-body-left-right-preview.png
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload visual inspection screenshots
         if: always()
         uses: actions/upload-artifact@v4

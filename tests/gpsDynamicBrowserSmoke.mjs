@@ -83,6 +83,11 @@ try{
   await page.locator('.gd-main').waitFor();
   assert.equal(await page.locator('.gd-panel').count(),2);
   assert.equal(await page.locator('.gd-body-path').count(),5);
+  assert.equal(await page.locator('.gd-body .body-reference-relief').count(),5,
+   'GPS anatomy has equal dimensional overlays for each scientific segment');
+  assert.equal(await page.locator('.gd-body .body-reference-relief[aria-hidden="true"][pointer-events="none"]').count(),5,
+   'anatomical relief cannot intercept taps');
+
   assert.equal(await page.locator('.gd-scrub').inputValue(),'1',
    'GPS dynamic result opens at first scientifically calculable fix');
   assert.equal(await page.locator('[data-body-reference-label]').count(),0,
