@@ -82,12 +82,12 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
 
 test("v8 release uses cache-busted body resources and a user-controlled update prompt",()=>{
  const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
- assert.match(html,/app\.js\?v=20261027-measurement-polish-v2/);
+ assert.match(html,/app\.js\?v=20261027-gps-prestart-v3/);
  assert.match(html,/bodyContextExperience\.css\?v=20261025-terminology-v1/);
  assert.match(app,/bodyContextExperience\.js\?v=20261026-user-copy-v21/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/gps-measurement-polish-v2/);
+ assert.match(sw,/gps-prestart-v3/);
  assert.match(sw,/\.\/ui\/gpsReplayIndexedDbStore\.js/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
