@@ -1190,7 +1190,7 @@ try{
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
     await page.locator('[data-gps-delete]').first().click();
     await page.locator('[data-gps-confirm-delete]').first().click();
-    assert.equal(await page.locator('.gps-history-item').count(),0,'GPS history deletion visible');
+    await page.waitForFunction(()=>document.querySelectorAll('.gps-history-item').length===0,null,{timeout:8000});
     await page.reload({waitUntil:'networkidle'});
     assert.equal(await page.locator('.gps-history-item').count(),0,'IndexedDB deletion persists after reload');
   }
