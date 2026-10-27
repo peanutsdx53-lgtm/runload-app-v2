@@ -145,3 +145,6 @@
 .gps-history-empty{color:#b4cfd7;padding:14px;font-size:.8rem}
 .app-shell:has(.gps-v35[data-phase="running"]) .mobile-nav,.app-shell:has(.gps-v35[data-phase="paused"]) .mobile-nav{display:none}
 @media(max-width:800px){.gps-history-item{grid-template-columns:1fr}.gps-history-item>div{justify-content:flex-start}}
+
+#runload-history-v2{display:block}
+#runload-history-v2 + .gps-history-section{scroll-margin-top:20px;margin-top:18px}

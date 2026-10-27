@@ -441,11 +441,19 @@ function recordExtras(){
    const gpsSaved=gpsStore.readGpsRuns(onboardStorage);
    const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
    gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?'軌跡保存あり':'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
-   app.querySelector('#runload-history-v2')?.before(gpsPanel);
+   app.querySelector('#runload-history-v2')?.after(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
     onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);}
    });
+   const historyHeading=app.querySelector('#runload-history-v2')?.shadowRoot?.querySelector('.topline');
+   if(historyHeading){
+     const shortcut=document.createElement('button');shortcut.type='button';shortcut.className='gps-history-shortcut';
+     shortcut.textContent=`GPS実走記録 ${gpsSaved.ok?gpsSaved.records.length:'—'}件を見る`;
+     shortcut.style.cssText='border:1px solid #499dac;background:#143f51;color:#d6ffff;border-radius:11px;padding:9px 12px;font-weight:750;font-size:.76rem;cursor:pointer';
+     shortcut.addEventListener('click',()=>gpsPanel.scrollIntoView({block:'start',behavior:'smooth'}));
+     historyHeading.append(shortcut);
+   }
  }
  if(page==="condition"){
    const strip=app.querySelector("[data-cj-chart]");
