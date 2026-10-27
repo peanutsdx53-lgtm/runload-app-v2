@@ -7,9 +7,9 @@
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
   const reviewDraft=await import("./ui/recordDraftReview.js");
-  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-scope-close-v46");
-  const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261027-scope-close-v46");
+  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
+  const manualRunStore=await import("./ui/manualRunStore.js?v=20261027-manual-gait-v5");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261027-scope-close-v46");
@@ -21,7 +21,7 @@
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261027-body-reference-v4");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261027-body-reference-v4");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261027-manual-gait-v5");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
