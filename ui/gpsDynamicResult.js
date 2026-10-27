@@ -70,7 +70,7 @@ export function mountGpsDynamicResult(host,summary,detail){
  const origin=speed[0].t;
  const elapsed=f=>f.activeMs===null||f.activeMs===undefined?f.t-origin:f.activeMs;
  const duration=elapsed(speed.at(-1));
- let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null;
+ let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null,playElapsed=0;
  const geom=routeGeometry(detail.route);
  const labels=detail.flags||[];
  const nearest=t=>{
@@ -79,6 +79,12 @@ export function mountGpsDynamicResult(host,summary,detail){
   return lo>0&&Math.abs(speed[lo-1].t-t)<Math.abs(speed[lo].t-t)?lo-1:lo;
  };
  const getFrame=()=>speed[index];
+ const atElapsed=ms=>{
+  // Select the latest observed fix, never a future location.
+  let low=0,high=speed.length-1;
+  while(low<high){const mid=Math.ceil((low+high)/2);if(elapsed(speed[mid])<=ms)low=mid;else high=mid-1;}
+  return low;
+ };
  const refAt=()=>getFrame().speedMps===null?null:evaluateGpsReplayReference({activity:summary.activity,speedMps:getFrame().speedMps});
  const bodySvg=ref=>{
   const v=BODY_REGION_VIEWS.find(x=>x.key===view)||BODY_REGION_VIEWS[0];
@@ -105,16 +111,23 @@ export function mountGpsDynamicResult(host,summary,detail){
  };
  const speedSvg=()=>{
   const n=speed.length;
-  // All points determine the global visible speed scale; only drawn vertices are sampled.
-  const valid=speed.map(s=>s.speedMps).filter(x=>x!==null&&Number.isFinite(x)&&x>=0);
-  const top=valid.reduce((max,v)=>Math.max(max,v),1)*3.6;
-  const maxVertices=180,step=Math.max(1,Math.ceil(n/maxVertices));
-  let pts=[];
-  for(let k=0;k<n;k+=step){const s=speed[k];if(s.speedMps!==null)pts.push([5+(k/(n-1))*690,61-53*(s.speedMps*3.6/top)]);}
+  const top=speed.reduce((max,p)=>p.speedMps===null?max:Math.max(max,p.speedMps),1)*3.6;
+  const stride=Math.max(1,Math.ceil(n/180)),paths=[];
+  let line=[];
+  for(let i=0;i<n;i++){
+   const p=speed[i];
+   if(p.speedMps===null){
+    if(line.length>1)paths.push(svgLine(line));
+    line=[];continue;
+   }
+   const atEnd=i===n-1||speed[i+1]?.speedMps===null;
+   if(i%stride===0||line.length===0||atEnd)line.push([5+(i/(n-1))*690,61-53*(p.speedMps*3.6/top)]);
+   if(atEnd){if(line.length>1)paths.push(svgLine(line));line=[];}
+  }
   const ix=5+(index/(n-1))*690;
   return '<svg class="gd-speed-svg" viewBox="0 0 700 70" role="img" aria-label="GPS速度変化"><path d="M5 61H695" stroke="#418093" stroke-width="1"/>'
-    +'<path d="'+svgLine(pts)+'" stroke="#46d9dc" stroke-width="2.5" fill="none" stroke-linejoin="round"/>'
-    +'<path d="M'+ix.toFixed(2)+' 3 V63" stroke="#ffc47e" stroke-width="2" stroke-dasharray="3 3"/></svg>';
+   +paths.map(path=>'<path d="'+path+'" stroke="#46d9dc" stroke-width="2.5" fill="none" stroke-linejoin="round"/>').join('')
+   +'<path d="M'+ix.toFixed(2)+' 3 V63" stroke="#ffc47e" stroke-width="2" stroke-dasharray="3 3"/></svg>';
  };
  function render(){
   const frame=getFrame(),ref=refAt();
@@ -142,19 +155,21 @@ export function mountGpsDynamicResult(host,summary,detail){
    b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
   });
   host.querySelectorAll('[data-jump-flag]').forEach(b=>{
-   const jump=()=>{index=nearest(labels[Number(b.dataset.jumpFlag)].t);render();};
+   const jump=()=>{index=nearest(labels[Number(b.dataset.jumpFlag)].t);playElapsed=elapsed(getFrame());render();};
    b.addEventListener('click',jump);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();jump();}});
   });
-  host.querySelector('[data-seek]')?.addEventListener('input',e=>{index=Number(e.target.value);render();});
+  host.querySelector('[data-seek]')?.addEventListener('input',e=>{index=Number(e.target.value);playElapsed=elapsed(getFrame());render();});
   host.querySelector('[data-play]')?.addEventListener('click',()=>{
    playing=!playing;
    if(playing){
+    playElapsed=elapsed(getFrame());
     timer=setInterval(()=>{
-     if(index>=speed.length-1){playing=false;clearInterval(timer);timer=null;render();return;}
-     // Advance by timestamp (~1 simulated second for every real second).
-     const nextTime=getFrame().t+250;
-     index=Math.max(index+1,nearest(nextTime));
-     render();
+     playElapsed=Math.min(duration,playElapsed+250);
+     const nextIndex=playElapsed>=duration?speed.length-1:atElapsed(playElapsed);
+     const changed=nextIndex!==index;
+     index=nextIndex;
+     if(playElapsed>=duration){playing=false;clearInterval(timer);timer=null;}
+     if(changed||!playing)render();
     },250);
    }else{clearInterval(timer);timer=null;}
    render();
