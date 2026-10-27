@@ -70,6 +70,16 @@ try{
    'webkit '+width+' explicit activity choice unlocks save');
   await page.locator('[data-manual-run-save]').click();
   assert.match(page.url(),/#\/result\?record=run-v1-/);
+   const referenceBody=page.locator('#runload-result-v4 .rv4-body');
+   await referenceBody.waitFor();
+   assert.equal(await referenceBody.locator('[data-body-reference-label]').count(),0,'WebKit clean body');
+   assert.notEqual((await referenceBody.locator('.rv4-big-score').innerText()).trim(),'—');
+   await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
+   await referenceBody.screenshot({path:resolve(root,'screenshots',`webkit-${width}-manual-palette-clean.png`)});
+   await referenceBody.locator('[data-label-toggle]').click();
+   assert.ok(await referenceBody.locator('[data-body-reference-label]').count()>0);
+   await referenceBody.screenshot({path:resolve(root,'screenshots',`webkit-${width}-manual-palette-numbers.png`)});
+   await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.goto(base+'#/exploration-tree',{waitUntil:'networkidle'});
   await page.locator('[data-ex-category="01"]').click();
   const value=await page.locator('.ex-tool-result').innerText();
