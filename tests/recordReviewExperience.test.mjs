@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reviewView, paceLabel, durationLabel } from '../ui/recordReviewExperience.js';
-const base={date:'2026-10-25',distance:'5.2',hours:'',minutes:'32.5',seconds:'',rofBefore:0,rofAfter:5,steps:'',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',temperatureC:'',environmentNote:'',bodyObservation:'',shoeName:'',memo:'',gradeMode:'UNKNOWN',surfaceMode:'UNKNOWN'};
+const base={date:'2026-10-25',distance:'5.2',hours:'',minutes:'32.5',seconds:'',rofBefore:0,rofAfter:5,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',temperatureC:'',environmentNote:'',bodyObservation:'',shoeName:'',memo:'',gradeMode:'UNKNOWN',surfaceMode:'UNKNOWN'};
 test('minutes decimal precision and manual pace',()=>{ assert.equal(durationLabel(base),'32:30');assert.equal(paceLabel(base),'6:15'); });
 test('GPS hours and seconds are not rounded to integer minutes',()=>{const d={...base,hours:'0',minutes:'32',seconds:'16'};assert.equal(durationLabel(d),'32:16');assert.equal(paceLabel(d),'6:12');});
 test('manual record review renders real draft and five editing destinations',()=>{const s=reviewView({...base,courseName:'川沿い往復',shoeName:'練習用シューズ'},{});assert.match(s,/川沿い往復/);assert.match(s,/練習用シューズ/);assert.match(s,/6:15/);assert.equal((s.match(/data-review-link=/g)||[]).length,5);assert.match(s,/data-manual-run-save/);assert.doesNotMatch(s,/<button[^>]*>保存する/);});
@@ -40,13 +40,35 @@ test('manual-run persistence fails closed on corrupt storage and leaves other re
 });
 
 test('record review highlights unknown activity and offers direct choices before saving',()=>{
- const html=reviewView(base,{source:'manual',recordType:'run'});
- assert.match(html,/活動種別が未選択です/);
+ const html=reviewView({...base,activityGait:'UNKNOWN'},{source:'manual',recordType:'run'});
+ assert.match(html,/活動種目の選択が必要です/);
  assert.match(html,/data-review-gait="RUNNING"/);
  assert.match(html,/data-review-gait="JOGGING"/);
  assert.match(html,/data-review-gait="WALK"/);
- assert.match(html,/このまま保存すると人体図/);
- assert.match(html,/data-manual-run-save(?! disabled)/);
+ assert.match(html,/保存の必須項目/);
+ assert.match(html,/data-manual-run-save[^>]* disabled/);
+ assert.match(html,/活動種目を選択してください/);
  const selected=reviewView({...base,activityGait:'RUNNING'},{source:'manual',recordType:'run'});
  assert.doesNotMatch(selected,/data-review-gait=/);
+});
+
+test('distance time activity are all required on review and save stays disabled until valid',()=>{
+ const scenarios=[
+  [{...base,distance:''},'距離を入力してください'],
+  [{...base,distance:'0'},'距離は0より大きい'],
+  [{...base,minutes:'',hours:'',seconds:''},'時間を入力してください'],
+  [{...base,minutes:'0'},'時間は0より大きい'],
+  [{...base,activityGait:'UNKNOWN'},'活動種目を選択してください']
+ ];
+ for(const [input,message] of scenarios){
+  const markup=reviewView(input,{source:'manual',recordType:'run'});
+  assert.match(markup,new RegExp(message));
+  assert.match(markup,/data-manual-run-save[^>]* disabled/);
+  assert.match(markup,/role="alert"/);
+ }
+ const complete=reviewView(base,{source:'manual',recordType:'run'});
+ assert.match(complete,/data-required-status="distance" data-required-ok="true"/);
+ assert.match(complete,/data-required-status="time" data-required-ok="true"/);
+ assert.match(complete,/data-required-status="activity" data-required-ok="true"/);
+ assert.match(complete,/data-manual-run-save(?![^>]*disabled)/);
 });
