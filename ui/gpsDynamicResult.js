@@ -59,7 +59,9 @@ export function mountGpsDynamicResult(host,summary,detail){
   host.innerHTML='<p class="gd-empty">速度時系列の整合性を確認できません。</p>';return {ok:false,reason:'INVALID_SERIES'};
  }
  if(speed.length<2)return {ok:false,reason:'TOO_FEW_SAMPLES'};
- const origin=speed[0].t,last=speed.at(-1).t;
+ const origin=speed[0].t;
+ const elapsed=f=>f.activeMs===null||f.activeMs===undefined?f.t-origin:f.activeMs;
+ const duration=elapsed(speed.at(-1));
  let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null;
  const geom=routeGeometry(detail.route);
  const labels=detail.flags||[];
@@ -114,7 +116,7 @@ export function mountGpsDynamicResult(host,summary,detail){
   const note=labels.find(f=>Math.abs(f.t-frame.t)<=1500);
   host.innerHTML='<section class="gd-root" aria-label="GPS動的結果">'
    +'<header class="gd-head"><div class="gd-heading"><a href="#/result?gps='+encodeURIComponent(summary.id)+'" class="gd-back" style="display:grid;place-items:center;color:inherit;text-decoration:none" aria-label="通常結果に戻る">‹</a><div><div class="gd-eyebrow">DYNAMIC RESULT / GPS</div><h1>動的結果</h1><p class="gd-head-sub">'+esc(summary.date)+'　'+esc(types[summary.activity])+'</p></div></div><div class="gd-tag">文献参考値の変化</div></header>'
-   +'<div class="gd-metrics"><div class="gd-metric"><span>経過時間</span><strong>'+time(frame.t-origin)+'</strong></div><div class="gd-metric"><span>走行距離</span><strong>'+frame.km.toFixed(2)+' <em>km</em></strong></div><div class="gd-metric"><span>GPS速度</span><strong>'+speedText+' <em>km/h</em></strong></div></div>'
+   +'<div class="gd-metrics"><div class="gd-metric"><span>経過時間</span><strong>'+time(elapsed(frame))+'</strong></div><div class="gd-metric"><span>走行距離</span><strong>'+frame.km.toFixed(2)+' <em>km</em></strong></div><div class="gd-metric"><span>GPS速度</span><strong>'+speedText+' <em>km/h</em></strong></div></div>'
    +'<div class="gd-main"><section class="gd-panel"><header class="gd-panel-head"><strong>12部位の変化</strong><div class="gd-tabs">'
    +BODY_REGION_VIEWS.map(v=>'<button data-view="'+v.key+'" aria-pressed="'+(v.key===view)+'">'+v.title+'</button>').join('')+'</div></header>'
    +'<div class="gd-stage">'+bodySvg(ref)+'</div><div class="gd-panel-foot"><span>'+esc(names[selected])+'</span><span class="gd-value">'+text+'</span></div></section>'
@@ -123,7 +125,7 @@ export function mountGpsDynamicResult(host,summary,detail){
    +'<section class="gd-speed-block"><div class="gd-speed-head"><strong>速度の変化</strong><small>シークバー・コース・人体図が連動</small></div>'
    +speedSvg()+'<div class="gd-controls"><button data-play class="gd-play">'+(playing?'一時停止':'▶ 再生')+'</button>'
    +'<input class="gd-scrub" data-seek type="range" min="0" max="'+(speed.length-1)+'" value="'+index+'" aria-label="再生位置"/>'
-   +'<span class="gd-duration">'+time(frame.t-origin)+' / '+time(last-origin)+'</span></div>'
+   +'<span class="gd-duration">'+time(elapsed(frame))+' / '+time(duration)+'</span></div>'
    +(note?'<div class="gd-flag-note">⚑ '+esc(note.note||'フラッグ地点')+'</div>':'')
    +'<p class="gd-note">人体図は速度条件に対応する文献参考値です。個人の身体負荷や損傷リスクの実測値ではありません。灰色は計算不能です。GPS欠損中の参考値は補完しません。</p></section></section>';
   host.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;selected=(BODY_REGION_VIEWS.find(v=>v.key===view)?.paths[0]||['BA-DISP-014'])[0];render();}));
