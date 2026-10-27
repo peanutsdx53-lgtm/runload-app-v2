@@ -87,7 +87,7 @@ test("v8 release uses cache-busted body resources and a user-controlled update p
  assert.match(app,/bodyContextExperience\.js\?v=20261026-user-copy-v21/);
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
- assert.match(sw,/visual-palette-v6/);
+ assert.match(sw,/relief-review-v1/);
  assert.match(sw,/\.\/ui\/gpsReplayIndexedDbStore\.js/);
  assert.match(sw,/cache:\"no-cache\"/);
 });
@@ -105,6 +105,6 @@ test("global double-tap suppression preserves accessible pinch zoom and approved
  }
  assert.match(html,/styles\.css\?v=20261026-result-chrome-v20/);
  assert.match(html,/conditionJourney\.css\?v=20261026-condition-v17/);
- assert.match(sw,/visual-palette-v6/);
+ assert.match(sw,/relief-review-v1/);
  assert.match(sw,/\.\/ui\/gpsReplayReference\.js/);
 });
