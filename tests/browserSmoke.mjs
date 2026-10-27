@@ -872,7 +872,9 @@ try{
   assert.match(await page.locator('[data-record-review]').innerText(),/川沿い往復/);
   assert.match(await page.locator('.rr-metrics').innerText(),/7.25/);
   assert.match(await page.locator('.rr-metrics').innerText(),/45:30/);
-  assert.equal(await page.locator('.rr-alert.is-warning').count(),0);
+  assert.equal(await page.locator('.rr-alert.is-warning').count(),1,
+   'record review must warn when required activity has not been selected');
+  assert.match(await page.locator('.rr-alert.is-warning').innerText(),/活動種目を選択してください/);
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-record-review-v5.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
