@@ -1387,6 +1387,29 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'continuous reference map opens clean without covering body segments');
   assert.ok(await savedResult.locator('[data-label-toggle]').isVisible());
+  // Approval preview: record the actual side-by-side anatomy/card arrangement
+  // independently for 320, 390, 430 and desktop widths before merging to main.
+  const bodyGeometry=await savedResult.locator('.rv4-body').evaluate(card=>{
+    const bounds=selector=>card.querySelector(selector).getBoundingClientRect();
+    const figure=bounds('.rv4-body-figure'),reading=bounds('.rv4-reading');
+    const content=bounds('.rv4-body-content'),pane=bounds('.rv4-reading');
+    return {figureRight:figure.right,readingLeft:reading.left,
+      figureWidth:figure.width,readingWidth:reading.width,
+      contentRight:content.right,cardRight:card.getBoundingClientRect().right,
+      cardOverflow:card.scrollWidth-card.clientWidth,
+      readingOverflow:card.querySelector('.rv4-reading').scrollWidth-card.querySelector('.rv4-reading').clientWidth,
+      pageOverflow:document.documentElement.scrollWidth-window.innerWidth};
+  });
+  assert.ok(bodyGeometry.figureRight<=bodyGeometry.readingLeft+2,
+    mode.name+' anatomy must stay LEFT of selected region card '+JSON.stringify(bodyGeometry));
+  assert.ok(bodyGeometry.figureWidth>65&&bodyGeometry.readingWidth>105,
+    mode.name+' two usable columns '+JSON.stringify(bodyGeometry));
+  assert.ok(bodyGeometry.readingOverflow<=3&&bodyGeometry.cardOverflow<=4&&bodyGeometry.pageOverflow<=4,
+    mode.name+' anatomy details do not clip '+JSON.stringify(bodyGeometry));
+  if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
+  await savedResult.locator('.rv4-body').screenshot({
+    path:resolve(root,'screenshots',mode.name+'-body-left-right-preview.png'),animations:'disabled'});
+  if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-continuous-palette-clean.png'),fullPage:false});
   await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,
