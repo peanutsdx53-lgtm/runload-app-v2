@@ -124,8 +124,8 @@ try{
       watchPosition(success,error){
         window.__gpsWatchCount++;
         const id=++nextWatch,offset=(id-1)*.0006,t=Date.now()-20000;
-        const timer1=setTimeout(()=>{if(ids.has(id))success({timestamp:t,coords:{latitude:37.501+offset,longitude:139.93,accuracy:8,altitude:300,altitudeAccuracy:10}})},45);
-        const timer2=setTimeout(()=>{if(ids.has(id))success({timestamp:t+5000,coords:{latitude:37.50126+offset,longitude:139.93,accuracy:8,altitude:302,altitudeAccuracy:10}})},140);
+        const timer1=setTimeout(()=>{if(ids.has(id))success({timestamp:t,coords:{latitude:37.501+offset+(window.__gpsMockLatOffset||0),longitude:139.93,accuracy:8,altitude:300,altitudeAccuracy:10}})},45);
+        const timer2=setTimeout(()=>{if(ids.has(id))success({timestamp:t+5000,coords:{latitude:37.50126+offset+(window.__gpsMockLatOffset||0),longitude:139.93,accuracy:8,altitude:302,altitudeAccuracy:10}})},140);
         ids.set(id,[timer1,timer2]);return id;
       },clearWatch(id){for(const handle of ids.get(id)||[])clearTimeout(handle);ids.delete(id);}
     }});
@@ -1160,6 +1160,8 @@ try{
     // Force every requested map image to fail. The measurement/track must stay operational.
     failTiles=true;
     await page.goto(host+'#/measurement',{waitUntil:'networkidle'});
+    // Shift fixture to a different tile grid: previously decoded images may be memory-cached.
+    await page.evaluate(()=>{window.__gpsMockLatOffset=2.5});
     await page.locator('[data-gps-action="start"]').click();
     await page.locator('[data-gps-consent-confirm]').click();
     await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='unavailable',null,{timeout:8000});
