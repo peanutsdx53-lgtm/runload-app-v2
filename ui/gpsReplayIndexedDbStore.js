@@ -2,6 +2,7 @@
  * One transaction contains v2 summary and optional route/speed/flag detail.
  */
 import {prepareGpsRun,GPS_RECORD_LIMIT} from './gpsMeasurementStore.js';
+import {estimateGpsEnergy} from './gpsEnergyDisplay.js';
 import {checkReplayPoints,evaluateGpsReplayReference} from './gpsReplayReference.js';
 export const GPS_V2_DB='runload-v2-gps-dynamic-v2';
 export const GPS_V2_SUMMARIES='summaries',GPS_V2_DETAILS='details';
@@ -80,9 +81,11 @@ export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISO
  const id='gps-v2-'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2));
  const avg=old.distanceKm*1000/old.activeSeconds;
  const ref=evaluateGpsReplayReference({activity:old.activity,speedMps:avg});
+ const energy=estimateGpsEnergy(session);
  const summary={schema:2,id,activity:old.activity,date:old.date,createdAt:old.createdAt,
   distanceKm:old.distanceKm,activeSeconds:old.activeSeconds,accepted:old.accepted,
   rejected:old.rejected,detailSaved:saveDetails,
+  energyEstimate:energy.ok?energy:null,
   finalReference:{state:ref.state,speedMps:avg,modelVersion:ref.modelVersion||null,
    semanticVersion:ref.semanticVersion||null,source:ref.source||null,
    regions:ref.rows.length?shortRows(ref.rows):Array.from({length:12},(_,i)=>({
