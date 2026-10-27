@@ -1,4 +1,5 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
+import {bodyReferenceRow,bodyReferenceColor,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
 import {RESULT_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
@@ -25,12 +26,28 @@ export function mountResult(host,draft={},options={}){
  // silently reclassify an old/unknown activity or use an unsaved preview.
  const reference=fromSaved&&options.record?.id===options.recordId?calculateActivityReference(options.record):null;
  for(const [i,item] of data.entries()){
-   const regionId='R'+String(i+1).padStart(2,'0'),row=reference?.rows?.find(r=>r.regionId===regionId);
+   const row=bodyReferenceRow(reference?.rows,item.id);
    if(row?.calculationState==='CALCULATED'&&Number.isFinite(row.value))item.value=row.value;
  }
  const current=()=>data.find(x=>x.id===chosen)||data[0];
  const selectedView=()=>BODY_REGION_VIEWS.find(x=>x.key===view)||BODY_REGION_VIEWS[0];
- const svgMap=()=>{const v=selectedView();return '<svg class="rv4-body-svg" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の身体図"><defs><linearGradient id="rv4skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22687e"/><stop offset="1" stop-color="#09283a"/></linearGradient></defs><g class="rv4-silhouette" fill="url(#rv4skin)">'+v.silhouette+'</g>'+v.paths.map(([id,path])=>{const name=data.find(r=>r.id===id)?.name||id;return '<path d="'+path+'" class="rv4-region '+(id===chosen?'selected':'')+'" data-region="'+id+'" tabindex="0" role="button" aria-label="'+clean(name)+'を表示" aria-pressed="'+(id===chosen)+'"><title>'+clean(name)+'</title></path>'}).join('')+'</svg>'};
+ const svgMap=()=>{
+   const v=selectedView();
+   const paths=v.paths.map(([id,path])=>{
+    const item=data.find(r=>r.id===id),row=bodyReferenceRow(reference?.rows,id),tone=bodyReferenceColor(row);
+    const label=item?.name||id,reading=item?.value===null?'算出できません':format(item.value,1);
+    return '<path d="'+path+'" class="rv4-region '+(id===chosen?'selected':'')+
+      '" data-region="'+id+'" data-reference-state="'+tone.state+'" style="fill:'+tone.fill+
+      '" tabindex="0" role="button" aria-label="'+clean(label)+'：'+reading+
+      '" aria-pressed="'+(id===chosen)+'"><title>'+clean(label)+'：'+reading+'</title></path>';
+   }).join('');
+   return '<svg class="rv4-body-svg" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の身体図と部位別参考値">'+
+      '<defs><linearGradient id="rv4skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22687e"/>'+
+      '<stop offset="1" stop-color="#09283a"/></linearGradient></defs>'+
+      '<g class="rv4-silhouette" fill="url(#rv4skin)">'+v.silhouette+'</g>'+
+      paths+renderBodyReferenceLabels(v,reference?.rows||[])+
+      '</svg>';
+  };
  const chart=()=>{const labels=['距離','平均速度','走行時間','上り割合','歩数','運動後疲労感'];const p=(i,r)=>{const a=i*2*Math.PI/6-Math.PI/2;return (153+Math.cos(a)*r*83).toFixed(1)+','+(128+Math.sin(a)*r*83).toFixed(1)};return '<svg viewBox="0 0 306 267" class="rv4-radar" role="img" aria-label="比較する記録はありませんの六軸チャート">'+[.25,.5,.75,1].map(k=>'<polygon points="'+labels.map((_,i)=>p(i,k)).join(' ')+'" />').join('')+labels.map((l,i)=>'<line x1="153" y1="128" x2="'+p(i,1).split(',')[0]+'" y2="'+p(i,1).split(',')[1]+'"/><text x="'+p(i,1.27).split(',')[0]+'" y="'+p(i,1.27).split(',')[1]+'" text-anchor="middle">'+l+'</text>').join('')+'<text x="153" y="127" class="rv4-chart-empty" text-anchor="middle">比較する記録はありません</text><text x="153" y="144" class="rv4-chart-sub" text-anchor="middle">今後の記録を振り返れます</text></svg>'};
  const nav=()=>'<div class="rv4-mobile-tabs" role="group" aria-label="結果の表示切替">'+[['body','身体'],['fatigue','疲労感'],['radar','過去と比較']].map(([k,label])=>'<button type="button" data-tab="'+k+'" aria-pressed="'+(tab===k)+'" class="'+(tab===k?'active':'')+'">'+label+'</button>').join('')+'</div>';
  const body=()=>{const r=current();const v=selectedView();return '<section class="rv4-card rv4-body" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>速度と身体の反応</h2><p>部位別の参考値</p></div><span class="rv4-mini">'+(reference?.count?reference.count+'/12 算出':'未取得')+'</span></div><div class="rv4-tone-legend"><span><i class="rv4-low"></i>基準より低い</span><span><i class="rv4-mid"></i>基準付近</span><span><i class="rv4-high"></i>基準より高い</span></div><div class="rv4-view-tabs">'+BODY_REGION_VIEWS.map(item=>'<button type="button" data-view="'+item.key+'" aria-pressed="'+(view===item.key)+'" class="'+(view===item.key?'active':'')+'">'+item.title+'</button>').join('')+'</div><div class="rv4-body-content"><div class="rv4-body-figure"><span class="rv4-orbit"></span>'+svgMap()+'<small>部位をタップして確認</small></div><div class="rv4-reading"><small>選択中の部位</small><h3>'+clean(r.name)+'</h3><div class="rv4-big-score" data-reference-region="'+clean(r.id)+'">'+(r.value===null?'—':format(r.value,1))+'</div><div class="rv4-score-caption">'+(r.value!==null?'この部位自身の文献基準100に対する参考値（個人の測定値ではありません）':'この速度条件で算出可能な文献参考値はありません')+'</div><div class="rv4-scale"><span class="rv4-scale-ref"></span></div><div class="rv4-scale-labels"><span>60</span><span>100</span><span>140</span></div><button type="button" class="rv4-picker" data-picker-toggle aria-expanded="'+picker+'">部位名から選ぶ <span>⌄</span></button></div></div>'+(picker?'<div class="rv4-choices">'+v.paths.map(([id])=>{const n=data.find(x=>x.id===id);return '<button type="button" data-region="'+id+'" class="'+(id===chosen?'active':'')+'">'+clean(n?.name||id)+'</button>'}).join('')+'</div>':'')+'<p class="rv4-disclaimer">参考値は各部位自身の基準100との関係を示します。色は増減の方向であり、危険度や部位間の順位ではありません。計算結果がある場合に色分けします。</p></section>'};
