@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {BODY_REFERENCE_IDS,bodyReferenceEngineId,engineReferenceBodyId,
- bodyReferenceColor,bodyReferenceRow,renderBodyReferenceLabels} from '../ui/bodyReferencePresentation.js';
+ bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_COLOR_STOPS,BODY_REFERENCE_GRADIENT,bodyReferenceRow,renderBodyReferenceLabels} from '../ui/bodyReferencePresentation.js';
 import {GPS_REPLAY_BODY_IDS,gpsEngineRegionId,gpsBodyRegionId,evaluateGpsReplayReference} from '../ui/gpsReplayReference.js';
 import {calculateRunningReference} from '../core/activity/running.js';
 import {calculateJoggingReference} from '../core/activity/jogging.js';
@@ -73,4 +73,46 @@ test('unsaved and unavailable readings never display fabricated 100, 0 or missin
  assert.equal(bodyReferenceColor(readings[0]).state,'missing');
  assert.equal(bodyReferenceColor({value:0,calculationState:'CALCULATED'}).state,'available');
  assert.equal(bodyReferenceColor({value:100,calculationState:'CALCULATED'}).state,'available');
+});
+
+test('continuous reference palette remains navy-compatible and is identical across manual and GPS',()=>{
+ assert.equal(BODY_REFERENCE_COLOR_STOPS.length,7);
+ assert.deepEqual(BODY_REFERENCE_COLOR_STOPS.map(x=>x.value),[60,80,92,100,108,120,140]);
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:100}).fill,'rgb(102,196,181)');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:60}).fill,'#4776A6');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:140}).fill,'#CA7D8B');
+ for(const sample of [60,70,80,91,92,94,98,99,100,101,107,108,119,120,131,139,140]){
+  const row={calculationState:'CALCULATED',value:sample};
+  const tint=bodyReferenceColor(row);
+  assert.equal(tint.state,'available');
+  assert.match(tint.fill,/^rgb\\(\\d+,\\d+,\\d+\\)$|^#[0-9A-F]{6}$/);
+  const scale=bodyReferenceScale(sample);
+  assert.ok(scale.position>=0&&scale.position<=100);
+  assert.equal(scale.clipped,null);
+ }
+ assert.notEqual(bodyReferenceColor({calculationState:'CALCULATED',value:98}).fill,
+   bodyReferenceColor({calculationState:'CALCULATED',value:99}).fill,
+   'nearby reference values should be continuously distinct, not quantized bands');
+ const outsideLow=bodyReferenceScale(42),outsideHigh=bodyReferenceScale(175);
+ assert.equal(outsideLow.position,0);assert.equal(outsideLow.clipped,'low');
+ assert.equal(outsideHigh.position,100);assert.equal(outsideHigh.clipped,'high');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:42}).fill,'#4776A6');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:175}).fill,'#CA7D8B');
+ assert.equal(bodyReferenceScale(NaN),null);
+ assert.equal(bodyReferenceColor({calculationState:'NOT_CALCULABLE',value:130}).state,'missing');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:null}).state,'missing');
+ assert.match(BODY_REFERENCE_GRADIENT,/linear-gradient/);
+});
+test('continuous palette has stable minimum separation from navy background',()=>{
+ const luminance=hex=>{
+  const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+  const lin=rgb.map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+  return .2126*lin[0]+.7152*lin[1]+.0722*lin[2];
+ };
+ const navy=luminance('#092D42');
+ for(const stop of BODY_REFERENCE_COLOR_STOPS){
+  const color=luminance(stop.hex);
+  assert.ok((color+.05)/(navy+.05)>=3.0,
+   'region fill should not disappear into RunLoad navy: '+stop.hex);
+ }
 });
