@@ -1,5 +1,5 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
-import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays} from './bodyReferencePresentation.js';
+import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays,bodyReferenceSilhouetteClipDef} from './bodyReferencePresentation.js';
 import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
@@ -51,9 +51,9 @@ export function mountResult(host,draft={},options={}){
    }).join('');
    return '<svg class="rv4-body-svg" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の身体図と部位別参考値">'+
       '<defs><linearGradient id="rv4skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22687e"/>'+
-      '<stop offset="1" stop-color="#09283a"/></linearGradient>'+referenceReliefDefs('rv4')+'</defs>'+
+      '<stop offset="1" stop-color="#09283a"/></linearGradient>'+referenceReliefDefs('rv4')+bodyReferenceSilhouetteClipDef(v,'rv4')+'</defs>'+
       '<g class="rv4-silhouette" fill="url(#rv4skin)">'+v.silhouette+'</g>'+
-      paths+(showBodyNumbers?renderBodyReferenceLabels(v,reference?.rows||[]):'')+
+      '<g clip-path="url(#rv4-silhouette-clip)">'+paths+'</g>'+(showBodyNumbers?renderBodyReferenceLabels(v,reference?.rows||[]):'')+
       '</svg>';
   };
  const chart=()=>{const labels=['距離','平均速度','走行時間','上り割合','歩数','運動後疲労感'];const p=(i,r)=>{const a=i*2*Math.PI/6-Math.PI/2;return (153+Math.cos(a)*r*83).toFixed(1)+','+(128+Math.sin(a)*r*83).toFixed(1)};return '<svg viewBox="0 0 306 267" class="rv4-radar" role="img" aria-label="比較する記録はありませんの六軸チャート">'+[.25,.5,.75,1].map(k=>'<polygon points="'+labels.map((_,i)=>p(i,k)).join(' ')+'" />').join('')+labels.map((l,i)=>'<line x1="153" y1="128" x2="'+p(i,1).split(',')[0]+'" y2="'+p(i,1).split(',')[1]+'"/><text x="'+p(i,1.27).split(',')[0]+'" y="'+p(i,1.27).split(',')[1]+'" text-anchor="middle">'+l+'</text>').join('')+'<text x="153" y="127" class="rv4-chart-empty" text-anchor="middle">比較する記録はありません</text><text x="153" y="144" class="rv4-chart-sub" text-anchor="middle">今後の記録を振り返れます</text></svg>'};
