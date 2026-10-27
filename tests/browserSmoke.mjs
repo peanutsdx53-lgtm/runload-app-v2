@@ -1169,6 +1169,7 @@ try{
   await page.locator('[data-sm-source="gps"]').waitFor();
   assert.equal(await page.locator('[data-sm-source="gps"]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('.sm-gpx-shape').count(),1,'saved GPS track is reusable in what-if');
+  assert.match(await page.locator('[data-sm-gps-evidence]').innerText(),/GPS保存コースの確認情報/,'A/B GPS evidence is separate from bodily load');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-reused-in-simulation.png'),fullPage:true});
   if(mode.name==='mobile'){
     // Force every requested map image to fail. The measurement/track must stay operational.

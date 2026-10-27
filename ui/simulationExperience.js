@@ -2,6 +2,7 @@
 import {courseSummary,initialCourseUi} from './recordExperience.js';
 import {readGpxFile,renderGpxVisual,projectToRoute} from './gpxImport.js';
 import {gpsRecordToFeature} from './gpsMeasurementStore.js';
+import {gpsCourseEvidence} from './gpsCourseEvidence.js';
 export const SIMULATION_VERSION='35.0';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,min,max)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max?v:null;
@@ -44,6 +45,17 @@ export function courseDescription(preset){
 }
 const formatKm=d=>Number(d).toFixed(2);
 const formatMin=m=>m===null?'—':`${(Math.round(m*10)/10).toLocaleString('ja-JP',{maximumFractionDigits:1})}分`;
+/* A/B GPS evidence is descriptive and independent of the scientific model. */
+function renderGpsEvidence(feature,aKm,bKm){
+ const evidence=gpsCourseEvidence(feature,aKm,bKm);
+ if(!evidence)return '';
+ const point=(id,title,item)=>{
+  if(!item)return '';
+  const altitude=item.beyond?'コース終点を超過：標高は外挿しません':item.elevationM===null?'標高は参照できません（欠損・精度不足）':item.elevationM+'m（'+(item.elevationMethod==='sample'?'保存GPS位置点の記録値':'保存位置点間の補間')+'）';
+  return `<article class="sm-gps-evidence-card"><b>${id}｜${title}</b><strong>${formatKm(item.distanceKm)}km</strong><span>${altitude}</span></article>`;
+ };
+ return `<aside class="sm-gps-evidence" data-sm-gps-evidence><h3>GPS保存コースの確認情報</h3><p>標高を利用できる位置点：${evidence.altitudePoints}/${evidence.sampledPoints}（${evidence.altitudeCoveragePct}%）。区間の途切れ：${evidence.gapCount}件。${evidence.simplified?'長時間記録の軌跡は点数を間引いています。':''}</p><div class="sm-gps-evidence-grid">${point('A','一定ペース',evidence.a)}${point('B','走る＋歩く',evidence.b)}</div><p>位置は保存軌跡上の仮の地点で、標高はGPS記録値またはその点間補間です。欠損区間の標高は作りません。勾配による速度や12部位の負荷の計算には使いません。</p></aside>`;
+}
 const stat=(label,value,detail,cls='')=>`<article class="sm-metric ${cls}"><small>${esc(label)}</small><strong>${esc(value)}</strong><span>${esc(detail)}</span></article>`;
 export function renderSimulationResults(ui){
  const c=computeComparison(ui);
@@ -55,7 +67,7 @@ export function renderSimulationResults(ui){
   return `<article class="sm-result ${id}"><div class="sm-result-heading"><span class="sm-circle">${id.toUpperCase()}</span><strong>${title}</strong></div><div class="sm-distance">${formatKm(data.distanceKm)}<small>km</small></div><p>${id==='a'?`${formatMin(data.runMinutes)}走る（一定ペース）`:`走る${formatMin(data.runMinutes)} ＋ 歩く${formatMin(data.walkMinutes)}`}</p>${goal===null?'':`<div class="sm-track" aria-label="設定距離への割合"><i style="width:${pct.toFixed(2)}%"></i></div>`}<div class="sm-result-bottom"><span>${remain}</span><span>${goal===null?'到達時間は計算しません':`目標距離まで ${formatMin(data.finish)}`}</span></div></article>`;
  };
  const feature=ui.source==='gpx'?ui.gpxRoutes?.[ui.gpxIndex]:ui.source==='gps'?ui.gpsFeature:null;
- const map=feature?`<section class="sm-gpx-result"><div class="sm-gpx-result-header"><strong>コース軌跡上の仮の進行位置</strong><div class="sm-gpx-focus" role="group" aria-label="表示するシナリオ"><button type="button" data-sm-focus="a" aria-pressed="${ui.focus!=='b'}">Aを確認</button><button type="button" data-sm-focus="b" aria-pressed="${ui.focus==='b'}">Bを確認</button></div></div>${renderGpxVisual(feature,a.distanceKm,b.distanceKm,ui.focus)}<p class="sm-gpx-result-caption">${ui.focus==='b'?'B｜走る＋歩く':'A｜一定ペース'}：計算上の進行距離 ${formatKm((ui.focus==='b'?b:a).distanceKm)}km。${(ui.focus==='b'?b:a).distanceKm>feature.distanceKm?'設定したコースの終点に到達します。超過分は地図上に描きません。':'保存軌跡上の対応地点を表示しています。'}<br>実際にその地点に到達できる保証はありません。</p></section>`:'';
+ const map=feature?`<section class="sm-gpx-result"><div class="sm-gpx-result-header"><strong>コース軌跡上の仮の進行位置</strong><div class="sm-gpx-focus" role="group" aria-label="表示するシナリオ"><button type="button" data-sm-focus="a" aria-pressed="${ui.focus!=='b'}">Aを確認</button><button type="button" data-sm-focus="b" aria-pressed="${ui.focus==='b'}">Bを確認</button></div></div>${renderGpxVisual(feature,a.distanceKm,b.distanceKm,ui.focus)}${ui.source==='gps'?renderGpsEvidence(feature,a.distanceKm,b.distanceKm):''}<p class="sm-gpx-result-caption">${ui.focus==='b'?'B｜走る＋歩く':'A｜一定ペース'}：計算上の進行距離 ${formatKm((ui.focus==='b'?b:a).distanceKm)}km。${(ui.focus==='b'?b:a).distanceKm>feature.distanceKm?'設定したコースの終点に到達します。超過分は地図上に描きません。':'保存軌跡上の対応地点を表示しています。'}<br>実際にその地点に到達できる保証はありません。</p></section>`:'';
  return `<div class="sm-results-grid">${card('a',a,'一定ペース')}${card('b',b,'走る＋歩く')}</div>${map}
  <div class="sm-comparison-note"><strong>比較で分かること</strong><p>${budget}分間、入力したペースが変わらないと仮定すると、Aは${formatKm(a.distanceKm)}km、Bは${formatKm(b.distanceKm)}kmです。進行距離の差は${formatKm(Math.abs(c.diff))}kmです。${goal===null?'コース距離が未設定なので、到達地点・残り距離は表示しません。':feature?'保存された軌跡に沿って仮の進行位置を表示します。':'実際の道路上の到達地点は不明です。手動設定だけでは位置・坂道の順序を特定できません。'}</p></div>
  <p class="sm-limits">これは入力した速度が続くと仮定した<strong>算術上の結果</strong>です。実際の疲労・走行能力・傷害リスク・12部位の身体負荷を予測しません。歩きの方が速い設定も禁止しませんが、現実的な仮定か本人が確認してください。</p>`;

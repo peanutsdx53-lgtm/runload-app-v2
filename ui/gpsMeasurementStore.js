@@ -20,7 +20,7 @@ export function prepareGpsRun(session,{saveRoute=false,date=new Date().toISOStri
 }
 export function gpsRecordToFeature(record){
  if(!isValidGpsRecord(record)||record.track.length<2)return null;
- const segments=[];let segment=[];for(const p of record.track){if(p.breakBefore&&segment.length){segments.push(segment);segment=[];}segment.push({lat:p.lat,lon:p.lon,ele:p.ele,km:p.km});}if(segment.length)segments.push(segment);
+ const segments=[];let segment=[];for(const p of record.track){if(p.breakBefore&&segment.length){segments.push(segment);segment=[];}segment.push({lat:p.lat,lon:p.lon,ele:p.ele,km:p.km,altitudeAccuracy:p.altitudeAccuracy,altitudeQuality:p.altitudeQuality});}if(segment.length)segments.push(segment);
  const length=record.track.at(-1).km,elevationPoints=record.track.filter(p=>p.ele!==null).length;
  if(!validNum(length,.01,1000))return null;
  const qualityUnknown=record.track.some(p=>p.altitudeQuality!=='usable'&&p.altitudeQuality!=='missing');

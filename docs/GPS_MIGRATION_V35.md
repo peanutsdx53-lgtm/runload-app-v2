@@ -69,3 +69,9 @@
 - Storage persistence is requested on explicit user action and browser refusal/absence is reported without claiming success. This does not protect from user deletion or device loss.
 - Project-hosted GitHub Pages shares one origin with sibling projects. Code cannot isolate indexedDB from sibling apps of the same origin; a dedicated origin/custom domain is required for isolation and remains a deployment decision.
 - Backups remain unencrypted and local; browser estimates and persistence do not replace backup files.
+
+## W-07 A/B saved GPS course position and altitude evidence
+- A/B continue calculating only time, pace and travelled distances. The optional GPS saved route adds the corresponding position and height information as descriptive evidence.
+- At either A/B arithmetic endpoint, an available elevation is labelled as a saved reading or interpolation between saved points. Missing-height segments do not create interpolated heights, and endpoints exceeding a course never extrapolate altitude.
+- Display coverage of usable-height points, route discontinuities, and any geometry thinning. These measurements carry device and simplification uncertainty.
+- The 12-region scientific engine and ROF-J are **not** modified, and gradients are not used to invent speed or muscle-load corrections.

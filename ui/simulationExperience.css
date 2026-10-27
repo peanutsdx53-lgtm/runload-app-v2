@@ -154,3 +154,13 @@
 /* Keep native select text at least 16px on touch layouts (avoid iOS focus zoom). */
 @media(max-width:800px){.sm-page .sm-select-wrap select{font-size:16px}}
 .sm-gpx-visual-kicker{color:#9bcad6;font-size:.66rem;font-weight:650;letter-spacing:0;margin-left:4px}
+
+.sm-gps-evidence{border:1px solid #4c818e;border-radius:14px;padding:14px;background:#103644;color:#e7f5fa;display:grid;gap:10px}
+.sm-gps-evidence h3{font-size:.87rem;margin:0}
+.sm-gps-evidence p{font-size:.73rem;line-height:1.7;color:#bbd7e1;margin:0}
+.sm-gps-evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.sm-gps-evidence-card{border:1px solid #4b7484;border-radius:11px;padding:12px;display:grid;gap:5px;background:#0b2938}
+.sm-gps-evidence-card b{font-size:.75rem}
+.sm-gps-evidence-card strong{font-size:1.16rem;color:#efffff}
+.sm-gps-evidence-card span{font-size:.73rem;color:#b6e2e8;line-height:1.5}
+@media(max-width:500px){.sm-gps-evidence-grid{grid-template-columns:1fr}}
