@@ -1371,8 +1371,12 @@ try{
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
+  assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
+   'continuous reference map opens clean without covering body segments');
+  assert.ok(await savedResult.locator('[data-label-toggle]').isVisible());
+  await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,
-   'newly saved classified manual run shows real calculated body labels');
+   'user can optionally show verified scientific numbers on the anatomy');
   // Simulate a record written by an older app version, which could save UNKNOWN.
   // Existing records must stay readable and offer an explicit repair path.
   const legacyBefore=await page.evaluate(()=>{
@@ -1397,6 +1401,9 @@ try{
   assert.equal(await savedResult.locator('[data-result-gait]').count(),0,
    'activity selection disappears after successful verified persistence');
   assert.notEqual((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—');
+  assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
+   'reloaded result defaults to clear colors and a separate value panel');
+  await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-gait-repaired.png'),fullPage:false});
   const classification=await page.evaluate(()=>{
@@ -1415,8 +1422,10 @@ try{
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
   assert.equal(await page.locator('#runload-result-v4 [data-result-gait]').count(),0);
-  assert.ok(await page.locator('#runload-result-v4 [data-body-reference-label]').count()>0,
-    'saved activity correction and anatomy references persist after reload');
+  assert.equal(await page.locator('#runload-result-v4 [data-body-reference-label]').count(),0,
+   'body stays uncluttered by default after reload');
+  assert.notEqual((await page.locator('#runload-result-v4 .rv4-big-score').innerText()).trim(),'—',
+   'saved activity correction and a readable side-panel scientific value persist');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
   const savedHomeTime=await page.locator('.hx-latest .hx-latest-fig>div:nth-child(2) strong').innerText();
@@ -1535,6 +1544,12 @@ try{
     await output.locator('.rv4-choices button[data-region="BA-DISP-014"]').click();
     assert.notEqual((await output.locator('.rv4-big-score').innerText()).trim(),'—',example.activity+' selected hip region is computed');
     const hipValue=(await output.locator('.rv4-big-score').innerText()).trim();
+    const marker=output.locator('.rv4-scale-current');
+    assert.equal(await marker.count(),1,'selected scientific value has a position on the scale');
+    assert.equal(await output.locator('.rv4-picker').innerText().then(s=>s.includes('部位を選ぶ')),true);
+    assert.equal(await output.locator('[data-body-reference-label]').count(),0,
+      'default anatomy must be readable without numeric badges obscuring legs');
+    await output.locator('[data-label-toggle]').click();
     const hipBadge=output.locator('[data-body-reference-label="BA-DISP-014"]');
     assert.equal(await hipBadge.count(),1,example.activity+' real hip value appears directly on figure');
     assert.equal(await hipBadge.getAttribute('data-body-reference-value'),hipValue,
