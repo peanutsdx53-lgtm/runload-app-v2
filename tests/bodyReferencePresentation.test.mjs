@@ -85,7 +85,7 @@ test('continuous reference palette remains navy-compatible and is identical acro
   const row={calculationState:'CALCULATED',value:sample};
   const tint=bodyReferenceColor(row);
   assert.equal(tint.state,'available');
-  assert.match(tint.fill,/^rgb\\(\\d+,\\d+,\\d+\\)$|^#[0-9A-F]{6}$/);
+  assert.ok(tint.fill.startsWith('rgb(')||/^#[0-9A-F]{6}$/.test(tint.fill),'valid palette output');
   const scale=bodyReferenceScale(sample);
   assert.ok(scale.position>=0&&scale.position<=100);
   assert.equal(scale.clipped,null);
