@@ -83,6 +83,14 @@ try{
   assert.equal(await page.locator('.gd-body-path').count(),5);
   assert.equal(await page.locator('.gd-map-flag').count(),1);
   const initial=await page.locator('.gd-metric').nth(2).innerText();
+  await page.locator('.gd-scrub').evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  const scientificBody=await page.locator('.gd-body-path').evaluateAll(paths=>({
+   available:paths.filter(p=>p.dataset.state==='available').length,
+   filled:paths.filter(p=>p.dataset.state==='available'&&p.style.fill!=='rgb(82, 99, 107)').length
+  }));
+  assert.ok(scientificBody.available>0,'valid source speed must color at least one body region');
+  assert.equal(scientificBody.available,scientificBody.filled,
+    'authorized reference must not display as unavailable gray');
   await page.locator('.gd-scrub').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
   const changed=await page.locator('.gd-metric').nth(2).innerText();
   assert.notEqual(initial,changed,'GPS speed should change with scrubbed frame');
