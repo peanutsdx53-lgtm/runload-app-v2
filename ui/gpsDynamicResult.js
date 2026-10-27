@@ -3,21 +3,22 @@
  * Does not change the manual/static result screen or scientific source files.
  */
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
-import {deriveReplaySpeeds,evaluateGpsReplayReference} from './gpsReplayReference.js';
+import {deriveReplaySpeeds,evaluateGpsReplayReference,gpsEngineRegionId,gpsBodyRegionId} from './gpsReplayReference.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
-const names={
+export const GPS_REPLAY_BODY_NAMES={
  'BA-DISP-014':'股関節部','BA-DISP-015':'殿部','BA-DISP-016':'大腿前面',
  'BA-DISP-018':'大腿後面','BA-DISP-019':'膝蓋大腿関節部','BA-DISP-021':'脛骨部',
  'BA-DISP-023':'下腿後面','BA-DISP-024':'足関節部','BA-DISP-025':'アキレス腱部',
  'BA-DISP-027':'後足部','BA-DISP-028':'足底中部・内側縦足弓','BA-DISP-029':'前足部'
 };
+const names=GPS_REPLAY_BODY_NAMES;
 const types={RUNNING:'ランニング',JOGGING:'ジョギング',WALK:'ウォーキング'};
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 const time=ms=>{
  const s=Math.max(0,Math.floor(ms/1000));
  return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 };
-const palette=(row)=>{
+export const palette=(row)=>{
  if(!row||row.calculationState!=='CALCULATED'||!Number.isFinite(row.value))return {fill:'#52636b',state:'missing'};
  const offset=row.value-100;
  // Continuously vary the intensity from reference 100. Each region is independent.
@@ -27,6 +28,8 @@ const palette=(row)=>{
  const rgb=base.map((v,i)=>Math.round(v+(target[i]-v)*ratio));
  return {fill:'rgb('+rgb.join(',')+')',state:'available'};
 };
+export const gpsReplayRowForBody=(rows,bodyId)=>Array.isArray(rows)?
+ rows.find(r=>r.regionId===gpsEngineRegionId(bodyId))||null:null;
 const svgLine=points=>points.length<2?'':points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
 function routeGeometry(track){
  if(!Array.isArray(track)||track.length<2)return {paths:[],coords:()=>[0,0]};
@@ -51,7 +54,7 @@ export function renderGpsResultSummary(summary){
  +'<div><small>活動時間</small><strong>'+time(summary.activeSeconds*1000)+'</strong></div>'
  +'<div><small>平均速度</small><strong>'+avg.toFixed(1)+' <small>km/h</small></strong></div></div>'
  +'<p class="gd-note">この結果における12部位の数値は記録の平均速度に対応する文献参考値です（算出 '+count+'/12 部位）。個人の身体負荷の測定値ではありません。</p>'
- +'<section class="gd-summary-regions"><h2>12部位の文献参考値</h2><div class="gd-summary-rows">'+summary.finalReference.regions.map((r,i)=>'<div><small>'+esc(Object.values(names)[i]||r.regionId)+'</small><strong>'+(Number.isFinite(r.value)?r.value.toFixed(1):'—')+'</strong></div>').join('')+'</div></section>'
+ +'<section class="gd-summary-regions"><h2>12部位の文献参考値</h2><div class="gd-summary-rows">'+summary.finalReference.regions.map((r,i)=>'<div><small>'+esc(names[gpsBodyRegionId(r.regionId)]||r.regionId)+'</small><strong>'+(Number.isFinite(r.value)?r.value.toFixed(1):'—')+'</strong></div>').join('')+'</div></section>'
  +(flag?'<p style="margin-top:19px"><a class="gd-enter" href="#/dynamic-result?record='+encodeURIComponent(summary.id)+'">動的結果を見る ›</a></p>':'<p class="gd-note">動的結果は、保存時にコース・再生用データを選択した単一活動の記録で利用できます。</p>')
  +'</section>';
 }
@@ -80,7 +83,7 @@ export function mountGpsDynamicResult(host,summary,detail){
  const bodySvg=ref=>{
   const v=BODY_REGION_VIEWS.find(x=>x.key===view)||BODY_REGION_VIEWS[0];
   const paths=v.paths.map(([id,d])=>{
-   const row=ref?.rows.find(r=>r.regionId==='R'+String(Object.keys(names).indexOf(id)+1).padStart(2,'0'));
+   const row=gpsReplayRowForBody(ref?.rows,id);
    const tint=palette(row);
    return '<path tabindex="0" role="button" aria-label="'+esc(names[id])+'" data-body-region="'+id+'" class="gd-body-path'+(selected===id?' selected':'')+'" data-state="'+tint.state+'" style="fill:'+tint.fill+'" d="'+d+'"><title>'+esc(names[id])+'</title></path>';
   }).join('');
@@ -115,7 +118,7 @@ export function mountGpsDynamicResult(host,summary,detail){
  };
  function render(){
   const frame=getFrame(),ref=refAt();
-  const v=ref?.rows.find(r=>r.regionId==='R'+String(Object.keys(names).indexOf(selected)+1).padStart(2,'0'));
+  const v=gpsReplayRowForBody(ref?.rows,selected);
   const text=v?.calculationState==='CALCULATED'&&Number.isFinite(v.value)?v.value.toFixed(1):'—';
   const speedText=Number.isFinite(frame.speedMps)?(frame.speedMps*3.6).toFixed(1):'—';
   const note=labels.find(f=>Math.abs(f.t-frame.t)<=1500);
