@@ -23,6 +23,33 @@ export function checkRunWalkBounds(d={}){
  }
  return errors;
 }
+/** Required fields for NEW manual runs only.
+ * Keeps historical UNKNOWN-activity snapshots readable; this gate must only be
+ * applied to new saves, not readManualRuns/validRecord.
+ */
+export function checkManualRequiredFields(d={}){
+ const errors=[],fields={distance:false,time:false,activity:false};
+ const distanceText=String(d.distance??'').trim();
+ if(!distanceText)errors.push('距離を入力してください（必須）');
+ else if(!Number.isFinite(Number(distanceText))||Number(distanceText)<=0||Number(distanceText)>10000)
+  errors.push('距離は0より大きい有効な値で入力してください');
+ else fields.distance=true;
+ const timeFields=['hours','minutes','seconds'];
+ const hasTime=timeFields.some(k=>nonblank(d[k]));
+ if(!hasTime)errors.push('時間を入力してください（必須）');
+ else{
+  const values=timeFields.map(k=>nonblank(d[k])?Number(d[k]):0);
+  const duration=values[0]*3600+values[1]*60+values[2];
+  if(values.some(n=>!Number.isFinite(n)||n<0)||!Number.isFinite(duration)||
+     duration<=0||Math.round(duration)<1||Math.round(duration)>6000000)
+   errors.push('時間は0より大きい有効な値で入力してください');
+  else fields.time=true;
+ }
+ if(!['RUNNING','JOGGING','WALK'].includes(d.activityGait))
+  errors.push('活動種目を選択してください（必須）');
+ else fields.activity=true;
+ return {ok:errors.length===0,errors,fields};
+}
 export function checkRecordDraft(d={},isRun=true){
  const errors=[],warnings=[];
  if(!['','UNKNOWN','RUNNING','JOGGING','WALK'].includes(String(d.activityGait??'UNKNOWN')))errors.push('活動種別の値を確認してください');
