@@ -5,7 +5,7 @@ import {normalizeRecords} from '../ui/historyExperience.js';
 import {calculateActivityReference} from '../core/activity/activityReference.js';
 import {reviewView} from '../ui/recordReviewExperience.js';
 const store=()=>{const map=new Map();return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
-const draft=()=>({date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',memo:'朝のランニング',courseName:'川沿い',shoeName:'靴'});
+const draft=()=>({date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',memo:'朝のランニング',courseName:'川沿い',shoeName:'靴'});
 test('valid manual run saves stable explicit ID and survives reload',()=>{
  const s=store(),r=saveManualRun(s,draft());assert.equal(r.ok,true,r.reason);
  const read=readManualRuns(s);
@@ -60,9 +60,28 @@ test('record confirmation saves only eligible manual runs',()=>{
  assert.match(reviewView(input,{source:'manual',recordType:'rest'}),/data-manual-run-save disabled/);
 });
 
+test('new manual save requires three inputs independently and does not alter storage on failure',()=>{
+ for(const change of [
+  {distance:''},{distance:'0'},{distance:'NaN'},{distance:'   '},
+  {minutes:'',hours:'',seconds:''},{minutes:'0',hours:'',seconds:''},
+  {activityGait:''},{activityGait:'UNKNOWN'},{activityGait:'RUN_WALK'},{activityGait:'INVALID'}
+ ]){
+  const s=store(),bad=saveManualRun(s,{...draft(),...change});
+  assert.equal(bad.ok,false,'must reject '+JSON.stringify(change));
+  assert.equal(s.getItem(MANUAL_RUN_KEY),null);
+  assert.match(bad.reason,/距離|時間|活動種目/);
+ }
+ const s=store(),r=saveManualRun(s,draft());
+ assert.equal(r.ok,true,r.reason);
+ assert.equal(readManualRuns(s).records.length,1);
+});
 test('old unspecified saved manual record can be classified only by an explicit valid user choice',()=>{
  const storage=store(),created=saveManualRun(storage,draft());
  assert.equal(created.ok,true,created.reason);
+ const history=readManualRuns(storage);
+ const legacy=history.records[0];
+ storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:1,revision:history.revision+1,
+  records:[{...legacy,draft:{...legacy.draft,activityGait:''}}]}));
  const before=readManualRuns(storage),id=created.record.id;
  assert.equal(before.records[0].draft.activityGait,'');
  const beforeRaw=structuredClone(before.records[0]);
