@@ -1328,9 +1328,12 @@ try{
   await page.goto(host+"#/record",{waitUntil:'networkidle'});
   await page.locator('[data-draft="distance"]').fill('5.00');
   await page.locator('[data-draft="minutes"]').fill('30');
+  assert.equal(await page.locator('[data-manual-gait]').count(),3,'activity choices appear in the manual basic form');
   await page.locator('[data-demo-save]').click();
   const review=page.locator('[data-record-review]');await review.waitFor();
   assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
+  assert.equal(await review.locator('[data-review-gait]').count(),3,
+   'unselected activity is clearly disclosed on review even if saving remains possible');
   await page.waitForFunction(()=>{
     const b=document.querySelector('[data-manual-run-save]');
     return !!b&&b.isConnected&&!b.disabled&&getComputedStyle(b).backgroundImage.includes('gradient');
@@ -1357,10 +1360,33 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'unknown manual activity never creates fabricated reference values');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
+  assert.equal(await savedResult.locator('[data-result-gait]').count(),3,
+   'existing saved unknown activity offers in-place repair');
+  await savedResult.locator('[data-result-gait="RUNNING"]').click();
+  await savedResult.locator('.rv4-mini').waitFor();
+  assert.match(await savedResult.locator('.rv4-mini').innerText(),/[1-9][0-2]?\\/12 算出/);
+  assert.equal(await savedResult.locator('[data-result-gait]').count(),0,
+   'activity selection disappears after successful verified persistence');
+  assert.notEqual((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—');
+  assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-gait-repaired.png'),fullPage:false});
+  const classification=await page.evaluate(()=>{
+   const content=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1'));
+   return {revision:content.revision,count:content.records.length,
+     gait:content.records[0].draft.activityGait,distance:content.records[0].distanceKm,
+     duration:content.records[0].durationSeconds,id:content.records[0].id};
+  });
+  assert.equal(classification.count,1,'retrofitting activity never creates a new record');
+  assert.equal(classification.gait,'RUNNING');
+  assert.equal(classification.distance,5);
+  assert.equal(classification.duration,1800);
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.equal(await page.locator('#runload-result-v4 [data-result-gait]').count(),0);
+  assert.ok(await page.locator('#runload-result-v4 [data-body-reference-label]').count()>0,
+    'saved activity correction and anatomy references persist after reload');
   await page.goto(host+'#/home',{waitUntil:'networkidle'});
   assert.match(await page.locator('.hx-latest').innerText(),/5.00/);
   const savedHomeTime=await page.locator('.hx-latest .hx-latest-fig>div:nth-child(2) strong').innerText();
