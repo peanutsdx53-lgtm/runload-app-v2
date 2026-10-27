@@ -119,14 +119,22 @@ try{
   // Test-only GPS provider. No actual physical location or permission request.
   await page.addInitScript(()=>{
     let nextWatch=0,ids=new Map();
+    window.__gpsWatchCount=0;
     Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
       watchPosition(success,error){
+        window.__gpsWatchCount++;
         const id=++nextWatch,offset=(id-1)*.0006,t=Date.now()-20000;
         const timer1=setTimeout(()=>{if(ids.has(id))success({timestamp:t,coords:{latitude:37.501+offset,longitude:139.93,accuracy:8,altitude:300,altitudeAccuracy:10}})},45);
         const timer2=setTimeout(()=>{if(ids.has(id))success({timestamp:t+5000,coords:{latitude:37.50126+offset,longitude:139.93,accuracy:8,altitude:302,altitudeAccuracy:10}})},140);
         ids.set(id,[timer1,timer2]);return id;
       },clearWatch(id){for(const handle of ids.get(id)||[])clearTimeout(handle);ids.delete(id);}
     }});
+  });
+  // Stable tile fixture proves real browser image decoding without hammering the public OSM service.
+  const tileHeaders=[];
+  await page.route('https://tile.openstreetmap.org/**',route=>{
+    tileHeaders.push(route.request().headers());
+    return route.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAFElEQVR4nGMs3HiMAQaYGJAAbg4AX/8B8LrZM0YAAAAASUVORK5CYII=','base64')});
   });
   page.on("pageerror",error=>{throw new Error(mode.name+" page error: "+error.message)});
   await page.goto(host+"#/home",{waitUntil:"networkidle"});
@@ -1099,10 +1107,22 @@ try{
   await page.locator('[data-gps-activity]').selectOption('MIXED');
   assert.match(await page.locator('[data-gps-activity-description]').innerText(),/区間を自分で切り替え/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-ready.png'),fullPage:true});
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'no GPS watcher without explicit consent');
   await page.locator('[data-gps-action="start"]').click();
+  assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'consent dialog is mandatory');
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'dialog open does not start watcher');
+  await page.locator('[data-gps-consent-cancel]').click();
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'denying GPS consent never starts watcher');
+  await page.locator('[data-gps-action="start"]').click();
+  await page.locator('[data-gps-consent-confirm]').click();
   await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),1,'explicit consent starts watcher once');
   assert.ok(await page.locator("[data-gps-map] img").count()>0,"accepted GPS position requests map tiles");
   assert.match(await page.locator("[data-gps-map] img").first().getAttribute("src"),/^https:\/\/tile\.openstreetmap\.org\/16\//);
+  await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='loaded',{timeout:8000});
+  assert.ok(await page.locator('[data-gps-map] img').first().evaluate(img=>img.naturalWidth>0),'a real map tile image decodes');
+  assert.equal(await page.locator('[data-gps-map] img').first().getAttribute('referrerpolicy'),'strict-origin-when-cross-origin');
+  assert.ok(tileHeaders.some(h=>h.referer?.includes('127.0.0.1:4173')),'OSM tile requests preserve Referer');
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'running');
   if(mode.name!=="desktop")assert.equal(await page.locator('.mobile-nav').isVisible(),false,'active GPS measurement hides main navigation');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-running.png'),fullPage:true});
@@ -1110,7 +1130,12 @@ try{
   await page.locator('[data-gps-action="pause"]').click();
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'paused');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-paused.png'),fullPage:true});
+  const watchesBeforeResume=await page.evaluate(()=>window.__gpsWatchCount);
   await page.locator('[data-gps-action="resume"]').click();
+  assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'resuming GPS requests fresh consent');
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume);
+  await page.locator('[data-gps-consent-confirm]').click();
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume+1);
   await page.waitForTimeout(1200);
   await page.locator('[data-gps-action="finish"]').click();
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'finished');
