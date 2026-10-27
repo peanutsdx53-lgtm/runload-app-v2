@@ -48,6 +48,30 @@ try{
     tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
    });db.close();
   });
+  // Exercise the production v2 writer in the actual browser, including opt-out
+  // and an all-in-one backup, not just hand-seeded IndexedDB reads.
+  const persisted=await page.evaluate(async()=>{
+   const storage=await import('/ui/gpsReplayIndexedDbStore.js');
+   const base=1700001000000;
+   const mk=(i,km)=>({lat:37.51+i*.00003,lon:139.91,
+    ele:null,altitudeAccuracy:null,altitudeQuality:'missing',
+    t:base+5000*i,km,breakBefore:i===0,activity:'RUNNING'});
+   const track=[mk(0,0),mk(1,.0125),mk(2,.025)];
+   const session={phase:'finished',activity:'RUNNING',distanceM:25,elapsedMs:10000,
+    accepted:3,rejected:0,track,trackSimplified:false,
+    replayTrackAvailable:true,replayTrack:track.map((p,i)=>({t:p.t,km:p.km,breakBefore:p.breakBefore,activeMs:5000*i})),
+    flags:[]};
+   const simple=await storage.saveGpsV2Run(session,{saveDetails:false,date:'2026-10-27'});
+   const detailed=await storage.saveGpsV2Run(session,{saveDetails:true,date:'2026-10-27'});
+   const simpleDetail=simple.ok?await storage.readGpsV2Detail(simple.summary.id):{ok:false};
+   const fullDetail=detailed.ok?await storage.readGpsV2Detail(detailed.summary.id):{ok:false};
+   const backup=await storage.exportGpsV2Backup();
+   return {simple:simple.ok,detailed:detailed.ok,noDetail:!simpleDetail.ok,
+    withDetail:fullDetail.ok,backup:backup.ok,
+    backupValidated:backup.ok&&storage.inspectGpsV2Backup(backup.text).ok};
+  });
+  assert.deepEqual(persisted,{simple:true,detailed:true,noDetail:true,
+   withDetail:true,backup:true,backupValidated:true},'IndexedDB v2 save and export: '+JSON.stringify(persisted));
   await page.reload({waitUntil:'networkidle'});
   await page.goto('http://127.0.0.1:4189/#/result?gps=gps-v2-00000000-0000-4000-8000-000000000001',{waitUntil:'networkidle'});
   await page.locator('.gd-enter').waitFor();
