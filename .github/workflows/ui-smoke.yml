@@ -23,6 +23,7 @@ jobs:
           node --check ui/homeExperience.js
           node --check ui/rofJScale.js
           node --check ui/rofExperience.js
+          node --check ui/simulationExperience.js
           node --check ui/recordDraftReview.js
           node --check ui/recordExperience.js
           node --check ui/recordReviewExperience.js
