@@ -15,11 +15,11 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261027-scope-close-v46");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-assurance-v43");
-  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-assurance-v43");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-measurement-polish-v2");
+  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-measurement-polish-v2");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
-  const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-gps-replay-v2");
-  const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261027-gps-dynamic-v1");
+  const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
+  const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261027-measurement-polish-v2");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
   const resultExperience=await import("./ui/resultExperience.js?v=20261027-scope-close-v46");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
