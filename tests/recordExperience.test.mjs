@@ -62,7 +62,7 @@ test('manual basic page gives user an explicit choice of three independently mod
  assert.match(html,/data-manual-gait="JOGGING"/);
  assert.match(html,/data-manual-gait="WALK"/);
  assert.match(html,/活動種目が未選択のため保存できません/);
- assert.match(html,/必須3項目/);
+ assert.match(html,/距離・時間・活動種目/);
  assert.match(html,/data-required-field="distance" data-required-ok="false"/);
  assert.match(html,/data-required-field="time" data-required-ok="false"/);
  assert.match(html,/data-required-field="activity" data-required-ok="false"/);
