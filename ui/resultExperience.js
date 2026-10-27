@@ -30,6 +30,13 @@ export function mountResult(host,draft={},options={}){
    const row=bodyReferenceRow(reference?.rows,item.id);
    if(row?.calculationState==='CALCULATED'&&Number.isFinite(row.value))item.value=row.value;
  }
+ // The previous fixed knee selection can legitimately be unavailable while
+ // other body regions have calculated values. Start on a real available region.
+ const firstAvailable=data.find(item=>item.value!==null);
+ if(firstAvailable){
+  chosen=firstAvailable.id;
+  view=BODY_REGION_VIEWS.find(v=>v.paths.some(([id])=>id===chosen))?.key||view;
+ }
  const current=()=>data.find(x=>x.id===chosen)||data[0];
  const selectedView=()=>BODY_REGION_VIEWS.find(x=>x.key===view)||BODY_REGION_VIEWS[0];
  const svgMap=()=>{
