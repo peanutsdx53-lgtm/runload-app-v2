@@ -24,6 +24,7 @@ export function checkReplayPoints(points){
       ||!finite(point.km)||point.km<0||point.km>1000
       ||typeof point.breakBefore!=='boolean')return {ok:false,reason:'INVALID_POINT'};
   if(previous&&(point.t<=previous.t||point.km<previous.km))return {ok:false,reason:'OUT_OF_ORDER'};
+  if(point.activeMs!==undefined&&(!Number.isSafeInteger(point.activeMs)||point.activeMs<0||(previous&&previous.activeMs!==undefined&&point.activeMs<previous.activeMs)))return {ok:false,reason:'INVALID_ACTIVE_TIME'};
   previous=point;
  }
  return {ok:true};
@@ -38,7 +39,7 @@ export function deriveReplaySpeeds(points,{maxGapMs=30000}={}){
  if(!checked.ok)throw new RangeError(checked.reason);
  if(!Number.isSafeInteger(maxGapMs)||maxGapMs<1000||maxGapMs>30000)throw new RangeError('INVALID_GAP');
  return points.map((point,index)=>{
-  const base={t:point.t,km:point.km,speedMps:null};
+  const base={t:point.t,km:point.km,activeMs:point.activeMs??null,speedMps:null};
   if(index===0)return {...base,state:'INITIAL_FIX'};
   if(point.breakBefore)return {...base,state:'GPS_GAP'};
   const previous=points[index-1],dt=point.t-previous.t;
