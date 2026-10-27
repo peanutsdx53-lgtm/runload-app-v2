@@ -475,7 +475,14 @@ function recordExtras(){
    const runId=params.has("record")?params.get("record"):selectedRunId||recent?.id||null;
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
-   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id,record}:{});
+   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
+    saved:true,recordId:record.id,record,
+    onAssignGait:gait=>{
+     const changed=manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait);
+     state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
+     render();
+    }
+   }:{});
    }
  }
  if(page==="dynamic-result"){
@@ -751,6 +758,15 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",async(event)=>{
+    const manualGait=event.target.closest("[data-manual-gait]");
+    if(manualGait&&currentPage()==='record'){
+      const gait=manualGait.dataset.manualGait;
+      if(['RUNNING','JOGGING','WALK'].includes(gait)){
+       state.recordDraft.activityGait=gait;
+       const y=window.scrollY;render();window.scrollTo(0,y);
+      }
+      return;
+    }
     if(event.target.closest("[data-manual-run-save]")){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
