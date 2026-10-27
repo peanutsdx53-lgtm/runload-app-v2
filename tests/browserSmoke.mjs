@@ -1393,7 +1393,8 @@ try{
   assert.equal(await savedResult.locator('.body-reference-satin').count(),anatomyBaseCount);
   assert.equal(await savedResult.locator('.body-reference-relief[aria-hidden="true"][pointer-events="none"]').count(),anatomyBaseCount);
   const scientificFill=await savedResult.locator('.rv4-region').first().evaluate(el=>el.style.fill);
-  assert.match(scientificFill,/^(rgb\\(|#)/,'reference scientific fill remains in base SVG geometry');
+  assert.ok(scientificFill.startsWith('rgb(')||scientificFill.startsWith('#'),
+   'reference scientific fill remains in base SVG geometry');
 
   // Approval preview: record the actual side-by-side anatomy/card arrangement
   // independently for 320, 390, 430 and desktop widths before merging to main.
