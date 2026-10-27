@@ -1326,14 +1326,28 @@ try{
   // Saved manual run E2E: real storage and explicit ID, no simulated GPS input.
   await page.reload({waitUntil:'networkidle'});
   await page.goto(host+"#/record",{waitUntil:'networkidle'});
+  assert.match(await page.locator('.rv-required-progress').innerText(),/距離・時間・活動種目/);
+  await page.locator('[data-demo-save]').click();
+  await page.locator('[data-record-review]').waitFor();
+  assert.equal(await page.locator('[data-manual-run-save]').isDisabled(),true);
+  const missingAll=await page.locator('.rr-alert').innerText();
+  for(const item of ['距離','時間','活動種目'])assert.match(missingAll,new RegExp(item));
+  await page.goto(host+"#/record",{waitUntil:'networkidle'});
   await page.locator('[data-draft="distance"]').fill('5.00');
   await page.locator('[data-draft="minutes"]').fill('30');
   assert.equal(await page.locator('[data-manual-gait]').count(),3,'activity choices appear in the manual basic form');
   await page.locator('[data-demo-save]').click();
   const review=page.locator('[data-record-review]');await review.waitFor();
-  assert.ok(await review.locator('[data-manual-run-save]').isEnabled());
+  assert.ok(await review.locator('[data-manual-run-save]').isDisabled(),
+    'a manual run is not savable without an activity category');
   assert.equal(await review.locator('[data-review-gait]').count(),3,
-   'unselected activity is clearly disclosed on review even if saving remains possible');
+   'missing activity is disclosed as an explicitly required field');
+  assert.match(await review.locator('.rr-alert').innerText(),/活動種目を選択してください/);
+  assert.match(await review.locator('.rr-save-required-warning').innerText(),/入力が完了すると保存/);
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-required-warning-v19.png'),fullPage:false});
+  await review.locator('[data-review-gait="RUNNING"]').click();
+  assert.ok(await review.locator('[data-manual-run-save]').isEnabled(),
+    'selecting an activity makes a valid manual record eligible to save');
   await page.waitForFunction(()=>{
     const b=document.querySelector('[data-manual-run-save]');
     return !!b&&b.isConnected&&!b.disabled&&getComputedStyle(b).backgroundImage.includes('gradient');
@@ -1355,6 +1369,19 @@ try{
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
+  assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0,
+   'newly saved classified manual run shows real calculated body labels');
+  // Simulate a record written by an older app version, which could save UNKNOWN.
+  // Existing records must stay readable and offer an explicit repair path.
+  const legacyBefore=await page.evaluate(()=>{
+   const key='runload-v2-manual-runs-v1';
+   const history=JSON.parse(localStorage.getItem(key));
+   const record=history.records[0],original={id:record.id,distance:record.distanceKm,time:record.durationSeconds};
+   record.draft.activityGait='UNKNOWN';
+   history.revision+=1;localStorage.setItem(key,JSON.stringify(history));
+   return original;
+  });
+  await page.reload({waitUntil:'networkidle'});
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/活動種別が未選択/,'legacy/unspecified runs have no inferred activity');
   assert.equal((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—','no fabricated score without explicit activity');
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
@@ -1378,8 +1405,9 @@ try{
   });
   assert.equal(classification.count,1,'retrofitting activity never creates a new record');
   assert.equal(classification.gait,'RUNNING');
-  assert.equal(classification.distance,5);
-  assert.equal(classification.duration,1800);
+  assert.equal(classification.distance,legacyBefore.distance);
+  assert.equal(classification.duration,legacyBefore.time);
+  assert.equal(classification.id,legacyBefore.id,'old record ID is unchanged after classification');
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
   await page.reload({waitUntil:'networkidle'});
