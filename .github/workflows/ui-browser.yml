@@ -31,7 +31,8 @@ permissions:
   contents: read
 jobs:
   browser-smoke:
-    runs-on: ubuntu-latest
+    # Pin supported runner: Ubuntu 26.04 mirror can stall the Japanese-font install.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
