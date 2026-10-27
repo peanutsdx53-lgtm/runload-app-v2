@@ -767,6 +767,15 @@ function recordExtras(){
       }
       return;
     }
+    const reviewGait=event.target.closest("[data-review-gait]");
+    if(reviewGait&&currentPage()==='record-review'){
+     const gait=reviewGait.dataset.reviewGait;
+     if(['RUNNING','JOGGING','WALK'].includes(gait)){
+      state.recordDraft.activityGait=gait;
+      const y=window.scrollY;render();window.scrollTo(0,y);
+     }
+     return;
+    }
     if(event.target.closest("[data-manual-run-save]")){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
