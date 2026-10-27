@@ -88,6 +88,7 @@ try{
   assert.equal(await page.locator('[data-body-reference-label]').count(),0,
    'dynamic anatomy has no overlaid badges in default color mode');
   assert.equal(await page.locator('.gd-palette-track').count(),1);
+  await page.screenshot({path:resolve(root,'screenshots',engineName+'-'+mode.name+'-dynamic-palette-clean.png'),fullPage:false});
   await page.locator('[data-body-label-toggle]').click();
   const hipAtOpen=page.locator('[data-body-reference-label="BA-DISP-014"]');
   assert.equal(await hipAtOpen.count(),1,'first calculable frame shows numeric hip badge on the body');
