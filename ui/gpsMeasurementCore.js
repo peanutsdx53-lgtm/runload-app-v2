@@ -127,7 +127,7 @@ export function formatGpsClock(ms){const secs=Math.floor(Math.max(0,ms)/1000);re
 export function gpsPace(distanceM,elapsedMs){if(!(distanceM>=GPS_LIMITS.minFinishM&&elapsedMs>0))return '—';const seconds=Math.round(elapsedMs/1000/(distanceM/1000));return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
 export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  const source=geo;let watchId=null,epoch=0;
- const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],replayTrack:[],replayTrackAvailable:true,flags:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,keepScreenAwake:false,trackSimplified:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
+ const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],replayTrack:[],replayTrackAvailable:true,flags:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,keepScreenAwake:false,bodyMassKg:null,trackSimplified:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
  const changed=()=>onChange(s);
  const checkGoal=()=>{
   if(s.phase!=='running'||s.goalReached||s.goalMode==='free')return false;
@@ -179,13 +179,19 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  function start(){if(s.phase!=='ready')return false;if(s.goalMode!=='free'&&!(Number(s.goalValue)>0&&Number(s.goalValue)<=1000)){s.notice='時間または距離の目標を正しく入力してください';changed();return false;}s.startedAt=now();s.phase='running';s.notice='';if(!watch()){s.phase='ready';s.startedAt=0;return false;}changed();return true;}
  function pause(){if(s.phase!=='running')return false;s.pausedAt=now();s.phase='paused';stopWatch();changed();return true;}
  function resume(){if(s.phase!=='paused')return false;s.pausedMs+=Math.max(0,now()-s.pausedAt);s.pausedAt=0;s.phase='running';s.lastPosition=null;s.nextGap=true;if(!watch()){s.phase='paused';s.pausedAt=now();return false;}changed();return true;}
- function finish(){if(!['running','paused'].includes(s.phase))return false;const t=now();if(s.phase==='paused')s.pausedMs+=Math.max(0,t-s.pausedAt);s.finishedAt=t;s.phase='finished';stopWatch();changed();return true;}
+ function finish(){if(!['running','paused'].includes(s.phase))return false;const t=now();if(s.phase==='paused')s.pausedMs+=Math.max(0,t-s.pausedAt);s.finishedAt=t;s.phase='finished';stopWatch();
+  if(s.distanceM<GPS_LIMITS.minFinishM||s.accepted<2){
+   s.notice='GPSの有効な移動距離が10m未満のため、この測定は保存できません。下の「保存せず戻る」から終了できます。';
+  }else s.notice='測定を終了しました。内容を確認して保存するか、保存せず戻ってください。';
+  changed();return true;}
  function discard(){stopWatch();s.phase='discarded';s.track=[];s.replayTrack=[];s.flags=[];s.replayTrackAvailable=false;s.lastPosition=null;changed();return true;}
  function addFlag(){
-  if(s.phase!=='running'||!s.lastPosition||s.accepted<2||s.flags.length>=500)return false;
+  if(s.phase!=='running')return false;
+  if(!s.lastPosition||s.accepted<2){s.notice='フラッグを付けるには、先にGPS測位と移動を確認してください。';changed();return false;}
+  if(s.flags.length>=500){s.notice='フラッグは最大500件です。';changed();return false;}
   const p=s.lastPosition;
   s.flags.push({activeMs:gpsElapsedMs(s,now()),id:'flag-'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),t:p.t,km:s.distanceM/1000,lat:p.lat,lon:p.lon,note:''});
-  s.notice='フラッグを記録しました。コメントは測定後に編集できます。';
+  s.notice='フラッグ（'+s.flags.length+'）を地図に記録しました。メモは測定終了後に追加できます。';
   changed();return true;
  }
  function setFlagNote(id,note){
@@ -194,8 +200,9 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  }
  function setGoalMode(value){if(s.phase!=='ready'||!['free','time','distance'].includes(value))return false;s.goalMode=value;s.goalValue='';changed();return true;}
  function setGoalValue(value){if(s.phase!=='ready')return false;s.goalValue=String(value).slice(0,16);return true;}
+ function setBodyMassKg(value){if(s.phase!=='ready')return false;s.bodyMassKg=Number.isFinite(value)&&value>=25&&value<=180?value:null;return true;}
  function setKeepScreenAwake(value){if(s.phase!=='ready')return false;s.keepScreenAwake=value===true;changed();return true;}
  function setActivity(value){if(s.phase!=='ready'||!GPS_ACTIVITY[value])return false;s.activity=value;s.segmentActivity=value==='MIXED'?'RUNNING':value;changed();return true;}
  function setSegment(value){if(s.activity!=='MIXED'||!['WALK','JOGGING','RUNNING'].includes(value)||s.phase!=='running')return false;if(s.segmentActivity===value)return true;s.segmentActivity=value;s.lastPosition=null;s.nextGap=true;changed();return true;}
- return {state:s,start,pause,resume,finish,discard,setActivity,setKeepScreenAwake,setGoalMode,setGoalValue,setSegment,addFlag,setFlagNote,stopWatch,checkGoal,elapsed:()=>gpsElapsedMs(s,now()),getSnapshot:()=>({...s,track:s.track.map(p=>({...p})),replayTrack:s.replayTrack.map(p=>({...p})),flags:s.flags.map(p=>({...p})),elapsedMs:gpsElapsedMs(s,now())})};
+ return {state:s,start,pause,resume,finish,discard,setActivity,setKeepScreenAwake,setGoalMode,setGoalValue,setSegment,addFlag,setFlagNote,setBodyMassKg,stopWatch,checkGoal,elapsed:()=>gpsElapsedMs(s,now()),getSnapshot:()=>({...s,track:s.track.map(p=>({...p})),replayTrack:s.replayTrack.map(p=>({...p})),flags:s.flags.map(p=>({...p})),elapsedMs:gpsElapsedMs(s,now())})};
 }

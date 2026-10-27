@@ -85,6 +85,16 @@ export function updateGpsLiveMap(root,s){
  const overlay=map.querySelector('[data-gps-map-overlay]');
  overlay.setAttribute('viewBox',`0 0 ${width} ${height}`);
  const path=segmentPaths(s.track||[],center,width,height,zoom);
- overlay.innerHTML=`<g class="gps-map-track-under">${path}</g><g class="gps-map-track-line">${path}</g><circle class="gps-map-marker-halo" cx="${width/2}" cy="${height/2}" r="17"/><circle class="gps-map-marker" cx="${width/2}" cy="${height/2}" r="7"/>`;
+ // Flags are attached to accepted GPS fixes. Map positions remain relative
+ // to the current tile center; no fabricated location or active GPS sample.
+ const total=TILE*2**zoom;
+ const flags=(s.flags||[]).filter(f=>isCoordinate(f)).map((f,i)=>{
+  const pos=worldPoint(f.lat,f.lon,zoom);
+  if(!pos)return '';
+  const fx=pos.x+Math.round((center.x-pos.x)/total)*total-center.x+width/2;
+  const fy=pos.y-center.y+height/2;
+  return `<g class="gps-map-flag" data-gps-map-flag="${i+1}" transform="translate(${fx.toFixed(1)} ${fy.toFixed(1)})"><circle r="15" cy="-17" class="gps-map-flag-bubble"/><text x="0" y="-12" text-anchor="middle" class="gps-map-flag-number">${i+1}</text><path d="M0 -2V8" class="gps-map-flag-stem"/></g>`;
+ }).join('');
+ overlay.innerHTML=`<g class="gps-map-track-under">${path}</g><g class="gps-map-track-line">${path}</g><g class="gps-map-flags">${flags}</g><circle class="gps-map-marker-halo" cx="${width/2}" cy="${height/2}" r="17"/><circle class="gps-map-marker" cx="${width/2}" cy="${height/2}" r="7"/>`;
  const label=map.querySelector('[data-gps-map-location]');if(label)label.textContent=`現在地付近　誤差 ±${Math.round(p.accuracyM)}m`;
 }

@@ -1146,6 +1146,11 @@ try{
   assert.equal(await page.locator('[data-gps-map] img').first().getAttribute('referrerpolicy'),'strict-origin-when-cross-origin');
   assert.ok(tileHeaders.some(h=>h.referer?.includes('127.0.0.1:4173')),'OSM tile requests preserve Referer');
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'running');
+  // A stored flag must immediately appear on the map, with a numbered marker.
+  await page.locator('[data-gps-action="flag"]').click();
+  await page.locator('[data-gps-map-flag="1"]').waitFor();
+  assert.match(await page.locator('[data-gps-map-flags]').innerText(),/1件/);
+  assert.equal(await page.locator('[data-gps-route]').count(),0,'no duplicated route preview during measurement');
   if(mode.name!=="desktop")assert.equal(await page.locator('.mobile-nav').isVisible(),false,'active GPS measurement hides main navigation');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-running.png'),fullPage:true});
   await page.locator('[data-gps-segment]').selectOption('WALK');
@@ -1180,6 +1185,9 @@ try{
   if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeReleases===3,null,{timeout:8000});
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'finished');
   assert.equal(await page.locator('[data-gps-save-route]').isChecked(),false,'precise position track must be opt-in');
+  assert.equal(await page.locator('.gps-flag-note-card').count(),1);
+  await page.locator('[data-gps-flag-note]').fill('折り返し地点');
+  await page.locator('[data-gps-flag-note]').dispatchEvent('change');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-finished.png'),fullPage:true});
   await page.locator('[data-gps-save-route]').check();
   await page.locator('[data-gps-action="save"]').click();
@@ -1205,6 +1213,7 @@ try{
   assert.equal(savedV2.details.length,1);
   assert.ok(savedV2.details[0].route.length>=2);
   assert.ok(savedV2.details[0].speedPoints.length>=2);
+  assert.equal(savedV2.details[0].flags[0].note,'折り返し地点');
   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-gps-runs-v1')),null,
     'GPS coordinates are not in localStorage');
   await page.reload({waitUntil:'networkidle'});
@@ -1229,10 +1238,20 @@ try{
     await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='unavailable',null,{timeout:8000});
     assert.match(await page.locator('[data-gps-map-network-status]').innerText(),/道路地図を取得できません/);
     await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
-    assert.ok(await page.locator('[data-gps-route]').count()>0,'offline map does not disable track');
+    assert.ok(await page.locator('[data-gps-map-overlay] .gps-map-track-line path').count()>0,'offline map still draws recorded track');
+    assert.equal(await page.locator('[data-gps-route]').count(),0,'redundant route preview is removed');
     await page.locator('[data-gps-action="finish"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     failTiles=false;
+    // Finish with zero movement: never leave the user stuck on a disabled save path.
+    await page.goto(host+'#/measurement',{waitUntil:'networkidle'});
+    await page.locator('[data-gps-action="start"]').click();
+    await page.locator('[data-gps-consent-confirm]').click();
+    await page.locator('[data-gps-action="finish"]').click();
+    assert.match(await page.locator('.gps-finish-unavailable').innerText(),/保存できません/);
+    assert.equal(await page.locator('[data-gps-action="save"]').count(),0);
+    await page.locator('[data-gps-action="discard"]').click();
+    assert.match(new URL(page.url()).hash,/record-start/);
   }
   if(mode.name==='desktop'){
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
