@@ -879,7 +879,13 @@ function recordExtras(){
       gpsConsentAction="";
       if(gpsConsentChoice.hasAttribute('data-gps-consent-confirm')&&currentPage()==='measurement'){
         const gps=ensureGps();
-        if(pending==='start'&&gps.state.phase==='ready')gps.start();
+        if(pending==='start'&&gps.state.phase==='ready'){
+          // Capture optional profile body mass only when measurement begins.
+          // A later profile edit must not retroactively change this session.
+          const mass=settingsExperience.loadProfile(onboardStorage).weightKg;
+          gps.setBodyMassKg(typeof mass==='number'?mass:null);
+          gps.start();
+        }
         if(pending==='resume'&&gps.state.phase==='paused')gps.resume();
         refreshGpsTicker();if(gps.state.phase==='running')void requestGpsWakeLock();render();
       }else{
