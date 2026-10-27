@@ -1229,7 +1229,8 @@ try{
     await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='unavailable',null,{timeout:8000});
     assert.match(await page.locator('[data-gps-map-network-status]').innerText(),/道路地図を取得できません/);
     await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
-    assert.ok(await page.locator('[data-gps-route]').count()>0,'offline map does not disable track');
+    assert.ok(await page.locator('[data-gps-map-overlay] .gps-map-track-line path').count()>0,'offline map still draws recorded track');
+    assert.equal(await page.locator('[data-gps-route]').count(),0,'redundant route preview is removed');
     await page.locator('[data-gps-action="finish"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     failTiles=false;
