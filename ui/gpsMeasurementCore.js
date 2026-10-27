@@ -161,7 +161,7 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
    // Never silently return a truncated series as a complete replay.
    if(s.replayTrackAvailable){
     if(s.replayTrack.length>=50000){s.replayTrack=[];s.replayTrackAvailable=false;}
-    else s.replayTrack.push({t:accepted.t,km:s.distanceM/1000,breakBefore:check.gap});
+    else s.replayTrack.push({t:accepted.t,km:s.distanceM/1000,breakBefore:check.gap,activeMs:gpsElapsedMs(s,now())});
    }
    s.track.push({...accepted,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
    if(s.track.length>GPS_LIMITS.maxTrack){s.track=compactGpsTrack(s.track);s.trackSimplified=true;}
@@ -184,7 +184,7 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  function addFlag(){
   if(s.phase!=='running'||!s.lastPosition||s.accepted<2||s.flags.length>=500)return false;
   const p=s.lastPosition;
-  s.flags.push({id:'flag-'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),t:p.t,km:s.distanceM/1000,lat:p.lat,lon:p.lon,note:''});
+  s.flags.push({activeMs:gpsElapsedMs(s,now()),id:'flag-'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),t:p.t,km:s.distanceM/1000,lat:p.lat,lon:p.lon,note:''});
   s.notice='フラッグを記録しました。コメントは測定後に編集できます。';
   changed();return true;
  }
