@@ -20,8 +20,12 @@ const time=ms=>{
 const palette=(row)=>{
  if(!row||row.calculationState!=='CALCULATED'||!Number.isFinite(row.value))return {fill:'#52636b',state:'missing'};
  const offset=row.value-100;
- // Direction, NOT severity, risk or inter-region magnitude ranking.
- return {fill:offset>5?'#eda47b':offset< -5?'#6caae3':'#43d0c0',state:'available'};
+ // Continuously vary the intensity from reference 100. Each region is independent.
+ // Colors indicate literature-reference deviation, never clinical risk or tissue force.
+ const ratio=Math.min(1,Math.abs(offset)/35);
+ const base=[45,104,120],target=offset<0?[105,167,227]:[239,157,103];
+ const rgb=base.map((v,i)=>Math.round(v+(target[i]-v)*ratio));
+ return {fill:'rgb('+rgb.join(',')+')',state:'available'};
 };
 const svgLine=points=>points.length<2?'':points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
 function routeGeometry(track){
@@ -99,7 +103,7 @@ export function mountGpsDynamicResult(host,summary,detail){
   const n=speed.length;
   // All points determine the global visible speed scale; only drawn vertices are sampled.
   const valid=speed.map(s=>s.speedMps).filter(x=>x!==null&&Number.isFinite(x)&&x>=0);
-  const top=Math.max(1,...valid)*3.6;
+  const top=valid.reduce((max,v)=>Math.max(max,v),1)*3.6;
   const maxVertices=180,step=Math.max(1,Math.ceil(n/maxVertices));
   let pts=[];
   for(let k=0;k<n;k+=step){const s=speed[k];if(s.speedMps!==null)pts.push([5+(k/(n-1))*690,61-53*(s.speedMps*3.6/top)]);}
