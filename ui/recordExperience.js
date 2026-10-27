@@ -1,5 +1,6 @@
 // RunLoad v2: presentation/interaction helpers for approved record v2 screens.
 // Not a replacement for the authoritative v1 record/scientific storage contract.
+import {checkManualRequiredFields} from './recordDraftReview.js';
 export const SURFACES = Object.freeze([
  ['paved','舗装路'],['track','陸上トラック'],['treadmill','トレッドミル'],
  ['soil','締まった土道'],['trail','不整地トレイル'],['naturalGrass','天然芝'],
@@ -26,7 +27,8 @@ export function courseSummary(d,ui){
  return {slope,surface,courseName:filled(d.courseName)?String(d.courseName):'コース未設定'};
 }
 export function manualPage(state){
- const d=state.recordDraft,run=state.recordType==='run',s=courseSummary(d,state.recordCourseUi);
+ const d=state.recordDraft,run=state.recordType==='run',s=courseSummary(d,state.recordCourseUi),required=checkManualRequiredFields(d);
+ const requiredMessage=run?(required.ok?'<span class="rv-required-all-done">必須3項目が入力済みです</span>':'<span class="rv-required-pending">未入力・要確認：'+[['distance','距離'],['time','時間'],['activity','活動種目']].filter(([k])=>!required.fields[k]).map(([,n])=>n).join('・')+'</span>'):'';
  const date=escape(d.date);
  const time=filled(d.minutes)?Number(d.minutes):null;
  const pace=run&&filled(d.distance)&&Number(d.distance)>0&&Number.isFinite(time)&&time>0
@@ -39,15 +41,15 @@ export function manualPage(state){
   ['#/record-reflection','✎','身体・使用品・メモ',filled(d.bodyObservation)||filled(d.shoeName)||filled(d.memo)?'入力あり':'未入力']
  ];
  return `<div class="record-v3 rv-manual"><header class="rv-head"><a href="#/record-start" class="rv-back rv-phone-only" aria-label="記録方法の選択へ戻る">‹</a><div><h1>手入力で記録</h1></div></header>
- <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報</h2>
+ <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報</h2>${run?`<p class="rv-required-overview">走行の保存には <b>距離・時間・活動種目</b> の入力が必要です。<span>※ 必須</span></p><p class="rv-required-progress" role="status">${requiredMessage}</p>`:''}
  ${optionGroup('data-record-type',[['run','走行'],['rest','休養']],state.recordType)}
  <label class="rv-field rv-date"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">${date.replaceAll("-", "/")}</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input aria-label="記録日" data-draft="date" type="date" value="${date}"></span></label>
- ${run?`<div class="rv-numbers"><label class="rv-field"><span>距離</span><div class="rv-unit-input"><input data-draft="distance" aria-label="距離（km）" type="number" inputmode="decimal" min="0.01" max="10000" step="0.01" placeholder="0.00" value="${escape(d.distance)}"><em>km</em></div></label>
- <label class="rv-field"><span>時間</span><div class="rv-unit-input"><input data-draft="minutes" aria-label="時間（分）" type="number" inputmode="decimal" min="0.01" max="100000" step="0.01" placeholder="0.0" value="${escape(d.minutes)}"><em>分</em></div></label></div>${pace?`<p class="rv-derived">平均ペース　<strong>${pace}</strong> <small>入力値から算出</small></p>`:''}
- <div class="rv-gait-entry" role="group" aria-label="記録の活動種別">
-  <div class="rv-gait-entry-title"><strong>活動種別</strong><small>12部位の参考値を表示するために選択</small></div>
+ ${run?`<div class="rv-numbers"><label class="rv-field" data-required-field="distance" data-required-ok="${required.fields.distance}"><span>距離 <em class="rv-required-mark">必須</em></span><div class="rv-unit-input"><input data-draft="distance" aria-label="距離（km）" aria-required="true" aria-invalid="${!required.fields.distance}" type="number" inputmode="decimal" min="0.01" max="10000" step="0.01" placeholder="0.00" value="${escape(d.distance)}"><em>km</em></div></label>
+ <label class="rv-field" data-required-field="time" data-required-ok="${required.fields.time}"><span>時間 <em class="rv-required-mark">必須</em></span><div class="rv-unit-input"><input data-draft="minutes" aria-label="時間（分）" aria-required="true" aria-invalid="${!required.fields.time}" type="number" inputmode="decimal" min="0.01" max="100000" step="0.01" placeholder="0.0" value="${escape(d.minutes)}"><em>分</em></div></label></div>${pace?`<p class="rv-derived">平均ペース　<strong>${pace}</strong> <small>入力値から算出</small></p>`:''}
+ <div class="rv-gait-entry" role="group" aria-label="必須：記録の活動種目" data-required-field="activity" data-required-ok="${required.fields.activity}">
+  <div class="rv-gait-entry-title"><strong>活動種目 <em class="rv-required-mark">必須</em></strong><small>走行に合った種目を選択してください</small></div>
   <div class="rv-gait-options">${[['RUNNING','ランニング'],['JOGGING','ジョギング'],['WALK','ウォーキング']].map(([key,label])=>`<button type="button" data-manual-gait="${key}" aria-pressed="${d.activityGait===key}">${label}</button>`).join('')}</div>
-  <p class="rv-gait-hint">${['RUNNING','JOGGING','WALK'].includes(d.activityGait)?'選択した活動と平均速度が文献の適用範囲内の場合に、保存後に参考値を表示します。':'未選択のまま保存することもできますが、その場合は人体図の参考値を算出できません。'}${d.runningFormat==='RUN_WALK'?' 走歩混在の記録は活動種別を選んでも単一活動として数値化しません。':''}</p>
+  <p class="rv-gait-hint">${['RUNNING','JOGGING','WALK'].includes(d.activityGait)?'選択した活動と平均速度が文献の適用範囲内の場合に、保存後に参考値を表示します。':'活動種目が未選択のため保存できません。ランニング・ジョギング・ウォーキングのいずれかを選択してください。'}${d.runningFormat==='RUN_WALK'?' 走歩混在の記録は活動種別を選んでも単一活動として数値化しません。':''}</p>
  </div>`:
  '<p class="rv-muted">休養日は距離・時間を入力しません。必要に応じてメモを追加できます。</p>'}
  </section><section class="rv-panel rv-secondary"><h2 class="rv-section-title">追加情報 <small>任意</small></h2>
