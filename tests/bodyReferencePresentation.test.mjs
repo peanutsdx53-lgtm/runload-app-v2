@@ -128,3 +128,22 @@ test('anatomical reference fill shares the original body silhouette as a SVG cli
  }
  assert.equal(bodyReferenceSilhouetteClipDef(null,'test'),'');
 });
+
+test('posterior thigh calf and Achilles fills follow the same x=152 bilateral axis',()=>{
+ const posterior=BODY_REGION_VIEWS.find(view=>view.key==='back');
+ for(const id of ['BA-DISP-018','BA-DISP-023','BA-DISP-025']){
+  const geometry=posterior.paths.find(([region])=>region===id)?.[1];
+  assert.ok(geometry,'anatomical display region '+id);
+  const halves=geometry.split(/(?=M)/).filter(Boolean);
+  assert.equal(halves.length,2,id+' has a left and right part');
+  const coords=halves.map(path=>
+   [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map(entry=>Number(entry[0])));
+  assert.equal(coords[0].length,coords[1].length,id+' matching cubic contour');
+  for(let i=0;i<coords[0].length;i+=2){
+   assert.ok(Math.abs(coords[0][i]+coords[1][i]-304)<.001,
+    id+' mirrored x around anatomical midline 152 at point '+i/2);
+   assert.equal(coords[0][i+1],coords[1][i+1],
+    id+' matched vertical contour at point '+i/2);
+  }
+ }
+});
