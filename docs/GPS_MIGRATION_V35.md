@@ -63,3 +63,9 @@
 - Restore merges only missing IDs under a single IndexedDB readwrite transaction. Identical existing IDs are skipped; conflicting content for the same ID refuses the entire restore without overwriting an existing route.
 - The backup is for GPS records only. Manual-run scientific stores, other history or settings are not included and are not modified.
 - The 50MB single-file restriction and origin-based browser storage eviction remain documented limitations. Browsers may still deny a download; the user must confirm the saved file exists on the device.
+
+## W-06 continued — storage estimate, explicit persistence and origin limitations
+- User-triggered storage estimate shows **whole-origin** usage/quota, never claims GPS-only allocation.
+- Storage persistence is requested on explicit user action and browser refusal/absence is reported without claiming success. This does not protect from user deletion or device loss.
+- Project-hosted GitHub Pages shares one origin with sibling projects. Code cannot isolate indexedDB from sibling apps of the same origin; a dedicated origin/custom domain is required for isolation and remains a deployment decision.
+- Backups remain unencrypted and local; browser estimates and persistence do not replace backup files.

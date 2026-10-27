@@ -18,6 +18,7 @@
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-track-v38");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-track-v38");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
+  const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
@@ -63,6 +64,7 @@
   let gpsTicker=null;
   let pendingGpsDelete="";
   let pendingGpsBackup=null,gpsBackupNotice="";
+  let gpsCapacity=null,gpsCapacityNotice="";
   // GPS access needs a fresh, app-level affirmative choice on every start/resume.
   // Browser OS permission persistence is not equivalent to session consent.
   let gpsConsentAction="";
@@ -452,6 +454,7 @@ function recordExtras(){
    const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
    gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?(r.trackSimplified?'軌跡保存あり（形状は間引き済み）':'軌跡保存あり'):'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
    gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-backup"><h3>GPS記録のバックアップ</h3><p>位置情報を含む未暗号化のJSONファイルを端末に保存・復元できます。ファイルの保管場所に注意してください。外部サービスには送信しません。</p><div class="gps-history-backup-actions"><button type="button" data-gps-backup-export>GPS記録をファイルに保存</button><label>バックアップを読み込む<input data-gps-backup-file type="file" accept=".json,application/json"></label></div>${gpsBackupNotice?`<p role="status" class="gps-history-backup-notice">${esc(gpsBackupNotice)}</p>`:''}${pendingGpsBackup?`<div class="gps-history-backup-confirm"><p>GPS記録 ${pendingGpsBackup.count}件（軌跡あり ${pendingGpsBackup.routeCount}件）を検証しました。重複はスキップし、異なる内容の同じIDがある場合は復元を中止します。</p><button type="button" data-gps-backup-confirm>復元を確定</button><button type="button" data-gps-backup-cancel>キャンセル</button></div>`:''}</div>`);
+   gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-capacity"><h3>端末の保存状況</h3><p>このサイト全体（GPS以外の記録・キャッシュを含む）のブラウザーによる概算です。保存容量に余裕があっても消去される場合があります。</p><div data-gps-capacity-status role="status">${gpsCapacity?(gpsCapacity.ok?(gpsCapacity.percent===null?'容量の割合は取得できません':`サイト全体の使用率 ${gpsCapacity.percent}%／使用 ${gpsCapacity.usageMiB} MiB・上限目安 ${gpsCapacity.quotaMiB} MiB`)+`。永続化：${gpsCapacity.persistent===true?'許可済み':gpsCapacity.persistent===false?'未許可':'確認できません'}。`+(gpsCapacity.warning?'容量不足に注意してください。バックアップを推奨します。':''):esc(gpsCapacity.reason)):'容量は未確認です'}</div><div class="gps-history-backup-actions"><button type="button" data-gps-capacity-check>容量を確認</button><button type="button" data-gps-persist-request>保存領域の永続化を依頼</button></div>${gpsCapacityNotice?`<p role="status" class="gps-history-capacity-notice">${esc(gpsCapacityNotice)}</p>`:''}<p>永続化はブラウザーが拒否する場合があり、端末故障・手動削除からは保護されません。</p>${gpsStorageHealth.sharedGithubPagesOrigin(location.href)?'<p class="gps-history-origin-warning">注意：GitHub Pagesのプロジェクトは同じオリジンの他アプリと保存領域を共有します。GPSデータを分離するには専用ドメイン等で独立したオリジンが必要です。</p>':''}</div>`);
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
@@ -734,6 +737,15 @@ function recordExtras(){
         reportSettingsNotice('表示設定を保存しました。');
       }else reportSettingsNotice(saved.message);
       return;
+    }
+    const gpsCapacityAction=event.target.closest('[data-gps-capacity-check],[data-gps-persist-request]');
+    if(gpsCapacityAction){
+      if(gpsCapacityAction.hasAttribute('data-gps-persist-request')){
+        const requested=await gpsStorageHealth.requestGpsStoragePersistence();
+        gpsCapacityNotice=requested.ok?requested.message:requested.reason;
+      }else gpsCapacityNotice='';
+      gpsCapacity=await gpsStorageHealth.readGpsOriginStorage();
+      render();return;
     }
     const gpsBackupAction=event.target.closest('[data-gps-backup-export],[data-gps-backup-confirm],[data-gps-backup-cancel]');
     if(gpsBackupAction){

@@ -1188,6 +1188,12 @@ try{
   }
   if(mode.name==='desktop'){
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
+    assert.match(await page.locator('.gps-history-capacity').innerText(),/このサイト全体/);
+    await page.locator('[data-gps-capacity-check]').click();
+    await page.waitForFunction(()=>{const s=document.querySelector('[data-gps-capacity-status]')?.textContent||'';return s.includes('使用率')||s.includes('取得できません')||s.includes('対応していません')},null,{timeout:8000});
+    await page.locator('[data-gps-persist-request]').click();
+    await page.locator('.gps-history-capacity-notice').waitFor();
+    assert.match(await page.locator('.gps-history-capacity-notice').innerText(),/ブラウザー|要求できません|永続化/);
     const downloadedPromise=page.waitForEvent('download');
     await page.locator('[data-gps-backup-export]').click();
     const downloaded=await downloadedPromise;
