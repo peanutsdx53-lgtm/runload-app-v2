@@ -1238,6 +1238,7 @@ try{
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
     await page.evaluate(async()=>{
       const old=await import('/ui/gpsIndexedDbStore.js');
+      await old.initializeGpsStore(); // fresh module URL is separate from app's query-versioned import
       const t=1700000000000;
       const point=(i,km)=>({lat:37.50+i*.0001,lon:139.90,
         ele:null,altitudeAccuracy:null,altitudeQuality:'missing',km,
