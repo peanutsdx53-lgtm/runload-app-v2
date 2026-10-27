@@ -61,8 +61,25 @@ test('manual basic page gives user an explicit choice of three independently mod
  assert.match(html,/data-manual-gait="RUNNING"/);
  assert.match(html,/data-manual-gait="JOGGING"/);
  assert.match(html,/data-manual-gait="WALK"/);
- assert.match(html,/未選択のまま保存することもできます/);
+ assert.match(html,/活動種目が未選択のため保存できません/);
+ assert.match(html,/必須3項目/);
+ assert.match(html,/data-required-field="distance" data-required-ok="false"/);
+ assert.match(html,/data-required-field="time" data-required-ok="false"/);
+ assert.match(html,/data-required-field="activity" data-required-ok="false"/);
  assert.equal((html.match(/data-manual-gait=/g)||[]).length,3);
  d.activityGait='JOGGING';
  assert.match(manualPage(state),/data-manual-gait="JOGGING" aria-pressed="true"/);
+});
+
+test('required statuses work in both mobile and desktop templates without automatic activity guessing',()=>{
+ const d={...draft(),date:'2026-10-27',distance:'5',minutes:'30',activityGait:'UNKNOWN'};
+ const state={recordType:'run',recordDraft:d,recordCourseUi:initialCourseUi(d)};
+ const html=manualPage(state);
+ assert.match(html,/未入力・要確認：活動種目/);
+ assert.match(html,/aria-required="true"/);
+ d.activityGait='RUNNING';
+ const complete=manualPage(state);
+ assert.match(complete,/必須3項目が入力済みです/);
+ assert.match(complete,/data-required-field="activity" data-required-ok="true"/);
+ assert.doesNotMatch(complete,/未入力・要確認/);
 });
