@@ -70,3 +70,13 @@ test('public-facing result copy omits internal branding and preserves formal nam
  for(const literal of ['RUNLOAD / RESULTS',"t('RUNLOAD'",'RunLoad_入力中の走行.png','正式保存前','履歴未接続'])assert.equal(js.includes(literal),false,literal);
  assert.ok(OFFICIAL_NAMES.some(([,name])=>name==='膝蓋大腿関節部'),'official anatomical names are never rewritten');
 });
+
+test('saved UNKNOWN manual record has explicit repair choices with no inferred activity',()=>{
+ const result=read('ui/resultExperience.js');
+ const store=read('ui/manualRunStore.js');
+ assert.match(result,/missingActivityPanel/);
+ assert.match(result,/data-result-gait/);
+ assert.match(result,/options\.onAssignGait/);
+ assert.match(store,/classifySavedManualRun/);
+ assert.match(result,/GAIT_NOT_SELECTED/);
+});
