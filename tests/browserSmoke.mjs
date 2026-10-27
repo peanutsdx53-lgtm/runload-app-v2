@@ -997,6 +997,14 @@ try{
   assert.equal(await conditionLink.count(),1,'condition detail lives inside the home condition card');
   await conditionLink.click();
   assert.ok(page.url().includes('#/condition'));
+  // Route markup may appear one frame before its lazy CSS is applied.
+  // Wait for real computed-theme parity rather than comparing during a flash.
+  await page.locator('[data-condition-journey]').waitFor();
+  await page.waitForFunction(expected=>{
+    const nav=document.querySelector('.mobile-nav'),active=nav?.querySelector('.mobile-link.is-active');
+    return nav&&active&&getComputedStyle(nav).backgroundColor===expected.mobileBg&&
+      getComputedStyle(active).color===expected.selectedColor;
+  },homeNavStyle,{timeout:7000});
   const conditionNavStyle=await page.evaluate(()=>{
     const nav=document.querySelector('.mobile-nav'),item=nav?.querySelector('.mobile-link:not(.is-active)'),active=nav?.querySelector('.mobile-link.is-active');
     const side=document.querySelector('.sidebar'),selected=side?.querySelector('.side-link.is-active');
