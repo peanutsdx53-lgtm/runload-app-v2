@@ -24,7 +24,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261028-backclip-v1'));
+ assert.ok(html.includes('app.js?v=20261028-back-symmetry-v2'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.js'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.css'));
 });
