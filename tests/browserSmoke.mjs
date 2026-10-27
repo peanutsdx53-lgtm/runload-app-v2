@@ -1151,6 +1151,20 @@ try{
   await page.locator('[data-gps-action="save"]').click();
   await page.locator('.gps-history-item').first().waitFor();
   assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/);
+  const storedGps=await page.evaluate(async()=>new Promise((resolve,reject)=>{
+    const op=indexedDB.open('runload-v2-gps-measurements-v1');
+    op.onerror=()=>reject(op.error);
+    op.onsuccess=()=>{
+      const db=op.result,tx=db.transaction('gpsRuns','readonly'),req=tx.objectStore('gpsRuns').getAll();
+      req.onsuccess=()=>{const records=req.result;db.close();resolve(records.map(r=>({id:r.id,points:r.track.length})))};
+      req.onerror=()=>reject(req.error);
+    };
+  }));
+  assert.ok(storedGps.some(r=>r.points>=2),'GPS track saved durably in IndexedDB');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-gps-runs-v1')),null,'GPS coordinates are not in localStorage');
+  await page.reload({waitUntil:'networkidle'});
+  await page.locator('.gps-history-item').first().waitFor();
+  assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/,'IndexedDB record survives reload');
   await page.locator('[data-gps-use]').first().click();
   await page.locator('[data-sm-source="gps"]').waitFor();
   assert.equal(await page.locator('[data-sm-source="gps"]').getAttribute('aria-pressed'),'true');
@@ -1171,6 +1185,14 @@ try{
     await page.locator('[data-gps-action="finish"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     failTiles=false;
+  }
+  if(mode.name==='desktop'){
+    await page.goto(host+'#/history',{waitUntil:'networkidle'});
+    await page.locator('[data-gps-delete]').first().click();
+    await page.locator('[data-gps-confirm-delete]').first().click();
+    assert.equal(await page.locator('.gps-history-item').count(),0,'GPS history deletion visible');
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await page.locator('.gps-history-item').count(),0,'IndexedDB deletion persists after reload');
   }
   const gpsOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);

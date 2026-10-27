@@ -17,7 +17,7 @@
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-consent-map-v36");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261026-gps-live-v35");
-  const gpsStore=await import("./ui/gpsMeasurementStore.js?v=20261026-gps-live-v35");
+  const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-idb-v37");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
@@ -27,6 +27,7 @@
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
   const conditionJourney=await import("./ui/conditionJourney.js?v=20261026-condition-v15");
   const conditionInsights=await import("./ui/conditionInsights.js?v=20261026-condition-v15");
+  await gpsStore.initializeGpsStore(); // Failure appears in GPS history; other app features remain available.
   const app=document.querySelector("#app");
   const esc=(v)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const CATEGORIES=[
@@ -390,7 +391,7 @@ function recordExtras(){
  if(page==="measurement")return measurementExperience.measurementPage(ensureGps().state,ensureGps().elapsed());
    if(page==="course")return recordCourse(true);
  if(page==="simulation"){
-  const savedGps=gpsStore.readGpsRuns(onboardStorage);
+  const savedGps=gpsStore.readGpsRuns();
   const chosen=savedGps.ok?savedGps.records.find(r=>r.id===simulationUi.gpsId):null;
   simulationUi.gpsFeature=chosen?gpsStore.gpsRecordToFeature(chosen):null;
   if(simulationUi.source==='gps'&&simulationUi.gpsFeature)simulationUi.distance=String(simulationUi.gpsFeature.distanceKm);
@@ -446,7 +447,7 @@ function recordExtras(){
      alert.textContent=saved.reason;
      app.querySelector("#runload-history-v2")?.before(alert);
    }
-   const gpsSaved=gpsStore.readGpsRuns(onboardStorage);
+   const gpsSaved=gpsStore.readGpsRuns();
    const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
    gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?'軌跡保存あり':'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
@@ -655,7 +656,7 @@ function recordExtras(){
     homeUi.preview=false;homeUi.conditionOpen=false;
     render();
   });
-  app.addEventListener("click",(event)=>{
+  app.addEventListener("click",async(event)=>{
     if(event.target.closest("[data-manual-run-save]")){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
@@ -723,7 +724,7 @@ function recordExtras(){
     const gpsUse=event.target.closest('[data-gps-use]');
     if(gpsUse){simulationUi.source='gps';simulationUi.gpsId=gpsUse.dataset.gpsUse;location.hash='#/simulation';return;}
     const gpsDelete=event.target.closest('[data-gps-delete],[data-gps-confirm-delete],[data-gps-cancel-delete]');
-    if(gpsDelete){if(gpsDelete.hasAttribute('data-gps-cancel-delete'))pendingGpsDelete='';else if(gpsDelete.hasAttribute('data-gps-delete'))pendingGpsDelete=gpsDelete.dataset.gpsDelete;else if(pendingGpsDelete===gpsDelete.dataset.gpsConfirmDelete){const res=gpsStore.removeGpsRun(onboardStorage,pendingGpsDelete);state.toast=res.ok?'GPS記録を削除しました':res.reason;pendingGpsDelete='';}render();return;}
+    if(gpsDelete){if(gpsDelete.hasAttribute('data-gps-cancel-delete'))pendingGpsDelete='';else if(gpsDelete.hasAttribute('data-gps-delete'))pendingGpsDelete=gpsDelete.dataset.gpsDelete;else if(pendingGpsDelete===gpsDelete.dataset.gpsConfirmDelete){const res=await gpsStore.removeGpsRun(pendingGpsDelete);state.toast=res.ok?'GPS記録を削除しました':res.reason;pendingGpsDelete='';}render();return;}
     const gpsConsentChoice=event.target.closest('[data-gps-consent-confirm],[data-gps-consent-cancel]');
     if(gpsConsentChoice){
       const pending=gpsConsentAction;
@@ -753,7 +754,7 @@ function recordExtras(){
       else if(action==='save'){
         const saveRoute=!!app.querySelector('[data-gps-save-route]')?.checked;
         const local=new Date(),date=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}`;
-        const saved=gpsStore.saveGpsRun(onboardStorage,gps.getSnapshot(),{saveRoute,date});
+        const saved=await gpsStore.saveGpsRun(gps.getSnapshot(),{saveRoute,date});
         if(saved.ok){state.toast='GPS実走の記録を端末に保存しました';gpsController=null;location.hash='#/history';return;}
         gps.state.notice=saved.reason;
       }
@@ -1027,6 +1028,7 @@ function recordExtras(){
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
+  window.addEventListener("focus",async()=>{await gpsStore.reloadGpsRuns();if(["history","simulation"].includes(currentPage()))render();});
   window.addEventListener("hashchange",()=>{
     gpsConsentAction="";
     if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();}

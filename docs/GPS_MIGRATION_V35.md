@@ -41,3 +41,10 @@
 - Time gaps over 30 seconds create a new segment and zero added distance over the unknown path. Pauses/activity changes remain explicit gap boundaries.
 - Simulation and live route diagrams use measured heights only when the altitude quality gate accepts them; unverified altitude is clearly distinguished from valid elevation.
 - Existing 2,000-point memory cap, localStorage capacity, and physical iOS tracking limitations remain W-04/W-05/W-08 tasks. Existing users reported no retained GPS data; the current contract can be refreshed without historic route migration.
+
+## W-04 GPS records in IndexedDB
+- GPS records/opt-in route geometry now use IndexedDB `runload-v2-gps-measurements-v1/gpsRuns`, never localStorage.
+- Store open, read and writes fail closed; corrupt data cannot be overwritten, and save/delete transactions serialize across multiple tabs.
+- Browser quota still applies; 2000 GPS records is a conservative app limit pending further storage benchmarks. A separate 2000-point per-run limit remains a W-05 issue.
+- The owner has no previously retained GPS records, so no historic localStorage GPS migration is added.
+- Existing manual/course scientific stores retain their current localStorage contracts.

@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {GPS_LIMITS,snapshotPosition,checkGpsPoint,qualifyGpsAltitude,createGpsSession} from '../ui/gpsMeasurementCore.js';
-import {saveGpsRun,readGpsRuns,gpsRecordToFeature,GPS_RUN_KEY} from '../ui/gpsMeasurementStore.js';
+import {prepareGpsRun,isValidGpsRecord,gpsRecordToFeature} from '../ui/gpsMeasurementStore.js';
 const fix=(lat,ms,alt=100,verticalAccuracy=10)=>({timestamp:ms,coords:{latitude:lat,longitude:139.9,accuracy:6,altitude:alt,altitudeAccuracy:verticalAccuracy}});
-const db=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),raw:map};};
 test('optional altitude getter errors never discard a valid horizontal GPS sample',()=>{
  const value=fix(37.5,1e6);
  Object.defineProperty(value.coords,'altitude',{get(){throw new Error('privacy revocation')}});
@@ -43,20 +42,18 @@ test('session preserves altitude provenance and saves it without inventing slope
  assert.equal(s.track.length,5);
  assert.deepEqual(s.track.map(p=>p.altitudeQuality),['usable','unknown-accuracy','usable','spike','usable']);
  assert.equal(s.track[1].ele,null);assert.equal(s.track[3].ele,null);
- const storage=db(),saved=saveGpsRun(storage,s,{saveRoute:true,date:'2026-10-27'});
+ const saved=prepareGpsRun(s,{saveRoute:true,date:'2026-10-27'});
  assert.equal(saved.ok,true);
- const result=readGpsRuns(storage);assert.equal(result.ok,true);
- assert.equal(result.records[0].track[1].altitudeQuality,'unknown-accuracy');
- const feature=gpsRecordToFeature(result.records[0]);
+ assert.equal(saved.record.track[1].altitudeQuality,'unknown-accuracy');
+ const feature=gpsRecordToFeature(saved.record);
  assert.equal(feature.elevationStatus,'partial');assert.equal(feature.elevationPoints,3);
- const corrupt=JSON.parse(storage.getItem(GPS_RUN_KEY));corrupt.records[0].track[1].ele=999;
- storage.setItem(GPS_RUN_KEY,JSON.stringify(corrupt));
- assert.equal(readGpsRuns(storage).ok,false,'rejected altitude cannot secretly contain an elevation');
+ const corrupt=structuredClone(saved.record);corrupt.track[1].ele=999;
+ assert.equal(isValidGpsRecord(corrupt),false,'an unverified altitude cannot contain a measured elevation');
 });
 test('a route with only unverified altitudes can show a route but not an elevation profile',()=>{
  let handler,ms=1000000;
  const gps=createGpsSession({geo:{watchPosition:ok=>{handler=ok;return 1},clearWatch:()=>{}},now:()=>ms});
  gps.start();handler(fix(37.5,ms,100,null));ms+=5000;handler(fix(37.5003,ms,101,null));ms+=5000;gps.finish();
- const storage=db(),saved=saveGpsRun(storage,gps.getSnapshot(),{saveRoute:true,date:'2026-10-27'});
+ const saved=prepareGpsRun(gps.getSnapshot(),{saveRoute:true,date:'2026-10-27'});
  assert.equal(saved.ok,true);assert.equal(gpsRecordToFeature(saved.record).elevationStatus,'unverified');
 });
