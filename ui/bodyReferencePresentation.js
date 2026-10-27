@@ -19,11 +19,37 @@ export const bodyReferenceRow=(rows,bodyId)=>Array.isArray(rows)?
  rows.find(r=>r.regionId===bodyReferenceEngineId(bodyId))||null:null;
 export const calculatedReference=(row)=>row?.calculationState==='CALCULATED'&&
  typeof row.value==='number'&&Number.isFinite(row.value);
+/* Seven restrained stops on the existing RunLoad navy surface.
+ * Smooth, continuous color shows the magnitude/direction of deviation from
+ * EACH body's own reference 100; it is never a risk or clinical ranking.
+ * Endpoints are display caps, NOT validity limits of any scientific model.
+ */
+export const BODY_REFERENCE_COLOR_STOPS=Object.freeze([
+ Object.freeze({value:60,hex:'#4776A6'}),
+ Object.freeze({value:80,hex:'#4D92B2'}),
+ Object.freeze({value:92,hex:'#56ACB7'}),
+ Object.freeze({value:100,hex:'#66C4B5'}),
+ Object.freeze({value:108,hex:'#9AB9A8'}),
+ Object.freeze({value:120,hex:'#BD998E'}),
+ Object.freeze({value:140,hex:'#CA7D8B'})
+]);
+export const BODY_REFERENCE_RANGE=Object.freeze({min:60,max:140});
+export const BODY_REFERENCE_GRADIENT='linear-gradient(90deg,'+
+ BODY_REFERENCE_COLOR_STOPS.map(x=>(x.hex+' '+((x.value-60)/80*100).toFixed(2)+'%')).join(',')+')';
+const hexRgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+export const bodyReferenceScale=value=>{
+ if(typeof value!=='number'||!Number.isFinite(value))return null;
+ return {position:Math.max(0,Math.min(100,(value-60)/80*100)),
+  clipped:value<60?'low':value>140?'high':null};
+};
 export const bodyReferenceColor=row=>{
  if(!calculatedReference(row))return {fill:'#52636b',state:'missing'};
- const delta=row.value-100,ratio=Math.min(1,Math.abs(delta)/35);
- const base=[45,104,120],target=delta<0?[105,167,227]:[239,157,103];
- return {fill:'rgb('+base.map((v,i)=>Math.round(v+(target[i]-v)*ratio)).join(',')+')',state:'available'};
+ const v=row.value,stops=BODY_REFERENCE_COLOR_STOPS;
+ if(v<=stops[0].value)return {fill:stops[0].hex,state:'available'};
+ if(v>=stops.at(-1).value)return {fill:stops.at(-1).hex,state:'available'};
+ const right=stops.findIndex(x=>x.value>=v),a=stops[right-1],b=stops[right];
+ const t=(v-a.value)/(b.value-a.value),rgbA=hexRgb(a.hex),rgbB=hexRgb(b.hex);
+ return {fill:'rgb('+rgbA.map((c,i)=>Math.round(c+(rgbB[i]-c)*t)).join(',')+')',state:'available'};
 };
 // A central label describes each bilateral region once; its left/right shapes
 // still share the same independent scientific region (not one reading per leg).
