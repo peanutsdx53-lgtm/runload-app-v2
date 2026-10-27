@@ -124,10 +124,6 @@
 .gps-live-prep>.gps-v2-primary{width:100%}
 .gps-live-status{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:.78rem;color:#b2d5df}.gps-live-status>span{margin-left:auto;font-size:.74rem}.gps-live-status strong{color:#f1fffe}
 .gps-live-time{text-align:center;margin:16px 0}.gps-live-time small{font-size:.76rem;color:#b4d8e4}.gps-live-time strong{display:block;font-size:clamp(2.6rem,7vw,4.3rem);font-weight:900;letter-spacing:-.055em;color:white;font-variant-numeric:tabular-nums}
-.gps-live-route{margin-top:16px;border:1px solid #426e7d;background:#0b2c3a;border-radius:14px;padding:14px;overflow:hidden}
-.gps-live-route>strong{display:block;color:#e0f6f9;font-size:.86rem;margin-bottom:9px}.gps-live-route>strong small{color:#a4c2cc;font-weight:500;font-size:.68rem;margin-left:8px}
-.gps-live-route .sm-gpx-preview{display:grid;grid-template-columns:1fr;gap:12px}.gps-live-route .sm-gpx-visual{background:#113a49;border:1px solid #3c6a79;border-radius:12px;padding:10px;min-width:0}.gps-live-route .sm-gpx-visual svg{display:block;width:100%;height:auto;max-height:225px}.gps-live-route .sm-gpx-visual strong{font-size:.75rem;display:block}.gps-live-route .sm-gpx-visual small{font-size:.68rem;color:#b4ced7;line-height:1.6}.gps-live-route .sm-gpx-elevation{max-height:145px}
-.gps-live-empty{text-align:center;color:#b5d4db;min-height:115px;display:grid;place-content:center;line-height:1.7;font-size:.82rem}
 .gps-live-notice{font-size:.77rem;line-height:1.7;color:#d1e8ed;margin:14px 0}.gps-live-segment{padding:14px;border:1px solid #52b2be;border-radius:12px;margin:14px 0}.gps-live-segment small{color:#b4d4dd;line-height:1.5;font-size:.71rem;font-weight:400}
 .gps-live-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
 .gps-live-finish>p{font-size:.82rem;line-height:1.7;color:#cee8ee}.gps-live-checkbox{display:flex;gap:11px;align-items:flex-start;margin-top:14px;padding:14px;border:1px solid #568794;border-radius:12px;background:#143e4e}.gps-live-checkbox input{accent-color:#55e1de;width:20px;height:20px;flex-shrink:0;margin-top:2px}.gps-live-checkbox span{display:grid;gap:5px}.gps-live-checkbox b{font-size:.8rem}.gps-live-checkbox small{font-size:.73rem;color:#b0ccd5;line-height:1.5}
@@ -182,8 +178,6 @@
 @media(max-width:360px){.gps-consent-actions{grid-template-columns:1fr}}
 
 /* Long measurements retain a bounded, explicitly simplified visual route. */
-.gps-live-route-quality:empty{display:none}
-.gps-live-route-quality:not(:empty){margin:9px 0 12px;padding:9px 12px;border-radius:9px;border:1px solid #527d89;background:#143b4b;color:#d4edf4;font-size:.75rem;line-height:1.6}
 
 /* Private GPS backup / restore actions: the exported JSON is not encrypted. */
 .gps-history-backup{border-top:1px solid #3b7182;margin-top:8px;padding-top:17px;display:grid;gap:10px}
@@ -208,3 +202,52 @@
 
 .gps-screen-awake-pref{margin:0 0 15px}
 .gps-screen-awake-pref small{max-width:43ch}
+
+/* GPS measurement finishing and interaction polish — current RunLoad dark palette. */
+.gps-v35-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gps-v35-metrics>div{display:block;min-width:0}
+.gps-v35-metrics span{font-size:.72rem;letter-spacing:-.015em}
+.gps-v35-metrics strong{font-size:clamp(1.2rem,2.2vw,1.8rem)}
+.gps-v35-metrics .gps-v35-energy em{display:block;font-size:.65rem;font-style:normal;color:#9fcad3;line-height:1.4;margin-top:5px}
+.gps-live-map-flags{font-size:.72rem;color:#b8dfe3;padding:10px 4px 0;line-height:1.5}
+.gps-map-flag-bubble{fill:#154d66;stroke:#ffdfad;stroke-width:2.5}
+.gps-map-flag-number{fill:#fff4dc;font-size:14px;font-weight:900;paint-order:stroke;stroke:#154d66;stroke-width:1px}
+.gps-map-flag-stem{stroke:#ffdfad;stroke-width:3;stroke-linecap:round}
+.gps-map-flag{filter:drop-shadow(0 2px 3px #002633bc);pointer-events:none}
+.gps-live-actions--measuring{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gps-live-actions--measuring .gps-v2-button{min-height:58px;padding:11px 8px;font-size:clamp(.88rem,2.2vw,1rem);border-radius:13px}
+.gps-live-actions--measuring .gps-action-finish{grid-column:1/-1;min-height:53px;background:#183f50;border-color:#8d9fa8;color:#e4edf1}
+.gps-live-actions--measuring .gps-action-pause:only-of-type{grid-column:1/-1}
+.gps-action-flag span{font-size:.83rem;font-weight:800;color:#ccebf2}
+.gps-live-actions--finished{gap:9px}
+.gps-live-actions--finished button{min-height:55px}
+.gps-flag-review{border:1px solid #4b8290;border-radius:15px;background:#0a2b3a;margin:18px 0;overflow:hidden}
+.gps-flag-review summary{display:flex;align-items:center;gap:8px;padding:13px 15px;cursor:pointer;font-weight:850;color:#e8ffff;background:#144253;list-style:none}
+.gps-flag-review summary::-webkit-details-marker{display:none}
+.gps-flag-review summary:after{content:"⌄";margin-left:auto;color:#9fd7df}
+.gps-flag-review summary span{margin-left:6px;font-size:.72rem;color:#b6d5dc;font-weight:650}
+.gps-flag-review-body{display:grid;gap:10px;padding:13px}
+.gps-flag-review-body>p{margin:0 0 2px;font-size:.72rem;color:#aacad3;line-height:1.65}
+.gps-flag-note-card{display:grid;gap:9px;background:#103949;border:1px solid #376e7f;border-radius:12px;padding:13px}
+.gps-flag-note-heading{display:flex;gap:9px;align-items:center}
+.gps-flag-note-heading b{border-radius:8px;background:#7f5b36;border:1px solid #c99e60;color:#fff0d6;padding:5px 10px;font-size:.75rem}
+.gps-flag-note-heading strong{font-size:.83rem;color:#e6f7fc}
+.gps-flag-note-label{color:#c7e1e8;font-size:.72rem;font-weight:700}
+.gps-flag-note-label small{color:#9cbfca;font-size:.67rem;font-weight:400;margin-left:6px}
+.gps-flag-note-card textarea{box-sizing:border-box;width:100%;max-width:100%;resize:vertical;min-height:77px;border-radius:10px;padding:11px 12px;border:1px solid #6797a5;color:white;background:#081f2e;font-size:16px;line-height:1.55}
+.gps-flag-note-card textarea:focus-visible{outline:2px solid #54e0db;outline-offset:2px}
+.gps-finish-unavailable{margin:14px 0;border:1px solid #c6a476;background:#4c3b263d;padding:16px;border-radius:13px}
+.gps-finish-unavailable strong{color:#ffdfae;font-size:1rem}
+.gps-finish-unavailable p{color:#f1ddc3;line-height:1.65;font-size:.81rem;margin:9px 0 0}
+.gps-finish-back{width:100%;margin-top:8px}
+.gps-finish-success{color:#d4ebed;font-size:.83rem;line-height:1.7}
+@media(max-width:640px){
+ .gps-v35-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .gps-v35-metrics>div:first-child{grid-column:1/-1}
+ .gps-v35-metrics>div{padding:11px 12px}
+ .gps-v35-metrics strong{font-size:1.35rem}
+ .gps-v35-metrics span{font-size:.72rem}
+ .gps-v35-metrics small{font-size:.68rem;margin-left:2px}
+ .gps-live-actions--measuring{gap:9px}
+ .gps-live-actions--measuring .gps-v2-button{font-size:.92rem}
+}
