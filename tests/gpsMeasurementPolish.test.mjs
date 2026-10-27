@@ -42,7 +42,7 @@ test('map flags are truthful accepted GPS points and finished notes are accessib
  h.fix(37.5);h.tick(5000);h.fix(37.5002);
  assert.equal(g.addFlag(),true);assert.equal(g.addFlag(),true);
  assert.equal(g.state.flags.length,2);assert.equal(g.state.flags[0].km,g.state.distanceM/1000);
- assert.match(measurementPage(g.getSnapshot(),g.elapsed()),/フラッグ.*\\(2\\)/);
+ assert.match(measurementPage(g.getSnapshot(),g.elapsed()),/フラッグ.*\(2\)/);
  assert.doesNotMatch(measurementPage(g.getSnapshot(),g.elapsed()),/軌跡プレビュー/);
  h.tick(2000);g.finish();
  const markup=measurementPage(g.getSnapshot(),g.elapsed());
