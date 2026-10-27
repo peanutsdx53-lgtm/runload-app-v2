@@ -1418,6 +1418,11 @@ try{
   if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
   await savedResult.locator('.rv4-body').screenshot({
     path:resolve(root,'screenshots',mode.name+'-body-left-right-preview.png'),animations:'disabled'});
+  await savedResult.locator('[data-view="back"]').click();
+  assert.equal(await savedResult.locator('.rv4-body-svg clipPath#rv4-silhouette-clip path').count(),1);
+  assert.equal(await savedResult.locator('.rv4-body-svg g[clip-path="url(#rv4-silhouette-clip)"] .rv4-region').count(),4);
+  await savedResult.locator('.rv4-body').screenshot({
+    path:resolve(root,'screenshots',mode.name+'-back-silhouette-corrected.png'),animations:'disabled'});
   await savedResult.locator('[data-view="sole"]').click();
   await savedResult.locator('.rv4-body').screenshot({
     path:resolve(root,'screenshots',mode.name+'-sole-dimensional-preview.png'),animations:'disabled'});
