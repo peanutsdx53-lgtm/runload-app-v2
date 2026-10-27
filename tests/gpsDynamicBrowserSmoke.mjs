@@ -83,6 +83,11 @@ try{
   await page.locator('.gd-main').waitFor();
   assert.equal(await page.locator('.gd-panel').count(),2);
   assert.equal(await page.locator('.gd-body-path').count(),5);
+  assert.equal(await page.locator('.gd-scrub').inputValue(),'1',
+   'GPS dynamic result opens at first scientifically calculable fix');
+  const hipAtOpen=page.locator('[data-body-reference-label="BA-DISP-014"]');
+  assert.equal(await hipAtOpen.count(),1,'first calculable frame shows numeric hip badge on the body');
+  assert.match(await hipAtOpen.getAttribute('data-body-reference-value'),/^\d+\.\d$/);
   assert.equal(await page.locator('.gd-map-flag').count(),1);
   const initial=await page.locator('.gd-metric').nth(2).innerText();
   await page.locator('.gd-scrub').evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -98,6 +103,8 @@ try{
   assert.notEqual(initial,changed,'GPS speed should change with scrubbed frame');
   await page.locator('[data-view="back"]').click();
   assert.equal(await page.locator('.gd-body-path').count(),4);
+  const backLabels=await page.locator('[data-body-reference-label]').count();
+  assert.ok(backLabels>=0&&backLabels<=4);
   await page.locator('[data-view="sole"]').click();
   assert.equal(await page.locator('.gd-body-path').count(),3);
   await page.locator('[data-jump-flag="0"]').click();
