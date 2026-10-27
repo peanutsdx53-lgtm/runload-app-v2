@@ -70,3 +70,20 @@
 .gd-value{font-size:13px}.gd-speed-block{padding:9px 9px}.gd-controls{gap:5px}.gd-play{min-width:62px;padding:9px 5px}.gd-speed-svg{height:67px}
 .gd-back{height:37px;width:37px}.gd-summary{padding:14px}.gd-summary-metrics strong{font-size:24px}
 }
+
+
+/* Contrast-balanced continuous scientific reference palette.
+ * Keep both panels equal; no decorative neon glow on colored anatomy. */
+.gd-body-path{stroke:#a0c3cd;stroke-width:1.15;transition:fill .22s ease,stroke .22s ease}
+.gd-body-path.selected{stroke:#e7fffb;stroke-width:2.1;filter:drop-shadow(0 0 3px #b4f7e677)}
+.gd-body{filter:drop-shadow(0 5px 12px #092e3b80)}
+.gd-body-extra{min-height:36px;padding:0 12px 10px;display:flex;align-items:center;justify-content:space-between;gap:7px;color:#a9cad5}
+.gd-body-diff{font-size:11px;font-variant-numeric:tabular-nums;line-height:1.3}
+.gd-body-extra button{border:1px solid #43899a;border-radius:9px;background:#123e50;color:#d2ecf2;font-weight:750;min-height:30px;font-size:11px;padding:5px 10px;white-space:nowrap}
+.gd-body-extra button[aria-pressed="true"]{border-color:#77c9c5;color:#f5ffff;background:#1a5d6b}
+.gd-palette-legend{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 10px 2px;color:#a7cbd5;font-size:10px}
+.gd-palette-legend>span{white-space:nowrap}
+.gd-palette-track{position:relative;min-width:60px;width:min(250px,40%);height:9px;border:1px solid #9bc7ce4d;border-radius:999px}
+.gd-palette-track i{position:absolute;left:50%;top:-4px;height:16px;border-left:2px solid #f1ffff}
+@media(max-width:680px){.gd-body-extra{padding:0 5px 7px;gap:4px;display:grid;text-align:center;justify-items:center}.gd-body-extra button{font-size:9px;padding:5px 7px;white-space:nowrap;min-height:29px}.gd-body-diff{font-size:9px}.gd-palette-legend{gap:7px;font-size:9px}.gd-palette-track{width:min(145px,31%);height:8px}}
+@media(prefers-reduced-motion:reduce){.gd-body-path{transition:none}}
