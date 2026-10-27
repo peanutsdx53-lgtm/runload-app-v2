@@ -132,8 +132,10 @@ try{
   });
   // Stable tile fixture proves real browser image decoding without hammering the public OSM service.
   const tileHeaders=[];
+  let failTiles=false;
   await page.route('https://tile.openstreetmap.org/**',route=>{
     tileHeaders.push(route.request().headers());
+    if(failTiles)return route.abort('failed');
     return route.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAFElEQVR4nGMs3HiMAQaYGJAAbg4AX/8B8LrZM0YAAAAASUVORK5CYII=','base64')});
   });
   page.on("pageerror",error=>{throw new Error(mode.name+" page error: "+error.message)});
@@ -1114,6 +1116,10 @@ try{
   await page.locator('[data-gps-consent-cancel]').click();
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'denying GPS consent never starts watcher');
   await page.locator('[data-gps-action="start"]').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('[data-gps-consent-overlay]').count(),0,'Escape cancels permission dialog');
+  assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'Escape does not start GPS');
+  await page.locator('[data-gps-action="start"]').click();
   await page.locator('[data-gps-consent-confirm]').click();
   await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),1,'explicit consent starts watcher once');
@@ -1150,6 +1156,20 @@ try{
   assert.equal(await page.locator('[data-sm-source="gps"]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('.sm-gpx-shape').count(),1,'saved GPS track is reusable in what-if');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-reused-in-simulation.png'),fullPage:true});
+  if(mode.name==='mobile'){
+    // Force every requested map image to fail. The measurement/track must stay operational.
+    failTiles=true;
+    await page.goto(host+'#/measurement',{waitUntil:'networkidle'});
+    await page.locator('[data-gps-action="start"]').click();
+    await page.locator('[data-gps-consent-confirm]').click();
+    await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='unavailable',null,{timeout:8000});
+    assert.match(await page.locator('[data-gps-map-network-status]').innerText(),/道路地図を取得できません/);
+    await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
+    assert.ok(await page.locator('[data-gps-route]').count()>0,'offline map does not disable track');
+    await page.locator('[data-gps-action="finish"]').click();
+    await page.locator('[data-gps-action="discard"]').click();
+    failTiles=false;
+  }
   const gpsOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
