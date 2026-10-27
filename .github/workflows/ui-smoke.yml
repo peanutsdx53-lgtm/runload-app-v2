@@ -40,6 +40,9 @@ jobs:
           node --check core/runningEvidence/runningEvidenceEngine.js
           node --check core/internal/mobileWalkJogSpeedModel.js
           node --check ui/gpsLiveMap.js
+          node --check ui/gpsDynamicResult.js
+          node --check ui/gpsReplayIndexedDbStore.js
+          node --check ui/gpsReplayReference.js
           node --check ui/gpsStorageHealth.js
           node --check ui/gpsCourseEvidence.js
           node --check ui/explorationExperience.js
