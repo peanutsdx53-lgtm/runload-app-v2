@@ -184,3 +184,17 @@
 /* Long measurements retain a bounded, explicitly simplified visual route. */
 .gps-live-route-quality:empty{display:none}
 .gps-live-route-quality:not(:empty){margin:9px 0 12px;padding:9px 12px;border-radius:9px;border:1px solid #527d89;background:#143b4b;color:#d4edf4;font-size:.75rem;line-height:1.6}
+
+/* Private GPS backup / restore actions: the exported JSON is not encrypted. */
+.gps-history-backup{border-top:1px solid #3b7182;margin-top:8px;padding-top:17px;display:grid;gap:10px}
+.gps-history-backup h3{font-size:.86rem;color:#e8fcff;margin:0}
+.gps-history-backup p{font-size:.74rem;line-height:1.7;color:#bbd7e0;margin:0}
+.gps-history-backup-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.gps-history-backup-actions button,.gps-history-backup-confirm button,.gps-history-backup-actions label{background:#174a5c;border:1px solid #60a9b9;border-radius:11px;color:#efffff;padding:10px 13px;font-size:.75rem;font-weight:750}
+.gps-history-backup-actions label{display:grid;gap:7px;cursor:pointer}
+.gps-history-backup-actions input{color:#d3eff6;font-size:.72rem;max-width:100%;width:100%}
+.gps-history-backup-confirm{padding:12px;background:#173a4a;border:1px solid #67a6b5;border-radius:12px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.gps-history-backup-confirm p{flex-basis:100%}
+.gps-history-backup-confirm button:first-of-type{background:#197266}
+.gps-history-backup-notice{border-left:3px solid #59c6c2;padding-left:10px}
+@media(max-width:490px){.gps-history-backup-actions{flex-direction:column;align-items:stretch}.gps-history-backup-confirm button{flex:1}}

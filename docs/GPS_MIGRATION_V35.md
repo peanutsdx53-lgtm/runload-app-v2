@@ -56,3 +56,10 @@
 - `trackSimplified` is persisted with an opted-in route; measurement, history and what-if view disclose that route geometry is sampled. The sampling is lossy and not a substitute for survey-grade full resolution. No GPS coordinates are written to IndexedDB without saving the route.
 - A persisted route whose last cumulative point does not match measured distance (within rounding tolerance), or whose time/distance goes backward, is rejected to prevent the old silent truncation failure.
 - Node regression covers 14,401 simulated fixes at 1 Hz, pauses, activity switches, a 35-second GPS outage, fixed-memory retention, exact final cumulative distance, and save preparation. Real iPhone/iOS background behavior remains unverified in W-08.
+
+## W-06 GPS records backup and safe restoration
+- Users can explicitly download a JSON backup of GPS run records and opted-in route coordinates. The file is **not encrypted** and should be kept private; no automatic upload/transfer is made.
+- Restore first validates the exact backup format, every record and route endpoint, record count, duplicates, and a 50MB input limit. The UI shows a preview/confirmation before any IndexedDB writes.
+- Restore merges only missing IDs under a single IndexedDB readwrite transaction. Identical existing IDs are skipped; conflicting content for the same ID refuses the entire restore without overwriting an existing route.
+- The backup is for GPS records only. Manual-run scientific stores, other history or settings are not included and are not modified.
+- The 50MB single-file restriction and origin-based browser storage eviction remain documented limitations. Browsers may still deny a download; the user must confirm the saved file exists on the device.

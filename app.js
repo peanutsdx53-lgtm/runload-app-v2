@@ -17,7 +17,7 @@
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-track-v38");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-track-v38");
-  const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-idb-v37");
+  const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
@@ -62,6 +62,7 @@
   let gpsController=null;
   let gpsTicker=null;
   let pendingGpsDelete="";
+  let pendingGpsBackup=null,gpsBackupNotice="";
   // GPS access needs a fresh, app-level affirmative choice on every start/resume.
   // Browser OS permission persistence is not equivalent to session consent.
   let gpsConsentAction="";
@@ -450,6 +451,7 @@ function recordExtras(){
    const gpsSaved=gpsStore.readGpsRuns();
    const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
    gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?(r.trackSimplified?'軌跡保存あり（形状は間引き済み）':'軌跡保存あり'):'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
+   gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-backup"><h3>GPS記録のバックアップ</h3><p>位置情報を含む未暗号化のJSONファイルを端末に保存・復元できます。ファイルの保管場所に注意してください。外部サービスには送信しません。</p><div class="gps-history-backup-actions"><button type="button" data-gps-backup-export>GPS記録をファイルに保存</button><label>バックアップを読み込む<input data-gps-backup-file type="file" accept=".json,application/json"></label></div>${gpsBackupNotice?`<p role="status" class="gps-history-backup-notice">${esc(gpsBackupNotice)}</p>`:''}${pendingGpsBackup?`<div class="gps-history-backup-confirm"><p>GPS記録 ${pendingGpsBackup.count}件（軌跡あり ${pendingGpsBackup.routeCount}件）を検証しました。重複はスキップし、異なる内容の同じIDがある場合は復元を中止します。</p><button type="button" data-gps-backup-confirm>復元を確定</button><button type="button" data-gps-backup-cancel>キャンセル</button></div>`:''}</div>`);
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
@@ -493,7 +495,19 @@ function recordExtras(){
   });
  }
 }
-  app.addEventListener("change",(event)=>{
+  app.addEventListener("change",async(event)=>{
+     const backupFile=event.target.closest('[data-gps-backup-file]');
+     if(backupFile){
+       const file=backupFile.files?.[0];pendingGpsBackup=null;gpsBackupNotice="";
+       if(!file){render();return;}
+       if(file.size>gpsStore.GPS_BACKUP_MAX_CHARS){gpsBackupNotice='バックアップは50MB以下のJSONファイルを選んでください';render();return;}
+       try{
+         const text=await file.text(),checked=gpsStore.inspectGpsBackup(text);
+         if(!checked.ok)gpsBackupNotice=checked.reason;
+         else{pendingGpsBackup={text,count:checked.count,routeCount:checked.routeCount};gpsBackupNotice='読み込んだ記録を検証しました。復元前に内容を確認してください。';}
+       }catch{gpsBackupNotice='GPSバックアップファイルを読み取れませんでした';}
+       render();return;
+     }
     if(event.target.matches('[data-gps-activity]')){const gps=ensureGps();gps.setActivity(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
     if(event.target.matches('[data-gps-goal-mode]')){ensureGps().setGoalMode(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
     if(event.target.matches('[data-gps-goal-value]')){ensureGps().setGoalValue(event.target.value);return;}
@@ -720,6 +734,28 @@ function recordExtras(){
         reportSettingsNotice('表示設定を保存しました。');
       }else reportSettingsNotice(saved.message);
       return;
+    }
+    const gpsBackupAction=event.target.closest('[data-gps-backup-export],[data-gps-backup-confirm],[data-gps-backup-cancel]');
+    if(gpsBackupAction){
+      if(gpsBackupAction.hasAttribute('data-gps-backup-export')){
+        const result=gpsStore.exportGpsBackup();
+        if(!result.ok){gpsBackupNotice=result.reason;render();return;}
+        try{
+          const file=new Blob([result.text],{type:'application/json;charset=utf-8'});
+          const url=URL.createObjectURL(file),anchor=document.createElement('a');
+          anchor.href=url;anchor.download='runload-gps-backup-'+new Date().toISOString().slice(0,10)+'.json';
+          document.body.append(anchor);anchor.click();anchor.remove();
+          setTimeout(()=>URL.revokeObjectURL(url),30000);
+          gpsBackupNotice='ファイルの保存を開始しました。端末のダウンロード先を確認してください。';
+        }catch{gpsBackupNotice='GPSバックアップのファイルを生成できませんでした';}
+      }else if(gpsBackupAction.hasAttribute('data-gps-backup-cancel')){
+        pendingGpsBackup=null;gpsBackupNotice='GPSバックアップの復元を取り消しました';
+      }else if(pendingGpsBackup){
+        const result=await gpsStore.importGpsBackup(pendingGpsBackup.text);
+        pendingGpsBackup=null;
+        gpsBackupNotice=result.ok?`GPS記録 ${result.added}件を復元しました（重複 ${result.skipped}件）。`:result.reason;
+      }
+      render();return;
     }
     const gpsUse=event.target.closest('[data-gps-use]');
     if(gpsUse){simulationUi.source='gps';simulationUi.gpsId=gpsUse.dataset.gpsUse;location.hash='#/simulation';return;}

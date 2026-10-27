@@ -1188,11 +1188,36 @@ try{
   }
   if(mode.name==='desktop'){
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
+    const downloadedPromise=page.waitForEvent('download');
+    await page.locator('[data-gps-backup-export]').click();
+    const downloaded=await downloadedPromise;
+    assert.ok(downloaded.suggestedFilename().startsWith('runload-gps-backup-')&&downloaded.suggestedFilename().endsWith('.json'));
+    const gpsBackupJson=await readFile(await downloaded.path(),'utf8');
+    const exported=JSON.parse(gpsBackupJson);
+    assert.equal(exported.format,'runload-gps-backup');
+    assert.equal(exported.records.length,1);
+    assert.ok(exported.records[0].track.length>=2,'opted-in GPS route must be in explicit backup');
     await page.locator('[data-gps-delete]').first().click();
     await page.locator('[data-gps-confirm-delete]').first().click();
     await page.waitForFunction(()=>document.querySelectorAll('.gps-history-item').length===0,null,{timeout:8000});
     await page.reload({waitUntil:'networkidle'});
     assert.equal(await page.locator('.gps-history-item').count(),0,'IndexedDB deletion persists after reload');
+    await page.locator('[data-gps-backup-file]').setInputFiles({name:'bad-gps.json',mimeType:'application/json',buffer:Buffer.from('{"version":99}')});
+    assert.match(await page.locator('.gps-history-backup-notice').innerText(),/形式|不正/);
+    assert.equal(await page.locator('.gps-history-item').count(),0,'invalid import never modifies GPS records');
+    await page.locator('[data-gps-backup-file]').setInputFiles({name:'runload-gps.json',mimeType:'application/json',buffer:Buffer.from(gpsBackupJson)});
+    assert.match(await page.locator('.gps-history-backup-confirm').innerText(),/GPS記録 1件/);
+    await page.locator('[data-gps-backup-confirm]').click();
+    await page.locator('.gps-history-item').first().waitFor();
+    assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/);
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await page.locator('.gps-history-item').count(),1,'restored GPS route survives reload');
+    const conflict=structuredClone(exported);
+    conflict.records[0].activity='WALK';
+    await page.locator('[data-gps-backup-file]').setInputFiles({name:'conflict-gps.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(conflict))});
+    await page.locator('[data-gps-backup-confirm]').click();
+    assert.match(await page.locator('.gps-history-backup-notice').innerText(),/同じID/);
+    assert.equal(await page.locator('.gps-history-item').count(),1,'conflicting import cannot overwrite a saved GPS record');
   }
   const gpsOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);
