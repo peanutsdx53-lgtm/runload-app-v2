@@ -87,3 +87,12 @@
 .gd-palette-track i{position:absolute;left:50%;top:-4px;height:16px;border-left:2px solid #f1ffff}
 @media(max-width:680px){.gd-body-extra{padding:0 5px 7px;gap:4px;display:grid;text-align:center;justify-items:center}.gd-body-extra button{font-size:9px;padding:5px 7px;white-space:nowrap;min-height:29px}.gd-body-diff{font-size:9px}.gd-palette-legend{gap:7px;font-size:9px}.gd-palette-track{width:min(145px,31%);height:8px}}
 @media(prefers-reduced-motion:reduce){.gd-body-path{transition:none}}
+
+/* Shared matte dimensionality; scientific region fill is unchanged. */
+.gd-body .body-reference-relief,.gd-body .body-reference-satin{stroke:none;pointer-events:none}
+.gd-body .body-reference-satin{opacity:.75}
+.gd-body .body-reference-relief.is-unavailable,.gd-body .body-reference-satin.is-unavailable{opacity:.34}
+.gd-body-silhouette{fill:#245669;filter:drop-shadow(0 4px 5px #00162066)}
+.gd-body{filter:drop-shadow(0 7px 8px #00182490)}
+.gd-body-path{stroke:#8ab9bd;stroke-width:.9}
+.gd-body-path.selected{stroke:#e0ffff;stroke-width:2;filter:drop-shadow(0 0 3px #e3ffff45)}
