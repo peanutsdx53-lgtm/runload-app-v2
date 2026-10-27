@@ -85,7 +85,15 @@ export function compactGpsTrack(track,limit=GPS_LIMITS.maxTrack){
  // samples for the remaining budget so straight stretches do not disappear.
  ranked.sort((a,b)=>b.score-a.score||a.i-b.i);
  const detailBudget=Math.min(ranked.length,Math.floor(target*0.4));
- for(let j=0;j<detailBudget&&ranked[j].score>1e-6;j++)kept.add(ranked[j].i);
+ // A dense cluster of segment boundaries must not crowd out genuine corners.
+ // Save a separate quota for salient geometry/elevation; gap markers are still
+ // transferred to the next retained fix even if an exact boundary is thinned.
+ const shapeCandidates=ranked.filter(p=>p.score>1e-6&&p.score<1e9);
+ const shapeBudget=Math.min(shapeCandidates.length,Math.max(1,Math.floor(detailBudget*.3)));
+ for(let j=0;j<shapeBudget;j++)kept.add(shapeCandidates[j].i);
+ for(let j=0;j<ranked.length&&kept.size<detailBudget+2;j++){
+  if(ranked[j].score>1e-6)kept.add(ranked[j].i);
+ }
  // Fill the remainder across the entire time axis, not preferentially at the
  // start. A straight track must stay evenly represented after compression.
  const uniformBudget=target-kept.size;
