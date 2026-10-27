@@ -1483,7 +1483,7 @@ try{
     assert.equal(await hipBadge.count(),1,example.activity+' real hip value appears directly on figure');
     assert.equal(await hipBadge.getAttribute('data-body-reference-value'),hipValue,
       example.activity+' anatomical badge equals the unchanged engine-selected value');
-    assert.equal(await output.locator('[data-region="BA-DISP-014"]').getAttribute('data-reference-state'),
+    assert.equal(await output.locator('.rv4-body-svg [data-region="BA-DISP-014"]').getAttribute('data-reference-state'),
       'available','computed body segment must have a science-derived fill');
     const badges=output.locator('[data-body-reference-label]');
     assert.ok(await badges.count()>0,example.activity+' body contains at least one visible number');
