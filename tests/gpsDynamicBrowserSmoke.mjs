@@ -4,7 +4,8 @@ import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png'};
 const server=createServer(async(req,res)=>{
@@ -18,7 +19,8 @@ const server=createServer(async(req,res)=>{
  }catch{res.writeHead(404);res.end('Not found');}
 });
 await new Promise(done=>server.listen(4189,'127.0.0.1',done));
-const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+const engine=engineName==='webkit'?webkit:chromium;
+const browser=await engine.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 try{
  await mkdir(resolve(root,'screenshots'),{recursive:true});
  for(const mode of [{name:'mobile',width:390,height:844},{name:'desktop',width:1440,height:900}]){
@@ -104,8 +106,8 @@ try{
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+' GPS dynamic UI overflows '+overflow);
   assert.deepEqual(errors,[],mode.name+' console errors '+errors.join(';'));
-  await page.screenshot({path:resolve(root,'screenshots','gps-dynamic-'+mode.name+'-integration.png'),fullPage:false});
-  console.log('PASS',mode.name,'v2 IndexedDB -> static gateway -> synced dynamic body/route/speed/flags');
+  await page.screenshot({path:resolve(root,'screenshots',(engineName==='webkit'?'webkit-gps-dynamic-':'gps-dynamic-')+mode.name+'-integration.png'),fullPage:false});
+  console.log('PASS',engineName,mode.name,'v2 IndexedDB -> static gateway -> synced dynamic body/route/speed/flags');
   await page.close();
  }
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
