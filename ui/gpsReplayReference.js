@@ -9,21 +9,11 @@ import {calculateWalkingReference} from '../core/activity/walking.js';
 
 export const GPS_REPLAY_REFERENCE_VERSION='gps-replay-reference-v1';
 export const GPS_REPLAY_ACTIVITY=['RUNNING','JOGGING','WALK'];
-/* Presentation-only mapping; canonical 12 engine IDs are R01..R12.
- * The visual asset uses BA-DISP IDs. Never infer one namespace from the other. */
-export const GPS_REPLAY_BODY_IDS=Object.freeze([
- 'BA-DISP-014','BA-DISP-015','BA-DISP-016','BA-DISP-018',
- 'BA-DISP-019','BA-DISP-021','BA-DISP-023','BA-DISP-024',
- 'BA-DISP-025','BA-DISP-027','BA-DISP-028','BA-DISP-029'
-]);
-export const gpsEngineRegionId=bodyId=>{
- const i=GPS_REPLAY_BODY_IDS.indexOf(bodyId);
- return i<0?null:'R'+String(i+1).padStart(2,'0');
-};
-export const gpsBodyRegionId=engineId=>{
- const match=/^R(0[1-9]|1[0-2])$/.exec(engineId||'');
- return match?GPS_REPLAY_BODY_IDS[Number(match[1])-1]:null;
-};
+import {BODY_REFERENCE_IDS,bodyReferenceEngineId,engineReferenceBodyId} from './bodyReferencePresentation.js';
+// Keep the public mapping names used by GPS tests and saved result screens.
+export const GPS_REPLAY_BODY_IDS=BODY_REFERENCE_IDS;
+export const gpsEngineRegionId=bodyReferenceEngineId;
+export const gpsBodyRegionId=engineReferenceBodyId;
 const finite=Number.isFinite;
 const blank=(state,extra={})=>({state,referenceOnly:true,rows:[],...extra});
 
