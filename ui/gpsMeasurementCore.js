@@ -2,7 +2,9 @@
  * Key filters are ported from legacy runMeasurementCore.js, with immutable copies
  * of geolocation values, explicit gap boundaries, and no browser globals at import.
  */
-export const GPS_LIMITS=Object.freeze({accuracyM:50,maxSpeedMps:15,minMoveM:2,minFinishM:10,maxTrack:2000});
+// Altitude thresholds are conservative display gates, NOT a certified elevation accuracy.
+export const GPS_LIMITS=Object.freeze({accuracyM:50,maxSpeedMps:15,minMoveM:2,minFinishM:10,maxTrack:2000,altitudeAccuracyM:20,maxVerticalSpeedMps:3,maxElevationGrade:0.6,maxContinuousGapMs:30000});
+export const GPS_ALTITUDE_QUALITY=Object.freeze(['usable','missing','unknown-accuracy','low-accuracy','spike']);
 export const GPS_ACTIVITY=Object.freeze({WALK:'ウォーキング',JOGGING:'ジョギング',RUNNING:'ランニング',MIXED:'走る＋歩く'});
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const range=(v,min,max)=>finite(v)&&v>=min&&v<=max;
@@ -16,8 +18,11 @@ export function snapshotPosition(source){
  try{
   const c=source?.coords,t=Number(source?.timestamp),lat=c?.latitude,lon=c?.longitude,accuracy=c?.accuracy;
   if(!range(lat,-90,90)||!range(lon,-180,180)||!range(accuracy,0,1e6)||!range(t,1,9e15))return null;
-  const ele=range(c?.altitude,-12000,9000)?c.altitude:null;
-  const altitudeAccuracy=range(c?.altitudeAccuracy,0,1e6)?c.altitudeAccuracy:null;
+  // Optional GPS altitude accessors may throw on permission changes; do not
+  // discard otherwise valid horizontal coordinates.
+  let ele=null,altitudeAccuracy=null;
+  try{const v=c?.altitude;if(range(v,-12000,9000))ele=v;}catch{}
+  try{const v=c?.altitudeAccuracy;if(range(v,0,1e6))altitudeAccuracy=v;}catch{}
   return {lat,lon,accuracyM:accuracy,t,ele,altitudeAccuracy};
  }catch{return null;}
 }
@@ -26,11 +31,28 @@ export function checkGpsPoint(previous,point,{gap=false}={}){
  if(point.accuracyM>GPS_LIMITS.accuracyM)return {ok:false,reason:'GPSの誤差が大きいため、この位置点を採用しません'};
  if(!previous||gap)return {ok:true,meters:0,gap:true};
  if(point.t<=previous.t)return {ok:false,reason:'位置情報の時刻が古いため採用しません'};
+ // A suspended browser cannot know the path between widely separated fixes.
+ // Keep the new fix as a new segment; never invent distance across that gap.
+ if(point.t-previous.t>GPS_LIMITS.maxContinuousGapMs)return {ok:true,meters:0,gap:true,reason:'GPS受信が途切れた区間の距離は加算していません'};
  const meters=gpsDistanceMeters(previous,point),speed=meters/((point.t-previous.t)/1000);
  if(!finite(meters))return {ok:false,reason:'位置データが不正です'};
  if(speed>GPS_LIMITS.maxSpeedMps)return {ok:false,reason:'不自然な速度の位置点を除外しました'};
  if(meters<GPS_LIMITS.minMoveM)return {ok:false,reason:'移動が小さいため距離には加算しません'};
  return {ok:true,meters,gap:false};
+}
+export function qualifyGpsAltitude(previous,point,{meters=0,gap=false}={}){
+ if(!point)return null;
+ if(point.ele===null)return {...point,ele:null,altitudeQuality:'missing'};
+ if(point.altitudeAccuracy===null)return {...point,ele:null,altitudeQuality:'unknown-accuracy'};
+ if(point.altitudeAccuracy>GPS_LIMITS.altitudeAccuracyM)return {...point,ele:null,altitudeQuality:'low-accuracy'};
+ if(previous&&previous.ele!==null&&!gap){
+  const seconds=(point.t-previous.t)/1000,climb=Math.abs(point.ele-previous.ele);
+  // A large altitude discontinuity is suspicious even when the device reports
+  // optimistic accuracy. Reject altitude only, never the accepted GPS position.
+  if(seconds>0&&climb>10&&(climb/seconds>GPS_LIMITS.maxVerticalSpeedMps||meters>0&&climb/meters>GPS_LIMITS.maxElevationGrade))
+   return {...point,ele:null,altitudeQuality:'spike'};
+ }
+ return {...point,altitudeQuality:'usable'};
 }
 export function gpsElapsedMs(s,now){
  if(!s.startedAt)return 0;
@@ -62,10 +84,11 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
    const p=snapshotPosition(raw),check=checkGpsPoint(s.lastPosition,p,{gap:!s.lastPosition||s.nextGap});
    if(!check.ok){s.rejected++;s.positionError=check.reason;changed();return;}
    if(s.track.length>=GPS_LIMITS.maxTrack){s.positionError='軌跡が上限に達しました。測定距離は継続します。';}
-   const prev=s.lastPosition;s.distanceM+=check.meters;s.accepted++;
-   s.lastPosition=p;s.nextGap=false;
-   if(s.track.length<GPS_LIMITS.maxTrack)s.track.push({...p,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
-   s.positionError='';checkGoal();changed();
+   const prev=s.lastPosition,accepted=qualifyGpsAltitude(prev,p,check);
+   s.distanceM+=check.meters;s.accepted++;
+   s.lastPosition=accepted;s.nextGap=false;
+   if(s.track.length<GPS_LIMITS.maxTrack)s.track.push({...accepted,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
+   s.positionError=check.reason||'';checkGoal();changed();
   },(err)=>{
    if(token!==epoch||s.phase!=='running')return;
    let code;try{code=err?.code;}catch{code=0;}

@@ -34,3 +34,10 @@
 - OpenStreetMapへのタイル画像リクエストは、Web版でRefererを送れる設定にする。外部地図は事前取得せず、ブラウザーの通常キャッシュに任せる。
 - 実地図はGPSで有効位置点を受けた後だけ表示し、地図読み込み全失敗時にもGPS計測と軌跡プレビューは続ける。
 - テストはGPSの毎回同意、拒否時の無監視、ブラウザーでの画像デコード、Referer、地図失敗時のUIを検証する。屋外実測・GPS標高精度・端末バックグラウンド保証とは別の範囲である。
+
+## W-03 GPS altitude quality and discontinuity gate
+- Horizontal GPS acceptance is separate from altitude quality. Optional altitude accessors throwing do not lose valid horizontal fixes.
+- Store `altitudeAccuracy` and explicit `altitudeQuality` for each accepted point. Missing/unknown/low-quality altitude and exceptional vertical spikes are stored as `ele:null`, not inferred. These thresholds are conservative display gates, NOT calibrated proof of elevation accuracy.
+- Time gaps over 30 seconds create a new segment and zero added distance over the unknown path. Pauses/activity changes remain explicit gap boundaries.
+- Simulation and live route diagrams use measured heights only when the altitude quality gate accepts them; unverified altitude is clearly distinguished from valid elevation.
+- Existing 2,000-point memory cap, localStorage capacity, and physical iOS tracking limitations remain W-04/W-05/W-08 tasks. Existing users reported no retained GPS data; the current contract can be refreshed without historic route migration.
