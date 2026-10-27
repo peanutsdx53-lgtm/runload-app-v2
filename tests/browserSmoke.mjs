@@ -1387,6 +1387,14 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'continuous reference map opens clean without covering body segments');
   assert.ok(await savedResult.locator('[data-label-toggle]').isVisible());
+  // Relief overlays are purely decorative and never replace palette data paths.
+  const anatomyBaseCount=await savedResult.locator('.rv4-region').count();
+  assert.equal(await savedResult.locator('.body-reference-relief').count(),anatomyBaseCount);
+  assert.equal(await savedResult.locator('.body-reference-satin').count(),anatomyBaseCount);
+  assert.equal(await savedResult.locator('.body-reference-relief[aria-hidden="true"][pointer-events="none"]').count(),anatomyBaseCount);
+  const scientificFill=await savedResult.locator('.rv4-region').first().evaluate(el=>el.style.fill);
+  assert.match(scientificFill,/^(rgb\\(|#)/,'reference scientific fill remains in base SVG geometry');
+
   // Approval preview: record the actual side-by-side anatomy/card arrangement
   // independently for 320, 390, 430 and desktop widths before merging to main.
   const bodyGeometry=await savedResult.locator('.rv4-body').evaluate(card=>{
@@ -1409,6 +1417,10 @@ try{
   if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility='hidden'});
   await savedResult.locator('.rv4-body').screenshot({
     path:resolve(root,'screenshots',mode.name+'-body-left-right-preview.png'),animations:'disabled'});
+  await savedResult.locator('[data-view="sole"]').click();
+  await savedResult.locator('.rv4-body').screenshot({
+    path:resolve(root,'screenshots',mode.name+'-sole-dimensional-preview.png'),animations:'disabled'});
+  await savedResult.locator('[data-view="front"]').click();
   if(mode.name!=='desktop')await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-continuous-palette-clean.png'),fullPage:false});
   await savedResult.locator('[data-label-toggle]').click();
