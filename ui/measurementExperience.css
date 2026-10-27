@@ -205,3 +205,6 @@
 .gps-history-capacity [data-gps-capacity-status]{font-size:.77rem;line-height:1.7;color:#e7f8fa}
 .gps-history-capacity .gps-history-origin-warning{color:#ffdfa9;border-left:3px solid #d5a44d;padding-left:10px}
 .gps-history-capacity .gps-history-capacity-notice{color:#b7f3df}
+
+.gps-screen-awake-pref{margin:0 0 15px}
+.gps-screen-awake-pref small{max-width:43ch}

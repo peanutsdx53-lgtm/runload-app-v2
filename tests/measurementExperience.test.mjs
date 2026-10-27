@@ -20,3 +20,21 @@ test('GPS record preparation protects optional route and measured quality',()=>{
  const feature=gpsRecordToFeature(yes.record);assert.ok(feature.distanceKm>=.01);assert.ok(feature.elevationPoints>0);
 });
 test('GPS record cannot be saved from blank, mock or uncompleted state',()=>{const h=harness();assert.equal(prepareGpsRun(h.gps.getSnapshot()).ok,false);h.gps.start();h.emit(37.5,139.9);h.tick(3000);h.gps.finish();assert.equal(prepareGpsRun(h.gps.getSnapshot()).ok,false);});
+
+test('GPS permission revocation stops watcher and pauses until fresh consent',()=>{
+ const h=harness();
+ assert.equal(h.gps.state.keepScreenAwake,false);
+ assert.equal(h.gps.setKeepScreenAwake(true),true);
+ assert.equal(h.gps.state.keepScreenAwake,true);
+ h.gps.start();
+ assert.equal(h.gps.setKeepScreenAwake(false),false);
+ h.emit(37.5,139.9);
+ h.error(1);
+ assert.equal(h.gps.state.phase,'paused');
+ assert.equal(h.stats().clear,1);
+ assert.match(h.gps.state.positionError,/拒否/);
+ assert.equal(h.gps.resume(),true,'controller resumes only if caller reauthorizes via the app UI');
+ assert.equal(h.stats().watch,2);
+ h.gps.discard();
+ assert.equal(h.stats().clear,2);
+});

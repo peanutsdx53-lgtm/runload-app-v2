@@ -75,3 +75,10 @@
 - At either A/B arithmetic endpoint, an available elevation is labelled as a saved reading or interpolation between saved points. Missing-height segments do not create interpolated heights, and endpoints exceeding a course never extrapolate altitude.
 - Display coverage of usable-height points, route discontinuities, and any geometry thinning. These measurements carry device and simplification uncertainty.
 - The 12-region scientific engine and ROF-J are **not** modified, and gradients are not used to invent speed or muscle-load corrections.
+
+## W-08 browser visibility and permission safety
+- An active geolocation watcher is paused when the web document is hidden or `pagehide` runs, rather than silently continuing elapsed time while browsers may suspend GPS callbacks.
+- Returning to the page does not resume automatically; the existing app-level location permission confirmation is required before the user explicitly resumes.
+- Browser geolocation PERMISSION_DENIED actively stops the watcher and pauses the run, with a clear error message.
+- Optional screen wake lock is disabled by default, only requested for a user-chosen active run on supported devices and released on pause, finish, route navigation or hiding.
+- This does not ensure iOS/Android background geolocation and has not been validated as a screen-locked outdoor run on real hardware. Non-persisted in-progress measurements are not a durable backup.

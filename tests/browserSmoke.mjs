@@ -1106,6 +1106,7 @@ try{
   assert.equal(await page.locator('[data-gps-action="start"]').isEnabled(),true);
   assert.equal(await page.locator("[data-gps-map]").count(),1,"GPS measurement includes street-map viewport");
   assert.equal(await page.locator("[data-gps-map] img").count(),0,"no tile requests before GPS receipt");
+  assert.equal(await page.locator('[data-gps-keep-awake]').isChecked(),false,'wake lock choice defaults to off');
   await page.locator('[data-gps-activity]').selectOption('MIXED');
   assert.match(await page.locator('[data-gps-activity-description]').innerText(),/区間を自分で切り替え/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-ready.png'),fullPage:true});
@@ -1143,6 +1144,19 @@ try{
   await page.locator('[data-gps-consent-confirm]').click();
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume+1);
   await page.waitForTimeout(1200);
+  await page.evaluate(()=>{
+    const original=Object.getOwnPropertyDescriptor(document,'hidden');
+    Object.defineProperty(document,'hidden',{configurable:true,value:true});
+    document.dispatchEvent(new Event('visibilitychange'));
+    if(original)Object.defineProperty(document,'hidden',original);
+    else delete document.hidden;
+  });
+  assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'paused','page hide pauses GPS');
+  assert.match(await page.locator('[data-gps-notice]').innerText(),/非表示・ロック/);
+  await page.locator('[data-gps-action="resume"]').click();
+  assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'restarting after hidden page requires consent');
+  await page.locator('[data-gps-consent-confirm]').click();
+  await page.waitForTimeout(300);
   await page.locator('[data-gps-action="finish"]').click();
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'finished');
   assert.equal(await page.locator('[data-gps-save-route]').isChecked(),false,'precise position track must be opt-in');

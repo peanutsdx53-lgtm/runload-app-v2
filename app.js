@@ -15,8 +15,8 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-track-v38");
-  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-track-v38");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-visibility-v42");
+  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-visibility-v42");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
@@ -62,6 +62,24 @@
   const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
   let gpsController=null;
   let gpsTicker=null;
+  let gpsWakeLock=null;
+  const releaseGpsWakeLock=()=>{
+    const lock=gpsWakeLock;gpsWakeLock=null;
+    if(lock)Promise.resolve().then(()=>lock.release()).catch(()=>{});
+  };
+  const requestGpsWakeLock=async()=>{
+    const gps=gpsController;
+    if(!gps?.state.keepScreenAwake||gps.state.phase!=='running'||document.hidden||gpsWakeLock)return;
+    if(typeof navigator.wakeLock?.request!=='function'){
+      gps.state.notice='この端末は画面の点灯保持に対応していません。GPS計測は続きます。';return;
+    }
+    try{
+      const lock=await navigator.wakeLock.request('screen');
+      if(gpsController!==gps||gps.state.phase!=='running'||document.hidden){await lock.release();return;}
+      gpsWakeLock=lock;
+      lock.addEventListener?.('release',()=>{if(gpsWakeLock===lock)gpsWakeLock=null;});
+    }catch{gps.state.notice='画面の点灯保持を利用できませんでした。GPS計測は続きます。';}
+  };
   let pendingGpsDelete="";
   let pendingGpsBackup=null,gpsBackupNotice="";
   let gpsCapacity=null,gpsCapacityNotice="";
@@ -71,7 +89,10 @@
   const ensureGps=()=>{
     if(!gpsController)gpsController=gpsCore.createGpsSession({
       geo:(()=>{try{return navigator.geolocation}catch{return null}})(),
-      onChange:current=>measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),current,gpsController?.elapsed()||0)
+      onChange:current=>{
+        measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),current,gpsController?.elapsed()||0);
+        if(current.phase!=='running'){refreshGpsTicker();releaseGpsWakeLock();}
+      }
     });
     return gpsController;
   };
@@ -511,6 +532,7 @@ function recordExtras(){
        }catch{gpsBackupNotice='GPSバックアップファイルを読み取れませんでした';}
        render();return;
      }
+    if(event.target.matches('[data-gps-keep-awake]')){ensureGps().setKeepScreenAwake(!!event.target.checked);return;}
     if(event.target.matches('[data-gps-activity]')){const gps=ensureGps();gps.setActivity(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
     if(event.target.matches('[data-gps-goal-mode]')){ensureGps().setGoalMode(event.target.value);const y=window.scrollY;render();window.scrollTo(0,y);return;}
     if(event.target.matches('[data-gps-goal-value]')){ensureGps().setGoalValue(event.target.value);return;}
@@ -781,7 +803,7 @@ function recordExtras(){
         const gps=ensureGps();
         if(pending==='start'&&gps.state.phase==='ready')gps.start();
         if(pending==='resume'&&gps.state.phase==='paused')gps.resume();
-        refreshGpsTicker();render();
+        refreshGpsTicker();if(gps.state.phase==='running')void requestGpsWakeLock();render();
       }else{
         render();app.querySelector(pending==='resume'?'[data-gps-action="resume"]':'[data-gps-action="start"]')?.focus();
       }
@@ -793,12 +815,12 @@ function recordExtras(){
       if(action==='start'){
         if(!window.isSecureContext){gps.state.notice='GPS計測はHTTPSで開いてください';render();return;}
         if(gps.state.phase==='ready'){gpsConsentAction='start';render();app.querySelector('[data-gps-consent-confirm]')?.focus();return;}
-      }else if(action==='pause')gps.pause();
+      }else if(action==='pause'){gps.pause();releaseGpsWakeLock();}
       else if(action==='resume'){
         if(gps.state.phase==='paused'){gpsConsentAction='resume';render();app.querySelector('[data-gps-consent-confirm]')?.focus();return;}
       }
-      else if(action==='finish')gps.finish();
-      else if(action==='discard'){gps.discard();gpsController=null;location.hash='#/record-start';return;}
+      else if(action==='finish'){gps.finish();releaseGpsWakeLock();}
+      else if(action==='discard'){gps.discard();releaseGpsWakeLock();gpsController=null;location.hash='#/record-start';return;}
       else if(action==='save'){
         const saveRoute=!!app.querySelector('[data-gps-save-route]')?.checked;
         const local=new Date(),date=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}`;
@@ -1076,10 +1098,21 @@ function recordExtras(){
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
+  const pauseGpsOnHidden=()=>{
+    if(gpsController?.state.phase==='running'){
+      gpsController.pause();
+      gpsController.state.notice='画面の非表示・ロックを検知したためGPS測定を一時停止しました。再開には位置情報の使用確認が必要です。';
+      refreshGpsTicker();
+      measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),gpsController.state,gpsController.elapsed());
+    }
+    releaseGpsWakeLock();
+  };
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGpsOnHidden();});
+  window.addEventListener('pagehide',pauseGpsOnHidden);
   window.addEventListener("focus",async()=>{await gpsStore.reloadGpsRuns();if(["history","simulation"].includes(currentPage()))render();});
   window.addEventListener("hashchange",()=>{
     gpsConsentAction="";
-    if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();}
+    if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();releaseGpsWakeLock();}
     // GPS saves and deletes show toast; do not immediately erase them on navigation.
     const retainedToast=state.toast;render();state.toast='';if(location.hash.includes("life=1"))app.querySelector("#interpret-life")?.scrollIntoView({block:"start",behavior:"instant"});else window.scrollTo(0,0)});
   render();
