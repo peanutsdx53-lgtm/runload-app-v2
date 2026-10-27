@@ -51,6 +51,7 @@ export function renderGpsResultSummary(summary){
  +'<div><small>活動時間</small><strong>'+time(summary.activeSeconds*1000)+'</strong></div>'
  +'<div><small>平均速度</small><strong>'+avg.toFixed(1)+' <small>km/h</small></strong></div></div>'
  +'<p class="gd-note">この結果における12部位の数値は記録の平均速度に対応する文献参考値です（算出 '+count+'/12 部位）。個人の身体負荷の測定値ではありません。</p>'
+ +'<section class="gd-summary-regions"><h2>12部位の文献参考値</h2><div class="gd-summary-rows">'+summary.finalReference.regions.map((r,i)=>'<div><small>'+esc(Object.values(names)[i]||r.regionId)+'</small><strong>'+(Number.isFinite(r.value)?r.value.toFixed(1):'—')+'</strong></div>').join('')+'</div></section>'
  +(flag?'<p style="margin-top:19px"><a class="gd-enter" href="#/dynamic-result?record='+encodeURIComponent(summary.id)+'">動的結果を見る ›</a></p>':'<p class="gd-note">動的結果は、保存時にコース・再生用データを選択した単一活動の記録で利用できます。</p>')
  +'</section>';
 }
