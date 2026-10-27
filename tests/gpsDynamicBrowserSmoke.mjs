@@ -12,8 +12,9 @@ const server=createServer(async(req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
   const file=resolve(root,'.'+decodeURIComponent(path));
   if(!file.startsWith(root+sep)&&file!==root)throw Error('denied');
-  const buf=await readFile(file===root?resolve(root,'index.html'):file);
-  res.setHeader('content-type',mime[extname(file)]||'application/octet-stream');res.end(buf);
+  const actual=file===root?resolve(root,'index.html'):file;
+  const buf=await readFile(actual);
+  res.setHeader('content-type',mime[extname(actual)]||'application/octet-stream');res.end(buf);
  }catch{res.writeHead(404);res.end('Not found');}
 });
 await new Promise(done=>server.listen(4189,'127.0.0.1',done));
