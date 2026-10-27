@@ -1415,7 +1415,8 @@ try{
     const notice=await output.locator('.rv4-notice').innerText();
     assert.match(notice,/文献条件/,example.activity+' must render a source-bounded reference result');
     assert.match(await output.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/,example.activity+' has at least one real output');
-    await output.locator('.rv4-body').locator('[data-region="BA-DISP-014"]').first().click();
+    await output.locator('[data-picker-toggle]').click();
+    await output.locator('.rv4-choices button[data-region="BA-DISP-014"]').click();
     assert.notEqual((await output.locator('.rv4-big-score').innerText()).trim(),'—',example.activity+' selected hip region is computed');
     const actualId=new URLSearchParams(page.url().split('?')[1]||'').get('record');
     assert.ok(actualId?.startsWith('run-v1-'));
