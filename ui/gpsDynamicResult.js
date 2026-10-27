@@ -3,7 +3,8 @@
  * Does not change the manual/static result screen or scientific source files.
  */
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
-import {deriveReplaySpeeds,evaluateGpsReplayReference,gpsEngineRegionId,gpsBodyRegionId} from './gpsReplayReference.js';
+import {deriveReplaySpeeds,evaluateGpsReplayReference,gpsBodyRegionId} from './gpsReplayReference.js';
+import {bodyReferenceRow,bodyReferenceColor,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
 export const GPS_REPLAY_BODY_NAMES={
  'BA-DISP-014':'股関節部','BA-DISP-015':'殿部','BA-DISP-016':'大腿前面',
@@ -18,18 +19,8 @@ const time=ms=>{
  const s=Math.max(0,Math.floor(ms/1000));
  return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 };
-export const palette=(row)=>{
- if(!row||row.calculationState!=='CALCULATED'||!Number.isFinite(row.value))return {fill:'#52636b',state:'missing'};
- const offset=row.value-100;
- // Continuously vary the intensity from reference 100. Each region is independent.
- // Colors indicate literature-reference deviation, never clinical risk or tissue force.
- const ratio=Math.min(1,Math.abs(offset)/35);
- const base=[45,104,120],target=offset<0?[105,167,227]:[239,157,103];
- const rgb=base.map((v,i)=>Math.round(v+(target[i]-v)*ratio));
- return {fill:'rgb('+rgb.join(',')+')',state:'available'};
-};
-export const gpsReplayRowForBody=(rows,bodyId)=>Array.isArray(rows)?
- rows.find(r=>r.regionId===gpsEngineRegionId(bodyId))||null:null;
+export const palette=bodyReferenceColor;
+export const gpsReplayRowForBody=bodyReferenceRow;
 const svgLine=points=>points.length<2?'':points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
 function routeGeometry(track){
  if(!Array.isArray(track)||track.length<2)return {paths:[],coords:()=>[0,0]};
@@ -87,6 +78,11 @@ export function mountGpsDynamicResult(host,summary,detail){
   return low;
  };
  const refAt=()=>getFrame().speedMps===null?null:evaluateGpsReplayReference({activity:summary.activity,speedMps:getFrame().speedMps});
+ // The first raw GPS fix has no speed. Open at the earliest scientifically
+ // calculable sample, but never fabricate or interpolate unavailable samples.
+ const firstCalculable=speed.findIndex(p=>p.speedMps!==null&&
+   evaluateGpsReplayReference({activity:summary.activity,speedMps:p.speedMps}).count>0);
+ if(firstCalculable>0)index=firstCalculable;
  const bodySvg=ref=>{
   const v=BODY_REGION_VIEWS.find(x=>x.key===view)||BODY_REGION_VIEWS[0];
   const paths=v.paths.map(([id,d])=>{
@@ -95,7 +91,7 @@ export function mountGpsDynamicResult(host,summary,detail){
    return '<path tabindex="0" role="button" aria-label="'+esc(names[id])+'" data-body-region="'+id+'" class="gd-body-path'+(selected===id?' selected':'')+'" data-state="'+tint.state+'" style="fill:'+tint.fill+'" d="'+d+'"><title>'+esc(names[id])+'</title></path>';
   }).join('');
   return '<svg class="gd-body" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の部位別文献参考値">'
-    +'<g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+'</svg>';
+    +'<g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+renderBodyReferenceLabels(v,ref?.rows||[])+'</svg>';
  };
  const courseSvg=()=>{
   const frame=getFrame(),target=detail.route.reduce((best,p)=>Math.abs(p.t-frame.t)<Math.abs(best.t-frame.t)?p:best,detail.route[0]);
