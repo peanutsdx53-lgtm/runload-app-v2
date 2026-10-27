@@ -1,6 +1,6 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
-import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES} from './resultInlineStyles.js';
+import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
 const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -159,6 +159,6 @@ export function mountResult(host,draft={},options={}){
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
- if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+'</style><div class="rv4-app"></div>';
+ if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+'</style><div class="rv4-app"></div>';
  draw();
 }
