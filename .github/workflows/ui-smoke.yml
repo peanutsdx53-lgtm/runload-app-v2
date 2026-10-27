@@ -43,6 +43,7 @@ jobs:
           node --check ui/gpsDynamicResult.js
           node --check ui/gpsReplayIndexedDbStore.js
           node --check ui/gpsReplayReference.js
+          node --check ui/bodyReferencePresentation.js
           node --check ui/gpsEnergyDisplay.js
           node --check ui/gpsMeasurementEnergy.js
           node --check ui/gpsStorageHealth.js
@@ -50,4 +51,4 @@ jobs:
           node --check ui/explorationExperience.js
           node --check ui/explorationReadAdapter.js
       - name: UI and installability contracts
-        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/rofExperience.test.mjs tests/recordDraftReview.test.mjs tests/recordExperience.test.mjs tests/recordReviewExperience.test.mjs tests/resultExperience.test.mjs tests/manualRunStore.test.mjs tests/scienceEngineParity.test.mjs tests/gaitExperience.test.mjs tests/environmentExperience.test.mjs tests/measurementExperience.test.mjs tests/gpsIndexedDbStore.test.mjs tests/gpsMeasurementPolish.test.mjs tests/gpsReplayReference.test.mjs tests/gpsReplayIndexedDbStore.test.mjs tests/gpsAltitudeQuality.test.mjs tests/gpsLongTrack.test.mjs tests/gpsDesignAssurance.test.mjs tests/gpsSoftwareCloseout.test.mjs tests/gpsBackupContract.test.mjs tests/gpsStorageHealth.test.mjs tests/gpsCourseEvidence.test.mjs tests/gpsLiveMap.test.mjs tests/explorationExperience.test.mjs tests/explorationLearning.test.mjs tests/mobileInputFocus.test.mjs tests/historyInputFocus.test.mjs tests/historyExperience.test.mjs
+        run: node --test tests/uiContracts.test.mjs tests/homeDashboardLayout.test.mjs tests/homeExperience.test.mjs tests/rofJScale.test.mjs tests/rofExperience.test.mjs tests/recordDraftReview.test.mjs tests/recordExperience.test.mjs tests/recordReviewExperience.test.mjs tests/resultExperience.test.mjs tests/manualRunStore.test.mjs tests/scienceEngineParity.test.mjs tests/gaitExperience.test.mjs tests/environmentExperience.test.mjs tests/measurementExperience.test.mjs tests/gpsIndexedDbStore.test.mjs tests/gpsMeasurementPolish.test.mjs tests/bodyReferencePresentation.test.mjs tests/gpsReplayReference.test.mjs tests/gpsReplayIndexedDbStore.test.mjs tests/gpsAltitudeQuality.test.mjs tests/gpsLongTrack.test.mjs tests/gpsDesignAssurance.test.mjs tests/gpsSoftwareCloseout.test.mjs tests/gpsBackupContract.test.mjs tests/gpsStorageHealth.test.mjs tests/gpsCourseEvidence.test.mjs tests/gpsLiveMap.test.mjs tests/explorationExperience.test.mjs tests/explorationLearning.test.mjs tests/mobileInputFocus.test.mjs tests/historyInputFocus.test.mjs tests/historyExperience.test.mjs
