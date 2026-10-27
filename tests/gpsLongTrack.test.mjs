@@ -48,6 +48,11 @@ test('4 hours of 1 Hz GPS fixes keep the actual route finish, measured distance 
  assert.equal(snap.rejected,0);
  assert.ok(snap.elapsedMs>=4*3600*1000,'the full run is timed');
  assert.equal(snap.trackSimplified,true);
+ assert.equal(snap.replayTrackAvailable,true);
+ assert.equal(snap.replayTrack.length,total,'all accepted fixes retain an independent speed timeline');
+ assert.equal(snap.replayTrack[0].t,startTime);
+ assert.equal(snap.replayTrack.at(-1).t,time-1000);
+ assert.ok(snap.replayTrack.filter(p=>p.breakBefore).length>=3,'pause and activity boundaries survive without thinned route points');
  assert.ok(snap.track.length>500&&snap.track.length<=GPS_LIMITS.maxTrack);
  assert.equal(snap.track[0].t,startTime);
  assert.equal(snap.track.at(-1).t,time-1000);
