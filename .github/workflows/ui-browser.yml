@@ -95,6 +95,16 @@ jobs:
           path: screenshots/*-body-left-right-preview.png
           if-no-files-found: ignore
           retention-days: 14
+      - name: Publish posterior left-right geometry review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-posterior-balanced-chromium
+          path: |
+            screenshots/*-back-silhouette-corrected.png
+            screenshots/*-gps-back-silhouette-corrected.png
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload visual inspection screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,6 +140,14 @@ jobs:
         env:
           RUNLOAD_BROWSER_ENGINE: webkit
         run: node tests/gpsDynamicBrowserSmoke.mjs
+      - name: Publish posterior balanced WebKit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-posterior-balanced-webkit
+          path: screenshots/webkit-*-posterior-balanced.png
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload WebKit screenshots
         if: always()
         uses: actions/upload-artifact@v4
