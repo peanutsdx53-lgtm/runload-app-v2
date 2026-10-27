@@ -85,9 +85,15 @@ try{
   assert.equal(await page.locator('.gd-body-path').count(),5);
   assert.equal(await page.locator('.gd-scrub').inputValue(),'1',
    'GPS dynamic result opens at first scientifically calculable fix');
+  assert.equal(await page.locator('[data-body-reference-label]').count(),0,
+   'dynamic anatomy has no overlaid badges in default color mode');
+  assert.equal(await page.locator('.gd-palette-track').count(),1);
+  await page.locator('[data-body-label-toggle]').click();
   const hipAtOpen=page.locator('[data-body-reference-label="BA-DISP-014"]');
   assert.equal(await hipAtOpen.count(),1,'first calculable frame shows numeric hip badge on the body');
   assert.match(await hipAtOpen.getAttribute('data-body-reference-value'),/^\d+\.\d$/);
+  await page.locator('[data-body-label-toggle]').click();
+  assert.equal(await hipAtOpen.count(),0,'user can return to unobstructed body color view');
   assert.equal(await page.locator('.gd-map-flag').count(),1);
   const initial=await page.locator('.gd-metric').nth(2).innerText();
   await page.locator('.gd-scrub').evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input',{bubbles:true}));});
