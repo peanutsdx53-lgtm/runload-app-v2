@@ -59,6 +59,7 @@ const validRoutePoint=p=>p&&finite(p.lat,-90,90)&&finite(p.lon,-180,180)
 const validFlag=f=>f&&/^flag-[0-9a-z-]{5,64}$/.test(f.id)
  &&Number.isSafeInteger(f.t)&&f.t>0&&finite(f.km,0,1000)
  &&finite(f.lat,-90,90)&&finite(f.lon,-180,180)
+ &&(f.activeMs===undefined||(Number.isSafeInteger(f.activeMs)&&f.activeMs>=0))
  &&typeof f.note==='string'&&f.note.length<=240;
 export function validGpsV2Detail(d){
  return !!d&&/^gps-v2-[0-9a-z-]{8,64}$/.test(d.id)&&d.schema===2
@@ -98,9 +99,10 @@ export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISO
   return {ok:false,reason:'速度時系列が不完全です。詳細保存を中止しました'};
  const flags=Array.isArray(session.flags)?session.flags:[];
  const detail={schema:2,id,route:old.track.map(p=>({
-  lat:p.lat,lon:p.lon,km:p.km,t:p.t,breakBefore:p.breakBefore
- })),speedPoints:session.replayTrack.map(p=>({t:p.t,km:p.km,breakBefore:p.breakBefore})),
-  flags:flags.map(f=>({id:f.id,t:f.t,km:f.km,lat:f.lat,lon:f.lon,note:f.note||''})),
+  lat:p.lat,lon:p.lon,km:p.km,t:p.t,breakBefore:p.breakBefore,
+  ele:p.ele,altitudeAccuracy:p.altitudeAccuracy,altitudeQuality:p.altitudeQuality,activity:p.activity
+ })),speedPoints:session.replayTrack.map(p=>({t:p.t,km:p.km,breakBefore:p.breakBefore,...(p.activeMs===undefined?{}:{activeMs:p.activeMs})})),
+  flags:flags.map(f=>({id:f.id,t:f.t,km:f.km,lat:f.lat,lon:f.lon,note:f.note||'',...(f.activeMs===undefined?{}:{activeMs:f.activeMs})})),
   trackSimplified:old.trackSimplified
  };
  if(!validGpsV2Detail(detail))return {ok:false,reason:'詳細データが不正です'};
@@ -196,4 +198,18 @@ export async function importGpsV2Backup(text){
   for(const x of added){s.add(x);if(x.detailSaved)d.add(incoming.get(x.id));}
   await done;return {ok:true,added:added.length,skipped:data.summaries.length-added.length};
  }catch{return {ok:false,reason:FAIL};}
+}
+
+/** Reuse a saved v2 route in the existing simulation course interface. */
+export function gpsV2DetailToFeature(summary,detail){
+ if(!validGpsV2Summary(summary)||!summary.detailSaved||!validGpsV2Detail(detail)||detail.id!==summary.id)return null;
+ const segments=[];let group=[];
+ for(const p of detail.route){
+  if(p.breakBefore&&group.length){segments.push(group);group=[];}
+  group.push({lat:p.lat,lon:p.lon,km:p.km,ele:p.ele??null,altitudeAccuracy:p.altitudeAccuracy??null,altitudeQuality:p.altitudeQuality??'missing'});
+ }if(group.length)segments.push(group);
+ const ele=detail.route.filter(p=>Number.isFinite(p.ele)).length;
+ return {kind:'gps',name:summary.date+'・GPS保存コース',segments,distanceKm:summary.distanceKm,
+  points:detail.route.length,elevationPoints:ele,elevationStatus:ele?'partial':'none',
+  gapCount:Math.max(0,segments.length-1),simplified:detail.trackSimplified};
 }
