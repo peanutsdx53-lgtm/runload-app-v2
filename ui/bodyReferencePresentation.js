@@ -101,3 +101,15 @@ export const referenceReliefDefs=prefix=>`<linearGradient id="${prefix}-relief" 
 export const referenceReliefOverlays=(path,prefix,state)=>
  `<path d="${path}" class="body-reference-relief${state==='missing'?' is-unavailable':''}" fill="url(#${prefix}-relief)" aria-hidden="true" pointer-events="none"/>`+
  `<path d="${path}" class="body-reference-satin${state==='missing'?' is-unavailable':''}" fill="url(#${prefix}-satin)" aria-hidden="true" pointer-events="none"/>`;
+
+/* The original body silhouette (first SVG path) is the anatomical boundary.
+ * Rendering and contact geometry must share this single authoritative path.
+ * It is a display-only clip; no scientific region values or mapping change.
+ */
+export const bodyReferenceSilhouetteClipDef=(view,prefix)=>{
+ const boundary=typeof view?.silhouette==='string'?
+  /^<path d="([^"]+)"/.exec(view.silhouette)?.[1]:null;
+ if(!boundary)return '';
+ return '<clipPath id="'+prefix+'-silhouette-clip" clipPathUnits="userSpaceOnUse">'+
+  '<path d="'+boundary+'"/></clipPath>';
+};
