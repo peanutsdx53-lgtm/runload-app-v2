@@ -251,3 +251,5 @@
  .gps-live-actions--measuring{gap:9px}
  .gps-live-actions--measuring .gps-v2-button{font-size:.92rem}
 }
+
+.gps-live-actions--paused .gps-action-pause{grid-column:1/-1}
