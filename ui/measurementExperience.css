@@ -171,7 +171,13 @@
 .gps-consent-symbol{font-size:1.8rem;color:#55e2d1;margin-bottom:8px}
 .gps-consent-dialog h2{font-size:clamp(1.13rem,4vw,1.35rem);line-height:1.45;margin:0 0 12px}
 .gps-consent-dialog p{font-size:.86rem;line-height:1.8;color:#c4e0e8;margin:0 0 22px}
+.gps-consent-interruption{background:#092c3a;border:1px solid #518494;border-left:4px solid #e0b378;border-radius:12px;padding:13px 14px;margin:0 0 19px}
+.gps-consent-interruption>strong{display:block;color:#ffe0aa;font-size:.85rem;line-height:1.5;margin-bottom:8px}
+.gps-consent-dialog .gps-consent-interruption p{margin:0 0 8px;font-size:.77rem;line-height:1.7;color:#d4e7ec}
+.gps-consent-dialog .gps-consent-interruption p:last-child{margin-bottom:0}
+.gps-consent-interruption b{color:#f5fcff;font-weight:850}
 .gps-consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-height:690px){.gps-consent-dialog{padding:16px 18px}.gps-consent-dialog>p{margin-bottom:12px}.gps-consent-interruption{padding:10px 12px;margin-bottom:12px}}
 .gps-consent-actions button{min-width:0;white-space:normal}
 .gps-consent-dialog button:focus-visible{outline:3px solid #96f4e2;outline-offset:3px}
 .gps-map-network-status:not([hidden]){position:absolute;left:10px;right:10px;top:12px;z-index:4;padding:10px;border-radius:9px;border:1px solid #d3b584;background:#263f4deb;color:#fff5da;font-size:.74rem;line-height:1.5;pointer-events:none}

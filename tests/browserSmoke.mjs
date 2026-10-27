@@ -1127,6 +1127,16 @@ try{
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'no GPS watcher without explicit consent');
   await page.locator('[data-gps-action="start"]').click();
   assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'consent dialog is mandatory');
+  assert.equal(await page.locator('[data-gps-consent-interruption]').count(),0,'no duplicate pause notice overlay');
+  const consentNotice=page.locator('#gps-consent-interruption');
+  assert.equal(await consentNotice.count(),1,'existing consent modal contains pause/resume notice');
+  assert.match(await consentNotice.innerText(),/活動時間のタイマーとGPS測位は自動で一時停止/);
+  assert.match(await consentNotice.innerText(),/画面に戻っても自動では再開しません/);
+  assert.match(await consentNotice.innerText(),/「測定を再開」から位置情報の使用を確認/);
+  assert.match(await consentNotice.innerText(),/停止中の時間・距離は加算されません/);
+  assert.match(await page.locator('.gps-consent-dialog').getAttribute('aria-describedby'),/gps-consent-interruption/);
+  assert.ok(await consentNotice.isVisible(),'warning visible before GPS permission and watcher start');
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-prestart-notice.png'),fullPage:false});
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'dialog open does not start watcher');
   await page.locator('[data-gps-consent-cancel]').click();
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'denying GPS consent never starts watcher');
@@ -1161,6 +1171,8 @@ try{
   const watchesBeforeResume=await page.evaluate(()=>window.__gpsWatchCount);
   await page.locator('[data-gps-action="resume"]').click();
   assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'resuming GPS requests fresh consent');
+  assert.equal(await page.locator('#gps-consent-interruption').count(),1,'restart also explains lock and resume behavior');
+  assert.match(await page.locator('#gps-consent-title').innerText(),/位置情報の取得を再開/);
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume);
   await page.locator('[data-gps-consent-confirm]').click();
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume+1);
