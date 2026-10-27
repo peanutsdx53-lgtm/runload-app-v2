@@ -1354,6 +1354,8 @@ try{
   assert.equal((await savedResult.locator('.rv4-distance strong').innerText()).trim(),'5.00');
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/活動種別が未選択/,'legacy/unspecified runs have no inferred activity');
   assert.equal((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—','no fabricated score without explicit activity');
+  assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
+   'unknown manual activity never creates fabricated reference values');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
   const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
@@ -1476,6 +1478,19 @@ try{
     await output.locator('[data-picker-toggle]').click();
     await output.locator('.rv4-choices button[data-region="BA-DISP-014"]').click();
     assert.notEqual((await output.locator('.rv4-big-score').innerText()).trim(),'—',example.activity+' selected hip region is computed');
+    const hipValue=(await output.locator('.rv4-big-score').innerText()).trim();
+    const hipBadge=output.locator('[data-body-reference-label="BA-DISP-014"]');
+    assert.equal(await hipBadge.count(),1,example.activity+' real hip value appears directly on figure');
+    assert.equal(await hipBadge.getAttribute('data-body-reference-value'),hipValue,
+      example.activity+' anatomical badge equals the unchanged engine-selected value');
+    assert.equal(await output.locator('.rv4-body-svg [data-region="BA-DISP-014"]').getAttribute('data-reference-state'),
+      'available','computed body segment must have a science-derived fill');
+    const badges=output.locator('[data-body-reference-label]');
+    assert.ok(await badges.count()>0,example.activity+' body contains at least one visible number');
+    await output.locator('[data-view="back"]').click();
+    assert.equal(await output.locator('[data-region]').count(),4,example.activity+' back body intact');
+    await output.locator('[data-view="sole"]').click();
+    assert.equal(await output.locator('[data-region]').count(),3,example.activity+' sole body intact');
     const actualId=new URLSearchParams(page.url().split('?')[1]||'').get('record');
     assert.ok(actualId?.startsWith('run-v1-'));
     await page.reload({waitUntil:'networkidle'});
