@@ -49,3 +49,11 @@ button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button:f
 .rr-gait-options button{min-width:0;min-height:44px;border-radius:9px;border:1px solid #73a8b8;background:#103b50;color:#f6ffff;padding:7px 3px;font-size:clamp(11px,1.6vw,13px);font-weight:770;cursor:pointer}
 .rr-gait-options button:focus-visible,.rr-gait-options button:hover{outline:2px solid #59efe3;outline-offset:2px;background:#175b71}
 @media(max-width:375px){.rr-gait-warning{padding:11px 8px}.rr-gait-options{gap:4px}.rr-gait-options button{font-size:11px}}
+
+/* Required run input status remains readable in wide desktop and narrow iPhone. */
+.rr-page .rr-required-status{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.rr-page .rr-required-status>span{display:inline-flex;align-items:center;border:1px solid #548493;border-radius:7px;background:#124459;color:#c6e9ed;font-size:11px;font-weight:750;padding:6px 8px}
+.rr-page .rr-required-status>[data-required-ok="false"]{background:#483626;border-color:#a17d56;color:#ffe1b9}
+.rr-page .rr-save-required-warning{margin:10px 0 0;color:#ffdfb6;font-size:12px;line-height:1.65}
+.rr-page .rr-gait-warning strong{font-size:15px}
+@media(max-width:600px){.rr-page .rr-required-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.rr-page .rr-required-status>span{justify-content:center;text-align:center;font-size:10px;padding:7px 3px}.rr-page .rr-save-required-warning{font-size:11px}}
