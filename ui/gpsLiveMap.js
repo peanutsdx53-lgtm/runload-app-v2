@@ -26,7 +26,16 @@ export function visibleTiles(center,width,height,zoom=16){
 }
 function ensureFrame(node){
  if(node.querySelector('[data-gps-map-tiles]'))return;
- node.innerHTML='<div class="gps-map-tiles" data-gps-map-tiles aria-hidden="true"></div><svg class="gps-map-overlay" data-gps-map-overlay aria-hidden="true"></svg><div class="gps-map-location" data-gps-map-location>GPS受信中</div>';
+ node.innerHTML='<div class="gps-map-tiles" data-gps-map-tiles aria-hidden="true"></div><svg class="gps-map-overlay" data-gps-map-overlay aria-hidden="true"></svg><div class="gps-map-location" data-gps-map-location>GPS受信中</div><div class="gps-map-network-status" data-gps-map-network-status role="status" hidden>道路地図を取得できません。GPS計測と軌跡の記録は継続しています。</div>';
+}
+function updateTileStatus(map){
+ const imgs=[...map.querySelectorAll('[data-gps-map-tiles] img')];
+ const loaded=imgs.some(img=>img.complete&&img.naturalWidth>0);
+ const waiting=imgs.some(img=>!img.complete);
+ const failed=imgs.length>0&&!loaded&&!waiting;
+ const notice=map.querySelector('[data-gps-map-network-status]');
+ if(notice)notice.hidden=!failed;
+ map.dataset.tileStatus=failed?'unavailable':loaded?'loaded':'loading';
 }
 function segmentPaths(track,center,w,h,zoom){
  const chunks=[];let chunk=[];let last=null;
@@ -49,7 +58,7 @@ export function updateGpsLiveMap(root,s){
  const map=root?.querySelector?.('[data-gps-map]');if(!map)return;
  const p=s?.lastPosition;
  if(!isCoordinate(p)||!(p.accuracyM>=0&&p.accuracyM<=50)){
-  map.replaceChildren();map.dataset.mapStatus='waiting';
+  map.replaceChildren();map.dataset.mapStatus='waiting';map.dataset.tileStatus='waiting';
   const label=document.createElement('span');label.className='gps-map-waiting';label.textContent='GPS測位後に、この場所の地図を表示します。';map.append(label);
   return;
  }
@@ -60,11 +69,19 @@ export function updateGpsLiveMap(root,s){
  const old=new Map([...deck.children].map(el=>[el.dataset.tileKey,el]));
  for(const tile of visibleTiles(center,width,height,zoom)){
   let img=old.get(tile.key);
-  if(!img){img=document.createElement('img');img.dataset.tileKey=tile.key;img.alt='';img.decoding='async';img.loading='eager';img.referrerPolicy='no-referrer';img.src=tile.url;deck.append(img);}
+  if(!img){
+   img=document.createElement('img');img.dataset.tileKey=tile.key;img.alt='';img.decoding='async';img.loading='eager';
+   // OSM requires a valid Referer for web clients. Do not disable native HTTP caching.
+   img.referrerPolicy='strict-origin-when-cross-origin';
+   img.addEventListener('load',()=>updateTileStatus(map));
+   img.addEventListener('error',()=>updateTileStatus(map));
+   img.src=tile.url;deck.append(img);
+  }
   img.style.left=`${tile.left.toFixed(1)}px`;img.style.top=`${tile.top.toFixed(1)}px`;
   old.delete(tile.key);
  }
  for(const unused of old.values())unused.remove();
+ updateTileStatus(map);
  const overlay=map.querySelector('[data-gps-map-overlay]');
  overlay.setAttribute('viewBox',`0 0 ${width} ${height}`);
  const path=segmentPaths(s.track||[],center,width,height,zoom);

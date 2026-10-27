@@ -168,3 +168,15 @@
 .gps-live-map-foot a{color:#93eced;text-decoration:underline}
 .gps-live-map-privacy{font-size:.69rem;line-height:1.6;color:#b5ced7;margin:8px 1px 0}
 @media(max-width:500px){.gps-live-map-canvas{height:245px}.gps-live-map-heading strong{font-size:.82rem}}
+
+/* Location consent is a fresh, deliberate choice for each GPS watcher start. */
+.gps-consent-backdrop{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:16px;background:rgba(3,17,26,.83);backdrop-filter:blur(7px)}
+.gps-consent-dialog{width:min(440px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#123747;border:1px solid #5893a4;border-radius:21px;padding:clamp(20px,5vw,28px);box-shadow:0 18px 55px #0008;color:#f2fcff}
+.gps-consent-symbol{font-size:1.8rem;color:#55e2d1;margin-bottom:8px}
+.gps-consent-dialog h2{font-size:clamp(1.13rem,4vw,1.35rem);line-height:1.45;margin:0 0 12px}
+.gps-consent-dialog p{font-size:.86rem;line-height:1.8;color:#c4e0e8;margin:0 0 22px}
+.gps-consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gps-consent-actions button{min-width:0;white-space:normal}
+.gps-consent-dialog button:focus-visible{outline:3px solid #96f4e2;outline-offset:3px}
+.gps-map-network-status:not([hidden]){position:absolute;left:10px;right:10px;top:12px;z-index:4;padding:10px;border-radius:9px;border:1px solid #d3b584;background:#263f4deb;color:#fff5da;font-size:.74rem;line-height:1.5;pointer-events:none}
+@media(max-width:360px){.gps-consent-actions{grid-template-columns:1fr}}
