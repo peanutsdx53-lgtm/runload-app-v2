@@ -118,7 +118,9 @@ export function compactGpsTrack(track,limit=GPS_LIMITS.maxTrack){
 }
 export function gpsElapsedMs(s,now){
  if(!s.startedAt)return 0;
- const end=s.phase==='running'?now:(s.pausedAt||s.finishedAt||now);
+ // Once finished, pausedMs already includes the final pause. Using pausedAt
+ // here would deduct that same paused interval twice.
+ const end=s.phase==='running'?now:s.phase==='finished'?s.finishedAt:(s.pausedAt||now);
  return Math.max(0,end-s.startedAt-(s.pausedMs||0));
 }
 export function formatGpsClock(ms){const secs=Math.floor(Math.max(0,ms)/1000);return `${String(Math.floor(secs/3600)).padStart(2,'0')}:${String(Math.floor(secs/60)%60).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;}

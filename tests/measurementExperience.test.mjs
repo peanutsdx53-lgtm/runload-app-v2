@@ -21,6 +21,41 @@ test('GPS record preparation protects optional route and measured quality',()=>{
 });
 test('GPS record cannot be saved from blank, mock or uncompleted state',()=>{const h=harness();assert.equal(prepareGpsRun(h.gps.getSnapshot()).ok,false);h.gps.start();h.emit(37.5,139.9);h.tick(3000);h.gps.finish();assert.equal(prepareGpsRun(h.gps.getSnapshot()).ok,false);});
 
+test('finishing while paused counts only active time, not the last pause twice',()=>{
+ const h=harness();h.gps.start();
+ h.emit(37.5,139.9);h.tick(5000);h.emit(37.50025,139.9);
+ h.gps.pause();h.tick(30000);
+ assert.equal(h.gps.elapsed(),5000,'a paused timer freezes');
+ assert.equal(h.gps.finish(),true);
+ assert.equal(h.gps.getSnapshot().elapsedMs,5000,'finished elapsed duration excludes exactly one pause');
+ const prepared=prepareGpsRun(h.gps.getSnapshot(),{saveRoute:true,date:'2026-10-27'});
+ assert.equal(prepared.ok,true,prepared.reason);
+ assert.equal(prepared.record.activeSeconds,5,'saved active time matches measurement');
+});
+test('multiple pauses and a permission-denied pause do not underflow elapsed duration',()=>{
+ const h=harness();h.gps.start();
+ h.emit(37.5,139.9);h.tick(5000);h.emit(37.50025,139.9);
+ h.gps.pause();h.tick(20000);
+ h.gps.resume();h.tick(10000);h.emit(37.50055,139.9);
+ h.error(1);h.tick(60000);
+ assert.equal(h.gps.getSnapshot().phase,'paused');
+ h.gps.finish();
+ assert.equal(h.gps.getSnapshot().elapsedMs,15000);
+});
+test('stale async geolocation callbacks cannot restart GPS after pause or disposal',()=>{
+ let success,error,clock=1000000,watch=0,clears=0;
+ const gps=createGpsSession({geo:{watchPosition:(ok,err)=>{success=ok;error=err;return ++watch},clearWatch:()=>{clears++}},now:()=>clock});
+ gps.start();const stale=success;
+ const fixed=t=>sample(37.5,139.9,t);
+ stale(fixed(clock));gps.pause();
+ stale(fixed(clock+5000));
+ assert.equal(gps.state.accepted,1,'callback delivered after pause is discarded');
+ gps.resume();success(fixed(clock+10000));
+ assert.equal(gps.state.accepted,2);
+ gps.discard();success(fixed(clock+20000));error({code:1});
+ assert.equal(gps.state.accepted,2);assert.equal(gps.state.phase,'discarded');
+ assert.equal(clears,2);
+});
 test('GPS permission revocation stops watcher and pauses until fresh consent',()=>{
  const h=harness();
  assert.equal(h.gps.state.keepScreenAwake,false);

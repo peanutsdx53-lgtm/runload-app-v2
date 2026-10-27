@@ -15,8 +15,8 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-visibility-v42");
-  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-visibility-v42");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-assurance-v43");
+  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-assurance-v43");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
