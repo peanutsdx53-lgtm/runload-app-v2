@@ -45,13 +45,13 @@ export function renderBodyReferenceLabels(view,rows,{prefix='reference'}={}){
   const point=ANCHORS[bodyId],row=bodyReferenceRow(rows,bodyId);
   if(!point||!calculatedReference(row))return '';
   const [x,y]=point,label=row.value.toFixed(1);
-  const width=Math.max(37,10+label.length*7),height=20;
+  const width=Math.max(48,16+label.length*9.4),height=30;
   const x0=x-width/2,y0=y-height/2;
   return '<g class="body-reference-badge" data-body-reference-label="'+bodyId+
    '" data-body-reference-value="'+label+'" pointer-events="none" aria-hidden="true">'+
    '<rect x="'+x0+'" y="'+y0+'" width="'+width+'" height="'+height+
    '" rx="8" fill="#082b3b" fill-opacity=".94" stroke="#95e8df" stroke-width="1.1"/>'+
-   '<text x="'+x+'" y="'+(y+4.2)+'" text-anchor="middle" fill="#f6ffff" '+
-   'font-size="12" font-family="system-ui,sans-serif" font-weight="800">'+label+'</text></g>';
+   '<text x="'+x+'" y="'+(y+6.2)+'" text-anchor="middle" fill="#f6ffff" '+
+   'font-size="19" font-family="system-ui,sans-serif" font-weight="800">'+label+'</text></g>';
  }).join('');
 }
