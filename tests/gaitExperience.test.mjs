@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {gaitKeys,gaitValidation,gaitPage} from '../ui/gaitExperience.js';
-test('gait maps to exactly five existing record-draft fields',()=>{
- assert.deepEqual(gaitKeys,['steps','stepsProvenance','runningFormat','runWalkRunningDistanceKm','runWalkRunningDurationMinutes']);
+test('gait maps to six explicit record-draft fields including selected activity',()=>{
+ assert.deepEqual(gaitKeys,['steps','stepsProvenance','activityGait','runningFormat','runWalkRunningDistanceKm','runWalkRunningDurationMinutes']);
  const html=gaitPage({steps:'0',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',distance:'',minutes:''});
  assert.match(html,/data-draft="steps"/);
  assert.match(html,/value="0"/);
