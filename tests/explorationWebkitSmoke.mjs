@@ -62,6 +62,12 @@ try{
   await page.locator('[data-draft="distance"]').fill('5.00');
   await page.locator('[data-draft="minutes"]').fill('35');
   await page.locator('[data-demo-save]').click();
+  assert.equal(await page.locator('[data-manual-run-save]').isDisabled(),true,
+   'webkit '+width+' missing activity must block saving');
+  assert.match(await page.locator('.rr-alert').innerText(),/活動種目を選択してください/);
+  await page.locator('[data-review-gait="RUNNING"]').click();
+  assert.ok(await page.locator('[data-manual-run-save]').isEnabled(),
+   'webkit '+width+' explicit activity choice unlocks save');
   await page.locator('[data-manual-run-save]').click();
   assert.match(page.url(),/#\/result\?record=run-v1-/);
   await page.goto(base+'#/exploration-tree',{waitUntil:'networkidle'});
