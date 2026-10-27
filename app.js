@@ -15,7 +15,7 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261026-gps-live-v35");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-map-v35b");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261026-gps-live-v35");
   const gpsStore=await import("./ui/gpsMeasurementStore.js?v=20261026-gps-live-v35");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
@@ -424,6 +424,9 @@ function recordExtras(){
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id}:{});
+ }
+ if(page==="measurement"){
+   measurementExperience.updateMeasurementDom(app.querySelector("[data-gps-live-page]"),ensureGps().state,ensureGps().elapsed());
  }
  if(page==="simulation"){
    const panel=app.querySelector("[data-sim-page]");

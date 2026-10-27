@@ -19,7 +19,7 @@ export function computeRunWalk(minutes,runPace,walkPace,runMin,walkMin){
  return {distanceKm:runTime/runPace+walkTime/walkPace,runMinutes:runTime,walkMinutes:walkTime,changeCount:changes};
 }
 export function reachTime(distance,kind,runPace,walkPace,runMin,walkMin){
- if(num(distance,.1,1000)===null||num(runPace,2,40)===null)return null;
+ if(num(distance,.01,1000)===null||num(runPace,2,40)===null)return null;
  if(kind==='steady')return distance*runPace;
  if([num(walkPace,2,40),num(runMin,1,60),num(walkMin,1,60)].some(x=>x===null))return null;
  const cycleDist=runMin/runPace+walkMin/walkPace,full=Math.floor(distance/cycleDist);
@@ -34,7 +34,7 @@ export function computeComparison(s){
  const a=computeSteady(budget,runPace),b=computeRunWalk(budget,runPace,walkPace,runMin,walkMin);
  if(!a||!b)return {ok:false,reason:'時間1〜600分・ペース2〜40分/km・各区間1〜60分の範囲で入力してください'};
  const goal=s.source==='none'||(s.source==='gpx'&&!s.gpxRoutes?.[s.gpxIndex])||(s.source==='gps'&&!s.gpsFeature)?null:String(s.distance).trim()===''?null:Number(s.distance);
- if(s.source==='manual'&&num(goal,.1,1000)===null || ['gpx','gps'].includes(s.source)&&goal!==null&&num(goal,.1,1000)===null)return {ok:false,reason:'仮のコース距離は0.1〜1000kmで入力してください'};
+ if(s.source==='manual'&&num(goal,.1,1000)===null || ['gpx','gps'].includes(s.source)&&goal!==null&&num(goal,.01,1000)===null)return {ok:false,reason:'仮のコース距離は0.1〜1000kmで入力してください'};
  return {ok:true,budget,goal,a:{...a,finish:goal===null?null:reachTime(goal,'steady',runPace,walkPace,runMin,walkMin)},b:{...b,finish:goal===null?null:reachTime(goal,'mixed',runPace,walkPace,runMin,walkMin)},diff:a.distanceKm-b.distanceKm};
 }
 export function courseDescription(preset){

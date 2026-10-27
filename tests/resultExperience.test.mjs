@@ -22,7 +22,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261026-gps-live-v35'));
+ assert.ok(html.includes('app.js?v=20261027-gps-map-v35b'));
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');

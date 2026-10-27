@@ -1094,11 +1094,15 @@ try{
   assert.equal(await page.locator('[data-gps-live-page]').count(),1);
   assert.equal(await page.locator('[data-gps-distance]').innerText(),'0.00','no prefilled GPS values');
   assert.equal(await page.locator('[data-gps-action="start"]').isEnabled(),true);
+  assert.equal(await page.locator("[data-gps-map]").count(),1,"GPS measurement includes street-map viewport");
+  assert.equal(await page.locator("[data-gps-map] img").count(),0,"no tile requests before GPS receipt");
   await page.locator('[data-gps-activity]').selectOption('MIXED');
   assert.match(await page.locator('[data-gps-activity-description]').innerText(),/区間を自分で切り替え/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-ready.png'),fullPage:true});
   await page.locator('[data-gps-action="start"]').click();
   await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
+  assert.ok(await page.locator("[data-gps-map] img").count()>0,"accepted GPS position requests map tiles");
+  assert.match(await page.locator("[data-gps-map] img").first().getAttribute("src"),/^https:\/\/tile\.openstreetmap\.org\/16\//);
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'running');
   if(mode.name!=="desktop")assert.equal(await page.locator('.mobile-nav').isVisible(),false,'active GPS measurement hides main navigation');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-running.png'),fullPage:true});

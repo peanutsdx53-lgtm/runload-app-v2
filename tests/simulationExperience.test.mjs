@@ -73,3 +73,9 @@ test('v34 source selector and scenario controls preserve provenance and use alig
  assert.match(html,/7分サイクル/);
  assert.match(html,/data-sm-cycle-track/);
 });
+
+
+test('short measured GPS course (10–100 m) is still a valid what-if route',()=>{
+ const ui=newSimulationUi();ui.source='gps';ui.gpsFeature={distanceKm:0.029,segments:[]};ui.distance='0.029';
+ const output=computeComparison(ui);assert.equal(output.ok,true);assert.ok(output.a.finish>0);assert.ok(output.b.finish>0);
+});
