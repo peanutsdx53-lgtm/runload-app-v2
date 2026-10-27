@@ -1364,7 +1364,7 @@ try{
    'existing saved unknown activity offers in-place repair');
   await savedResult.locator('[data-result-gait="RUNNING"]').click();
   await savedResult.locator('.rv4-mini').waitFor();
-  assert.match(await savedResult.locator('.rv4-mini').innerText(),/[1-9][0-2]?\\/12 算出/);
+  assert.match(await savedResult.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/);
   assert.equal(await savedResult.locator('[data-result-gait]').count(),0,
    'activity selection disappears after successful verified persistence');
   assert.notEqual((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—');
