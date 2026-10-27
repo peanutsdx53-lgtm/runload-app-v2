@@ -40,3 +40,7 @@
 - `runload-app-v2/main` を直接変更。保護対象の科学計算・12部位比較、旧 `runload-app` と `Runload_UIUX_Idea_Repository` は変更しない。
 - 原則「原因 → 最小改修 → 合致する回帰テスト → 全CI判定」。CIが未完了なら未完了と明記。
 - 事故後に曖昧な「実機PASS」「画面ロックでも計測継続」を報告しない。
+
+## 最終受入条件
+
+GPSコード改修の終了条件と、実機検証の保留範囲は [`GPS_SOFTWARE_CLOSEOUT_20261027.md`](GPS_SOFTWARE_CLOSEOUT_20261027.md) を参照する。自動テストのPASSは実走での精度を保証しない。

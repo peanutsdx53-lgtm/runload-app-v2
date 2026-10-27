@@ -73,14 +73,20 @@
     const gps=gpsController,generation=gpsWakeLockGeneration;
     if(!gps?.state.keepScreenAwake||gps.state.phase!=='running'||document.hidden||gpsWakeLock)return;
     if(typeof navigator.wakeLock?.request!=='function'){
-      gps.state.notice='この端末は画面の点灯保持に対応していません。GPS計測は続きます。';return;
+      gps.state.notice='この端末は画面の点灯保持に対応していません。GPS計測は続きます。';
+      measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),gps.state,gps.elapsed());return;
     }
     try{
       const lock=await navigator.wakeLock.request('screen');
       if(gpsWakeLockGeneration!==generation||gpsController!==gps||gps.state.phase!=='running'||document.hidden||gpsWakeLock){await lock.release();return;}
       gpsWakeLock=lock;
       lock.addEventListener?.('release',()=>{if(gpsWakeLock===lock)gpsWakeLock=null;});
-    }catch{gps.state.notice='画面の点灯保持を利用できませんでした。GPS計測は続きます。';}
+    }catch{
+      if(gpsController===gps&&gps.state.phase==='running'){
+        gps.state.notice='画面の点灯保持を利用できませんでした。GPS計測は続きます。';
+        measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),gps.state,gps.elapsed());
+      }
+    }
   };
   let pendingGpsDelete="";
   let pendingGpsBackup=null,gpsBackupNotice="";

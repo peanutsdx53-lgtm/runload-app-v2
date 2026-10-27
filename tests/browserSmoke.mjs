@@ -1107,6 +1107,20 @@ try{
   assert.equal(await page.locator("[data-gps-map]").count(),1,"GPS measurement includes street-map viewport");
   assert.equal(await page.locator("[data-gps-map] img").count(),0,"no tile requests before GPS receipt");
   assert.equal(await page.locator('[data-gps-keep-awake]').isChecked(),false,'wake lock choice defaults to off');
+  if(mode.name==='desktop'){
+    await page.evaluate(()=>{
+      window.__gpsWakeRequests=0;window.__gpsWakeReleases=0;
+      Object.defineProperty(navigator,'wakeLock',{configurable:true,value:{
+        request:async mode=>{
+          if(mode!=='screen')throw Error('unexpected wake lock mode');
+          window.__gpsWakeRequests++;
+          return {addEventListener(){},release:async()=>{window.__gpsWakeReleases++}};
+        }
+      }});
+    });
+    assert.equal(await page.evaluate(()=>window.__gpsWakeRequests),0,'no wake lock without user opt-in');
+    await page.locator('[data-gps-keep-awake]').check();
+  }
   await page.locator('[data-gps-activity]').selectOption('MIXED');
   assert.match(await page.locator('[data-gps-activity-description]').innerText(),/区間を自分で切り替え/);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-ready.png'),fullPage:true});
@@ -1124,6 +1138,7 @@ try{
   await page.locator('[data-gps-consent-confirm]').click();
   await page.waitForFunction(()=>Number(document.querySelector('[data-gps-distance]')?.textContent||0)>=.01,null,{timeout:8000});
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),1,'explicit consent starts watcher once');
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeRequests===1,null,{timeout:8000});
   assert.ok(await page.locator("[data-gps-map] img").count()>0,"accepted GPS position requests map tiles");
   assert.match(await page.locator("[data-gps-map] img").first().getAttribute("src"),/^https:\/\/tile\.openstreetmap\.org\/16\//);
   await page.waitForFunction(()=>document.querySelector('[data-gps-map]')?.dataset.tileStatus==='loaded',{timeout:8000});
@@ -1136,6 +1151,7 @@ try{
   await page.locator('[data-gps-segment]').selectOption('WALK');
   await page.locator('[data-gps-action="pause"]').click();
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'paused');
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeReleases===1,null,{timeout:8000});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-paused.png'),fullPage:true});
   const watchesBeforeResume=await page.evaluate(()=>window.__gpsWatchCount);
   await page.locator('[data-gps-action="resume"]').click();
@@ -1143,6 +1159,7 @@ try{
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume);
   await page.locator('[data-gps-consent-confirm]').click();
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),watchesBeforeResume+1);
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeRequests===2,null,{timeout:8000});
   await page.waitForTimeout(1200);
   await page.evaluate(()=>{
     const original=Object.getOwnPropertyDescriptor(document,'hidden');
@@ -1153,11 +1170,14 @@ try{
   });
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'paused','page hide pauses GPS');
   assert.match(await page.locator('[data-gps-notice]').innerText(),/非表示・ロック/);
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeReleases===2,null,{timeout:8000});
   await page.locator('[data-gps-action="resume"]').click();
   assert.equal(await page.locator('[data-gps-consent-overlay]').count(),1,'restarting after hidden page requires consent');
   await page.locator('[data-gps-consent-confirm]').click();
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeRequests===3,null,{timeout:8000});
   await page.waitForTimeout(300);
   await page.locator('[data-gps-action="finish"]').click();
+  if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeReleases===3,null,{timeout:8000});
   assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'finished');
   assert.equal(await page.locator('[data-gps-save-route]').isChecked(),false,'precise position track must be opt-in');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-finished.png'),fullPage:true});
