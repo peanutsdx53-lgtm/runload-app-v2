@@ -2,7 +2,7 @@
  * This is NOT the legacy scientific-engine store and never runs a biomechanical calculation.
  * Source and persistence status are explicit; GPS previews / drafts cannot be saved as runs.
  */
-import {checkRecordDraft,legacyRecordDraftFields} from './recordDraftReview.js';
+import {checkRecordDraft,checkManualRequiredFields,legacyRecordDraftFields} from './recordDraftReview.js';
 import {secondsFromDraft} from './recordReviewExperience.js';
 export const MANUAL_RUN_KEY='runload-v2-manual-runs-v1';
 const MAX_RECORDS=500, MAX_CHARS=600;
@@ -49,6 +49,8 @@ export function readManualRuns(storage){
 export function validateManualRunDraft(draft,{source='manual',type='run'}={}){
  if(source!=='manual'||type!=='run')return {ok:false,reason:'この保存方式は手入力の走行記録に限ります'};
  if(!draft||typeof draft!=='object')return {ok:false,reason:'入力を読み取れません'};
+ const required=checkManualRequiredFields(draft);
+ if(!required.ok)return {ok:false,reason:required.errors.join('、'),fields:required.fields};
  const audit=checkRecordDraft(draft,true);
  if(audit.errors.length)return {ok:false,reason:audit.errors.join('、')};
  if(!isoDate(draft.date))return {ok:false,reason:'実在する日付を入力してください'};
