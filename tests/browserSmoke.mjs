@@ -1183,27 +1183,40 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-finished.png'),fullPage:true});
   await page.locator('[data-gps-save-route]').check();
   await page.locator('[data-gps-action="save"]').click();
-  await page.locator('.gps-history-item').first().waitFor();
-  assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/);
-  const storedGps=await page.evaluate(async()=>new Promise((resolve,reject)=>{
-    const op=indexedDB.open('runload-v2-gps-measurements-v1');
+  await page.locator('.gd-summary').waitFor();
+  assert.match(await page.locator('.gd-summary').innerText(),/走行結果/);
+  // The legacy browser route intentionally measures MIXED; dynamic body reference remains disallowed.
+  assert.equal(await page.locator('.gd-enter').count(),0,'mixed activity cannot enter dynamic reference');
+  await page.goto(host+'#/history',{waitUntil:'networkidle'});
+  const v2History=page.locator('.gps-v2-history .gps-history-item').first();
+  await v2History.waitFor();
+  assert.match(await v2History.innerText(),/コース保存あり/);
+  const savedV2=await page.evaluate(async()=>new Promise((resolve,reject)=>{
+    const op=indexedDB.open('runload-v2-gps-dynamic-v2');
     op.onerror=()=>reject(op.error);
     op.onsuccess=()=>{
-      const db=op.result,tx=db.transaction('gpsRuns','readonly'),req=tx.objectStore('gpsRuns').getAll();
-      req.onsuccess=()=>{const records=req.result;db.close();resolve(records.map(r=>({id:r.id,points:r.track.length})))};
-      req.onerror=()=>reject(req.error);
+      const db=op.result,tx=db.transaction(['summaries','details'],'readonly');
+      const summaries=tx.objectStore('summaries').getAll(),details=tx.objectStore('details').getAll();
+      tx.oncomplete=()=>{db.close();resolve({summaries:summaries.result,details:details.result})};
+      tx.onerror=()=>reject(tx.error);
     };
   }));
-  assert.ok(storedGps.some(r=>r.points>=2),'GPS track saved durably in IndexedDB');
-  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-gps-runs-v1')),null,'GPS coordinates are not in localStorage');
+  assert.equal(savedV2.summaries.length,1);
+  assert.equal(savedV2.details.length,1);
+  assert.ok(savedV2.details[0].route.length>=2);
+  assert.ok(savedV2.details[0].speedPoints.length>=2);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-gps-runs-v1')),null,
+    'GPS coordinates are not in localStorage');
   await page.reload({waitUntil:'networkidle'});
-  await page.locator('.gps-history-item').first().waitFor();
-  assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/,'IndexedDB record survives reload');
-  await page.locator('[data-gps-use]').first().click();
+  await page.locator('.gps-v2-history .gps-history-item').first().waitFor();
+  assert.match(await page.locator('.gps-v2-history .gps-history-item').first().innerText(),
+    /コース保存あり/,'IndexedDB v2 record survives reload');
+  await page.locator('[data-gps-v2-use]').first().click();
   await page.locator('[data-sm-source="gps"]').waitFor();
   assert.equal(await page.locator('[data-sm-source="gps"]').getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('.sm-gpx-shape').count(),1,'saved GPS track is reusable in what-if');
-  assert.match(await page.locator('[data-sm-gps-evidence]').innerText(),/GPS保存コースの確認情報/,'A/B GPS evidence is separate from bodily load');
+  assert.equal(await page.locator('.sm-gpx-shape').count(),1,'saved v2 GPS route reuses original what-if view');
+  assert.match(await page.locator('[data-sm-gps-evidence]').innerText(),
+    /GPS保存コースの確認情報/,'GPS course remains separate from scientific load');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-reused-in-simulation.png'),fullPage:true});
   if(mode.name==='mobile'){
     // Force every requested map image to fail. The measurement/track must stay operational.
@@ -1223,6 +1236,20 @@ try{
   }
   if(mode.name==='desktop'){
     await page.goto(host+'#/history',{waitUntil:'networkidle'});
+    await page.evaluate(async()=>{
+      const old=await import('/ui/gpsIndexedDbStore.js');
+      await old.initializeGpsStore(); // fresh module URL is separate from app's query-versioned import
+      const t=1700000000000;
+      const point=(i,km)=>({lat:37.50+i*.0001,lon:139.90,
+        ele:null,altitudeAccuracy:null,altitudeQuality:'missing',km,
+        t:t+5000*i,breakBefore:i===0,activity:'RUNNING'});
+      const session={phase:'finished',activity:'RUNNING',distanceM:25,elapsedMs:10000,
+        accepted:3,rejected:0,track:[point(0,0),point(1,.0125),point(2,.025)],
+        trackSimplified:false};
+      const saved=await old.saveGpsRun(session,{saveRoute:true,date:'2026-10-27'});
+      if(!saved.ok)throw Error('legacy GPS fixture save: '+saved.reason);
+    });
+    await page.reload({waitUntil:'networkidle'});
     assert.match(await page.locator('.gps-history-capacity').innerText(),/このサイト全体/);
     await page.locator('[data-gps-capacity-check]').click();
     await page.waitForFunction(()=>{const s=document.querySelector('[data-gps-capacity-status]')?.textContent||'';return s.includes('使用率')||s.includes('取得できません')||s.includes('対応していません')},null,{timeout:8000});
@@ -1240,26 +1267,26 @@ try{
     assert.ok(exported.records[0].track.length>=2,'opted-in GPS route must be in explicit backup');
     await page.locator('[data-gps-delete]').first().click();
     await page.locator('[data-gps-confirm-delete]').first().click();
-    await page.waitForFunction(()=>document.querySelectorAll('.gps-history-item').length===0,null,{timeout:8000});
+    await page.waitForFunction(()=>document.querySelectorAll('.gps-history-section > .gps-history-item').length===0,null,{timeout:8000});
     await page.reload({waitUntil:'networkidle'});
-    assert.equal(await page.locator('.gps-history-item').count(),0,'IndexedDB deletion persists after reload');
+    assert.equal(await page.locator('.gps-history-section > .gps-history-item').count(),0,'IndexedDB deletion persists after reload');
     await page.locator('[data-gps-backup-file]').setInputFiles({name:'bad-gps.json',mimeType:'application/json',buffer:Buffer.from('{"version":99}')});
     assert.match(await page.locator('.gps-history-backup-notice').innerText(),/形式|不正/);
-    assert.equal(await page.locator('.gps-history-item').count(),0,'invalid import never modifies GPS records');
+    assert.equal(await page.locator('.gps-history-section > .gps-history-item').count(),0,'invalid import never modifies GPS records');
     await page.locator('[data-gps-backup-file]').setInputFiles({name:'runload-gps.json',mimeType:'application/json',buffer:Buffer.from(gpsBackupJson)});
     assert.match(await page.locator('.gps-history-backup-confirm').innerText(),/GPS記録 1件/);
     await page.locator('[data-gps-backup-confirm]').click();
-    await page.locator('.gps-history-item').first().waitFor();
-    assert.match(await page.locator('.gps-history-item').first().innerText(),/軌跡保存あり/);
+    await page.locator('.gps-history-section > .gps-history-item').first().waitFor();
+    assert.match(await page.locator('.gps-history-section > .gps-history-item').first().innerText(),/軌跡保存あり/);
     await page.reload({waitUntil:'networkidle'});
-    assert.equal(await page.locator('.gps-history-item').count(),1,'restored GPS route survives reload');
+    assert.equal(await page.locator('.gps-history-section > .gps-history-item').count(),1,'restored GPS route survives reload');
     const conflict=structuredClone(exported);
     conflict.records[0].activity='WALK';
     await page.locator('[data-gps-backup-file]').setInputFiles({name:'conflict-gps.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(conflict))});
     await page.locator('[data-gps-backup-confirm]').click();
     await page.waitForFunction(()=>document.querySelector('.gps-history-backup-notice')?.textContent?.includes('同じID'),null,{timeout:8000});
     assert.match(await page.locator('.gps-history-backup-notice').innerText(),/同じID/);
-    assert.equal(await page.locator('.gps-history-item').count(),1,'conflicting import cannot overwrite a saved GPS record');
+    assert.equal(await page.locator('.gps-history-section > .gps-history-item').count(),1,'conflicting import cannot overwrite a saved GPS record');
   }
   const gpsOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(gpsOverflow<=3,"GPS screen no horizontal overflow at "+mode.width+": "+gpsOverflow);

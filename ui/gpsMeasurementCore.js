@@ -127,7 +127,7 @@ export function formatGpsClock(ms){const secs=Math.floor(Math.max(0,ms)/1000);re
 export function gpsPace(distanceM,elapsedMs){if(!(distanceM>=GPS_LIMITS.minFinishM&&elapsedMs>0))return '—';const seconds=Math.round(elapsedMs/1000/(distanceM/1000));return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
 export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  const source=geo;let watchId=null,epoch=0;
- const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,keepScreenAwake:false,trackSimplified:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
+ const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],replayTrack:[],replayTrackAvailable:true,flags:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,keepScreenAwake:false,trackSimplified:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
  const changed=()=>onChange(s);
  const checkGoal=()=>{
   if(s.phase!=='running'||s.goalReached||s.goalMode==='free')return false;
@@ -156,6 +156,13 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
    const prev=s.lastPosition,accepted=qualifyGpsAltitude(prev,p,check);
    s.distanceM+=check.meters;s.accepted++;
    s.lastPosition=accepted;s.nextGap=false;
+   // Keep full accepted speed checkpoints independent of map/shape thinning.
+   // These stay in memory until finish; they are NOT persisted unless the user opts in.
+   // Never silently return a truncated series as a complete replay.
+   if(s.replayTrackAvailable){
+    if(s.replayTrack.length>=50000){s.replayTrack=[];s.replayTrackAvailable=false;}
+    else s.replayTrack.push({t:accepted.t,km:s.distanceM/1000,breakBefore:check.gap,activeMs:gpsElapsedMs(s,now())});
+   }
    s.track.push({...accepted,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
    if(s.track.length>GPS_LIMITS.maxTrack){s.track=compactGpsTrack(s.track);s.trackSimplified=true;}
    s.positionError=check.reason||'';checkGoal();changed();
@@ -173,11 +180,22 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  function pause(){if(s.phase!=='running')return false;s.pausedAt=now();s.phase='paused';stopWatch();changed();return true;}
  function resume(){if(s.phase!=='paused')return false;s.pausedMs+=Math.max(0,now()-s.pausedAt);s.pausedAt=0;s.phase='running';s.lastPosition=null;s.nextGap=true;if(!watch()){s.phase='paused';s.pausedAt=now();return false;}changed();return true;}
  function finish(){if(!['running','paused'].includes(s.phase))return false;const t=now();if(s.phase==='paused')s.pausedMs+=Math.max(0,t-s.pausedAt);s.finishedAt=t;s.phase='finished';stopWatch();changed();return true;}
- function discard(){stopWatch();s.phase='discarded';s.track=[];s.lastPosition=null;changed();return true;}
+ function discard(){stopWatch();s.phase='discarded';s.track=[];s.replayTrack=[];s.flags=[];s.replayTrackAvailable=false;s.lastPosition=null;changed();return true;}
+ function addFlag(){
+  if(s.phase!=='running'||!s.lastPosition||s.accepted<2||s.flags.length>=500)return false;
+  const p=s.lastPosition;
+  s.flags.push({activeMs:gpsElapsedMs(s,now()),id:'flag-'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),t:p.t,km:s.distanceM/1000,lat:p.lat,lon:p.lon,note:''});
+  s.notice='フラッグを記録しました。コメントは測定後に編集できます。';
+  changed();return true;
+ }
+ function setFlagNote(id,note){
+  if(s.phase!=='finished'||typeof note!=='string'||note.length>240)return false;
+  const f=s.flags.find(x=>x.id===id);if(!f)return false;f.note=note;changed();return true;
+ }
  function setGoalMode(value){if(s.phase!=='ready'||!['free','time','distance'].includes(value))return false;s.goalMode=value;s.goalValue='';changed();return true;}
  function setGoalValue(value){if(s.phase!=='ready')return false;s.goalValue=String(value).slice(0,16);return true;}
  function setKeepScreenAwake(value){if(s.phase!=='ready')return false;s.keepScreenAwake=value===true;changed();return true;}
  function setActivity(value){if(s.phase!=='ready'||!GPS_ACTIVITY[value])return false;s.activity=value;s.segmentActivity=value==='MIXED'?'RUNNING':value;changed();return true;}
  function setSegment(value){if(s.activity!=='MIXED'||!['WALK','JOGGING','RUNNING'].includes(value)||s.phase!=='running')return false;if(s.segmentActivity===value)return true;s.segmentActivity=value;s.lastPosition=null;s.nextGap=true;changed();return true;}
- return {state:s,start,pause,resume,finish,discard,setActivity,setKeepScreenAwake,setGoalMode,setGoalValue,setSegment,stopWatch,checkGoal,elapsed:()=>gpsElapsedMs(s,now()),getSnapshot:()=>({...s,track:s.track.map(p=>({...p})),elapsedMs:gpsElapsedMs(s,now())})};
+ return {state:s,start,pause,resume,finish,discard,setActivity,setKeepScreenAwake,setGoalMode,setGoalValue,setSegment,addFlag,setFlagNote,stopWatch,checkGoal,elapsed:()=>gpsElapsedMs(s,now()),getSnapshot:()=>({...s,track:s.track.map(p=>({...p})),replayTrack:s.replayTrack.map(p=>({...p})),flags:s.flags.map(p=>({...p})),elapsedMs:gpsElapsedMs(s,now())})};
 }
