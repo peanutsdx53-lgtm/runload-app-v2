@@ -103,8 +103,8 @@
 .app-shell:has(.cj-screen) .side-link{color:#b8d5df}
 .app-shell:has(.cj-screen) .side-link:hover,
 .app-shell:has(.cj-screen) .side-link.is-active{color:#85eff0;background:#1e5666}
-/* Keep nav colors defined even when desktop navigation is hidden; this
- * mirrors Home at every viewport and preserves its mobile appearance. */
-.app-shell:has(.cj-screen) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
-.app-shell:has(.cj-screen) .mobile-link{color:#c0cbd5}
-.app-shell:has(.cj-screen) .mobile-link.is-active{color:#55dce3;background:transparent}
+@media(max-width:800px){
+  .app-shell:has(.cj-screen) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
+  .app-shell:has(.cj-screen) .mobile-link{color:#c0cbd5}
+  .app-shell:has(.cj-screen) .mobile-link.is-active{color:#55dce3;background:transparent}
+}
