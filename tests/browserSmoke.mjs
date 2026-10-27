@@ -1000,7 +1000,7 @@ try{
   // Route markup may appear one frame before its lazy CSS is applied.
   // Wait for real computed-theme parity rather than comparing during a flash.
   await page.locator('[data-condition-journey]').waitFor();
-  await page.waitForFunction(expected=>{
+  if(mode.name==='mobile')await page.waitForFunction(expected=>{
     const nav=document.querySelector('.mobile-nav'),active=nav?.querySelector('.mobile-link.is-active');
     return nav&&active&&getComputedStyle(nav).backgroundColor===expected.mobileBg&&
       getComputedStyle(active).color===expected.selectedColor;
@@ -1013,7 +1013,12 @@ try{
       selectedBg:getComputedStyle(active).backgroundColor,
       sidebarBg:getComputedStyle(side).backgroundImage,sidebarSelected:getComputedStyle(selected).backgroundColor};
   });
-  assert.deepEqual(conditionNavStyle,homeNavStyle,mode.name+' Home vs condition navigation theme');
+  if(mode.name==='mobile')assert.deepEqual(conditionNavStyle,homeNavStyle,
+    'visible smartphone navigation must retain the approved Home theme');
+  else assert.deepEqual(
+    {sidebarBg:conditionNavStyle.sidebarBg,sidebarSelected:conditionNavStyle.sidebarSelected},
+    {sidebarBg:homeNavStyle.sidebarBg,sidebarSelected:homeNavStyle.sidebarSelected},
+    'desktop Home/condition visible sidebar must match; hidden mobile nav is irrelevant');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-condition-nav-parity-v17.png'),fullPage:false});
   assert.equal(await page.locator('#runload-history-v2').count(),0,'condition detail must not mount the running history');
   assert.equal(await page.locator('.cj-back').count(),1,'return home is available');
