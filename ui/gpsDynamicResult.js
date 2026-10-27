@@ -4,7 +4,7 @@
  */
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {deriveReplaySpeeds,evaluateGpsReplayReference,gpsBodyRegionId} from './gpsReplayReference.js';
-import {bodyReferenceRow,bodyReferenceColor,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels} from './bodyReferencePresentation.js';
+import {bodyReferenceRow,bodyReferenceColor,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays} from './bodyReferencePresentation.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
 export const GPS_REPLAY_BODY_NAMES={
  'BA-DISP-014':'股関節部','BA-DISP-015':'殿部','BA-DISP-016':'大腿前面',
@@ -88,10 +88,10 @@ export function mountGpsDynamicResult(host,summary,detail){
   const paths=v.paths.map(([id,d])=>{
    const row=gpsReplayRowForBody(ref?.rows,id);
    const tint=palette(row);
-   return '<path tabindex="0" role="button" aria-label="'+esc(names[id])+'" data-body-region="'+id+'" class="gd-body-path'+(selected===id?' selected':'')+'" data-state="'+tint.state+'" style="fill:'+tint.fill+'" d="'+d+'"><title>'+esc(names[id])+'</title></path>';
+   return '<g class="gd-reference-stack"><path tabindex="0" role="button" aria-label="'+esc(names[id])+'" data-body-region="'+id+'" class="gd-body-path'+(selected===id?' selected':'')+'" data-state="'+tint.state+'" style="fill:'+tint.fill+'" d="'+d+'"><title>'+esc(names[id])+'</title></path>'+referenceReliefOverlays(d,'gd',tint.state)+'</g>';
   }).join('');
   return '<svg class="gd-body" viewBox="70 10 160 430" role="group" aria-label="'+v.title+'の部位別文献参考値">'
-    +'<g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+(showBodyNumbers?renderBodyReferenceLabels(v,ref?.rows||[]):'')+'</svg>';
+    +'<defs>'+referenceReliefDefs('gd')+'</defs><g class="gd-body-silhouette">'+v.silhouette+'</g>'+paths+(showBodyNumbers?renderBodyReferenceLabels(v,ref?.rows||[]):'')+'</svg>';
  };
  const courseSvg=()=>{
   const frame=getFrame(),target=detail.route.reduce((best,p)=>Math.abs(p.t-frame.t)<Math.abs(best.t-frame.t)?p:best,detail.route[0]);
