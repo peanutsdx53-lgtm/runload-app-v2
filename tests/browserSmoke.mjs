@@ -1216,6 +1216,7 @@ try{
     conflict.records[0].activity='WALK';
     await page.locator('[data-gps-backup-file]').setInputFiles({name:'conflict-gps.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(conflict))});
     await page.locator('[data-gps-backup-confirm]').click();
+    await page.waitForFunction(()=>document.querySelector('.gps-history-backup-notice')?.textContent?.includes('同じID'),null,{timeout:8000});
     assert.match(await page.locator('.gps-history-backup-notice').innerText(),/同じID/);
     assert.equal(await page.locator('.gps-history-item').count(),1,'conflicting import cannot overwrite a saved GPS record');
   }
