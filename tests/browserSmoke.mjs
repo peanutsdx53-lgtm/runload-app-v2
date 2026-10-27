@@ -1267,7 +1267,7 @@ try{
     assert.ok(exported.records[0].track.length>=2,'opted-in GPS route must be in explicit backup');
     await page.locator('[data-gps-delete]').first().click();
     await page.locator('[data-gps-confirm-delete]').first().click();
-    await page.waitForFunction(()=>document.querySelectorAll('.gps-history-item').length===0,null,{timeout:8000});
+    await page.waitForFunction(()=>document.querySelectorAll('.gps-history-section > .gps-history-item').length===0,null,{timeout:8000});
     await page.reload({waitUntil:'networkidle'});
     assert.equal(await page.locator('.gps-history-section > .gps-history-item').count(),0,'IndexedDB deletion persists after reload');
     await page.locator('[data-gps-backup-file]').setInputFiles({name:'bad-gps.json',mimeType:'application/json',buffer:Buffer.from('{"version":99}')});
