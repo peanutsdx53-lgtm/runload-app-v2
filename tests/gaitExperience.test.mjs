@@ -25,6 +25,13 @@ test('mixed run enforces positive values and total bounds',()=>{
  assert.equal(gaitValidation({...base,runningFormat:'CONTINUOUS_RUN',runWalkRunningDistanceKm:''}).valid,true);
  assert.equal(gaitValidation({...base,distance:'',minutes:''}).valid,true);
 });
+test('gait preview uses final-save run/walk total bounds',()=>{
+ const b={distance:'5',minutes:'30',runningFormat:'RUN_WALK',runWalkRunningDistanceKm:'3',runWalkRunningDurationMinutes:'20'};
+ assert.equal(gaitValidation(b).valid,true);
+ assert.equal(gaitValidation({...b,runWalkRunningDistanceKm:'5'}).valid,false);
+ assert.equal(gaitValidation({...b,runWalkRunningDurationMinutes:'30'}).valid,false);
+ assert.equal(gaitValidation({...b,hours:'1',minutes:'5',runWalkRunningDurationMinutes:'60'}).valid,true);
+});
 test('escapes entered value and does not add data storage API',()=>{
  const html=gaitPage({steps:'" autofocus onfocus=alert(1)',runningFormat:'RUN_WALK'});
  assert.match(html,/&quot; autofocus/);

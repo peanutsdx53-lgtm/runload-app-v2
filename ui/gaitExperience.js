@@ -1,3 +1,4 @@
+import {checkRunWalkBounds} from './recordDraftReview.js';
 // Approved candidate: RunLoad v2 gait / steps. Only edits state.recordDraft;
 // no run saving, pedometer calls, scientific calculation, or data migration.
 const clean=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -22,9 +23,10 @@ export function gaitValidation(d={}){
  if(steps===null&&!(["UNKNOWN", ""].includes(String(d.stepsProvenance??"UNKNOWN"))))warnings.push("取得方法を選択していますが、歩数は未入力です。");
  if(d.runningFormat==="RUN_WALK"){
   if(dist===null||!Number.isFinite(dist)||dist<=0||dist>10000)errors.push("走った距離は0より大きい値を入力してください。");
-  else if(fullDist!==null&&dist>fullDist+0.000001)errors.push("走った距離が全体の距離を超えています。");
+
   if(time===null||!Number.isFinite(time)||time<=0||time>100000)errors.push("走った時間は0より大きい値を入力してください。");
-  else if(fullMinutes!==null&&time>fullMinutes+0.000001)errors.push("走った時間が全体の時間を超えています。");
+  errors.push(...checkRunWalkBounds(d));
+
  }
  return {errors,warnings,steps,dist,time,fullDist,fullMinutes,valid:errors.length===0};
 }

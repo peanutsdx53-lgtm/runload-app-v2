@@ -7,6 +7,22 @@ const finite=value=>typeof value==="number"&&Number.isFinite(value);
 const range=(value,min,max,errors,name)=>{const x=n(value);if(x!==null&&(!finite(x)||x<min||x>max))errors.push(name+"の入力値を確認してください");return x};
 const surfaceKeys=["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"];
 export const legacyRecordDraftFields=Object.freeze(["distance","hours","minutes","seconds","date","rofBefore","rofAfter","steps","stepsProvenance","activityGait","runningFormat","runWalkRunningDistanceKm","runWalkRunningDurationMinutes","courseName","gradeMode","surfaceMode","primarySurface","upPercent","downPercent","upGradePercent","downGradePercent","temperatureC","environmentNote","bodyObservation","shoeName","memo",...surfaceKeys.map(k=>"surface"+k),...Array.from({length:5},(_,i)=>["sectionShare"+i,"sectionDirection"+i,"sectionGrade"+i,"sectionSurface"+i]).flat()]);
+// Compare mixed running phases with measured totals, never calculate a mixed load.
+export function checkRunWalkBounds(d={}){
+ if(d.runningFormat!=='RUN_WALK')return [];
+ const errors=[],value=k=>nonblank(d[k])&&Number.isFinite(Number(d[k]))?Number(d[k]):null;
+ const total=value('distance'),running=value('runWalkRunningDistanceKm');
+ if(total!==null&&total>0&&running!==null&&running>=total-1e-9)errors.push('走った距離は全体の距離より小さくしてください（歩いた距離も必要です）');
+ const parts=['hours','minutes','seconds'];
+ if(parts.some(k=>nonblank(d[k]))){
+  const numbers=parts.map(k=>nonblank(d[k])?value(k):0);
+  if(numbers.every(x=>x!==null&&x>=0)){
+   const totalSeconds=numbers[0]*3600+numbers[1]*60+numbers[2],runningMinutes=value('runWalkRunningDurationMinutes');
+   if(totalSeconds>0&&runningMinutes!==null&&runningMinutes*60>=totalSeconds-1e-6)errors.push('走った時間は全体の時間より短くしてください（歩いた時間も必要です）');
+  }
+ }
+ return errors;
+}
 export function checkRecordDraft(d={},isRun=true){
  const errors=[],warnings=[];
  if(!['','UNKNOWN','RUNNING','JOGGING','WALK'].includes(String(d.activityGait??'UNKNOWN')))errors.push('活動種別の値を確認してください');
@@ -21,6 +37,7 @@ export function checkRecordDraft(d={},isRun=true){
  if(steps===null&&!["","UNKNOWN"].includes(String(d.stepsProvenance??"UNKNOWN")))warnings.push("歩数の取得方法を選択していますが歩数が未入力です");
  const temp=range(d.temperatureC,-50,60,errors,"気温");
  if(d.runningFormat==="RUN_WALK"){
+  errors.push(...checkRunWalkBounds(d));
   for(const [key,label] of [["runWalkRunningDistanceKm","走った距離"],["runWalkRunningDurationMinutes","走った時間"]]){
    const x=range(d[key],0.01,100000,errors,label);
    if(x===null)errors.push("走歩混在のときは"+label+"を入力してください");

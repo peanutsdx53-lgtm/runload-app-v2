@@ -25,6 +25,14 @@ test('reject invalid real dates, missing time, invalid pace and invalid ROF',()=
   assert.equal(s.getItem(MANUAL_RUN_KEY),null);
  }
 });
+test('save refuses contradictory running-only portions of mixed exercise',()=>{
+ const b={...draft(),activityGait:'RUNNING',runningFormat:'RUN_WALK',runWalkRunningDistanceKm:'3',runWalkRunningDurationMinutes:'20'};
+ const good=store();assert.equal(saveManualRun(good,b).ok,true);
+ for(const x of [{runWalkRunningDistanceKm:'5'},{runWalkRunningDistanceKm:'6'},{runWalkRunningDurationMinutes:'30'},{runWalkRunningDurationMinutes:'32'}]){
+  const s=store();assert.equal(saveManualRun(s,{...b,...x}).ok,false,JSON.stringify(x));
+  assert.equal(s.getItem(MANUAL_RUN_KEY),null);
+ }
+});
 test('a corrupted source is never erased or treated as empty',()=>{
  const s=store();s.setItem(MANUAL_RUN_KEY,'{corrupt');
  assert.equal(readManualRuns(s).ok,false);

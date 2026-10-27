@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newSimulationUi,computeSteady,computeRunWalk,reachTime,computeComparison,renderSimulation,renderSimulationResults,courseDescription} from '../ui/simulationExperience.js';
+import {newSimulationUi,computeSteady,computeRunWalk,reachTime,computeComparison,renderSimulation,renderSimulationResults,courseDescription,eligibleRunningPaceRecord} from '../ui/simulationExperience.js';
 test('a steady scenario is distance from an explicitly assumed pace',()=>{
  assert.equal(computeSteady(30,7).distanceKm,30/7);
  assert.equal(computeSteady(30,0),null);
@@ -75,6 +75,17 @@ test('v34 source selector and scenario controls preserve provenance and use alig
 });
 
 
+test('reference RUN pace uses only confirmed running-only records and handoff does not invent actuals',()=>{
+ const item=(id,gait,format='CONTINUOUS_RUN')=>({id,source:'manual',type:'run',distanceKm:5,durationSeconds:1800,date:'2026-10-25',draft:{activityGait:gait,runningFormat:format}});
+ const records=[item('run','RUNNING'),item('walk','WALK'),item('jog','JOGGING'),item('unknown','UNKNOWN'),item('mixed','RUNNING','RUN_WALK')];
+ assert.equal(eligibleRunningPaceRecord(records[0]),true);
+ for(const v of records.slice(1))assert.equal(eligibleRunningPaceRecord(v),false);
+ const html=renderSimulation(newSimulationUi(),{presets:{ok:true,records:[]},manualRuns:{ok:true,records}});
+ assert.match(html,/value="run" data-distance-km=/);
+ for(const v of records.slice(1))assert.doesNotMatch(html,new RegExp('value="'+v.id+'" data-distance-km='));
+ assert.match(html,/GPSで実際に測定する/);
+ assert.match(html,/仮のペース・走歩比率を実績へ自動転記しません/);
+});
 test('short measured GPS course (10–100 m) is still a valid what-if route',()=>{
  const ui=newSimulationUi();ui.source='gps';ui.gpsFeature={distanceKm:0.029,segments:[]};ui.distance='0.029';
  const output=computeComparison(ui);assert.equal(output.ok,true);assert.ok(output.a.finish>0);assert.ok(output.b.finish>0);

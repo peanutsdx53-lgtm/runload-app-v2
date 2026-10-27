@@ -25,6 +25,13 @@ test("mixed run/walk requires actual running-only duration and distance",()=>{
  assert.ok(x.errors.some(e=>e.includes("走った時間")));
  assert.equal(checkRecordDraft({runningFormat:"RUN_WALK",runWalkRunningDistanceKm:"4.2",runWalkRunningDurationMinutes:"29"}).errors.length,0);
 });
+test("mixed final review requires walking remainder in both distance and total duration",()=>{
+ const b={runningFormat:"RUN_WALK",distance:"5",minutes:"30",runWalkRunningDistanceKm:"3",runWalkRunningDurationMinutes:"20"};
+ assert.deepEqual(checkRecordDraft(b).errors,[]);
+ for(const x of [{runWalkRunningDistanceKm:"5"},{runWalkRunningDistanceKm:"6"},{runWalkRunningDurationMinutes:"30"},{runWalkRunningDurationMinutes:"31"}])assert.ok(checkRecordDraft({...b,...x}).errors.length>0,JSON.stringify(x));
+ assert.match(checkRecordDraft({...b,hours:"1",minutes:"5",runWalkRunningDurationMinutes:"65"}).errors.join(" "),/走った時間/);
+ assert.deepEqual(checkRecordDraft({...b,hours:"1",minutes:"5",runWalkRunningDurationMinutes:"55"}).errors,[]);
+});
 test("slope, sections, surface percentages obey their own contracts",()=>{
  assert.ok(checkRecordDraft({gradeMode:"SUMMARY",upPercent:"65",downPercent:"40"}).errors.some(e=>e.includes("100%以下")));
  assert.deepEqual(checkRecordDraft({gradeMode:"SUMMARY",upPercent:"15",downPercent:"15"}).errors,[]);

@@ -38,6 +38,11 @@ export function computeComparison(s){
  if(s.source==='manual'&&num(goal,.1,1000)===null || ['gpx','gps'].includes(s.source)&&goal!==null&&num(goal,.01,1000)===null)return {ok:false,reason:'仮のコース距離は0.1〜1000kmで入力してください'};
  return {ok:true,budget,goal,a:{...a,finish:goal===null?null:reachTime(goal,'steady',runPace,walkPace,runMin,walkMin)},b:{...b,finish:goal===null?null:reachTime(goal,'mixed',runPace,walkPace,runMin,walkMin)},diff:a.distanceKm-b.distanceKm};
 }
+// Only an explicit, saved running-only record is a valid RUN pace reference.
+export function eligibleRunningPaceRecord(r){
+ return r?.source==='manual'&&r?.type==='run'&&r?.draft?.activityGait==='RUNNING'&&r?.draft?.runningFormat!=='RUN_WALK'
+  &&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&Number.isInteger(r.durationSeconds)&&r.durationSeconds>0;
+}
 export function courseDescription(preset){
  if(!preset?.data)return {slope:'コース未選択',surface:'コース未選択'};
  const summary=courseSummary(preset.data,initialCourseUi(preset.data));
@@ -90,7 +95,8 @@ export function renderSimulation(ui,{presets,manualRuns,gpsRuns}={}){
  const hasPresets=presets?.ok&&presets.records.length>0;
  const p=presets?.ok?presets.records.find(r=>r.id===ui.presetId):null;
  const summary=courseDescription(p);
- const record=manualRuns?.ok?manualRuns.records.find(r=>r.id===ui.recordId):null;
+ const eligibleRunningRecords=manualRuns?.ok?manualRuns.records.filter(eligibleRunningPaceRecord):[];
+ const record=eligibleRunningRecords.find(r=>r.id===ui.recordId)||null;
  return `<div class="sm-page" data-sim-page>
  <header class="sm-heading"><a class="sm-back" href="#/home" aria-label="ホームへ戻る">‹</a><div><span>WHAT IF / もしもの比較</span><h1>走りのシミュレーション</h1><p>「仮にこう走るなら？」を、時間と距離の違いから考える</p></div></header>
  <div class="sm-steps" aria-label="操作の順序"><span>01 コース</span><span>02 仮の走り方</span><span>03 比較結果</span><span>04 次につなぐ</span></div>
@@ -100,13 +106,13 @@ export function renderSimulation(ui,{presets,manualRuns,gpsRuns}={}){
  <p class="sm-note">手動コースには軌跡がなく、地図上の位置は示しません。GPXの場合は位置点と標高を表示しますが、道路・通行可否・身体への負荷の予測は行いません。</p>
  </section>
  <section class="sm-panel">${row('02','「もしも」の走り方を設定','実際に走る速さではなく、計算の前提を入力します。')}
- <div class="sm-two"><div class="sm-inner sm-assumptions"><div class="sm-inner-heading"><span class="sm-detail-icon" aria-hidden="true">◷</span><div><h3>時間とペース</h3><p>2つの案に共通する計算の前提</p></div></div><div class="sm-form-grid">${field('使える時間','budget',ui.budget,'分',{min:'1',max:'600',step:'1',inputmode:'numeric'})}${field('走るペース','runPace',ui.runPace,'分/km',{min:'2',max:'40',step:'0.1'})}</div><label class="sm-full-label"><span class="sm-field-label">過去の実記録を参考にする（任意）</span><span class="sm-select-wrap"><select data-sm-field="recordId"><option value="">選択しない（入力した仮のペース）</option>${manualRuns?.ok?manualRuns.records.slice().reverse().map(r=>`<option value="${esc(r.id)}" data-distance-km="${r.distanceKm}" data-duration-seconds="${r.durationSeconds}" ${r.id===ui.recordId?'selected':''}>${esc(r.date)}｜${formatKm(r.distanceKm)}km・${Math.round(r.durationSeconds/60)}分</option>`).join(''):''}</select></span></label><p class="sm-tiny">${record?'保存記録の平均ペースを「走るペース」の初期値として反映できます。今回も同じ速度で走れるという予測ではありません。':'初期値の7分/kmは仮の数値です。本人の走行データではありません。'}</p>${!manualRuns?.ok?`<p class="sm-error" role="alert">${esc(manualRuns?.reason||'保存済みの走行記録を読み取れません')}</p>`:''}</div>
+ <div class="sm-two"><div class="sm-inner sm-assumptions"><div class="sm-inner-heading"><span class="sm-detail-icon" aria-hidden="true">◷</span><div><h3>時間とペース</h3><p>2つの案に共通する計算の前提</p></div></div><div class="sm-form-grid">${field('使える時間','budget',ui.budget,'分',{min:'1',max:'600',step:'1',inputmode:'numeric'})}${field('走るペース','runPace',ui.runPace,'分/km',{min:'2',max:'40',step:'0.1'})}</div><label class="sm-full-label"><span class="sm-field-label">過去の実記録を参考にする（任意）</span><span class="sm-select-wrap"><select data-sm-field="recordId"><option value="">選択しない（入力した仮のペース）</option>${eligibleRunningRecords.slice().reverse().map(r=>`<option value="${esc(r.id)}" data-distance-km="${r.distanceKm}" data-duration-seconds="${r.durationSeconds}" ${r.id===ui.recordId?'selected':''}>${esc(r.date)}｜${formatKm(r.distanceKm)}km・${Math.round(r.durationSeconds/60)}分</option>`).join(''):''}</select></span></label><p class="sm-tiny">${record?'ランニング単独の保存記録の平均ペースだけを「走るペース」の参考値として反映します。今回も同じ速度で走れるという予測ではありません。':'未選択・歩行・ジョギング・走歩混在の保存記録は「走るペース」に転用しません。初期値の7分/kmは仮の数値です。'}</p>${!manualRuns?.ok?`<p class="sm-error" role="alert">${esc(manualRuns?.reason||'保存済みの走行記録を読み取れません')}</p>`:''}</div>
  <div class="sm-inner sm-scenarios"><div class="sm-inner-heading"><span class="sm-detail-icon" aria-hidden="true">⇄</span><div><h3>比較する2つのシナリオ</h3><p>同じ時間枠で走り方を変えてみる</p></div></div>
  <article class="sm-scenario sm-a"><div class="sm-scenario-title"><span class="sm-scenario-identity">A</span><div><strong>一定ペース</strong><small>時間枠の間、同じペースで走る仮定</small></div></div><div class="sm-scenario-summary" data-sm-summary-a>${scenarioSummary(ui).a}</div></article>
  <article class="sm-scenario sm-b"><div class="sm-scenario-title"><span class="sm-scenario-identity">B</span><div><strong>走る＋歩く</strong><small>走る区間と歩く区間を繰り返す</small></div></div><div class="sm-form-grid sm-scenario-inputs">${field('走る時間','runMin',ui.runMin,'分',{min:'1',max:'60',step:'1'})}${field('歩く時間','walkMin',ui.walkMin,'分',{min:'1',max:'60',step:'1'})}${field('歩くペース','walkPace',ui.walkPace,'分/km',{min:'2',max:'40',step:'0.1',wide:true})}</div><div class="sm-cycle"><div class="sm-cycle-track" data-sm-cycle-track style="--sm-run-share:${scenarioSummary(ui).pct}"></div><p data-sm-summary-b>${scenarioSummary(ui).b}</p></div></article></div></div>
  </section>
  <section class="sm-panel">${row('03','もしもの結果を見比べる','保存済みの実記録とは異なる、仮の計算結果です。')}<div data-sm-results aria-live="polite">${renderSimulationResults(ui)}</div></section>
- <section class="sm-panel">${row('04','次につなぐ','仮の計算を実際の走行結果と混同しません。')}<div class="sm-actions"><a href="#/record" class="sm-action-primary">実際の走行を記録する ›</a><a href="#/history" class="sm-action-secondary">保存済みの履歴を見る ›</a></div><p class="sm-note">この画面ではシナリオを保存していません。GPXは読み込み中だけ保持し、ページ再読み込みで消えます。GPSの保存軌跡を選んで再利用できますが、シナリオ保存と計画・実績の照合は今後接続します。</p></section>
+ <section class="sm-panel">${row('04','次につなぐ','仮の計算を実際の走行結果と混同しません。')}<div class="sm-actions"><a href="#/record" class="sm-action-primary">実績を手入力する ›</a><a href="#/measurement" class="sm-action-secondary">GPSで実際に測定する ›</a><a href="#/history" class="sm-action-secondary">保存済みの履歴を見る ›</a></div><p class="sm-note">仮のペース・走歩比率を実績へ自動転記しません。実際の距離・時間・活動種別を入力・保存し、単独活動で適格なら結果画面に文献参考値を表示します。混合運動の12部位統合値は算出しません。計画と実績の自動照合は未実装です。</p></section>
  </div>`;
 }
 export function bindSimulation(root,ui){
