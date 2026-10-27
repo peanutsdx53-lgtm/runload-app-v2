@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {deriveReplaySpeeds,checkReplayPoints,evaluateGpsReplayReference,buildGpsReplayFrames} from '../ui/gpsReplayReference.js';
+import {GPS_REPLAY_BODY_IDS,gpsBodyRegionId,gpsEngineRegionId} from '../ui/gpsReplayReference.js';
+import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
+import {gpsReplayRowForBody,palette} from '../ui/gpsDynamicResult.js';
 import {calculateRunningReference} from '../core/activity/running.js';
 import {calculateJoggingReference} from '../core/activity/jogging.js';
 import {calculateWalkingReference} from '../core/activity/walking.js';
@@ -74,4 +77,35 @@ test('GPS frames align references with timestamps and have no temporal averaging
  assert.deepEqual(result.frames.map(x=>x.t),[1000,6000,11000]);
  assert.equal(result.frames[0].reference.rows.length,0);
  assert.notDeepEqual(result.frames[1].reference.rows.map(x=>x.value),result.frames[2].reference.rows.map(x=>x.value));
+});
+
+test('12 anatomical display parts map one-to-one to actual R01–R12 model results',()=>{
+ const assetIds=BODY_REGION_VIEWS.flatMap(v=>v.paths.map(p=>p[0]));
+ assert.equal(GPS_REPLAY_BODY_IDS.length,12);
+ assert.deepEqual([...new Set(assetIds)].sort(),[...GPS_REPLAY_BODY_IDS].sort());
+ for(let i=0;i<12;i++){
+  const bodyId=GPS_REPLAY_BODY_IDS[i],engineId='R'+String(i+1).padStart(2,'0');
+  assert.equal(gpsEngineRegionId(bodyId),engineId);
+  assert.equal(gpsBodyRegionId(engineId),bodyId);
+ }
+ assert.equal(gpsBodyRegionId('R13'),null);
+ assert.equal(gpsEngineRegionId('BA-DISP-999'),null);
+ for(const [activity,speedMps] of [['RUNNING',2.5],['JOGGING',2.25],['WALK',1.5]]){
+  const out=evaluateGpsReplayReference({activity,speedMps});
+  assert.equal(out.rows.length,12);
+  let calculated=0;
+  for(const bodyId of assetIds){
+   const row=gpsReplayRowForBody(out.rows,bodyId);
+   assert.ok(row,activity+' body part missing engine row for '+bodyId);
+   assert.equal(row.regionId,gpsEngineRegionId(bodyId));
+   const col=palette(row);
+   if(row.calculationState==='CALCULATED'){
+    assert.notEqual(col.state,'missing',activity+' valid body value cannot be gray');
+    assert.notEqual(col.fill,'#52636b',activity+' valid body value cannot be gray');
+    calculated++;
+   }else assert.equal(col.state,'missing');
+  }
+  assert.equal(calculated,out.count);
+  assert.ok(calculated>0,activity+' has at least one authorized reference speed');
+ }
 });
