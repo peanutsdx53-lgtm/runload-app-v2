@@ -9,3 +9,11 @@ test('GPS map uses projected finite points and rejects invalid coordinates',()=>
  assert.ok(tiles.length>=2&&tiles.length<=48);
  assert.ok(tiles.every(t=>/^https:\/\/tile\.openstreetmap\.org\/16\/\d+\/\d+\.png$/.test(t.url)));
 });
+
+import {readFileSync} from 'node:fs';
+const mapSource=readFileSync(new URL('../ui/gpsLiveMap.js',import.meta.url),'utf8');
+test('OSM web policy keeps Referer and does not disable caching',()=>{
+ assert.match(mapSource,/referrerPolicy='strict-origin-when-cross-origin'/);
+ assert.doesNotMatch(mapSource,/referrerPolicy='no-referrer'/);
+ assert.match(mapSource,/data-gps-map-network-status/);
+});
