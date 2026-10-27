@@ -10,7 +10,7 @@ export function summarizeGpsOriginStorage(estimate,persisted=null){
   persistent:persisted===true?true:persisted===false?false:null};
 }
 export function sharedGithubPagesOrigin(url){
- try{const u=new URL(url);return /\\.github\\.io$/i.test(u.hostname)&&u.pathname.split('/').filter(Boolean).length>0;}
+ try{const u=new URL(url);return /\.github\.io$/i.test(u.hostname)&&u.pathname.split('/').filter(Boolean).length>0;}
  catch{return false;}
 }
 export async function readGpsOriginStorage(storage=globalThis.navigator?.storage){
