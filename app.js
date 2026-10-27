@@ -91,7 +91,10 @@
       geo:(()=>{try{return navigator.geolocation}catch{return null}})(),
       onChange:current=>{
         measurementExperience.updateMeasurementDom(app.querySelector('[data-gps-live-page]'),current,gpsController?.elapsed()||0);
-        if(current.phase!=='running'){refreshGpsTicker();releaseGpsWakeLock();}
+        if(current.phase!=='running'){
+          refreshGpsTicker();releaseGpsWakeLock();
+          if(app.querySelector('[data-gps-live-page]')?.dataset.phase!==current.phase&&currentPage()==='measurement')render();
+        }
       }
     });
     return gpsController;
