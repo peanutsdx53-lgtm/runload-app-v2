@@ -54,3 +54,15 @@ test("course layout presents approved three-step flow without changing the save/
  assert.equal((html.match(/data-course-save /g)||[]).length,1);
  assert.equal((html.match(/data-rv-apply/g)||[]).length,1);
 });
+
+test('manual basic page gives user an explicit choice of three independently modeled activities',()=>{
+ const d=draft(),state={recordType:'run',recordDraft:d,recordCourseUi:initialCourseUi(d)};
+ const html=manualPage(state);
+ assert.match(html,/data-manual-gait="RUNNING"/);
+ assert.match(html,/data-manual-gait="JOGGING"/);
+ assert.match(html,/data-manual-gait="WALK"/);
+ assert.match(html,/未選択のまま保存することもできます/);
+ assert.equal((html.match(/data-manual-gait=/g)||[]).length,3);
+ d.activityGait='JOGGING';
+ assert.match(manualPage(state),/data-manual-gait="JOGGING" aria-pressed="true"/);
+});
