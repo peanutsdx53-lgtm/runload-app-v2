@@ -38,3 +38,15 @@ test('manual-run persistence fails closed on corrupt storage and leaves other re
  assert.equal(s.getItem(MANUAL_RUN_KEY),'{broken');
  assert.equal(s.getItem('runload-v2-life-condition-v1'),'keep');
 });
+
+test('record review highlights unknown activity and offers direct choices before saving',()=>{
+ const html=reviewView(base,{source:'manual',recordType:'run'});
+ assert.match(html,/活動種別が未選択です/);
+ assert.match(html,/data-review-gait="RUNNING"/);
+ assert.match(html,/data-review-gait="JOGGING"/);
+ assert.match(html,/data-review-gait="WALK"/);
+ assert.match(html,/このまま保存すると人体図/);
+ assert.match(html,/data-manual-run-save(?! disabled)/);
+ const selected=reviewView({...base,activityGait:'RUNNING'},{source:'manual',recordType:'run'});
+ assert.doesNotMatch(selected,/data-review-gait=/);
+});
