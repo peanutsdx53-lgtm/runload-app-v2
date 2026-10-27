@@ -105,6 +105,6 @@ test("global double-tap suppression preserves accessible pinch zoom and approved
  }
  assert.match(html,/styles\.css\?v=20261026-result-chrome-v20/);
  assert.match(html,/conditionJourney\.css\?v=20261026-condition-v17/);
- assert.match(sw,/gps-measurement-polish-v2/);
+ assert.match(sw,/gps-prestart-v3/);
  assert.match(sw,/\.\/ui\/gpsReplayReference\.js/);
 });
