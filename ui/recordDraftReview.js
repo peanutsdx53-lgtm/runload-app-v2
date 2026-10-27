@@ -6,9 +6,10 @@ const n=value=>nonblank(value)?Number(value):null;
 const finite=value=>typeof value==="number"&&Number.isFinite(value);
 const range=(value,min,max,errors,name)=>{const x=n(value);if(x!==null&&(!finite(x)||x<min||x>max))errors.push(name+"の入力値を確認してください");return x};
 const surfaceKeys=["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"];
-export const legacyRecordDraftFields=Object.freeze(["distance","hours","minutes","seconds","date","rofBefore","rofAfter","steps","stepsProvenance","runningFormat","runWalkRunningDistanceKm","runWalkRunningDurationMinutes","courseName","gradeMode","surfaceMode","primarySurface","upPercent","downPercent","upGradePercent","downGradePercent","temperatureC","environmentNote","bodyObservation","shoeName","memo",...surfaceKeys.map(k=>"surface"+k),...Array.from({length:5},(_,i)=>["sectionShare"+i,"sectionDirection"+i,"sectionGrade"+i,"sectionSurface"+i]).flat()]);
+export const legacyRecordDraftFields=Object.freeze(["distance","hours","minutes","seconds","date","rofBefore","rofAfter","steps","stepsProvenance","activityGait","runningFormat","runWalkRunningDistanceKm","runWalkRunningDurationMinutes","courseName","gradeMode","surfaceMode","primarySurface","upPercent","downPercent","upGradePercent","downGradePercent","temperatureC","environmentNote","bodyObservation","shoeName","memo",...surfaceKeys.map(k=>"surface"+k),...Array.from({length:5},(_,i)=>["sectionShare"+i,"sectionDirection"+i,"sectionGrade"+i,"sectionSurface"+i]).flat()]);
 export function checkRecordDraft(d={},isRun=true){
  const errors=[],warnings=[];
+ if(!['','UNKNOWN','RUNNING','JOGGING','WALK'].includes(String(d.activityGait??'UNKNOWN')))errors.push('活動種別の値を確認してください');
  if(!isRun)return {errors,warnings,ready:true}; // Rest uses a separate record contract.
  range(d.distance,0,10000,errors,"距離");
  range(d.hours,0,10000,errors,"時間（時）");

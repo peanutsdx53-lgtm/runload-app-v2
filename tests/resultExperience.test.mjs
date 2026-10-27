@@ -8,10 +8,12 @@ test('Result v4 references all formal region names, with immutable official iden
  assert.equal(new Set(OFFICIAL_NAMES.map(x=>x[0])).size,12);
  assert.ok(OFFICIAL_NAMES.some(x=>x[0]==='BA-DISP-028'&&x[1]==='足底中部・内側縦足弓'));
 });
-test('Result v4 does not fabricate biomechanical comparisons or history',()=>{
+test('Result v4 does not fabricate biomechanical comparisons when no activity is selected',()=>{
  const js=read('ui/resultExperience.js');
  assert.match(js,/value:null/);
  assert.match(js,/比較する記録はありません/);
+ assert.match(js,/calculateActivityReference/);
+ assert.match(js,/この部位自身の文献基準100/);
  assert.match(js,/まだ保存していない記録/);
  assert.ok(!js.includes('distance:8.20'));
  assert.ok(!js.includes('rofBefore:6,rofAfter:8'));
@@ -22,7 +24,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261027-gps-closeout-v44'));
+ assert.ok(html.includes('app.js?v=20261027-science-engine-v45'));
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');

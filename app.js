@@ -7,19 +7,19 @@
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
   const reviewDraft=await import("./ui/recordDraftReview.js");
-  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261026-user-copy-v21");
+  const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-science-engine-v45");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261026-manual-v1");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261026-course-layout-v31c");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261027-science-engine-v45");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-gps-compare-v41");
-  const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
+  const gaitExperience=await import("./ui/gaitExperience.js?v=20261027-science-engine-v45");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-assurance-v43");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-assurance-v43");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261027-science-engine-v45");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
@@ -54,7 +54,7 @@
     {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"足底中部・内側縦足弓",value:null,prev:null},
     {id:"BA-DISP-029",name:"前足部",friendly:"前足部",value:106.3,prev:104.4}
   ];
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordReviewSource:"manual",recordReviewReturn:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",activityGait:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordReviewSource:"manual",recordReviewReturn:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   state.recordCourseUi=recordExperience.initialCourseUi(state.recordDraft);
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
@@ -464,7 +464,7 @@ function recordExtras(){
    const runId=params.has("record")?params.get("record"):selectedRunId||recent?.id||null;
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
-   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id}:{});
+   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{saved:true,recordId:record.id,record}:{});
  }
  if(page==="measurement"){
    measurementExperience.updateMeasurementDom(app.querySelector("[data-gps-live-page]"),ensureGps().state,ensureGps().elapsed());
@@ -898,6 +898,8 @@ function recordExtras(){
     if(event.target.closest("[data-e4-done]")&&environmentExperience.temperatureError(d.temperatureC)){event.preventDefault();return;}
     const gaitSource=event.target.closest("[data-g4-source]");
     if(gaitSource){d.stepsProvenance=gaitSource.dataset.g4Source;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
+    const gaitKind=event.target.closest("[data-g4-gait]");
+    if(gaitKind){d.activityGait=gaitKind.dataset.g4Gait;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
     const gaitFormat=event.target.closest("[data-g4-format]");
     if(gaitFormat){d.runningFormat=gaitFormat.dataset.g4Format;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
     if(event.target.closest("[data-g4-apply]")){

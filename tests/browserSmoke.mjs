@@ -1392,8 +1392,38 @@ try{
       await page.screenshot({path:resolve(root,'screenshots',mode.name+'-cross-audit-'+route+'-v20.png'),fullPage:false});
     }
   }
+  // Cross-activity scientific E2E: real manual UI -> persistent record -> exact
+  // original reference engine -> saved result page -> reload (no synthetic data).
+  for(const example of [
+    {activity:'RUNNING',distance:'4.50',minutes:'30'},
+    {activity:'JOGGING',distance:'4.05',minutes:'30'},
+    {activity:'WALK',distance:'2.70',minutes:'30'}
+  ]){
+    await page.reload({waitUntil:'networkidle'});
+    await page.goto(host+'#/record',{waitUntil:'networkidle'});
+    await page.locator('[data-draft="distance"]').fill(example.distance);
+    await page.locator('[data-draft="minutes"]').fill(example.minutes);
+    await page.goto(host+'#/record-compare',{waitUntil:'networkidle'});
+    await page.locator('[data-g4-gait="'+example.activity+'"]').click();
+    assert.equal(await page.locator('[data-g4-gait="'+example.activity+'"]').getAttribute('aria-pressed'),'true');
+    await page.goto(host+'#/record',{waitUntil:'networkidle'});
+    await page.locator('[data-demo-save]').click();
+    await page.locator('[data-record-review] [data-manual-run-save]').click();
+    const output=page.locator('#runload-result-v4');
+    await output.locator('.rv4-mini').waitFor();
+    const notice=await output.locator('.rv4-notice').innerText();
+    assert.match(notice,/文献条件/,example.activity+' must render a source-bounded reference result');
+    assert.match(await output.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/,example.activity+' has at least one real output');
+    await output.locator('.rv4-body').locator('[data-region="BA-DISP-014"]').first().click();
+    assert.notEqual((await output.locator('.rv4-big-score').innerText()).trim(),'—',example.activity+' selected hip region is computed');
+    const actualId=new URLSearchParams(page.url().split('?')[1]||'').get('record');
+    assert.ok(actualId?.startsWith('run-v1-'));
+    await page.reload({waitUntil:'networkidle'});
+    assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/文献条件/,'calculation survives saved-ID reload');
+    assert.match(await page.locator('#runload-result-v4 .rv4-mini').innerText(),/\/12 算出/);
+  }
   await page.close();
-  console.log("PASS",mode.name,"manual save / reload / result / home / history");
+  console.log("PASS",mode.name,"manual save / reload / result / home / history / three science engines");
 
  }
 }finally{await browser.close();server.close()}

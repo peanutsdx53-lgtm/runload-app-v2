@@ -3,14 +3,17 @@
 const clean=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const sourceOptions=Object.freeze([
  ["DEVICE_MEASURED","端末計測"], ["ESTIMATED","概数入力"],["UNKNOWN","不明"]]);
+const activityOptions=Object.freeze([["UNKNOWN","未選択"],["RUNNING","ランニング"],["JOGGING","ジョギング"],["WALK","ウォーキング"]]);
 const formatOptions=Object.freeze([
  ["UNKNOWN","不明"],["CONTINUOUS_RUN","連続走行"],["RUN_WALK","走行＋歩行"]]);
 const parsed=value=>String(value??"").trim()===""?null:Number(value);
 const quantity=(v,min,max)=>{const n=parsed(v);return n!==null&&Number.isFinite(n)&&n>=min&&n<=max?n:null};
 const fmt=(n,d=1)=>Number(n).toFixed(d);
-export const gaitKeys=Object.freeze(["steps","stepsProvenance","runningFormat","runWalkRunningDistanceKm","runWalkRunningDurationMinutes"]);
+export const gaitKeys=Object.freeze(["steps","stepsProvenance","activityGait","runningFormat","runWalkRunningDistanceKm","runWalkRunningDurationMinutes"]);
 export function gaitValidation(d={}){
  const errors=[],warnings=[];
+ if(!activityOptions.some(([id])=>id===String(d.activityGait??'UNKNOWN')))errors.push("活動種別を選び直してください。");
+ if(d.runningFormat==='RUN_WALK'&&['RUNNING','JOGGING','WALK'].includes(d.activityGait))warnings.push("走歩混在では単一活動の12部位参考値を算出しません。");
  const steps=parsed(d.steps),dist=parsed(d.runWalkRunningDistanceKm),time=parsed(d.runWalkRunningDurationMinutes);
  const fullDist=quantity(d.distance,0.000001,10000);
  const fullMinutes=quantity(d.minutes,0.000001,100000);
@@ -28,6 +31,7 @@ export function gaitValidation(d={}){
 export function gaitPage(d={}){
  const selectedSource=d.stepsProvenance||"UNKNOWN",selectedFormat=d.runningFormat||"UNKNOWN";
  const chips=sourceOptions.map(([key,label])=>`<button type="button" class="g4-chip" data-g4-source="${key}" aria-pressed="${selectedSource===key}">${label}</button>`).join("");
+ const activities=activityOptions.map(([key,label])=>`<button type="button" class="g4-format" data-g4-gait="${key}" aria-pressed="${(d.activityGait||'UNKNOWN')===key}">${label}</button>`).join("");
  const formats=formatOptions.map(([key,label])=>`<button type="button" class="g4-format" data-g4-format="${key}" aria-pressed="${selectedFormat===key}">${label}</button>`).join("");
  const fullDistance=quantity(d.distance,0.000001,10000),fullTime=quantity(d.minutes,0.000001,100000);
  const fullSummary=fullDistance!==null?`${fmt(fullDistance,2)} km`:'距離未入力';
@@ -44,6 +48,7 @@ export function gaitPage(d={}){
    </section>
    <section class="rv-panel g4-panel" aria-labelledby="g4-title-style">
     <div class="g4-panel-top"><h2 id="g4-title-style">走り方</h2><small>任意</small></div>
+    <p class="g4-field-title">活動種別（12部位の文献参考値に使用）</p><div class="g4-choice" role="group" aria-label="活動種別">${activities}</div><p class="g4-note">未選択の場合は部位別値を算出しません。ジョギング・ウォーキングは独立した参考モデルで、走歩混在も単一活動として推定しません。</p>
     <p class="g4-field-title">当日の走行パターン</p><div class="g4-choice" role="group" aria-label="走り方を選択">${formats}</div>
     <div class="g4-runwalk" data-g4-runwalk ${selectedFormat==="RUN_WALK"?"":"hidden"}>
      <h3>走った区間</h3><p class="g4-note">走った部分の距離と時間を記録します。歩行分は走行の分析値に含めません。</p>
@@ -69,6 +74,7 @@ export function paintGait(page,d={}){
  if(!page)return null;
  const check=gaitValidation(d);
  page.querySelectorAll('[data-g4-source]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g4Source===(d.stepsProvenance||'UNKNOWN'))));
+ page.querySelectorAll('[data-g4-gait]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g4Gait===(d.activityGait||'UNKNOWN'))));
  page.querySelectorAll('[data-g4-format]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g4Format===(d.runningFormat||'UNKNOWN'))));
  const isMixed=d.runningFormat==='RUN_WALK';
  page.querySelector('[data-g4-runwalk]').hidden=!isMixed;
