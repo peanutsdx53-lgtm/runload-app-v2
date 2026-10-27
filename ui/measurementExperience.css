@@ -180,3 +180,7 @@
 .gps-consent-dialog button:focus-visible{outline:3px solid #96f4e2;outline-offset:3px}
 .gps-map-network-status:not([hidden]){position:absolute;left:10px;right:10px;top:12px;z-index:4;padding:10px;border-radius:9px;border:1px solid #d3b584;background:#263f4deb;color:#fff5da;font-size:.74rem;line-height:1.5;pointer-events:none}
 @media(max-width:360px){.gps-consent-actions{grid-template-columns:1fr}}
+
+/* Long measurements retain a bounded, explicitly simplified visual route. */
+.gps-live-route-quality:empty{display:none}
+.gps-live-route-quality:not(:empty){margin:9px 0 12px;padding:9px 12px;border-radius:9px;border:1px solid #527d89;background:#143b4b;color:#d4edf4;font-size:.75rem;line-height:1.6}

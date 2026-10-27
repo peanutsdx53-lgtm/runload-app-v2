@@ -48,3 +48,11 @@
 - Browser quota still applies; 2000 GPS records is a conservative app limit pending further storage benchmarks. A separate 2000-point per-run limit remains a W-05 issue.
 - The owner has no previously retained GPS records, so no historic localStorage GPS migration is added.
 - Existing manual/course scientific stores retain their current localStorage contracts.
+
+## W-05 adaptive bounded route retention (2026-10-27)
+- The original v35 behavior of freezing the track after 2,000 accepted GPS fixes has been replaced. `GPS_LIMITS.maxTrack=2000` now bounds *retained in-memory points*, not lifetime fixes.
+- Every accepted fix continues updating measured distance, the latest position and the route endpoint. When over budget, a deterministic in-memory reduction selects significant turns, elevation changes, segment boundaries and points spread across the full route.
+- Unobserved gaps, pauses and activity changes are kept as disconnected segments even if the exact boundary point is removed. GPS distance is **not** recomputed from the simplified polyline.
+- `trackSimplified` is persisted with an opted-in route; measurement, history and what-if view disclose that route geometry is sampled. The sampling is lossy and not a substitute for survey-grade full resolution. No GPS coordinates are written to IndexedDB without saving the route.
+- A persisted route whose last cumulative point does not match measured distance (within rounding tolerance), or whose time/distance goes backward, is rejected to prevent the old silent truncation failure.
+- Node regression covers 14,401 simulated fixes at 1 Hz, pauses, activity switches, a 35-second GPS outage, fixed-memory retention, exact final cumulative distance, and save preparation. Real iPhone/iOS background behavior remains unverified in W-08.

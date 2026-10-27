@@ -3,6 +3,7 @@
  * of geolocation values, explicit gap boundaries, and no browser globals at import.
  */
 // Altitude thresholds are conservative display gates, NOT a certified elevation accuracy.
+// maxTrack bounds retained in-memory points, not the number of accepted fixes in a run.
 export const GPS_LIMITS=Object.freeze({accuracyM:50,maxSpeedMps:15,minMoveM:2,minFinishM:10,maxTrack:2000,altitudeAccuracyM:20,maxVerticalSpeedMps:3,maxElevationGrade:0.6,maxContinuousGapMs:30000});
 export const GPS_ALTITUDE_QUALITY=Object.freeze(['usable','missing','unknown-accuracy','low-accuracy','spike']);
 export const GPS_ACTIVITY=Object.freeze({WALK:'ウォーキング',JOGGING:'ジョギング',RUNNING:'ランニング',MIXED:'走る＋歩く'});
@@ -54,6 +55,59 @@ export function qualifyGpsAltitude(previous,point,{meters=0,gap=false}={}){
  }
  return {...point,altitudeQuality:'usable'};
 }
+/* Keep bounded memory while retaining the first and latest accepted GPS fix.
+ * Compaction is a clearly labelled approximation of geometry, never of cumulative
+ * measured distance. Preserve activity/pause breaks (including breaks whose exact
+ * point is thinned), significant bends, height changes and an even time sample.
+ */
+export function compactGpsTrack(track,limit=GPS_LIMITS.maxTrack){
+ if(!Array.isArray(track))return [];
+ if(!Number.isInteger(limit)||limit<3)throw RangeError('GPS track retention limit must be >=3');
+ if(track.length<=limit)return track.slice();
+ const n=track.length,target=Math.max(3,Math.floor(limit*0.6));
+ const kept=new Set([0,n-1]);
+ const ranked=[];
+ const mPerDeg=111195;
+ for(let i=1;i<n-1;i++){
+  const prev=track[i-1],p=track[i],next=track[i+1];
+  const boundary=!!(p.breakBefore||next.breakBefore||p.activity!==prev.activity||next.activity!==p.activity);
+  const qualityEdge=p.altitudeQuality!==prev.altitudeQuality||p.altitudeQuality!==next.altitudeQuality;
+  const latitudeScale=mPerDeg,longitudeScale=mPerDeg*Math.cos(rad(p.lat));
+  const ax=(prev.lon-p.lon)*longitudeScale,ay=(prev.lat-p.lat)*latitudeScale;
+  const bx=(next.lon-p.lon)*longitudeScale,by=(next.lat-p.lat)*latitudeScale;
+  const span=Math.hypot(bx-ax,by-ay);
+  const turn=span>0?Math.abs(ax*by-ay*bx)/span:Math.hypot(ax,ay);
+  const elevation=(p.ele!==null&&prev.ele!==null&&next.ele!==null)
+   ?Math.abs(p.ele-(prev.ele+next.ele)/2):0;
+  ranked.push({i,score:(boundary?1e9:0)+(qualityEdge?1e6:0)+turn*100+elevation*8});
+ }
+ // Reserve a fraction for genuinely informative route detail; use evenly spread
+ // samples for the remaining budget so straight stretches do not disappear.
+ ranked.sort((a,b)=>b.score-a.score||a.i-b.i);
+ const detailBudget=Math.min(ranked.length,Math.floor(target*0.4));
+ for(let j=0;j<detailBudget&&ranked[j].score>1e-6;j++)kept.add(ranked[j].i);
+ // Fill the remainder across the entire time axis, not preferentially at the
+ // start. A straight track must stay evenly represented after compression.
+ const uniformBudget=target-kept.size;
+ for(let k=1;k<=uniformBudget;k++)kept.add(Math.round(k*(n-1)/(uniformBudget+1)));
+ if(kept.size<target){
+  const refined=target*3;
+  for(let k=1;k<refined&&kept.size<target;k++)kept.add(Math.round(k*(n-1)/refined));
+ }
+ for(let i=1;i<n-1&&kept.size<target;i++)kept.add(i);
+ const indices=[...kept].sort((a,b)=>a-b);
+ const out=[];let last=-1;
+ for(const i of indices){
+  let crossed=false;
+  for(let j=Math.max(1,last+1);j<=i;j++){
+   if(track[j].breakBefore||track[j].activity!==track[j-1].activity){crossed=true;break;}
+  }
+  // If a boundary fix was removed, preserve its break on the next retained fix.
+  out.push({...track[i],breakBefore:last<0?!!track[i].breakBefore:crossed});
+  last=i;
+ }
+ return out;
+}
 export function gpsElapsedMs(s,now){
  if(!s.startedAt)return 0;
  const end=s.phase==='running'?now:(s.pausedAt||s.finishedAt||now);
@@ -63,7 +117,7 @@ export function formatGpsClock(ms){const secs=Math.floor(Math.max(0,ms)/1000);re
 export function gpsPace(distanceM,elapsedMs){if(!(distanceM>=GPS_LIMITS.minFinishM&&elapsedMs>0))return '—';const seconds=Math.round(elapsedMs/1000/(distanceM/1000));return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
 export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
  const source=geo;let watchId=null,epoch=0;
- const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
+ const s={phase:'ready',activity:'RUNNING',segmentActivity:'RUNNING',segments:[],distanceM:0,track:[],startedAt:0,pausedAt:0,pausedMs:0,finishedAt:0,accepted:0,rejected:0,positionError:'',lastPosition:null,saveRoute:false,trackSimplified:false,notice:'',goalMode:'free',goalValue:'',goalReached:false,finalized:false};
  const changed=()=>onChange(s);
  const checkGoal=()=>{
   if(s.phase!=='running'||s.goalReached||s.goalMode==='free')return false;
@@ -81,13 +135,19 @@ export function createGpsSession({geo,now=()=>Date.now(),onChange=()=>{}}={}){
   if(typeof fn!=='function'){s.positionError='位置情報を利用できません';changed();return false;}
   try{watchId=fn.call(source,(raw)=>{
    if(token!==epoch||s.phase!=='running')return;
-   const p=snapshotPosition(raw),check=checkGpsPoint(s.lastPosition,p,{gap:!s.lastPosition||s.nextGap});
+   const p=snapshotPosition(raw);
+   // A resumed GPS watch can return an older cached fix; never append a route
+   // with time running backward, even across a pause or a segment change.
+   if(p&&s.track.length&&p.t<=s.track.at(-1).t){
+    s.rejected++;s.positionError='位置情報の時刻が古いため採用しません';changed();return;
+   }
+   const check=checkGpsPoint(s.lastPosition,p,{gap:!s.lastPosition||s.nextGap});
    if(!check.ok){s.rejected++;s.positionError=check.reason;changed();return;}
-   if(s.track.length>=GPS_LIMITS.maxTrack){s.positionError='軌跡が上限に達しました。測定距離は継続します。';}
    const prev=s.lastPosition,accepted=qualifyGpsAltitude(prev,p,check);
    s.distanceM+=check.meters;s.accepted++;
    s.lastPosition=accepted;s.nextGap=false;
-   if(s.track.length<GPS_LIMITS.maxTrack)s.track.push({...accepted,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
+   s.track.push({...accepted,km:s.distanceM/1000,breakBefore:check.gap,activity:s.segmentActivity});
+   if(s.track.length>GPS_LIMITS.maxTrack){s.track=compactGpsTrack(s.track);s.trackSimplified=true;}
    s.positionError=check.reason||'';checkGoal();changed();
   },(err)=>{
    if(token!==epoch||s.phase!=='running')return;

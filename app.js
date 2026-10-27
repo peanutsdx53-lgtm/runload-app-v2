@@ -15,8 +15,8 @@
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261026-user-copy-v21");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-consent-map-v36");
-  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261026-gps-live-v35");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-gps-track-v38");
+  const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-gps-track-v38");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-idb-v37");
   const resultExperience=await import("./ui/resultExperience.js?v=20261026-user-copy-v21");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
@@ -449,7 +449,7 @@ function recordExtras(){
    }
    const gpsSaved=gpsStore.readGpsRuns();
    const gpsPanel=document.createElement('section');gpsPanel.className='gps-history-section';
-   gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?'軌跡保存あり':'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
+   gpsPanel.innerHTML=`<h2>GPSで測定した記録</h2><p>位置情報は保存時に同意した記録のみ保管します。12部位の身体モデルとは別の測定事実です。</p>${!gpsSaved.ok?`<p role="alert">${esc(gpsSaved.reason)}</p>`:gpsSaved.records.length?gpsSaved.records.slice().reverse().map(r=>`<article class="gps-history-item"><span><strong>${esc(r.date)}｜${esc(gpsCore.GPS_ACTIVITY[r.activity])}</strong><small>${r.distanceKm.toFixed(2)} km ・ ${gpsCore.formatGpsClock(r.activeSeconds*1000)} ・ ${r.track.length?(r.trackSimplified?'軌跡保存あり（形状は間引き済み）':'軌跡保存あり'):'軌跡は保存していません'}</small></span><div>${r.track.length>=2?`<button type="button" data-gps-use="${esc(r.id)}">コースを試す</button>`:''}<button type="button" data-gps-delete="${esc(r.id)}">削除</button></div>${pendingGpsDelete===r.id?`<aside><span>このGPS記録を端末から削除しますか？</span><button data-gps-confirm-delete="${esc(r.id)}">削除を確定</button><button data-gps-cancel-delete>キャンセル</button></aside>`:''}</article>`).join(''):'<div class="gps-history-empty">GPS実走の保存記録はまだありません。</div>'}`;
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
     records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
