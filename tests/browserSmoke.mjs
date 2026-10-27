@@ -1185,14 +1185,12 @@ try{
   await page.locator('[data-gps-action="save"]').click();
   await page.locator('.gd-summary').waitFor();
   assert.match(await page.locator('.gd-summary').innerText(),/走行結果/);
-  await page.locator('.gd-enter').click();
-  await page.locator('.gd-main').waitFor();
-  assert.equal(await page.locator('.gd-panel').count(),2,'body/route replay layout is available');
-  assert.ok(await page.locator('.gd-body-path').count()>=3,'scientific body geometry from official asset');
+  // The legacy browser route intentionally measures MIXED; dynamic body reference remains disallowed.
+  assert.equal(await page.locator('.gd-enter').count(),0,'mixed activity cannot enter dynamic reference');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const v2History=page.locator('.gps-v2-history .gps-history-item').first();
   await v2History.waitFor();
-  assert.match(await v2History.innerText(),/動的結果データあり/);
+  assert.match(await v2History.innerText(),/コース保存あり/);
   const savedV2=await page.evaluate(async()=>new Promise((resolve,reject)=>{
     const op=indexedDB.open('runload-v2-gps-dynamic-v2');
     op.onerror=()=>reject(op.error);
@@ -1212,7 +1210,7 @@ try{
   await page.reload({waitUntil:'networkidle'});
   await page.locator('.gps-v2-history .gps-history-item').first().waitFor();
   assert.match(await page.locator('.gps-v2-history .gps-history-item').first().innerText(),
-    /動的結果データあり/,'IndexedDB v2 record survives reload');
+    /コース保存あり/,'IndexedDB v2 record survives reload');
   await page.locator('[data-gps-v2-use]').first().click();
   await page.locator('[data-sm-source="gps"]').waitFor();
   assert.equal(await page.locator('[data-sm-source="gps"]').getAttribute('aria-pressed'),'true');
