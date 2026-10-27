@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {BODY_REFERENCE_IDS,bodyReferenceEngineId,engineReferenceBodyId,
- bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_COLOR_STOPS,BODY_REFERENCE_GRADIENT,bodyReferenceRow,renderBodyReferenceLabels} from '../ui/bodyReferencePresentation.js';
+ bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_COLOR_STOPS,BODY_REFERENCE_GRADIENT,bodyReferenceRow,renderBodyReferenceLabels,bodyReferenceSilhouetteClipDef} from '../ui/bodyReferencePresentation.js';
 import {GPS_REPLAY_BODY_IDS,gpsEngineRegionId,gpsBodyRegionId,evaluateGpsReplayReference} from '../ui/gpsReplayReference.js';
 import {calculateRunningReference} from '../core/activity/running.js';
 import {calculateJoggingReference} from '../core/activity/jogging.js';
@@ -115,4 +115,16 @@ test('continuous palette has stable minimum separation from navy background',()=
   assert.ok((color+.05)/(navy+.05)>=3.0,
    'region fill should not disappear into RunLoad navy: '+stop.hex);
  }
+});
+
+test('anatomical reference fill shares the original body silhouette as a SVG clip',()=>{
+ for(const view of BODY_REGION_VIEWS){
+  const def=bodyReferenceSilhouetteClipDef(view,'test-'+view.key);
+  const boundary=view.silhouette.match(/^<path d="([^"]+)"/)?.[1];
+  assert.ok(boundary,'original silhouette path for '+view.key);
+  assert.ok(def.includes('<path d="'+boundary+'"/>'));
+  assert.ok(def.includes('clipPathUnits="userSpaceOnUse"'));
+  assert.ok(def.includes('id="test-'+view.key+'-silhouette-clip"'));
+ }
+ assert.equal(bodyReferenceSilhouetteClipDef(null,'test'),'');
 });
