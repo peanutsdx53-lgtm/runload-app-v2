@@ -62,7 +62,7 @@ test('Result and manual-save surfaces use the approved dark chrome and button st
   '.rr-page .rr-foot-actions .rr-save:focus-visible{outline:3px',
  ]) assert.ok(review.includes(style),style);
  assert.match(html,/result-chrome-v20/);
- assert.match(html,/save-button-v20/);
+ assert.match(html,/recordReviewExperience\.css\?v=20261027-manual-gait-v5/);
 });
 
 test('public-facing result copy omits internal branding and preserves formal names',()=>{
