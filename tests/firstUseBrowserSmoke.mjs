@@ -81,6 +81,15 @@ try{
   assert.equal(await page.locator('[data-onboard-close]').count(),1,"reopened guide may be closed");
   await page.locator('[data-onboard-close]').click();
   assert.equal(await page.locator(".fu-shell").count(),0);
+  await page.evaluate(()=>{const key="runload-v2-legal-consent-v1",c=JSON.parse(localStorage.getItem(key));c.privacyVersion="old";localStorage.setItem(key,JSON.stringify(c));});
+  await page.reload({waitUntil:"domcontentloaded"});
+  await page.locator(".fu-shell").waitFor();
+  assert.match(await page.locator("#onboard-title").innerText(),/利用規約とプライバシー/);
+  await page.locator("[data-onboard-terms]").check();
+  await page.locator("[data-onboard-privacy]").check();
+  await page.locator("[data-onboard-next]").click();
+  assert.equal(await page.locator(".fu-shell").count(),0,"version change requires only reconfirmation");
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-legal-consent-v1")).privacyVersion),"2026-10-28");
   assert.deepEqual(errors,[],mode.name+" JavaScript exceptions");
   console.log("PASS",mode.name,"Japanese first use, two confirmations, legal documents, optional profile, settings replay");
   await page.close();
