@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {OFFICIAL_NAMES} from '../ui/resultExperience.js';
+import {OFFICIAL_NAMES,resultImageAnnotation} from '../ui/resultExperience.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('Result v4 references all formal region names, with immutable official identifiers',()=>{
  assert.equal(OFFICIAL_NAMES.length,12);
@@ -19,6 +19,19 @@ test('Result v4 does not fabricate biomechanical comparisons when no activity is
  assert.ok(!js.includes('rofBefore:6,rofAfter:8'));
  assert.ok(!js.includes('12部位比較値'));
 });
+test('PNG export explains calculated and uncalculated literature references',()=>{
+ assert.deepEqual(resultImageAnnotation({}),{status:'保存前：部位別値は未表示',detail:'保存した走行の文献適用条件を確認します'});
+ assert.equal(resultImageAnnotation({saved:true,reference:{count:9}}).status,'文献参考値：9/12 部位算出');
+ assert.equal(resultImageAnnotation({gps:true,reference:{count:0}}).status,'文献参考値：算出対象外');
+ assert.equal(resultImageAnnotation({saved:true,reference:{count:0,reason:'GAIT_NOT_SELECTED'}}).detail,'活動種別が未選択のため算出しません');
+ assert.equal(resultImageAnnotation({saved:true,reference:{count:12}}).status,'文献参考値：12/12 部位算出');
+ assert.equal(resultImageAnnotation({saved:true,reference:{count:99}}).status,'文献参考値：算出対象外');
+ const js=read('ui/resultExperience.js');
+ assert.doesNotMatch(js,/身体の部位別の参考値はまだありません/);
+ assert.doesNotMatch(js,/文献参考値を確認できる記録/);
+ assert.match(js,/ROF-Jは本人が回答した疲労感です/);
+});
+
 test('Result v4 view is isolated and precached',()=>{
  const app=read('app.js'),sw=read('sw.js'),html=read('index.html');
  assert.ok(app.includes('resultExperience.mountResult'));
