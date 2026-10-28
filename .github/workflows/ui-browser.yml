@@ -115,7 +115,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gps-dynamic-audit-chromium
-          path: screenshots/gps-audit-chromium-*
+          path: |
+            screenshots/gps-audit-chromium-*
+            screenshots/gps-proposal-chromium-*
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload visual inspection screenshots
@@ -168,7 +170,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gps-dynamic-audit-webkit
-          path: screenshots/gps-audit-webkit-*
+          path: |
+            screenshots/gps-audit-webkit-*
+            screenshots/gps-proposal-webkit-*
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload WebKit screenshots
