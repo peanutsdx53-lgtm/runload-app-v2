@@ -106,7 +106,7 @@ function validateEnvelope(o){
  return {ok:true,data:o,counts,gpsCount:(o.gpsLegacy?.records?.length||0)+(o.gpsCurrent?.summaries?.length||0)};
 }
 export function inspectPortableBackup(text){
- if(typeof text!=="string"||text.length>PORTABLE_MAX_BYTES)return {ok:false,reason:"80MB以内のJSONファイルを選択してください"};
+ if(typeof text!=="string"||new Blob([text]).size>PORTABLE_MAX_BYTES)return {ok:false,reason:"80MB以内のJSONファイルを選択してください"};
  let o;try{o=JSON.parse(text);}catch{return {ok:false,reason:"バックアップファイルを読み取れません"};}
  return validateEnvelope(o);
 }
