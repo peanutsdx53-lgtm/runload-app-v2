@@ -23,7 +23,7 @@
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
   const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
-  const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
+  const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
   const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
   const dataManagementUi=await import("./ui/dataManagementUi.js?v=20261028-data-management-v1");
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-first-use-v1");
