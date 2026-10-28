@@ -131,3 +131,12 @@
 .cp-app .cp-part-table td:last-child{font-variant-numeric:tabular-nums;font-weight:800}
 .cp-app .cp-preview-panel .cp-paper-stack{overflow:auto}
 .cp-app .cp-body-view svg{max-width:100%;height:170px}
+
+/* Keep the existing app-install entry reachable on this auxiliary screen
+   without bringing back the empty global top bar. */
+@media screen {
+ .cp-app .topbar{display:contents}
+ .cp-app .topbar-right{position:absolute;right:18px;top:14px;z-index:8}
+ .cp-app .icon-install{border:1px solid #4c7888;border-radius:10px;background:#153c4e;color:#d8ffff;padding:8px 12px;cursor:pointer}
+ .cp-app .icon-install:focus-visible{outline:3px solid #58d7dc;outline-offset:2px}
+}
