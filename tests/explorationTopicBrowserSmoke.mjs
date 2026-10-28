@@ -45,7 +45,11 @@ try{
   assert.match(await page.locator('.ex-note-preview').innerText(),/次は走る前の気持ちを記録する/);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-saved-guide.png'),fullPage:true});
   if(engine===chromium&&width===390){
-   await page.evaluate(()=>navigator.serviceWorker.ready);
+   // HTTP loopback QA registers the worker explicitly (the live app uses HTTPS).
+   await page.evaluate(async()=>{
+    await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+    await navigator.serviceWorker.ready;
+   });
    await page.waitForTimeout(200);
    await context.setOffline(true);
    await page.reload({waitUntil:'domcontentloaded'});
