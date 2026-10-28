@@ -138,3 +138,10 @@
 .gd-controls{gap:6px}.gd-duration{font-size:10px}
 .app-shell:has(.gd-root) .main-content{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Immersive GPS replay: do not obscure flag context / speed controls with fixed mobile navigation. */
+@media(max-width:680px){
+ .app-shell:has(.gd-root:not(.gd-summary)) .mobile-nav{display:none!important}
+ .app-shell:has(.gd-root:not(.gd-summary)) .bottom-nav{display:none!important}
+ .app-shell:has(.gd-root:not(.gd-summary)) .main-content{padding-bottom:calc(26px + env(safe-area-inset-bottom,0px))}
+}
