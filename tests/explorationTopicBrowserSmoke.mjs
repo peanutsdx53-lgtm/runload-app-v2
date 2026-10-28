@@ -24,7 +24,7 @@ try{
   await page.goto('http://127.0.0.1:4196/#/exploration-tree?category=06&topic='+encodeURIComponent('ウォームアップ'),{waitUntil:'domcontentloaded'});
   await page.locator('.ex-observation-guide').waitFor();
   const guide=await page.locator('.ex-observation-guide').innerText();
-  assert.match(guide,/観察ガイド/);assert.match(guide,/専門的な学習本文は出典審査前/);
+  assert.match(guide,/観察ガイド/);assert.match(guide,/専門解説は出典審査前/);
   assert.match(guide,/この情報からは言えないこと/);assert.match(guide,/次に確かめたいこと/);
   const dimensions=await page.evaluate(()=>({body:document.body.scrollWidth,html:document.documentElement.scrollWidth,inner:innerWidth,panels:[...document.querySelectorAll('.ex-guide-grid section')].map(el=>({w:el.getBoundingClientRect().width,scroll:el.scrollWidth}))}));
   assert.ok(dimensions.body<=width+2&&dimensions.html<=width+2,'page has no horizontal overflow: '+JSON.stringify(dimensions));
