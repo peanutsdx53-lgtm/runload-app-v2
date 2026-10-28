@@ -8,8 +8,8 @@ import {EXPLORATION_NOTE_KEY,makeUi as makeExplorationUi} from "./explorationExp
 import {HOME_DASHBOARD_KEY,loadHomeDashboardLayout} from "./homeDashboardLayout.js";
 const PROFILE_KEY="runload-v2-user-profile-v1",DISPLAY_KEY="runload-v2-display-preferences-v1";
 import {LEGAL_CONSENT_KEY} from "./legalDocuments.js";
-import * as gpsV1 from "./gpsIndexedDbStore.js";
-import * as gpsV2 from "./gpsReplayIndexedDbStore.js";
+import * as gpsV1 from "./gpsIndexedDbStore.js?v=20261027-gps-backup-v39";
+import * as gpsV2 from "./gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2";
 
 export const PORTABLE_FORMAT="running-data-portable-backup";
 export const PORTABLE_VERSION=1;
@@ -114,6 +114,7 @@ export async function exportPortableBackup(storage,{includeGps=false}={}){
  const snap=inspectLocalStorage(storage);if(!snap.ok)return snap;
  let legacy=null,current=null;
  if(includeGps){
+  await gpsV1.initializeGpsStore();
   const first=gpsV1.exportGpsBackup();
   if(!first.ok)return {ok:false,reason:"GPS記録を書き出せません："+first.reason};
   const second=await gpsV2.exportGpsV2Backup();
@@ -182,6 +183,7 @@ export async function preflightPortableRestore(storage,text){
  const plan=planPortableRestore(storage,text);if(!plan.ok)return plan;
  const {data}=plan.parsed;
  if(data.gpsLegacy){
+  await gpsV1.initializeGpsStore();
   const current=gpsV1.exportGpsBackup();
   if(!current.ok)return {ok:false,reason:current.reason};
   const check=verifyGpsMerge(data.gpsLegacy.records,JSON.parse(current.text).records,"id",2000);
