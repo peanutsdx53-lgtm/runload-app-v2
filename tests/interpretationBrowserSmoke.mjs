@@ -36,6 +36,23 @@ try{
    return {earlier:a.record.id,current:b.record.id,otherGait:c.record.id};
   });
   const prefix=`interpretation-${engine===chromium?'chromium':'webkit'}-${mode.name}`;
+  const lifeSave=await page.evaluate(async()=>{
+   const h=await import('./ui/homeExperience.js');
+   return h.saveCondition(localStorage,{date:'2026-10-27',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''});
+  });
+  assert.equal(lifeSave.ok,true,'independent life entry saved');
+
+  await page.goto(base+'#/exploration-tree?record='+encodeURIComponent(saved.current)+'&category=05&topic='+encodeURIComponent('睡眠'),{waitUntil:'domcontentloaded'});
+  await page.locator('[data-ex-learning="sleep-recovery"]').waitFor();
+  const focusedSleep=await page.locator('[data-ex-learning="sleep-recovery"]').innerText();
+  assert.match(focusedSleep,/走行と生活記録は別々に扱います/);
+  assert.doesNotMatch(focusedSleep,/2026-10-27/);
+  assert.equal(await page.locator('.ex-focus .ex-context').count(),0,'unrelated life record is not a selected-run link');
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-focused-sleep-unlinked.png'),fullPage:true});
+  await page.goto(base+'#/exploration-tree?category=05&topic='+encodeURIComponent('睡眠'),{waitUntil:'domcontentloaded'});
+  const generalSleep=await page.locator('[data-ex-learning="sleep-recovery"]').innerText();
+  assert.match(generalSleep,/2026-10-27/,'general exploration may show independent life data');
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-general-sleep-independent.png'),fullPage:true});
   await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
   await page.locator('.rv4-body .rv4-reading').waitFor();
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-body.png'),fullPage:true});

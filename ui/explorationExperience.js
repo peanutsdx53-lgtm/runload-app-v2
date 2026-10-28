@@ -160,7 +160,8 @@ function experience(ui,ctx,cat,topic){
  const entry=KNOWLEDGE[topic],key=LEARNING_TOPICS[cat.id+"|"+topic];
  if(!entry||!key)return renderObservationGuide(ui,ctx,cat,topic,STARTER_GUIDES[topic]);
  const strict=createExplorationContext({draft:ctx.draft,conditions:ctx.conditions});
- const reason=strict.highlights.find(h=>h.themeId===topic);
+ // A selected run must never inherit a link from separate life data.
+ const reason=ctx.focusRunId?null:strict.highlights.find(h=>h.themeId===topic);
  const specific=relevance(ui,ctx).linked.get(cat.id);
  const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?`${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:"関連する入力がなくても、内容を自由に学べます";
  const h=(text)=>esc(text);
@@ -211,7 +212,9 @@ function experience(ui,ctx,cat,topic){
   const latest=records.at(-1)||null;
   const fmt=n=>n===null?'時間の記録なし':Math.floor(n/60)+'時間'+String(n%60)+'分';
   const type=s=>s==='time-in-bed'?'就床から起床までの時間':s==='self-reported'?'記録した睡眠時間':'入力方法が不明';
-  tool='<div class="ex-tool-result"><strong>'+(latest?'いちばん新しい生活記録':'生活記録はまだありません')+'</strong>'
+  tool=ctx.focusRunId?
+    '<div class="ex-tool-result"><strong>走行と生活記録は別々に扱います</strong><p>この走行と睡眠・生活コンディションを自動で結びつけていません。別の日の生活記録を、この走行の日の状態として表示しません。</p><small>生活記録は本人が別画面で確認できます。同じ日付でも睡眠が走りの調子の原因とは判断できません。</small></div><a class="ex-learning-link" href="#/condition">生活コンディションの記録を確認 ›</a>':
+    '<div class="ex-tool-result"><strong>'+(latest?'いちばん新しい生活記録':'生活記録はまだありません')+'</strong>'
    +(latest?'<p>'+h(latest.date)+'　'+h(fmt(latest.minutes))+'</p><p>朝の調子：'+h(latest.feeling||'記録なし')+'</p><small>'+h(type(latest.source))+'</small>':'<p>睡眠や朝の調子を記録すると、後から振り返れます。</p>')
    +'</div><a class="ex-learning-link" href="#/condition">睡眠と朝の調子を見てみる ›</a>';
 

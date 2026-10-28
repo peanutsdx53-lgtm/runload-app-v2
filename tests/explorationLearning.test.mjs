@@ -35,6 +35,25 @@ test('body teaches movements rather than pretending the twelve-region personal m
  assert.doesNotMatch(output,/あなたの関節への負荷を算定/);
  ui.bodyChoice='ankle';output=render(ui,ctx());assert.match(output,/地面を押して進むときや/);
 });
+test('focused run never displays unrelated sleep record, but general exploration can',()=>{
+ const ui=makeUi(memory());ui.selected='05';ui.topic='睡眠';
+ const conditions={canSave:true,entries:[{date:'2026-10-27',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}]};
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950,draft:{}};
+ const selected=render(ui,{...ctx({},conditions),manualRuns:{ok:true,records:[run]},focusRunId:run.id,focusRun:run});
+ assert.match(selected,/走行と生活記録は別々に扱います/);
+ assert.match(selected,/別の日の生活記録を、この走行の日の状態として表示しません/);
+ assert.match(selected,/生活コンディションの記録を確認/);
+ assert.doesNotMatch(selected,/いちばん新しい生活記録/);
+ assert.doesNotMatch(selected,/2026-10-27/);
+ assert.doesNotMatch(selected,/あなたの記録とのつながり/);
+ const general=render(ui,{...ctx({},conditions),manualRuns:{ok:true,records:[run]}});
+ assert.match(general,/いちばん新しい生活記録/);
+ assert.match(general,/2026-10-27/);
+ const missing=render(ui,{...ctx({},conditions),manualRuns:{ok:true,records:[run]},focusRunId:'missing-id',focusRun:null});
+ assert.match(missing,/走行と生活記録は別々に扱います/);
+ assert.doesNotMatch(missing,/2026-10-27/);
+});
+
 test('sleep column displays saved entries; comparison helper rejects incompatible methods',()=>{
  const records={canSave:true,entries:[
  {date:'2026-10-23',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''},
