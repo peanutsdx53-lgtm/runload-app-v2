@@ -113,7 +113,7 @@ try{
   assert.match(await sharedResult.locator('.rv4-fatigue-numbers').innerText(),/—/,'GPS missing fatigue remains unreported');
   if(mode.name==='mobile')await sharedResult.locator('[data-tab="radar"]').click();
   else await sharedResult.locator('[data-tab="radar"]').evaluate(el=>el.click());
-  assert.match(await sharedResult.locator('.rv4-history').innerText(),/比較する記録はありません/);
+  assert.match(await sharedResult.locator('.rv4-history').innerText(),/同じ活動種別の保存記録をもう1件残すと/);
   if(mode.name==='mobile')await sharedResult.locator('[data-tab="body"]').click();
   else await sharedResult.locator('[data-tab="body"]').evaluate(el=>el.click());
   await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-01-summary.png'),fullPage:true,animations:'disabled'});
