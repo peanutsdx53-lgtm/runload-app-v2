@@ -24,7 +24,8 @@ try{
  for(const mode of [{name:"narrow",width:320,height:740},{name:"mobile",width:390,height:844},{name:"desktop",width:1440,height:900}]){
   const ctx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>errors.push(x.message));
-  await page.addInitScript(()=>{
+  await page.goto("http://127.0.0.1:4190/");
+  await page.evaluate(()=>{
    localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));
    localStorage.setItem("runload-v2-user-profile-v1",JSON.stringify({nickname:"テスト",purpose:"health",heightCm:172,weightKg:65,ageBand:"18-29"}));
    localStorage.setItem("runload-v2-life-condition-v1",JSON.stringify([{date:"2026-10-10",sleepMinutes:420,feeling:"良い",memo:""}]));
@@ -62,7 +63,8 @@ try{
   await ctx.close();
   const importCtx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const importPage=await importCtx.newPage();const importErrors=[];importPage.on("pageerror",x=>importErrors.push(x.message));
-  await importPage.addInitScript(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));});
+  await importPage.goto("http://127.0.0.1:4190/");
+  await importPage.evaluate(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));});
   await importPage.goto(url,{waitUntil:"domcontentloaded"});await importPage.locator("[data-settings-v2]").waitFor();
   const restoreBlock=importPage.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
   await restoreBlock.locator("summary").click();
