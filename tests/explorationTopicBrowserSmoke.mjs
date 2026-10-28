@@ -35,6 +35,22 @@ try{
   assert.match(await page.locator('.ex-dialog').innerText(),/科学的な解説としての出典審査はまだ完了していません/);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-source-status.png'),fullPage:true});
   await page.locator('.ex-dialog [data-ex-action="close"]').click();
+  if(width===390){
+   for(const entry of [
+    {category:'02',topic:'12部位の参考値の見方',expected:'測定量・適用条件は部位ごとに異なります'},
+    {category:'01',topic:'自分が感じた疲れ',expected:'本人が回答した疲労感の読み方'}
+   ]){
+    await page.goto('http://127.0.0.1:4196/#/exploration-tree?category='+entry.category+'&topic='+encodeURIComponent(entry.topic),{waitUntil:'domcontentloaded'});
+    await page.locator('.ex-learning [data-ex-action="learn-help"]').click();
+    await page.locator('.ex-dialog').waitFor();
+    const help=await page.locator('.ex-dialog').innerText();
+    assert.ok(help.includes(entry.expected),entry.topic+' accurate provenance');
+    assert.doesNotMatch(help,/このテーマは距離と経過時間による算術上の定義を説明します/);
+    await page.screenshot({path:resolve(root,'screenshots',prefix+'-source-'+entry.category+'.png'),fullPage:true});
+   }
+   await page.goto('http://127.0.0.1:4196/#/exploration-tree?category=06&topic='+encodeURIComponent('ウォームアップ'),{waitUntil:'domcontentloaded'});
+   await page.locator('.ex-observation-guide').waitFor();
+  }
   await page.locator('.ex-learning [data-ex-action="note"]').click();
   await page.locator('#ex-note').fill('次は走る前の気持ちを記録する');
   await page.locator('.ex-dialog [data-ex-action="save-note"]').click();
