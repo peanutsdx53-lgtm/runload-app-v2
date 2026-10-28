@@ -162,7 +162,7 @@ try{
   await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-front.png'),fullPage:true,animations:'disabled'});
   await page.locator('[data-view="back"]').click();
   await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-back.png'),fullPage:true,animations:'disabled'});
-  assert.equal(await page.locator('.gd-flag-note').count(),1);
+  assert.equal(await page.locator('.gd-flag-insight .gd-flag-title').count(),1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+' GPS dynamic UI overflows '+overflow);
   assert.deepEqual(errors,[],mode.name+' console errors '+errors.join(';'));
