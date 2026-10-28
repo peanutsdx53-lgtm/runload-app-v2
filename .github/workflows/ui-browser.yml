@@ -82,6 +82,8 @@ jobs:
         run: node tests/gpsDynamicBrowserSmoke.mjs
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
+      - name: Consultation report Chromium and PDF
+        run: node tests/consultationBrowserSmoke.mjs
       - name: Verify the actual public Pages screen
         # Pull requests preview candidate code locally; the deployed site contains main, not PR changes.
         # Check the deployed URL only on main builds, not as a pre-merge gate.
@@ -136,6 +138,8 @@ jobs:
           fi
       - name: WebKit smartphone reading card and screenshot inspection
         run: node tests/explorationWebkitSmoke.mjs
+      - name: Consultation report WebKit
+        run: RUNLOAD_BROWSER=webkit node tests/consultationBrowserSmoke.mjs
       - name: WebKit GPS dynamic replay IndexedDB mobile and desktop
         env:
           RUNLOAD_BROWSER_ENGINE: webkit

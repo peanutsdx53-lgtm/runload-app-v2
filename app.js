@@ -24,6 +24,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
+  const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-e1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
@@ -440,7 +441,7 @@ function recordExtras(){
   manualRuns:manualRunStore.readManualRuns(onboardStorage),
   gpsRuns:savedGps.ok?{ok:true,records:[...savedGps.records,...(gpsV2Cache.ok?gpsV2Cache.records.filter(r=>r.detailSaved).map(r=>({...r,track:[{},{}]})):[])]}:savedGps
  });}
- if(page==="consultation")return top+`<section class="grid-2"><div class="card stack"><h2>自分の記録を整理する</h2><div class="info-note">共有する情報は、自分で選べます。個人の記録を自動送信しません。</div><label class="field">相談したい内容<textarea placeholder="気になっていることを整理する"></textarea></label><label class="field">共有する記録<select><option>記録を共有しない</option><option>今回の記録の概要</option></select></label></div><div class="card stack"><h2>相談するときの確認</h2><p class="lead">身体部位の参考値は医療診断ではありません。身体の違和感などがあるときは、必要な支援先に相談してください。</p>${buttonLink("result","結果へ")}</div></section>`;
+ if(page==="consultation")return consultationExperience.renderConsultation();
  const cur=regionData(state.region);
  return top+`<section class="grid-2"><div class="card stack"><h2>${esc(cur.name===cur.friendly?cur.name:cur.name+"（"+cur.friendly+"）")}</h2><div class="detail-value">${valid(cur.value)?cur.value.toFixed(1):"—"}</div><div class="info-note">この部位自身の文献基準を100とした参考値であり、実測した身体負荷・傷害リスクではありません。</div><div class="chart-card">${historyChart(cur)}</div></div><div class="card stack"><h2>ほかの部位を見る</h2><div class="region-grid">${regionTiles()}</div>${buttonLink("result","全12部位へ戻る")}</div></section>`;
 }
@@ -461,7 +462,12 @@ function recordExtras(){
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  const gpsConsentMarkup=gpsConsentAction&&page==="measurement"
    ?`<div class="gps-consent-backdrop" data-gps-consent-overlay><section class="gps-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="gps-consent-title" aria-describedby="gps-consent-description gps-consent-interruption"><div class="gps-consent-symbol" aria-hidden="true">⌖</div><h2 id="gps-consent-title">${gpsConsentAction==="resume"?"位置情報の取得を再開しますか？":"位置情報を使用しますか？"}</h2><p id="gps-consent-description">測定中は端末の現在地・移動経路・取得可能な標高を利用します。道路地図の表示時には、表示する場所の範囲がOpenStreetMapへ伝わります。走行軌跡は保存時に選択した場合だけ端末に保存します。</p><div class="gps-consent-interruption" id="gps-consent-interruption" role="note"><strong>画面ロック・アプリ切り替え時の動作</strong><p>画面をロックしたり別のアプリへ切り替えたりすると、<b>活動時間のタイマーとGPS測位は自動で一時停止</b>します。</p><p>画面に戻っても自動では再開しません。<b>「測定を再開」から位置情報の使用を確認</b>してください。停止中の時間・距離は加算されません。</p></div><div class="gps-consent-actions"><button type="button" data-gps-consent-cancel class="gps-v2-button gps-v2-secondary">使用しない</button><button type="button" data-gps-consent-confirm class="gps-v2-button gps-v2-primary">${gpsConsentAction==="resume"?"許可して再開":"許可して開始"}</button></div></section></div>` : "";
- app.innerHTML=`<div class="app-shell"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
+ app.innerHTML=`<div class="app-shell ${page==="consultation"?"cp-app":""}" data-mobile-view="edit" data-mode-preview="single"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
+ if(page==="consultation"){
+  consultationExperience.mountConsultation(app.querySelector('#runload-consultation'),consultationExperience.consultationSources({
+   manual:manualRunStore.readManualRuns(onboardStorage),gps:gpsStore.readGpsRuns(),conditions:homeExperience.readConditions(onboardStorage)
+  }));
+ }
  if(page==="result"){
    const params=new URLSearchParams(location.hash.split("?")[1]||"");
    if(params.has('gps')){
