@@ -78,6 +78,31 @@ test('selected-run exploration does not highlight unrelated life records',()=>{
  assert.equal(signals(null,conditions,{ok:true,records:[run]}).linked.has('05'),true,'general exploration retains independent life links');
 });
 
+test('focused distance-and-pace lesson returns to the selected saved run, not a newer entry or the history list',()=>{
+ const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
+ const target={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-18',createdAt:'2026-10-18T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5,durationSeconds:2100};
+ const newer={...target,id:'run-v1-99999999-9999-4999-8999-999999999999',date:'2026-10-26',createdAt:'2026-10-26T05:00:00Z',distanceKm:8,durationSeconds:2200};
+ const runs={ok:true,records:[newer,target]},base={...ctx(),manualRuns:runs,focusRunId:target.id,focusRun:target};
+ const focused=render(u,base);
+ assert.match(focused,/選択した保存済み走行（手入力）/);
+ assert.match(focused,/2026-10-18/);
+ assert.match(focused,/距離：5\.00 km/);
+ assert.doesNotMatch(focused,/距離：8\.00 km/);
+ assert.ok(focused.includes('href="#/result?record='+target.id+'"'));
+ assert.match(focused,/この走行の結果へ戻る/);
+ const missing=render(u,{...base,focusRunId:'missing-record-id',focusRun:null});
+ assert.match(missing,/指定した走行を確認できません/);
+ assert.match(missing,/別の走行の数値で代用せず/);
+ assert.doesNotMatch(missing,/距離：8\.00 km/);
+ assert.doesNotMatch(missing,/距離：5\.00 km/);
+ assert.match(missing,/履歴で記録を選び直す/);
+ assert.doesNotMatch(missing,/href="#\/result\?record=/);
+ const general=render(u,{...ctx(),manualRuns:runs});
+ assert.match(general,/最新の保存済み走行/);
+ assert.match(general,/距離：8\.00 km/);
+ assert.match(general,/href="#\/history"/);
+});
+
 test('distance and pace column reads only confirmed manual runs, never an unsaved editor draft',()=>{
  const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
  const draft={distance:'99',minutes:'9'};
