@@ -77,8 +77,10 @@ try{
   assert.ok(size.scroll<=size.width+2,'no horizontal overflow '+JSON.stringify(size));
   // Offline begins after install; no external URLs or GPS are exercised here.
   if(engine===chromium&&mode.name==='390'){
-   await page.evaluate(()=>navigator.serviceWorker.ready);
-   await page.waitForTimeout(250);
+   // Production PWA registers on HTTPS. Loopback HTTP is a test-only origin;
+   // explicitly register the same unmodified service worker for offline QA.
+   await page.evaluate(async()=>{await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;});
+   await page.waitForFunction(()=>navigator.serviceWorker.controller!==null,null,{timeout:30000});
    await context.setOffline(true);
    await page.reload({waitUntil:'domcontentloaded'});
    await page.locator('.app-shell').waitFor({timeout:10000});

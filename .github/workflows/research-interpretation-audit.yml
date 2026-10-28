@@ -2,7 +2,7 @@ name: Research interpretation audit
 on:
   push:
     branches:
-      - research/interpretation-ux-20261028
+      - main
   pull_request:
     paths:
       - 'ui/resultExperience.js'
