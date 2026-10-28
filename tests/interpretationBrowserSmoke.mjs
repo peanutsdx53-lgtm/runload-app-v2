@@ -45,6 +45,8 @@ try{
   if(mode.width<=800)await page.locator('[data-tab="radar"]').click();
   const compareView=page.locator(mode.width<=375?'.rv4-compare-cards':'.rv4-comparison-table');
   await compareView.waitFor();
+  const selectBackground=await page.locator('[data-compare-select]').evaluate(el=>getComputedStyle(el).backgroundColor);
+  assert.equal(selectBackground,'rgb(12, 51, 68)','dark select maintains the approved palette');
   const comparison=await compareView.innerText();
   assert.match(comparison,/2026-10-18/);assert.match(comparison,/2026-10-25/);assert.match(comparison,/未回答|運動前に感じた疲れ/);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-compare.png'),fullPage:true});

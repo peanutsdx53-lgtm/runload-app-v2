@@ -33,7 +33,7 @@ export const RESULT_REFLECTION_STYLES=`
 .rv4-learn-link{margin-top:13px;max-width:100%}.rv4-learn-link:focus-visible,.rv4-back-link:focus-visible,.rv4-next-path a:focus-visible{outline:3px solid #93fff2;outline-offset:2px}
 .rv4-back-link{background:transparent;color:#b0d6de}
 .rv4-compare-label{display:block;font-size:11px;color:#bad9e0;margin:3px 0 8px}
-.rv4-history select[data-compare-select]{display:block;width:100%;min-height:44px;border-radius:10px;border:1px solid #468798;background:#0c3344;color:#e4fafa;font-size:13px;padding:9px;max-width:100%;margin-bottom:14px}
+.rv4-history select[data-compare-select]{appearance:none;-webkit-appearance:none;color-scheme:dark;display:block;width:100%;min-height:44px;border-radius:10px;border:1px solid #468798;background-color:#0c3344;background-image:linear-gradient(45deg,transparent 50%,#9ee7e2 50%),linear-gradient(135deg,#9ee7e2 50%,transparent 50%);background-position:calc(100% - 17px) 54%,calc(100% - 11px) 54%;background-size:6px 6px;background-repeat:no-repeat;color:#e4fafa;font-size:13px;padding:9px 30px 9px 10px;max-width:100%;margin-bottom:14px}
 .rv4-comparison-scroller{max-width:100%;overflow-x:auto;scrollbar-color:#357587 #0b293a}
 .rv4-comparison-table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.55;min-width:275px;table-layout:auto}
 .rv4-comparison-table th,.rv4-comparison-table td{padding:9px 6px;border-bottom:1px solid #2e5b71;text-align:right;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
