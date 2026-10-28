@@ -75,8 +75,8 @@ try{
   const focusedLesson=await page.locator('[data-ex-learning="distance-time-pace"]').innerText();
   assert.match(focusedLesson,/選択した保存済み走行/);
   assert.match(focusedLesson,/2026-10-25/);
-  assert.match(focusedLesson,/距離：5\\.50 km/);
-  assert.doesNotMatch(focusedLesson,/距離：4\\.00 km/,'newer walking record cannot replace the selected run');
+  assert.ok(focusedLesson.includes('距離：5.50 km'));
+  assert.ok(!focusedLesson.includes('距離：4.00 km'),'newer walking record cannot replace the selected run');
   const focusedReturn=page.locator('[data-ex-learning="distance-time-pace"] .ex-learning-link');
   assert.equal(await focusedReturn.getAttribute('href'),'#/result?record='+saved.current);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-focused-pace-return.png'),fullPage:true});
