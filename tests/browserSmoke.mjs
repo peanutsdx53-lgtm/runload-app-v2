@@ -510,10 +510,11 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-exploration-v23.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='' });
   console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
-  // Exploration and simulation deliberately hide the old empty top header.
-  // Install remains accessible on a standard auxiliary page without reintroducing the simulation arrow.
+  // Consultation also hides the legacy install arrow; other standard routes keep the install entry.
   await page.goto(host+"#/consultation",{waitUntil:"networkidle"});
-  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger available on another standard route");
+  assert.equal(await page.locator("[data-install-app]").first().isVisible(),false,"consultation does not show the install arrow");
+  await page.goto(host+"#/body-part-detail",{waitUntil:"networkidle"});
+  assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger remains available outside consultation");
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
   await page.locator(".install-dialog [data-install-dismiss]").click();
