@@ -53,6 +53,14 @@ try{
     assert.ok(longText.length>1000,'stress test must contain a long report narrative');
     assert.match(longText,/【question完了】/,'long message reaches the report before printing');
     await page.locator('input[data-share="body"]').uncheck();
+    const preview=await page.evaluate(()=>[...document.querySelectorAll('.cp-paper-scale')].filter(el=>getComputedStyle(el).display!=='none').map(el=>({
+     contentOverflow:el.querySelector('.cp-paper').scrollHeight-el.querySelector('.cp-paper').clientHeight,
+     wrapperHeight:el.getBoundingClientRect().height,
+     textHeight:el.querySelector('.cp-paper').getBoundingClientRect().height,
+     scale:Number.parseFloat(getComputedStyle(document.querySelector('#runload-consultation')).getPropertyValue('--paper-scale'))||0
+    })));
+    assert.ok(preview.every(x=>x.contentOverflow<=3),'screen preview does not clip long user text: '+JSON.stringify(preview));
+    await page.screenshot({path:resolve(out,'consultation-print-'+mode+'-long-screen-preview.png'),fullPage:true});
     await page.emulateMedia({media:'print'});
     const visibility=await page.evaluate(()=>({
      hiddenSections:[...document.querySelectorAll('[data-output-section="body"]')].every(e=>getComputedStyle(e).display==='none'),
@@ -61,6 +69,7 @@ try{
      pageHeight:297/25.4*96
     }));
     assert.equal(visibility.hiddenSections,true,'body reference opt-out removes print output');
+    assert.equal(await page.locator('.cp-footer .number').first().evaluate(el=>getComputedStyle(el).display),'none','printed footer does not lie about physical PDF page count');
     assert.ok(visibility.visibleSheets>=2&&visibility.visibleSheets<=4,'selected report sheets only');
     const file=resolve(out,'consultation-print-'+mode+'-long-optout.pdf');
     const longPdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
