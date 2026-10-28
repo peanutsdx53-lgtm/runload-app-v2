@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {consultationSources, periodRecords,trendSvg,renderConsultation} from '../ui/consultationExperience.js';
 const saved=(id,date,distanceKm,extra={})=>({id,date,distanceKm,source:'manual',durationSeconds:1800,createdAt:date+'T12:00:00Z',...extra});
 test('read-only reporting uses only validated saved records and does not mutate inputs',()=>{
@@ -41,4 +42,11 @@ test('consultation uses the compact RunLoad header with a home back link',()=>{
  assert.match(html,/class="cp-back" aria-label="ホームに戻る"/);
  assert.match(html,/<h1>相談・共有<\/h1>/);
  assert.doesNotMatch(html,/cp-breadcrumb/);
+});
+
+test('consultation hides the global install arrow without affecting other screens',()=>{
+ const css=readFileSync(new URL('../ui/consultationExperience.css',import.meta.url),'utf8');
+ assert.match(css,/@media screen\s*\{\.cp-app \.topbar\{display:none!important\}\}/);
+ assert.doesNotMatch(css,/\.cp-app \.topbar\{display:contents\}/);
+ assert.doesNotMatch(css,/\.cp-app \.topbar-right\{position:absolute/);
 });
