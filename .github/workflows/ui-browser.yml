@@ -9,6 +9,7 @@ on:
       - 'sw.js'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/gpsDynamicBrowserSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
       - '.github/workflows/ui-browser.yml'
@@ -109,6 +110,14 @@ jobs:
             screenshots/*-gps-back-silhouette-corrected.png
           if-no-files-found: ignore
           retention-days: 14
+      - name: Upload GPS dynamic current UI audit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gps-dynamic-audit-chromium
+          path: screenshots/gps-audit-chromium-*
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload visual inspection screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -152,6 +161,14 @@ jobs:
         with:
           name: runload-posterior-balanced-webkit
           path: screenshots/webkit-*-posterior-balanced.png
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload GPS dynamic current WebKit audit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gps-dynamic-audit-webkit
+          path: screenshots/gps-audit-webkit-*
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload WebKit screenshots
