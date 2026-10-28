@@ -26,7 +26,7 @@ test('all 18 observation guides render self-observation, limitation and explicit
   if(LEARNING_TOPICS[key])continue;
   ui.selected=category.id;ui.topic=title;
   const page=render(ui,ctx);
-  for(const label of ['観察ガイド','専門的な学習本文は出典審査前','自分の記録とのつながり','この情報からは言えないこと','次に確かめたいこと'])assert.ok(page.includes(label),key+': '+label);
+  for(const label of ['観察ガイド','専門解説は出典審査前','自分の記録とのつながり','この情報からは言えないこと','次に確かめたいこと'])assert.ok(page.includes(label),key+': '+label);
   assert.ok(page.includes('data-ex-action="note"'));
  }}
 });
