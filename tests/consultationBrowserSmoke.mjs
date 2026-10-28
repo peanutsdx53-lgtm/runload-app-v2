@@ -1,5 +1,5 @@
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
@@ -41,6 +41,45 @@ try{
   assert.equal(await page.locator('.cp-body-view').count(),3);
   if(name==='mobile')await page.locator('[data-switch="preview"]').click();
   if(!useWebKit){const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});assert.ok(pdf.length>10000,`${name}: PDF file size`);}
+
+  // One focused print-integrity probe only; existing layout/record tests are reused.
+  if(!useWebKit&&name==='desktop'){
+   const out=resolve(root,'screenshots');await mkdir(out,{recursive:true});
+   const longValue=key=>(key+'：'+'日本語の相談文・共有範囲の確認。'.repeat(100)).slice(0,1180)+'【'+key+'完了】';
+   for(const mode of ['single','period']){
+    await page.locator('[data-mode-button="'+mode+'"]').click();
+    for(const key of ['purpose','observation','question'])await page.locator('#cp-'+key).fill(longValue(key));
+    const longText=await page.locator('[data-report-question]').innerText();
+    assert.ok(longText.length>1000,'stress test must contain a long report narrative');
+    assert.match(longText,/【question完了】/,'long message reaches the report before printing');
+    await page.locator('input[data-share="body"]').uncheck();
+    const preview=await page.evaluate(()=>[...document.querySelectorAll('.cp-paper-scale')].filter(el=>getComputedStyle(el).display!=='none').map(el=>({
+     contentOverflow:el.querySelector('.cp-paper').scrollHeight-el.querySelector('.cp-paper').clientHeight,
+     wrapperHeight:el.getBoundingClientRect().height,
+     textHeight:el.querySelector('.cp-paper').getBoundingClientRect().height,
+     scale:Number.parseFloat(getComputedStyle(document.querySelector('#runload-consultation')).getPropertyValue('--paper-scale'))||0
+    })));
+    assert.ok(preview.every(x=>x.contentOverflow<=3),'screen preview does not clip long user text: '+JSON.stringify(preview));
+    await page.screenshot({path:resolve(out,'consultation-print-'+mode+'-long-screen-preview.png'),fullPage:true});
+    await page.emulateMedia({media:'print'});
+    const visibility=await page.evaluate(()=>({
+     hiddenSections:[...document.querySelectorAll('[data-output-section="body"]')].every(e=>getComputedStyle(e).display==='none'),
+     visibleSheets:[...document.querySelectorAll('.cp-paper-scale')].filter(e=>getComputedStyle(e).display!=='none').length,
+     paperHeights:[...document.querySelectorAll('.cp-paper-scale')].filter(e=>getComputedStyle(e).display!=='none').map(e=>e.getBoundingClientRect().height),
+     pageHeight:297/25.4*96
+    }));
+    assert.equal(visibility.hiddenSections,true,'body reference opt-out removes print output');
+    assert.equal(await page.locator('.cp-footer .number').first().evaluate(el=>getComputedStyle(el).display),'none','printed footer does not lie about physical PDF page count');
+    assert.ok(visibility.visibleSheets>=2&&visibility.visibleSheets<=4,'selected report sheets only');
+    const file=resolve(out,'consultation-print-'+mode+'-long-optout.pdf');
+    const longPdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
+    assert.ok(longPdf.length>11000,'long report PDF emitted');
+    await writeFile(file,longPdf);
+    await page.emulateMedia({media:'screen'});
+    await page.locator('input[data-share="body"]').check();
+    console.log('PRINT QA',mode,JSON.stringify(visibility),'pdf bytes',longPdf.length);
+   }
+  }
   assert.equal(errs.length,0,`${name}: browser exceptions: ${errs.join('; ')}`);
   console.log('PASS',useWebKit?'webkit':'chromium',name,'consultation / report / print');
   await page.close();

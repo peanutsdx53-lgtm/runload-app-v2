@@ -112,7 +112,19 @@ export function mountConsultation(host,source){
   const banner=host.querySelector('.cp-demo-banner');if(banner)banner.textContent=source.errors.length?'保存データの一部を読み取れません：'+source.errors.join('／'):'端末内の保存済み記録と本人の入力から作成しています。選択した情報だけを印刷・PDFに含めます。';
   updateScale();
  };
- const updateScale=()=>{const width=panel.clientWidth-(window.innerWidth<=800?22:35);const s=Math.max(.30,Math.min(.88,width/794));host.style.setProperty('--paper-scale',s.toFixed(4));};
+ const updateScale=()=>{
+  const width=panel.clientWidth-(window.innerWidth<=800?22:35);
+  const s=Math.max(.30,Math.min(.88,width/794));host.style.setProperty('--paper-scale',s.toFixed(4));
+  // The screen preview must not cut off user-entered consultation text.
+  // Keep the existing scale and printed A4 rules; expand only overlong preview sheets.
+  host.querySelectorAll('.cp-paper-scale').forEach(sheet=>{
+   const paper=sheet.querySelector('.cp-paper');if(!paper)return;
+   paper.style.height='1123px';
+   const needed=Math.max(1123,paper.scrollHeight);
+   paper.style.height=needed+'px';
+   sheet.style.height=Math.ceil(needed*s)+'px';
+  });
+ };
  const options=()=>{const old=state.chosen;target.innerHTML='';if(state.mode==='single'){
   if(!records.length)target.add(new Option('保存された運動記録がありません',''));
   else records.forEach(r=>target.add(new Option(dateLabel(r.date)+'　'+gait(r)+'（'+(r.source==='manual'?'手入力':'GPS')+'）',r.id)));
