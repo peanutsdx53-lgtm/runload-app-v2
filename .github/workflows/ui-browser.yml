@@ -10,6 +10,7 @@ on:
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
+      - 'tests/consultationBrowserSmoke.mjs'
       - '.github/workflows/ui-browser.yml'
   push:
     branches: [main]
@@ -24,6 +25,7 @@ on:
       - 'tests/browserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
+      - 'tests/consultationBrowserSmoke.mjs'
       - 'ui/resultExperience.js'
       - 'ui/resultExperience.css'
       - '.github/workflows/ui-browser.yml'
