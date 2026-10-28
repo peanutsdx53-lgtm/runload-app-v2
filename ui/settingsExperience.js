@@ -60,12 +60,12 @@ export function renderSettings({profile,display,notice=''}){
   group('▤','データとプライバシー',[
    item('▣','バックアップ・復元','端末内の記録を保護',`<p>データ形式の検査・復元前バックアップ・破損防止が完成してから有効化します。現在、復元や書き出しは実行できません。</p>`,{hint:'準備中'}),
    item('×','データの削除','保存した情報を安全に削除',`<p>正式保存とバックアップの連携後に、確認手順付きで提供します。設定画面から誤って削除できる状態にはしません。</p>`,{hint:'準備中'}),
-   item('§','利用規約・プライバシー','正式公開時に必要な文書',`<p>現在は画面・操作の検証段階です。正式公開時は、確定した文書を提示し必要な同意を取得します。ここで同意済みになることはありません。</p>`,{hint:'準備中'})
+   item('§','利用規約・プライバシー','利用条件と情報の取扱い',`<div class="s2-choice-row"><button type="button" class="s2-inline-btn" data-legal-open="terms">利用規約を読む</button><button type="button" class="s2-inline-btn" data-legal-open="privacy">プライバシーポリシーを読む</button></div><p>文書の閲覧だけで同意済みになることはありません。</p>`,{hint:'全文を確認'})
   ]),
   group('ⓘ','アプリとヘルプ',[
    item('⇩','アプリをインストール','ホーム画面やPCに追加',`<button type="button" class="s2-inline-btn" data-install-app>インストール方法を見る →</button>`,{hint:'案内あり'}),
    item('?','初回ガイド','使い始めの案内を再確認',`<button type="button" class="s2-inline-btn" data-onboard-open>初回ガイドを開く →</button>`,{hint:'案内あり'}),
-   item('ⓘ','このアプリについて','アプリの現在の状態',`<p>手入力した走行は端末に保存できます。GPSによる測定の保存と、身体の部位別の参考値の表示は準備中です。医療上の診断は行いません。</p>`,{hint:'アプリ情報'})
+   item('ⓘ','このアプリについて','アプリの現在の状態',`<p>手入力した走行やGPSで測定した記録を端末に保存できます。身体部位別の参考値は医学的な診断や傷害の予測を示すものではありません。</p>`,{hint:'アプリ情報'})
   ])
  ];
  return `<div class="s2-page" data-settings-v2><header class="s2-heading"><div><h1>設定</h1><p>使いやすさと、自分の情報を管理する。</p></div><div class="s2-locale"><span>日本語</span><span class="s2-status-dot" aria-hidden="true"></span><strong>暗い画面</strong></div></header>${notice?`<p class="s2-notice" role="status">${escape(notice)}</p>`:''}<div class="s2-grid"><div class="s2-column">${groups.slice(0,3).join('')}</div><div class="s2-column">${groups.slice(3).join('')}</div></div><p class="s2-footer">日本語版 · 設定はこの端末に保存されます</p></div>`;
