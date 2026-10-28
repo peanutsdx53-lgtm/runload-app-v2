@@ -10,6 +10,7 @@ on:
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
       - 'tests/firstUseBrowserSmoke.mjs'
+      - 'tests/dataManagementBrowserSmoke.mjs'
       - 'tests/gpsDynamicBrowserSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
@@ -88,6 +89,8 @@ jobs:
         run: node tests/browserSmoke.mjs
       - name: First-use legal flow and smartphone/desktop screenshots
         run: node tests/firstUseBrowserSmoke.mjs
+      - name: Data backup restore deletion and screenshots
+        run: node tests/dataManagementBrowserSmoke.mjs
       - name: Consultation report Chromium and PDF
         run: node tests/consultationBrowserSmoke.mjs
       - name: Verify the actual public Pages screen
