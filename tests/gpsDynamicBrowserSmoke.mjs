@@ -53,10 +53,12 @@ try{
     req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('summaries'))db.createObjectStore('summaries',{keyPath:'id'});if(!db.objectStoreNames.contains('details'))db.createObjectStore('details',{keyPath:'id'});};
     req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
    });
+   const scientific=await import('/ui/gpsReplayReference.js');
+   const staticReference=scientific.evaluateGpsReplayReference({activity:'RUNNING',speedMps:2.75});
    const summary={schema:2,id,activity:'RUNNING',date:'2026-10-27',createdAt:new Date(t).toISOString(),
      distanceKm:.0275,activeSeconds:10,accepted:3,rejected:0,detailSaved:true,
-     finalReference:{state:'REFERENCE_ONLY',speedMps:2.75,modelVersion:'e2e-seed',semanticVersion:'e2e-seed',
-      source:'test-seed',regions:Array.from({length:12},(_,i)=>({regionId:'R'+String(i+1).padStart(2,'0'),value:null,calculationState:'NOT_CALCULABLE',reasonCode:'SEED'}))}};
+     finalReference:{state:staticReference.state,speedMps:2.75,modelVersion:staticReference.modelVersion||null,semanticVersion:staticReference.semanticVersion||null,
+      source:staticReference.source||null,regions:staticReference.rows.map(r=>({regionId:r.regionId,value:r.calculationState==='CALCULATED'?r.value:null,calculationState:r.calculationState,reasonCode:r.reasonCode||null}))}};
    const route=[{lat:37.5000,lon:139.9000,km:0,t,breakBefore:true},
      {lat:37.5001,lon:139.9001,km:.0125,t:t+5000,breakBefore:false},
      {lat:37.5003,lon:139.9002,km:.0275,t:t+10000,breakBefore:false}];
