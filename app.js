@@ -24,6 +24,8 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
+  const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
+  const dataManagementUi=await import("./ui/dataManagementUi.js?v=20261028-data-management-v1");
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-first-use-v1");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
@@ -137,6 +139,7 @@
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
+  const dataUi=dataManagementUi.makeDataUi();
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
   const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
   const needsLegalReconfirmation=!!introStored?.completed&&hasPriorLegalRecord&&!legalDocuments.readLegalConsent(onboardStorage);
@@ -424,7 +427,7 @@ function recordExtras(){
       const conditions=homeExperience.readConditions(onboardStorage);
       return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions,manualRuns:manualRunStore.readManualRuns(onboardStorage)});
     }
-    function settings(){return settingsExperience.renderSettings(settingsUi);}
+    function settings(){return settingsExperience.renderSettings({...settingsUi,dataUi});}
     function secondary(page){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
@@ -573,7 +576,47 @@ function recordExtras(){
   });
  }
 }
+  const refreshDataSettings=()=>{
+    const openNames=[...app.querySelectorAll('.s2-item[open]')].map(node=>node.querySelector('summary strong')?.textContent);
+    render();
+    app.querySelectorAll('.s2-item').forEach(node=>{if(openNames.includes(node.querySelector('summary strong')?.textContent))node.open=true;});
+  };
+  const downloadDataFile=(text)=>{
+    const blob=new Blob([text],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob),anchor=document.createElement("a");
+    anchor.href=url;anchor.download="運動記録バックアップ-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.append(anchor);anchor.click();anchor.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  };
   app.addEventListener("change",async(event)=>{
+    const portable=event.target.closest('[data-dm-file]');
+    if(portable){
+      const file=portable.files?.[0];dataUi.pendingText="";dataUi.preview=null;dataUi.safetyCopy=false;
+      if(file){
+        if(file.size>dataManagement.PORTABLE_MAX_BYTES){dataUi.notice="80MB以内のJSONファイルを選択してください。";}
+        else{
+          try{
+            const text=await file.text(),plan=await dataManagement.preflightPortableRestore(onboardStorage,text);
+            if(plan.ok){dataUi.pendingText=text;dataUi.preview=plan;dataUi.notice="ファイルを検証しました。対象の内容を確認してください。";}
+            else dataUi.notice=plan.reason;
+          }catch{dataUi.notice="バックアップファイルを安全に確認できませんでした。";}
+        }
+      }
+      refreshDataSettings();return;
+    }
+    if(event.target.matches('[data-dm-include-gps]')){dataUi.includeGps=event.target.checked;return;}
+    if(event.target.matches('[data-dm-safety]')){
+      dataUi.safetyCopy=event.target.checked;
+      const button=app.querySelector('[data-dm-restore]');
+      if(button)button.disabled=!(dataUi.preview?.ok&&(!dataUi.preview.hasExisting||dataUi.safetyCopy));
+      return;
+    }
+    if(event.target.matches('[data-dm-delete-agree]')){
+      dataUi.deleteAgreed=event.target.checked;
+      const button=app.querySelector('[data-dm-delete-confirm]');
+      if(button)button.disabled=!(dataUi.deleteAgreed&&dataUi.deleteWord==="削除");
+      return;
+    }
      const v2BackupFile=event.target.closest('[data-gps-v2-backup-file]');
      if(v2BackupFile){
       const file=v2BackupFile.files?.[0];pendingGpsV2Backup=null;gpsV2BackupNotice='';
@@ -626,6 +669,12 @@ function recordExtras(){
     notice.textContent=message;
   };
   app.addEventListener("input",(event)=>{
+    if(event.target.matches('[data-dm-delete-word]')){
+      dataUi.deleteWord=event.target.value;
+      const button=app.querySelector('[data-dm-delete-confirm]');
+      if(button)button.disabled=!(dataUi.deleteAgreed&&dataUi.deleteWord==="削除");
+      return;
+    }
     if(event.target.matches('[data-gps-goal-value]')){ensureGps().setGoalValue(event.target.value);return;}
     if(event.target.matches("[data-ex-search]")){
       const input=event.target,caret=input.selectionStart;
@@ -771,6 +820,34 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",async(event)=>{
+    const dataAction=event.target.closest('[data-dm-export],[data-dm-restore],[data-dm-delete-confirm]');
+    if(dataAction){
+      if(dataUi.busy)return;
+      dataUi.busy=true;
+      try{
+        if(dataAction.hasAttribute('data-dm-export')){
+          const result=await dataManagement.exportPortableBackup(onboardStorage,{includeGps:dataUi.includeGps});
+          if(!result.ok)dataUi.notice=result.reason;
+          else{
+            try{downloadDataFile(result.text);dataUi.notice="ファイルの保存を開始しました。端末のダウンロード先を確認してください。";}
+            catch{dataUi.notice="ファイルを保存できませんでした。ブラウザの設定を確認してください。";}
+          }
+        }else if(dataAction.hasAttribute('data-dm-restore')){
+          if(!dataUi.preview?.ok||!dataUi.pendingText||(dataUi.preview.hasExisting&&!dataUi.safetyCopy))return;
+          const restored=await dataManagement.restorePortableBackup(onboardStorage,dataUi.pendingText);
+          if(restored.ok){location.reload();return;}
+          dataUi.notice=restored.reason;
+          if(restored.partial){dataUi.preview=null;dataUi.pendingText="";}
+        }else if(dataAction.hasAttribute('data-dm-delete-confirm')){
+          if(!dataUi.deleteAgreed||dataUi.deleteWord!=="削除")return;
+          const removed=await dataManagement.removeAllPortableData(onboardStorage);
+          if(removed.ok){location.reload();return;}
+          dataUi.notice=removed.reason;
+        }
+      }catch{dataUi.notice="操作を完了できませんでした。記録の状態を確認してください。";}
+      finally{dataUi.busy=false;}
+      refreshDataSettings();return;
+    }
     const showLegal=event.target.closest("[data-onboard-document],[data-legal-open]");
     if(showLegal){const kind=showLegal.dataset.onboardDocument||showLegal.dataset.legalOpen;
       if(kind==="terms"||kind==="privacy"){
