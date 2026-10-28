@@ -26,7 +26,7 @@
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
   const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
   const dataManagementUi=await import("./ui/dataManagementUi.js?v=20261028-data-management-v1");
-  const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-first-use-v1");
+  const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-optional-guide-v2");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261028-reflection-ux-v1");
@@ -1194,6 +1194,7 @@ function recordExtras(){
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.replay=true;onboardingState.step=2;onboardingState.error="";render();return;}
     if(event.target.closest("[data-onboard-close]")){if(onboardingState.replay){onboardingState.open=false;onboardingState.replay=false;render();}return;}
     if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(onboardingState.replay?2:0,onboardingState.step-1);onboardingState.error="";render();return;}
+    if(event.target.closest("[data-onboard-skip-guide]")&&onboardingState.open&&!onboardingState.replay&&onboardingState.step>=2&&onboardingState.step<=6){onboardingState.step=7;onboardingState.error="";render();return;}
     if(event.target.closest("[data-onboard-skip-profile]")&&onboardingState.step===7){finishOnboarding();return;}
     if(event.target.closest("[data-onboard-next]")){
       if(onboardingState.step===1){

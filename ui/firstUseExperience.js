@@ -89,6 +89,7 @@ export function renderFirstUse(state){
     +FIRST_USE_STEPS.map(function(label,i){return '<li class="'+(i===step?'is-current':i<step?'is-done':'')+'"><span>'+String(i+1).padStart(2,"0")+'</span>'+h(label)+'</li>';}).join('')+'</ol></aside>';
   const footer='<footer class="fu-footer"><button class="fu-button fu-secondary" type="button" data-onboard-back '+(step===0?'disabled':'')+'>戻る</button>'
     +'<span>'+h(labels)+'</span><div class="fu-footer-actions">'
+    +(!state.replay&&step>=2&&step<=6?'<button class="fu-button fu-secondary" type="button" data-onboard-skip-guide>ガイドを後で見る</button>':'')
     +(final?'<button class="fu-button fu-secondary" type="button" data-onboard-skip-profile>設定せずに始める</button>':'')
     +'<button class="fu-button fu-primary" type="button" data-onboard-next '+(canAdvance?'':'disabled')+'>'+(final?'保存して始める':step===1?'同意して次へ':'次へ')+'</button></div></footer>';
   const doc=state.documentOpen?renderLegalDocumentModal(state.documentOpen):'';
