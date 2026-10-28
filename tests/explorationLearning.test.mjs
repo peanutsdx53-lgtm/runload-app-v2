@@ -68,6 +68,16 @@ test('next check can be explicitly saved and recovered by stable topic key, with
  assert.deepEqual([...storage.map.keys()],['runload-v2-exploration-notes-v1']);
 });
 
+test('selected-run exploration does not highlight unrelated life records',()=>{
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950,rofBefore:0,rofAfter:4,draft:{activityGait:'RUNNING'}};
+ const conditions={canSave:true,entries:[{date:'2026-10-24',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}]};
+ const focused=signals(null,conditions,{ok:true,records:[run]},run.id);
+ assert.equal(focused.linked.has('01'),true);
+ assert.equal(focused.linked.has('04'),true);
+ assert.equal(focused.linked.has('05'),false,'unrelated life record should not become a property of a selected run');
+ assert.equal(signals(null,conditions,{ok:true,records:[run]}).linked.has('05'),true,'general exploration retains independent life links');
+});
+
 test('distance and pace column reads only confirmed manual runs, never an unsaved editor draft',()=>{
  const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
  const draft={distance:'99',minutes:'9'};
