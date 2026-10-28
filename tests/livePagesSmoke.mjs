@@ -21,11 +21,15 @@ for(let i=1;i<=30;i++){
 }
 assert.ok(valid,'GitHub Pages has not deployed the matching checked-out main snapshot');
 const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+// First-use is independently tested; this scenario represents a returning user.
+const asReturningUser=page=>page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
+
 try{
  await mkdir('screenshots',{recursive:true});
  for(const mode of [{name:'mobile',width:390,height:844},{name:'desktop',width:1440,height:900}]){
   const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',err=>errors.push(err.message));
+  await asReturningUser(page);
   await page.goto(root+'?check='+tag+'#/record',{waitUntil:'networkidle',timeout:45000});
   if(await page.locator('[data-onboard-close]').count())await page.locator('[data-onboard-close]').click();
   await page.locator('[data-draft="distance"]').fill('5.20');
@@ -52,6 +56,7 @@ try{
  }
 const resultCheck=await browser.newPage({viewport:{width:390,height:844}});
 try{
+ await asReturningUser(resultCheck);
  await resultCheck.goto(root+'?check='+tag+'#/result',{waitUntil:'networkidle'});
  if(await resultCheck.locator('[data-onboard-close]').count())await resultCheck.locator('[data-onboard-close]').click();
  const report=resultCheck.locator('#runload-result-v4');
@@ -62,6 +67,7 @@ try{
 }finally{await resultCheck.close()}
 const explorationCheck=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
 try{
+ await asReturningUser(explorationCheck);
  await explorationCheck.goto(root+'?check='+tag+'#/exploration-tree',{waitUntil:'networkidle',timeout:45000});
  if(await explorationCheck.locator('[data-onboard-close]').count())await explorationCheck.locator('[data-onboard-close]').click();
  await explorationCheck.locator('[data-ex-learning="slope-running"]').waitFor({timeout:15000});
