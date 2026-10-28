@@ -145,3 +145,42 @@
  .app-shell:has(.gd-root:not(.gd-summary)) .bottom-nav{display:none!important}
  .app-shell:has(.gd-root:not(.gd-summary)) .main-content{padding-bottom:calc(26px + env(safe-area-inset-bottom,0px))}
 }
+
+
+/* Keep the GPS replay surface inside the actual device viewport.
+ * .main-content is itself a grid container: its implicit auto-minimum track
+ * previously allowed the nowrap title/tag content to widen the whole screen.
+ * Do not mask overflow with overflow-x:hidden; keep controls readable.
+ */
+.app-shell:has(.gd-root:not(.gd-summary)) .main-frame,
+.app-shell:has(.gd-root:not(.gd-summary)) .main-content,
+.app-shell:has(.gd-root:not(.gd-summary)) [data-gps-dynamic]{
+ min-width:0;max-width:100%;
+}
+.app-shell:has(.gd-root:not(.gd-summary)) .main-content{
+ width:100%;box-sizing:border-box;grid-template-columns:minmax(0,1fr);
+}
+.gd-root:not(.gd-summary){width:100%;max-width:min(1320px,100%);min-width:0}
+.gd-root:not(.gd-summary) .gd-head{min-width:0;max-width:100%;flex-wrap:wrap}
+.gd-root:not(.gd-summary) .gd-heading{min-width:0;max-width:100%}
+.gd-root:not(.gd-summary) .gd-heading>div{min-width:0}
+.gd-root:not(.gd-summary) .gd-tag{min-width:0;max-width:100%;white-space:normal;line-height:1.4}
+.gd-root:not(.gd-summary) .gd-metrics,
+.gd-root:not(.gd-summary) .gd-view-bar,
+.gd-root:not(.gd-summary) .gd-main,
+.gd-root:not(.gd-summary) .gd-linked-insight,
+.gd-root:not(.gd-summary) .gd-speed-block{min-width:0;max-width:100%}
+.gd-root:not(.gd-summary) .gd-metric{min-width:0}
+@media(max-width:680px){
+ .gd-root:not(.gd-summary) .gd-heading{flex:1 1 195px}
+ .gd-root:not(.gd-summary) .gd-head .gd-tag{
+  flex:0 1 auto;max-width:118px;text-align:center;margin-left:auto;
+ }
+ .gd-root:not(.gd-summary) .gd-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .gd-root:not(.gd-summary) .gd-metric{padding:8px 4px;gap:2px}
+ .gd-root:not(.gd-summary) .gd-metric strong{
+  font-size:clamp(13px,3.85vw,17px);white-space:nowrap
+ }
+ .gd-root:not(.gd-summary) .gd-metric span{font-size:clamp(9px,2.55vw,11px)}
+ .gd-root:not(.gd-summary) .gd-metric em{font-size:9px}
+}
