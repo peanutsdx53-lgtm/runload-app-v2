@@ -1,0 +1,55 @@
+name: Exploration editorial QA
+on:
+  push:
+    branches:
+      - research/exploration-editorial-20261028
+  pull_request:
+    paths:
+      - 'ui/explorationExperience.js'
+      - 'ui/explorationTopicGuides.js'
+      - 'ui/explorationExperience.css'
+      - 'tests/explorationTopicGuides.test.mjs'
+      - 'tests/explorationTopicBrowserSmoke.mjs'
+      - '.github/workflows/exploration-editorial-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  logic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.test.mjs
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Japanese font if unavailable
+        run: |
+          if ! fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao'; then sudo timeout 90s apt-get install -y --no-install-recommends fonts-ipafont-gothic || true; fi
+      - name: Capture actual exploration screens and validate layout
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/explorationTopicBrowserSmoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exploration-editorial-${{ matrix.engine }}-screenshots
+          path: screenshots/exploration-theme-*.png
+          if-no-files-found: ignore
+          retention-days: 14
