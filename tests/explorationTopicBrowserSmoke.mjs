@@ -33,8 +33,21 @@ try{
   await page.locator('.ex-learning [data-ex-action="learn-help"]').click();
   await page.locator('.ex-dialog').waitFor();
   assert.match(await page.locator('.ex-dialog').innerText(),/科学的な解説としての出典審査はまだ完了していません/);
+  assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'close','opening modal moves focus inside');
+  // Only one interactive control on this unreviewed theme: Tab must not leave the dialog.
+  for(let n=0;n<3;n++){
+   await page.keyboard.press(n===1?'Shift+Tab':'Tab');
+   assert.equal(await page.evaluate(()=>!!document.activeElement?.closest('.ex-dialog')),true,'Tab remains inside inquiry dialog');
+  }
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.ex-dialog').count(),0,'Escape closes dialog');
+  assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'learn-help','focus returns to source button');
+  await page.keyboard.press('Enter');
+  await page.locator('.ex-dialog').waitFor();
+  assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'close','keyboard can reopen modal');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-source-status.png'),fullPage:true});
   await page.locator('.ex-dialog [data-ex-action="close"]').click();
+  assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'learn-help','click close restores focus');
   if(width===390){
    for(const entry of [
     {category:'02',topic:'12部位の参考値の見方',expected:'測定量・適用条件は部位ごとに異なります'},
@@ -54,6 +67,13 @@ try{
     if(entry.topic==='上り坂・下り坂')assert.match(help,/傾斜角0・±5・±10度/);
     if(!['12部位の参考値の見方','自分が感じた疲れ'].includes(entry.topic))assert.match(help,/研究の対象・使える範囲/);
     assert.doesNotMatch(help,/このテーマは距離と経過時間による算術上の定義を説明します/);
+    if(entry.topic==='上り坂・下り坂'){
+      assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'close');
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await page.evaluate(()=>document.activeElement?.closest('.ex-dialog')?.tagName),'SECTION','backward Tab stays in sourced modal');
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(()=>document.activeElement?.dataset?.exAction),'close','Tab cycles back to the close button');
+    }
     await page.screenshot({path:resolve(root,'screenshots',prefix+'-source-'+entry.category+'.png'),fullPage:true});
    }
    await page.goto('http://127.0.0.1:4196/#/exploration-tree?category=06&topic='+encodeURIComponent('ウォームアップ'),{waitUntil:'domcontentloaded'});
