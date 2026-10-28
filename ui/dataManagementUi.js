@@ -26,7 +26,7 @@ export function renderDataBackup(ui){
  const canRestore=ready&&(!present||ui.safetyCopy);
  return '<div class="dm-stack" data-dm-ui>'
   +'<div class="dm-section"><h3>バックアップを作成</h3>'
-  +'<p>この端末の運動記録、体調、保存コース、メモ、プロフィール、表示設定などを一つのJSONファイルに保存します。ファイルは外部へ自動送信されません。</p>'
+  +'<p>この端末の運動記録、体調、保存コース、メモ、プロフィール、表示設定などを一つのJSONファイルに保存します。ファイルは外部へ自動送信されません。</p><p class="dm-warning">保存されるファイルには身体や生活に関する個人情報が含まれ、暗号化されません。保管先と共有先を確認してください。</p>'
   +'<label class="dm-choice"><input type="checkbox" data-dm-include-gps '+(ui.includeGps?'checked':'')+'><span>GPS記録・走行経路も含める</span></label>'
   +'<p class="dm-warning">GPSを含めると自宅周辺の経路などの位置情報がファイルに保存されます。ファイルは暗号化されません。第三者と共有せず、安全な場所に保管してください。</p>'
   +'<button class="dm-btn dm-primary" type="button" data-dm-export '+(ui.busy?'disabled':'')+'>バックアップファイルを保存</button>'
