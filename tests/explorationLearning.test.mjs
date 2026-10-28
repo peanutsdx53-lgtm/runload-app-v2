@@ -56,7 +56,7 @@ test('sleep column displays saved entries; comparison helper rejects incompatibl
 test('unsupported topics do not inherit unrelated experiment tools',()=>{
  const u=makeUi(memory());u.selected='06';u.topic='ウォームアップ';const html=render(u,ctx());
  assert.match(html,/走り始める前に何をしていますか/);assert.doesNotMatch(html,/data-ex-slope="up"/);
- assert.equal(Object.keys(LEARNING_TOPICS).length,4);
+ assert.equal(Object.keys(LEARNING_TOPICS).length,10);
 });
 test('next check can be explicitly saved and recovered by stable topic key, without changing run or life records',()=>{
  const storage=memory(),u=makeUi(storage);u.selected='03';u.topic='上り坂・下り坂';

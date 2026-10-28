@@ -30,17 +30,17 @@ export function makeUi(storage){
 
 /* Only validated local manual-run records may light a saved-activity theme.
    Do not derive any injury, body loading or health interpretation here. */
-function latestSavedManualRun(read){
+function latestSavedManualRun(read,requestedId=null){
  if(read?.ok!==true||!Array.isArray(read.records))return null;
- return read.records.filter(r=>r?.source==="manual"&&r.type==="run"&&r.schema===1&&
+ return read.records.filter(r=>(requestedId===null||r.id===requestedId)&&r?.source==="manual"&&r.type==="run"&&r.schema===1&&
     /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
     Number.isInteger(r.durationSeconds)&&r.durationSeconds>0)
   .slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt).localeCompare(String(a.createdAt)))[0]||null;
 }
-export function signals(draft,conditions,manualRuns=null){
+export function signals(draft,conditions,manualRuns=null,requestedId=null){
  const linked=new Map();
  const strict=createExplorationContext({draft,conditions});
- const sources=new Map(),recentRun=latestSavedManualRun(manualRuns);
+ const sources=new Map(),recentRun=latestSavedManualRun(manualRuns,requestedId);
  const mark=(id,label,source)=>{if(!linked.has(id)){linked.set(id,label);sources.set(id,source);}};
  // Current draft is kept separate from confirmed saved runs.
  if(draft&&[draft.distance,draft.hours,draft.minutes,draft.seconds,draft.steps].some(isProvided))
@@ -70,7 +70,7 @@ export function signals(draft,conditions,manualRuns=null){
 
 function relevance(ui,ctx){
  if(ui.sample)return {linked:new Map([["01","表示例：走行距離の入力"],["03","表示例：上り坂の入力"]]),sources:new Map([["01","sample"],["03","sample"]]),hasDraft:false,hasCondition:false,sample:true};
- return {...signals(ctx.draft,ctx.conditions,ctx.manualRuns),sample:false};
+ return {...signals(ctx.focusRunId?null:ctx.draft,ctx.conditions,ctx.manualRuns,ctx.focusRunId||null),sample:false};
 }
 function buttonAction(name,label,kind="") {return `<button type="button" class="ex-action ${kind}" data-ex-action="${name}">${label}</button>`;}
 
@@ -95,6 +95,24 @@ const KNOWLEDGE={
  "上り坂・下り坂":{
    heading:"上り坂と下り坂、走る動きの違い",lead:"上り坂では体を持ち上げて進む働きが、下り坂では前に進む勢いを受け止めて制御する働きが重要になります。",
    cite:"Vernillo ほか（2020）",url:"https://doi.org/10.1111/sms.13708",warning:"主に条件を管理した走行の研究に基づきます。記録の割合だけから、あなたの筋肉への負荷やけがの危険を計算できません。"},
+ "12部位の参考値の見方":{
+   heading:"文献の参考値をどう読めばよい？",lead:"各部位の数値は、その部位自身の文献上の参照値を100として表したものです。あなたの身体の負荷を測定した数値ではありません。まず部位の名前と研究条件を確かめ、適用外の数値は表示しない決まりを確認しましょう。",
+   cite:"部位ごとの採用研究（研究Currentの原典台帳）",warning:"異なる身体部位同士の大小比較や危険度の順位はできません。速度条件や活動種別に適用できない場合、参考値を無理に算出しません。"},
+ "自分が感じた疲れ":{
+   heading:"自分で感じた疲れを見返す",lead:"運動前と運動後に本人が0〜10で回答した疲労感は、本人の主観的な記録です。0は未回答ではなく、有効な回答として扱います。数値を確認して、どのように感じたかを自分の言葉で振り返れます。",
+   warning:"本人の感じ方と文献参考値は異なる情報です。数値の差だけで原因、身体組織の状態やケガを判断することはできません。"},
+ "過去の走りとの比較":{
+   heading:"違いを見つけて、自分で考える",lead:"保存された2回の走行を、距離・経過時間・平均ペース・回答した疲労感など同じ意味の項目で並べると、何が異なっていたかを確かめられます。",
+   cite:"Li, Dey & Forlizzi（2011）",url:"https://doi.org/10.1145/2030112.2030166",warning:"過去との違いは、能力の向上・負荷・原因や次回の走行結果を示しません。活動種別が一致しない場合や欠測がある場合は、比較できない項目を補いません。"},
+ "気付きと次の確認":{
+   heading:"気になることを、自分の言葉で残す",lead:"今回の記録と過去の記録を見て、次に何を確かめたいか、気になったことを任意で残せます。毎回メモを残す必要はありません。後で読み返し、考えが変わっていても構いません。",
+   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"メモの保存や再訪は学習・理解の向上を証明しません。行動の指示や医学的な助言ではありません。"},
+ "疲れの感じ方":{
+   heading:"疲れの数字と、自分の感じ方",lead:"走る前の疲れと走った後の疲れは、同じ0〜10の尺度でも、記録した時点を区別して考えます。自分の感覚を思い出すための手掛かりであり、他人との優劣を表すものではありません。",
+   warning:"運動前の回答を後から補ったものや、回答のない項目を推測しません。文献参考値と合算した総合スコアも作りません。"},
+ "自分に合う記録の使い方":{
+   heading:"毎回すべてを記録しなくてもいい",lead:"気になる項目だけを確かめる、少し間が空いてから振り返る、記録なしで知識を調べるなど、使い方は本人が選べます。記録の量よりも、何を知りたいかを大切にします。",
+   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"この説明は設計方針です。利用継続率や自己理解への効果を検証済みと示すものではありません。"},
  "睡眠":{
    heading:"睡眠と、走る日の調子",lead:"睡眠は回復や日中の注意・気分とも関係します。短い睡眠や質の低下が続くと運動への影響が懸念されますが、必要な睡眠の長さには個人差があります。",
    cite:"Walsh ほか（2021）",url:"https://doi.org/10.1136/bjsports-2020-102025",warning:"競技者を対象とした研究を含む一般知識です。本人の記録が同じ日に並んでも、睡眠が調子の原因と判断することはできません。"}
@@ -126,7 +144,7 @@ const STARTER_GUIDES=Object.freeze({
   "楽しみ方": "景色、音楽、友人との時間など、走って楽しかったことを思い出してみましょう。",
   "自分に合う記録の使い方": "毎回すべてを記録する必要はありません。何を見返したいかから決めてみましょう。"
 });
-export const LEARNING_TOPICS=Object.freeze({"01|距離・時間・ペース":"distance-time-pace","02|足・膝・股関節":"body-movement","03|上り坂・下り坂":"slope-running","05|睡眠":"sleep-recovery"});
+export const LEARNING_TOPICS=Object.freeze({"01|距離・時間・ペース":"distance-time-pace","02|足・膝・股関節":"body-movement","03|上り坂・下り坂":"slope-running","05|睡眠":"sleep-recovery","02|12部位の参考値の見方":"reference-reading","01|自分が感じた疲れ":"felt-fatigue","01|過去の走りとの比較":"saved-comparison","01|気付きと次の確認":"voluntary-reflection","04|疲れの感じ方":"fatigue-reading","07|自分に合う記録の使い方":"personal-record-use"});
 const followups={
  "body-movement":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],
  "slope-running":["次は上りと下りで感じ方を確かめたい","坂道のある日とない日の記録を見比べたい"],
@@ -137,11 +155,12 @@ function experience(ui,ctx,cat,topic){
  if(!entry||!key)return '<div class="ex-learning ex-learning-empty"><div class="ex-learning-head"><span>まずは考えてみよう</span><button type="button" class="ex-help" data-ex-action="learn-help" aria-label="情報の見方">？</button></div><h3>'+esc(topic)+'</h3><p class="ex-learning-lead">'+esc(STARTER_GUIDES[topic]||'気になったことを、自分の経験や記録から考えてみましょう。')+'</p><div class="ex-note-invite"><div><strong>気づいたことを残す</strong><p>走りながら感じたことも、次に試したいことも。</p></div><button type="button" data-ex-action="note">書いてみる <span aria-hidden="true">＋</span></button></div></div>';
  const strict=createExplorationContext({draft:ctx.draft,conditions:ctx.conditions});
  const reason=strict.highlights.find(h=>h.themeId===topic);
+ const specific=relevance(ui,ctx).linked.get(cat.id);
  const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?`${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:"関連する入力がなくても、内容を自由に学べます";
  const h=(text)=>esc(text);
  let tool='';
  if(key==='distance-time-pace'){
-  const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns);
+  const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns,ctx.focusRunId||null);
   if(ui.sample)tool='<div class="ex-tool-result"><strong>表示例を見ています</strong><p>この画面では実際の走行記録と表示例を混ぜません。表示例を終了すると保存済みの値を確認できます。</p></div>';
   else if(ctx.manualRuns?.ok===false)tool='<div class="ex-tool-result"><strong>走行記録を読み取れません</strong><p>保存データの読み取りに問題があります。記録は変更せず、数値の表示を中止しています。</p></div>';
   else if(!run)tool='<div class="ex-tool-result"><strong>保存済みの走行はまだありません</strong><p>距離と時間を手入力で保存すると、ここに平均ペースと平均速度が表示されます。入力途中の数値は保存済みとして扱いません。</p></div><a class="ex-learning-link" href="#/record-start">記録を始める ›</a>';
@@ -156,6 +175,15 @@ function experience(ui,ctx,cat,topic){
     +'<small>保存済みの距離と経過時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
     +'<a class="ex-learning-link" href="#/history">履歴で保存した走行を確認 ›</a>';
   }
+ }else if(['reference-reading','felt-fatigue','saved-comparison','voluntary-reflection','fatigue-reading','personal-record-use'].includes(key)){
+  const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns,ctx.focusRunId||null);
+  const count=ctx.manualRuns?.ok===true?ctx.manualRuns.records.filter(x=>x?.source==='manual'&&x.type==='run').length:0;
+  const detail=run?'<p>保存済み走行：'+h(run.date)+'、'+run.distanceKm.toFixed(2)+' km、経過時間 '+(run.durationSeconds/60).toFixed(1)+' 分</p>':'<p>記録がなくても内容を学べます。</p>';
+  const feeling=run?'<p>本人の疲労感：運動前 '+(run.rofBefore===null?'未回答':run.rofBefore)+' ／ 運動後 '+(run.rofAfter===null?'未回答':run.rofAfter)+'</p>':'';
+  const url=run?'#/result?record='+encodeURIComponent(run.id):'#/history';
+  tool='<div class="ex-tool-result"><strong>自分の情報と照らす</strong>'+detail+(['felt-fatigue','fatigue-reading'].includes(key)?feeling:'')
+   +(key==='saved-comparison'?'<p>保存された手入力走行は'+count+'件です。2件以上あれば結果画面から記録を選んで比較できます。</p>':'')
+   +'<small>自動的な診断や原因推定はしません。</small></div><a class="ex-learning-link" href="'+url+'">'+(run?'この走行の結果へ戻る':'履歴を確認する')+' ›</a>';
  }else if(key==='body-movement'){
   const parts={hip:{label:"股関節",body:"脚を前後に動かす関節。走るときに身体を前へ進める動きに関係します。"},knee:{label:"膝",body:"着地して体を支える間に曲げ伸ばしし、力を受け止める動きに関わります。"},ankle:{label:"足首",body:"地面を押して進むときや、着地の姿勢を調整するときに働きます。"}};
   const part=parts[ui.bodyChoice]||parts.hip;
@@ -182,7 +210,7 @@ function experience(ui,ctx,cat,topic){
  const saved=ui.notes.filter(n=>n.topicId===key).slice(0,2);
  return '<div class="ex-learning" data-ex-learning="'+key+'"><div class="ex-learning-head"><span>まずは知ってみよう</span><button type="button" data-ex-action="learn-help" class="ex-help" aria-label="研究の出典と注意点">？</button></div><h3>'+h(entry.heading)+'</h3><p class="ex-learning-lead">'+h(entry.lead)+'</p>'
  +'<div class="ex-tool"><h4>'+(key==='body-movement'?'動きを選んでみよう':key==='slope-running'?'上りと下りを比べよう':'自分の記録も見てみよう')+'</h4>'+tool+'</div>'
- +(reason&&!ui.sample?'<div class="ex-context"><small>あなたの記録とのつながり</small><p>'+h(who)+'</p></div>':'')
+ +((specific||reason)&&!ui.sample?'<div class="ex-context"><small>あなたの記録とのつながり</small><p>'+h(ctx.focusRunId?specific||'選択した記録との直接の対応はありません':who)+'</p></div>':'')
  +'<div class="ex-note-invite"><div><small>自分の言葉で</small><strong>気づいたことを残す</strong><p>気になったことや、次に試したいことを書いておけます。</p></div><button type="button" data-ex-action="note">書いてみる <span aria-hidden="true">＋</span></button></div>'
  +(saved.length?'<div class="ex-note-preview"><strong>以前に書いたこと</strong>'+saved.map(n=>'<p>'+h(n.text)+'</p>').join('')+'</div>':'')+'</div>';
 }
@@ -225,7 +253,7 @@ function catalog(ui,ctx){
  return '<section class="ex-catalog"><div class="ex-catalog-head"><div><span class="ex-eyebrow">知りたいことを探す</span><h2>テーマから探す</h2><p>言葉で探したり、分野ごとに眺めたりできます。</p></div><span class="ex-count">'+all+' テーマ</span></div><label class="ex-search-label"><span class="sr-only">テーマを検索</span><input type="search" data-ex-search placeholder="例：睡眠、上り坂、ペース" value="'+esc(ui.search)+'" autocomplete="off"/></label><div class="ex-catalog-grid">'+catalogCards(ctx.categories,ui.search)+'</div></section>';
 }
 export function render(ui,ctx){
- return '<section class="ex-page" data-experience-v3><header class="ex-heading"><h1>探究</h1><button type="button" class="ex-header-memo" data-ex-action="memories">ふり返り <span>'+ui.notes.length+'</span></button></header>'+(ui.notice?'<p class="ex-notice" role="status">'+esc(ui.notice)+'</p>':'')+'<div class="ex-switch" role="group" aria-label="探し方"><button type="button" data-ex-tab="field" aria-pressed="'+(ui.tab==="field")+'">気になることから</button><button type="button" data-ex-tab="catalog" aria-pressed="'+(ui.tab==="catalog")+'">テーマから探す</button></div>'+(ui.tab==="catalog"?catalog(ui,ctx):field(ui,ctx))+modal(ui,ctx)+'</section>';
+ return '<section class="ex-page" data-experience-v3><header class="ex-heading"><h1>探究</h1><button type="button" class="ex-header-memo" data-ex-action="memories">ふり返り <span>'+ui.notes.length+'</span></button></header>'+(ctx.focusRunId?(ctx.focusRun?'<div class="ex-record-return"><div><small>この走行から調べています</small><strong>'+esc(ctx.focusRun.date)+'の保存した走行</strong><p>関連する分野の目印はこの記録から選びます。危険度や優先順位を示しません。</p></div><a href="#/result?record='+encodeURIComponent(ctx.focusRun.id)+'">この走行の結果へ戻る ›</a></div>':'<p class="ex-notice" role="status">指定された走行記録が見つかりません。保存済み記録との関連づけは行いません。</p>'):'')+(ui.notice?'<p class="ex-notice" role="status">'+esc(ui.notice)+'</p>':'')+'<div class="ex-switch" role="group" aria-label="探し方"><button type="button" data-ex-tab="field" aria-pressed="'+(ui.tab==="field")+'">気になることから</button><button type="button" data-ex-tab="catalog" aria-pressed="'+(ui.tab==="catalog")+'">テーマから探す</button></div>'+(ui.tab==="catalog"?catalog(ui,ctx):field(ui,ctx))+modal(ui,ctx)+'</section>';
 }
 function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find(c=>c.id===ui.selected)||ctx.categories[0],title=ui.topic||category.topics[0]||category.name,links=relevance(ui,ctx);let body="";
  if(ui.modal==="field-help")body='<p>光る星は、現在入力している情報や、保存した走行・生活記録とつながる分野です。優先順位や、身体への負担の大きさを示すものではありません。</p><p>記録がなくても、どの分野も自由に選べます。</p>';

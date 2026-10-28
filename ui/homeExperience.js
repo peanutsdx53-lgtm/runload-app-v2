@@ -206,8 +206,11 @@ export function shortcutsCard(){
 export function trendCard(preview){
  return '<section class="hx-card hx-optional">'+head("活動の推移","chart",preview?sample():"")+(preview?'<div class="hx-demo-activity">'+[24,50,32,68,45,80,65].map(v=>'<span style="height:'+v+'%"></span>').join("")+'</div><p>直近7日間の走行距離（表示例）</p>':'<p>正式な走行記録と接続すると推移が表示されます</p>')+'</section>';
 }
-export function discoveryCard(){
- return '<section class="hx-card hx-optional">'+head("探究の続き","leaf")+'<p>保存された探究の続きはありません</p></section>';
+export function discoveryCard(notes=[]){
+ const latest=Array.isArray(notes)?notes.filter(x=>x&&typeof x.text==='string'&&x.text.trim()&&typeof x.createdAt==='string').slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0]:null;
+ return '<section class="hx-card hx-optional">'+head('探究の続き','leaf')
+  +(latest?'<p class="hx-discovery-note">'+escape(latest.text.slice(0,140))+'</p><p class="hx-discovery-date">'+escape(latest.createdAt.slice(0,10))+'に自分で残した気づき</p>':'<p>気になるテーマを自由に調べられます。メモは任意です。</p>')
+  +'<a class="hx-condition-explore" href="#/exploration-tree">探究を開く ›</a></section>';
 }
 export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  const state=readConditions(storage),chartEntries=preview?demoEntries():state.entries;

@@ -37,5 +37,5 @@ test('v34 2.5D view uses only known elevation runs and marks both scenarios',()=
  assert.match(html,/欠損区間は描画しません/);
  const noElev=renderGpxVisual({...feature,elevationPoints:0,elevationStatus:'none'},.5,2,'a');
  assert.doesNotMatch(noElev,/sm-gpx-elevation/);
- assert.match(noElev,/標高データがない/);
+ assert.match(noElev,/標高情報がありません/);
 });
