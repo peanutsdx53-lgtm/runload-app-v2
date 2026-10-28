@@ -1,4 +1,6 @@
 import {createExplorationContext, compareLifeDays, readCourseDraft} from "./explorationReadAdapter.js";
+import {EXPLORATION_DRAFT_GUIDES} from "./explorationTopicGuides.js";
+import {renderObservationGuide} from "./explorationTopicView.js";
 // RunLoad exploration field v3. Relevance is a traceable link to available data,
 // not a diagnosis, performance ranking, inferred cause, or physiological score.
 // Separate opt-in exploration notes never mutate or read the run history store.
@@ -152,7 +154,7 @@ const followups={
 };
 function experience(ui,ctx,cat,topic){
  const entry=KNOWLEDGE[topic],key=LEARNING_TOPICS[cat.id+"|"+topic];
- if(!entry||!key)return '<div class="ex-learning ex-learning-empty"><div class="ex-learning-head"><span>まずは考えてみよう</span><button type="button" class="ex-help" data-ex-action="learn-help" aria-label="情報の見方">？</button></div><h3>'+esc(topic)+'</h3><p class="ex-learning-lead">'+esc(STARTER_GUIDES[topic]||'気になったことを、自分の経験や記録から考えてみましょう。')+'</p><div class="ex-note-invite"><div><strong>気づいたことを残す</strong><p>走りながら感じたことも、次に試したいことも。</p></div><button type="button" data-ex-action="note">書いてみる <span aria-hidden="true">＋</span></button></div></div>';
+ if(!entry||!key)return renderObservationGuide(ui,ctx,cat,topic,STARTER_GUIDES[topic]);
  const strict=createExplorationContext({draft:ctx.draft,conditions:ctx.conditions});
  const reason=strict.highlights.find(h=>h.themeId===topic);
  const specific=relevance(ui,ctx).linked.get(cat.id);
@@ -188,15 +190,16 @@ function experience(ui,ctx,cat,topic){
   const parts={hip:{label:"股関節",body:"脚を前後に動かす関節。走るときに身体を前へ進める動きに関係します。"},knee:{label:"膝",body:"着地して体を支える間に曲げ伸ばしし、力を受け止める動きに関わります。"},ankle:{label:"足首",body:"地面を押して進むときや、着地の姿勢を調整するときに働きます。"}};
   const part=parts[ui.bodyChoice]||parts.hip;
   tool=`<div class="ex-tool-switch" role="group" aria-label="注目する関節">${Object.entries(parts).map(([id,p])=>`<button type="button" data-ex-body="${id}" aria-pressed="${ui.bodyChoice===id}">${p.label}</button>`).join('')}</div>
-  <div class="ex-tool-result"><strong>${h(part.label)}</strong><p>${h(part.body)}</p><small>一般的な働きの説明です。個人の関節を測定した結果ではありません。</small></div><a class="ex-learning-link" href="#/result">結果画面の参考情報を見る ↗</a>`;
+  <div class="ex-tool-result"><strong>${h(part.label)}</strong><p>${h(part.body)}</p><small>一般的な働きの説明です。個人の関節を測定した結果ではありません。</small></div><a class="ex-learning-link" href="'+(ctx.focusRunId&&ctx.focusRun?'#/result?record='+encodeURIComponent(ctx.focusRun.id):'#/history')+'">'+(ctx.focusRunId&&ctx.focusRun?'この走行の結果画面の参考情報を見る':'履歴から結果画面の参考情報を見る')+' ›</a>`;
  }else if(key==='slope-running'){
-  const course=strict.course;
+  const course=ctx.focusRunId&&ctx.focusRun?readCourseDraft(ctx.focusRun.draft):strict.course;
+  const sourceLabel=ctx.focusRunId&&ctx.focusRun?'保存した走行の入力':'入力途中';
   const choices={up:{label:"上り",title:"押して進む",body:"上りでは重力に逆らって身体を持ち上げる必要があり、平坦路とは動きや力の使い方が異なります。"},down:{label:"下り",title:"勢いを受け止める",body:"下りでは前へ進む勢いを制御するため、着地時のブレーキの働きが大切になります。"}};
   const c=choices[ui.toolChoice]||choices.up;
   const shares=course.status==='complete'&&course.shares?
-   `<div class="ex-course-bars" role="img" aria-label="入力途中の上り${course.shares.up}％、下り${course.shares.down}％、入力上の平坦${course.shares.flat}％"><span style="width:${course.shares.up}%;background:#65ddce"></span><span style="width:${course.shares.down}%;background:#80a9ef"></span><span style="width:${course.shares.flat}%;background:#426577"></span></div><small>入力途中の割合：上り ${course.shares.up}％／下り ${course.shares.down}％／平坦 ${course.shares.flat}％。GPSによる標高断面ではありません。</small>`:
+   `<div class="ex-course-bars" role="img" aria-label="入力途中の上り${course.shares.up}％、下り${course.shares.down}％、入力上の平坦${course.shares.flat}％"><span style="width:${course.shares.up}%;background:#65ddce"></span><span style="width:${course.shares.down}%;background:#80a9ef"></span><span style="width:${course.shares.flat}%;background:#426577"></span></div><small>${sourceLabel}の割合：上り ${course.shares.up}％／下り ${course.shares.down}％／平坦 ${course.shares.flat}％。GPSによる標高断面ではありません。</small>`:
    `<p>確定できる坂道の割合はありません。走行の入力がない場合も学べます。</p>`;
-  tool=`<div class="ex-tool-switch" role="group" aria-label="坂道の方向">${Object.entries(choices).map(([id,item])=>`<button type="button" data-ex-slope="${id}" aria-pressed="${ui.toolChoice===id}">${item.label}</button>`).join('')}</div><div class="ex-tool-result"><strong>${c.title}</strong><p>${c.body}</p></div><div class="ex-course-source">${shares}</div><a class="ex-learning-link" href="#/record-course">自分のコース入力を確認 ↗</a>`;
+  tool=`<div class="ex-tool-switch" role="group" aria-label="坂道の方向">${Object.entries(choices).map(([id,item])=>`<button type="button" data-ex-slope="${id}" aria-pressed="${ui.toolChoice===id}">${item.label}</button>`).join('')}</div><div class="ex-tool-result"><strong>${c.title}</strong><p>${c.body}</p></div><div class="ex-course-source">${shares}</div><a class="ex-learning-link" href="${ctx.focusRunId&&ctx.focusRun?'#/result?record='+encodeURIComponent(ctx.focusRun.id):'#/record-course'}">${ctx.focusRunId&&ctx.focusRun?'この走行の結果に戻る':'自分のコース入力を確認'} ›</a>`;
  }else{
   const life=strict.life,records=life.status==='complete'?life.records:[];
   const latest=records.at(-1)||null;
@@ -260,7 +263,7 @@ function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find
  if(ui.modal==="learn-help"){
   const k=KNOWLEDGE[title];
   body='<p>学びの内容は一般的な知識です。あなたの身体や調子の原因を自動的に判定しているわけではありません。</p>'
-  +(k?'<div class="ex-dialog-block"><strong>内容と適用上の注意</strong><p>'+esc(k.warning)+'</p></div>'+(k.url?'<p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>このテーマは距離と経過時間による算術上の定義を説明します。個人への効果や医学的な主張を根拠付ける文献引用ではありません。</p>'):'<p>このテーマの詳しい説明や研究資料は準備中です。</p>')
+  +(k?'<div class="ex-dialog-block"><strong>内容と適用上の注意</strong><p>'+esc(k.warning)+'</p></div>'+(k.url?'<p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>このテーマは距離と経過時間による算術上の定義を説明します。個人への効果や医学的な主張を根拠付ける文献引用ではありません。</p>'):'<p>この内容は本人による観察のための設計上の問いです。科学的な解説としての出典審査はまだ完了していません。</p>')
   +'<p class="ex-muted">光る星は、入力・保存記録とのつながりを表す目印です。重要度や危険度を示すものではありません。</p>';
  }
  if(ui.modal==="know")body=`<p>「${esc(title)}」に関連する知識を確認する場所です。</p><div class="ex-dialog-block"><strong>自分の情報との接点</strong><p>${esc(links.linked.get(category.id)||"このテーマを調べるのに記録は必要ありません。")}</p></div><div class="ex-dialog-block"><strong>読み取るときの注意</strong><p>記録や感覚の違いだけでは、原因や身体の状態を判断できません。</p></div><p class="ex-muted">根拠審査済みのコラム本文は今後接続します。未確認の医学的な説明は表示しません。</p>`;
@@ -271,5 +274,5 @@ function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find
  return `<div class="ex-backdrop" data-ex-overlay><section class="ex-dialog" role="dialog" aria-modal="true" aria-labelledby="ex-dialog-title"><div class="ex-dialog-head"><div><small>${esc(category.name)}</small><h2 id="ex-dialog-title">${esc({know:"知る",try:"試す",note:"気づきを書く",share:"相談用にまとめる","learn-help":"研究の出典と注意点","field-help":"分野の印について",memories:"ふり返りノート"}[ui.modal]||ui.modal)}</h2></div><button type="button" data-ex-action="close" aria-label="閉じる">×</button></div>${body}</section></div>`;
 }
 export function updatePace(root){const d=root.querySelector("[data-ex-distance]"),m=root.querySelector("[data-ex-minutes]");if(!d||!m)return;const distance=Number(d.value),minutes=Number(m.value);root.querySelector("[data-ex-distance-value]").textContent=`${distance.toFixed(1)} km`;root.querySelector("[data-ex-minutes-value]").textContent=`${minutes} 分`;const seconds=Math.round(minutes/distance*60),mm=Math.floor(seconds/60),ss=seconds%60;root.querySelector("[data-ex-pace]").textContent=`${mm}:${String(ss).padStart(2,"0")}`;root.querySelector("[data-ex-speed]").textContent=(distance/(minutes/60)).toFixed(1);}
-export function saveNote(ui,text){if(!ui.canSave||!ui.storage)return {ok:false,reason:"保存領域が利用できません"};const value=String(text??"").trim();if(!value||value.length>500)return {ok:false,reason:"1〜500文字で入力してください"};const time=new Date().toISOString();const id=`${time}-${Math.random().toString(36).slice(2,12)}`;const key=LEARNING_TOPICS[ui.selected+"|"+ui.topic];const next=[{id,category:ui.selected,text:value,createdAt:time,...(key?{topicId:key}:{})},...ui.notes].slice(0,LIMIT);try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);const expected=JSON.stringify(next);if(old!==(ui.notes.length?JSON.stringify(ui.notes):null)){ui.canSave=false;return {ok:false,reason:"他の画面で変更されています。元のデータを保護しました"};}ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)return {ok:false,reason:"保存を確認できませんでした"};ui.notes=next;return {ok:true};}catch{return {ok:false,reason:"保存できませんでした"}}}
+export function saveNote(ui,text){if(!ui.canSave||!ui.storage)return {ok:false,reason:"保存領域が利用できません"};const value=String(text??"").trim();if(!value||value.length>500)return {ok:false,reason:"1〜500文字で入力してください"};const time=new Date().toISOString();const id=`${time}-${Math.random().toString(36).slice(2,12)}`;const key=LEARNING_TOPICS[ui.selected+"|"+ui.topic]||EXPLORATION_DRAFT_GUIDES[ui.selected+"|"+ui.topic]?.id;const next=[{id,category:ui.selected,text:value,createdAt:time,...(key?{topicId:key}:{})},...ui.notes].slice(0,LIMIT);try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);const expected=JSON.stringify(next);if(old!==(ui.notes.length?JSON.stringify(ui.notes):null)){ui.canSave=false;return {ok:false,reason:"他の画面で変更されています。元のデータを保護しました"};}ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)return {ok:false,reason:"保存を確認できませんでした"};ui.notes=next;return {ok:true};}catch{return {ok:false,reason:"保存できませんでした"}}}
 export function deleteNote(ui,id){if(!ui.canSave||!ui.storage)return false;const oldList=ui.notes;const next=oldList.filter(n=>n.id!==id);if(next.length===oldList.length)return false;try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);if(old!==JSON.stringify(oldList)){ui.canSave=false;return false;}ui.storage.setItem(EXPLORATION_NOTE_KEY,JSON.stringify(next));if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==JSON.stringify(next))return false;ui.notes=next;return true}catch{return false}}
