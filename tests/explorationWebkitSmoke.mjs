@@ -79,6 +79,11 @@ try{
    await referenceBody.locator('[data-label-toggle]').click();
    assert.ok(await referenceBody.locator('[data-body-reference-label]').count()>0);
    await referenceBody.screenshot({path:resolve(root,'screenshots',`webkit-${width}-manual-palette-numbers.png`)});
+   await referenceBody.locator('[data-view="back"]').click();
+   assert.equal(await referenceBody.locator('.rv4-body-svg g[clip-path="url(#rv4-silhouette-clip)"] .rv4-region').count(),4,
+     'WebKit balanced posterior geometry uses the authoritative silhouette');
+   await referenceBody.screenshot({path:resolve(root,'screenshots',`webkit-${width}-posterior-balanced.png`),animations:'disabled'});
+   await referenceBody.locator('[data-view="front"]').click();
    await page.locator('.mobile-nav').evaluate(el=>{el.style.visibility=''});
   await page.goto(base+'#/exploration-tree',{waitUntil:'networkidle'});
   await page.locator('[data-ex-category="01"]').click();

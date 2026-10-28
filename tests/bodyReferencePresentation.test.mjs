@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {BODY_REFERENCE_IDS,bodyReferenceEngineId,engineReferenceBodyId,
- bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_COLOR_STOPS,BODY_REFERENCE_GRADIENT,bodyReferenceRow,renderBodyReferenceLabels} from '../ui/bodyReferencePresentation.js';
+ bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_COLOR_STOPS,BODY_REFERENCE_GRADIENT,bodyReferenceRow,renderBodyReferenceLabels,bodyReferenceSilhouetteClipDef} from '../ui/bodyReferencePresentation.js';
 import {GPS_REPLAY_BODY_IDS,gpsEngineRegionId,gpsBodyRegionId,evaluateGpsReplayReference} from '../ui/gpsReplayReference.js';
 import {calculateRunningReference} from '../core/activity/running.js';
 import {calculateJoggingReference} from '../core/activity/jogging.js';
@@ -114,5 +114,36 @@ test('continuous palette has stable minimum separation from navy background',()=
   const color=luminance(stop.hex);
   assert.ok((color+.05)/(navy+.05)>=3.0,
    'region fill should not disappear into RunLoad navy: '+stop.hex);
+ }
+});
+
+test('anatomical reference fill shares the original body silhouette as a SVG clip',()=>{
+ for(const view of BODY_REGION_VIEWS){
+  const def=bodyReferenceSilhouetteClipDef(view,'test-'+view.key);
+  const boundary=view.silhouette.match(/^<path d="([^"]+)"/)?.[1];
+  assert.ok(boundary,'original silhouette path for '+view.key);
+  assert.ok(def.includes('<path d="'+boundary+'"/>'));
+  assert.ok(def.includes('clipPathUnits="userSpaceOnUse"'));
+  assert.ok(def.includes('id="test-'+view.key+'-silhouette-clip"'));
+ }
+ assert.equal(bodyReferenceSilhouetteClipDef(null,'test'),'');
+});
+
+test('posterior thigh calf and Achilles fills follow the same x=152 bilateral axis',()=>{
+ const posterior=BODY_REGION_VIEWS.find(view=>view.key==='back');
+ for(const id of ['BA-DISP-018','BA-DISP-023','BA-DISP-025']){
+  const geometry=posterior.paths.find(([region])=>region===id)?.[1];
+  assert.ok(geometry,'anatomical display region '+id);
+  const halves=geometry.split(/(?=M)/).filter(Boolean);
+  assert.equal(halves.length,2,id+' has a left and right part');
+  const coords=halves.map(path=>
+   [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map(entry=>Number(entry[0])));
+  assert.equal(coords[0].length,coords[1].length,id+' matching cubic contour');
+  for(let i=0;i<coords[0].length;i+=2){
+   assert.ok(Math.abs(coords[0][i]+coords[1][i]-304)<.001,
+    id+' mirrored x around anatomical midline 152 at point '+i/2);
+   assert.equal(coords[0][i+1],coords[1][i+1],
+    id+' matched vertical contour at point '+i/2);
+  }
  }
 });

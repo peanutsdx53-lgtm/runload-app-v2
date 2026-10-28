@@ -114,6 +114,9 @@ try{
   const changed=await page.locator('.gd-metric').nth(2).innerText();
   assert.notEqual(initial,changed,'GPS speed should change with scrubbed frame');
   await page.locator('[data-view="back"]').click();
+  assert.equal(await page.locator('.gd-body clipPath#gd-silhouette-clip path').count(),1);
+  assert.equal(await page.locator('.gd-body g[clip-path="url(#gd-silhouette-clip)"] .gd-body-path').count(),4);
+  await page.screenshot({path:resolve(root,'screenshots',engineName+'-'+mode.name+'-gps-back-silhouette-corrected.png'),fullPage:false});
   assert.equal(await page.locator('.gd-body-path').count(),4);
   const backLabels=await page.locator('[data-body-reference-label]').count();
   assert.ok(backLabels>=0&&backLabels<=4);
