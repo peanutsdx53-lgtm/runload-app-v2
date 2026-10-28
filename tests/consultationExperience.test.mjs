@@ -35,3 +35,10 @@ test('approved report retains diagrams, explanations, control and print output',
  assert.doesNotMatch(html,/2026年10月20日|デザイン候補|実装時は/);
  assert.match(html,/data-mode-button="period"/);
 });
+
+test('consultation uses the compact RunLoad header with a home back link',()=>{
+ const html=renderConsultation();
+ assert.match(html,/class="cp-back" aria-label="ホームに戻る"/);
+ assert.match(html,/<h1>相談・共有<\/h1>/);
+ assert.doesNotMatch(html,/cp-breadcrumb/);
+});

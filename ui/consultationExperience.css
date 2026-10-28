@@ -140,3 +140,21 @@
  .cp-app .icon-install{border:1px solid #4c7888;border-radius:10px;background:#153c4e;color:#d8ffff;padding:8px 12px;cursor:pointer}
  .cp-app .icon-install:focus-visible{outline:3px solid #58d7dc;outline-offset:2px}
 }
+
+/* Approved compact consultation header, aligned with other RunLoad screens. */
+.cp-app .cp-breadcrumb{display:none!important}
+.cp-app .cp-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;min-height:46px;padding:1px 60px 1px 2px;margin:0 0 15px}
+.cp-app .cp-back{height:42px;width:42px;flex:none;display:grid;place-items:center;border:1px solid #5c8492;background:#1b4152;border-radius:11px;color:#ebfcff;font-size:28px;font-weight:550;line-height:1;text-decoration:none}
+.cp-app .cp-back:hover{background:#215365;border-color:#82b8c0}
+.cp-app .cp-back:focus-visible{outline:3px solid #9af9e9;outline-offset:2px}
+.cp-app .cp-head-copy{min-width:0}
+.cp-app .cp-head h1{font-size:clamp(23px,2.1vw,28px);font-weight:880;letter-spacing:0;line-height:1.25;margin:0;color:#f7fcfe}
+.cp-app .cp-head p{font-size:12px;margin:3px 0 0;line-height:1.4;color:#afcbd6}
+@media(max-width:800px){
+ .cp-app .main-content{padding-top:15px}
+ .cp-app .cp-head{min-height:42px;margin-bottom:15px;padding:0 48px 0 0;gap:11px}
+ .cp-app .cp-head h1{font-size:23px;letter-spacing:0}
+ .cp-app .cp-head p{display:none}
+ .cp-app .cp-back{height:40px;width:40px;font-size:27px}
+}
+@media print{.cp-app .cp-back{display:none!important}}

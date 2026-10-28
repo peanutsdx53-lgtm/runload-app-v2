@@ -24,7 +24,7 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
-  const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-e1");
+  const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
