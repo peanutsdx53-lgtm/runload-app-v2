@@ -41,13 +41,13 @@ export function renderSettings({profile,display,notice='',dataUi}){
  <div class="s3-field s3-full s4-purpose-field"><label for="s4-purpose">走る目的 <small>一つ選択・任意</small></label><div class="s4-purpose-select"><span class="s4-purpose-icon" aria-hidden="true">↗</span><select id="s4-purpose" name="purpose">${purposeChoices}</select><span class="s4-purpose-chevron" aria-hidden="true"></span></div><p class="s4-purpose-help">選択肢は必要なときだけ表示します。</p></div>
  <div class="s3-profile-metrics"><div class="s3-field"><label for="s3-height">身長 <small>任意</small></label><div class="s3-measure"><input id="s3-height" name="heightCm" type="number" inputmode="decimal" min="80" max="250" step="0.1" value="${p.heightCm??''}" placeholder="未入力"><span aria-hidden="true">cm</span></div></div><div class="s3-field"><label for="s3-weight">体重 <small>任意</small></label><div class="s3-measure"><input id="s3-weight" name="weightKg" type="number" inputmode="decimal" min="15" max="400" step="0.1" value="${p.weightKg??''}" placeholder="未入力"><span aria-hidden="true">kg</span></div></div></div>
  <div class="s3-field s3-full"><label for="s3-age">年齢帯 <small>任意</small></label><select id="s3-age" name="ageBand">${choice('ageBand',ageOptions,p.ageBand)}</select></div>
- <div class="s3-profile-action"><button class="s2-save s3-save-primary" type="submit"><span aria-hidden="true">✓</span> プロフィールを保存</button><p>探究・測定での利用は機能接続後に対応します。</p></div>
+ <div class="s3-profile-action"><button class="s2-save s3-save-primary" type="submit"><span aria-hidden="true">✓</span> プロフィールを保存</button><p>登録した情報は、後から設定画面で変更できます。</p></div>
  </form>`;
  const groups=[
   group('◈','表示と言語',[
    item('文','文字サイズ','読みやすい大きさに調整',textOptions,{hint:'変更可能'}),
    item('◌','画面の動き','端末の設定を尊重',motionOptions,{hint:'変更可能'}),
-   item('あ','表示言語','日本語',`<div class="s2-fixed"><span>日本語 <b>使用中</b></span><span class="s2-soon">English — 対応予定</span></div><p>英語の専門用語・研究上の表記を検証してから追加します。</p>`,{hint:'日本語'}),
+   item('あ','表示言語','日本語',`<div class="s2-fixed"><span>日本語 <b>使用中</b></span><span class="s2-soon">English — 対応予定</span></div><p>現在、英語への切り替えには対応していません。</p>`,{hint:'日本語'}),
    item('☾','外観','ダークモードを標準で使用',`<div class="s2-theme-preview"><span class="s2-theme-mini s2-dark-mini">☾ <b>ダーク</b> <small>使用中</small></span><span class="s2-theme-mini s2-light-mini">☀ <b>ライト</b> <small>対応予定</small></span></div><p>ライトモードは人体図・グラフまで対応した後に公開します。</p>`,{hint:'ダーク'})
   ]),
   group('♧','利用者情報',[
