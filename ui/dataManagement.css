@@ -1,0 +1,27 @@
+
+/* Data-management sections inside the existing dark settings cards. */
+.dm-stack{display:grid;gap:15px;color:#d6e7ee;max-width:100%;min-width:0}
+.dm-section{display:grid;gap:12px;padding:16px;border:1px solid #37677a;border-radius:14px;background:#0b2a3d}
+.dm-section h3{margin:0;color:#f0ffff;font-size:15px;font-weight:800}
+.dm-stack p{line-height:1.7;font-size:12.5px;margin:0;color:#b9d2de}
+.dm-choice{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:11px;background:#123d4f;color:#e4f7fa;font-size:13px;line-height:1.6;cursor:pointer}
+.dm-choice input{width:18px;height:18px;flex:none;accent-color:#32d6c8;margin:2px 0 0}
+.dm-stack .dm-warning{padding:11px 13px;border:1px solid #ba9463;background:#382a203d;border-radius:10px;color:#f2d3a4;font-size:12px}
+.dm-warning strong{color:#ffe0bf}
+.dm-btn{min-height:43px;padding:10px 16px;max-width:100%;border-radius:11px;font-size:13px;font-weight:800;justify-self:start;border:1px solid #4aa4ad;cursor:pointer}
+.dm-primary{background:linear-gradient(110deg,#52dcca,#2dafc0);color:#0d2c38}
+.dm-danger{background:#713138;border-color:#d47a7a;color:#ffe6e1}
+.dm-btn:disabled{opacity:.42;cursor:not-allowed}
+.dm-file{display:grid;gap:8px;padding:12px;border:1px dashed #51849b;border-radius:11px;background:#0c3345;font-size:12px;color:#e4f5fb}
+.dm-file input{min-width:0;max-width:100%;font-size:12px;color:#caebef}
+.dm-preview{display:grid;gap:12px;border:1px solid #43897f;border-radius:12px;background:#0b373c;padding:15px}
+.dm-preview>strong{font-size:13px;color:#9ff2dd}
+.dm-summary{list-style:none;padding:0;margin:0;display:grid;gap:7px}
+.dm-summary li{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;border-bottom:1px solid #2d5c69;padding-bottom:7px}
+.dm-summary li strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+.dm-stack .dm-help{font-size:11px;color:#8cb4c3}
+.dm-stack .dm-status{font-size:12px;padding:10px 12px;border-radius:10px;background:#16455a;border:1px solid #3d8695;color:#e4f7fa;overflow-wrap:anywhere}
+.dm-confirm{display:grid;gap:8px;font-size:13px;color:#f0e0de}
+.dm-confirm input{width:min(100%,220px);min-height:44px;border:1px solid #a9626d;border-radius:10px;background:#092638;color:#fff;padding:8px 12px;font-size:16px}
+.dm-stack input:focus-visible,.dm-btn:focus-visible{outline:3px solid #7df3e5;outline-offset:2px}
+@media(max-width:480px){.dm-stack{gap:12px}.dm-section{padding:12px;gap:10px}.dm-btn{width:100%;justify-self:stretch}.dm-file input{width:100%}}
