@@ -19,7 +19,7 @@ export function mountResult(host,inputDraft={},options={}){
   hours:Math.floor(gpsSeconds/3600),minutes:Math.floor(gpsSeconds%3600/60),seconds:gpsSeconds%60}:inputDraft;
  const fromGps=!!gps,fromSaved=options.saved===true&&typeof options.recordId==="string"&&options.recordId.length>0;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
- let chosen='BA-DISP-019',view='front',tab='body',picker=false,showBodyNumbers=false;
+ let chosen='BA-DISP-019',view='front',tab=options.showCompare?'radar':'body',picker=false,showBodyNumbers=false;
  const distance=positive(draft.distance),h=number(draft.hours),m=number(draft.minutes),s=number(draft.seconds);
  const duration=h===null&&m===null&&s===null?null:(h??0)*60+(m??0)+(s??0)/60;
  const seconds=distance!==null&&duration>0?Math.round(duration*60/distance):null;
@@ -176,8 +176,8 @@ export function mountResult(host,inputDraft={},options={}){
   root.querySelector('[data-compare-select]')?.addEventListener('change',event=>{
     const target=event.currentTarget.value;
     // Stay on the same saved record; never treat a missing comparison as a different run.
-    if(target&&choices.some(r=>r.id===target))location.hash=resultLink+'&compare='+encodeURIComponent(target);
-    else location.hash=resultLink+'&compare=';
+    if(target&&choices.some(r=>r.id===target))location.hash=resultLink+'&compare='+encodeURIComponent(target)+'&view=compare';
+    else location.hash=resultLink+'&compare=&view=compare';
   });
   root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;draw()}));
   root.querySelector('[data-picker-toggle]')?.addEventListener('click',()=>{picker=!picker;draw()});

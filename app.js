@@ -497,7 +497,7 @@ function recordExtras(){
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
-    saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,
+    saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
     onAssignGait:gait=>{
      const changed=manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait);
      state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
