@@ -85,6 +85,15 @@ try{
    await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
    await page.locator('.rv4-reading-route').waitFor();
    await page.screenshot({path:resolve(root,'screenshots',prefix+'-offline-result.png'),fullPage:true});
+   // The agreed offline scope covers internal screens and their source modules;
+   // GPS measurement and external research URLs are intentionally excluded.
+   for(const route of ['#/record-start','#/record','#/history','#/condition','#/settings','#/consultation','#/simulation','#/course','#/exploration-tree']){
+    await page.goto(base+route,{waitUntil:'domcontentloaded'});
+    await page.locator('.app-shell').waitFor();
+    assert.ok((await page.locator('.main-frame').innerText()).trim().length>25,'offline route has content: '+route);
+   }
+   await page.goto(base+'#/home',{waitUntil:'domcontentloaded'});
+   assert.match(await page.locator('.hx-discovery-note').innerText(),/次の走行でも/);
   }
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
   await context.close();

@@ -264,7 +264,13 @@
   trend:homeExperience.trendCard(homeUi.preview),
   discovery:homeExperience.discoveryCard(explorationUi.notes)
  };
- const current=pref||dashboardPrefs.defaultHomeDashboardLayout();
+ const storedLayout=pref||dashboardPrefs.defaultHomeDashboardLayout();
+ // Only for the uncustomized default: a voluntary reflection makes the
+ // optional continuation card relevant. Never override a saved hide choice.
+ const hasReflection=explorationUi.notes.some(n=>n&&typeof n.text==='string'&&n.text.trim());
+ const defaultUncustomized=(()=>{try{return homePreferenceStorage?.getItem(dashboardPrefs.HOME_DASHBOARD_KEY)===null}catch{return false}})();
+ const current=!editing&&hasReflection&&defaultUncustomized&&!storedLayout.visible.includes('discovery')?
+  {...storedLayout,visible:[...storedLayout.visible,'discovery']}:storedLayout;
  const widgets=current.order.map(id=>{
   const w=names.find(e=>e.id===id);
   const visible=current.visible.includes(id);
