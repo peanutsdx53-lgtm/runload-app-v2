@@ -6,6 +6,30 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
+async function checkSavedResultPng(page,result,mode,label,required,forbidden){
+ await page.evaluate(()=>{
+  const proto=CanvasRenderingContext2D.prototype;
+  window.__runloadImageAuditText=[];
+  if(proto.__runloadOldFillText)return;
+  proto.__runloadOldFillText=proto.fillText;
+  proto.fillText=function(value,...args){
+   if(Array.isArray(window.__runloadImageAuditText))window.__runloadImageAuditText.push(String(value));
+   return proto.__runloadOldFillText.call(this,value,...args);
+  };
+ });
+ await page.evaluate(()=>{window.__runloadImageAuditText=[];});
+ const [file]=await Promise.all([page.waitForEvent('download'),result.locator('[data-download]').click()]);
+ assert.equal(file.suggestedFilename(),'走行結果.png');
+ const path=resolve(root,'screenshots',mode.name+'-result-image-'+label+'.png');
+ await file.saveAs(path);
+ const bytes=await readFile(path);
+ assert.ok(bytes.length>12000&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'real PNG bytes');
+ const drawn=await page.evaluate(()=>window.__runloadImageAuditText);
+ for(const word of required)assert.ok(drawn.some(t=>t.includes(word)),label+' missing '+word+' '+JSON.stringify(drawn));
+ for(const word of forbidden)assert.ok(!drawn.some(t=>t.includes(word)),label+' incorrectly includes '+word);
+ console.log('PASS',mode.name,label,'result PNG provenance');
+}
+
 // Inspect card descendants and text fragments; document scrollWidth misses clipped text.
 async function assertPaceColumnLayout(ex,mode,state){
  const report=await ex.locator('[data-ex-learning="distance-time-pace"]').evaluate(article=>{
@@ -1461,6 +1485,7 @@ try{
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'unknown manual activity never creates fabricated reference values');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-v18.png'),fullPage:false});
+  await checkSavedResultPng(page,savedResult,mode,'unclassified',['文献参考値：算出対象外','活動種別が未選択','本人の身体負荷の実測値ではありません'],['/12 部位算出','身体の部位別の参考値はまだありません']);
   assert.equal(await savedResult.locator('[data-result-gait]').count(),3,
    'existing saved unknown activity offers in-place repair');
   await savedResult.locator('[data-result-gait="RUNNING"]').click();
@@ -1474,6 +1499,7 @@ try{
   await savedResult.locator('[data-label-toggle]').click();
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-gait-repaired.png'),fullPage:false});
+  await checkSavedResultPng(page,savedResult,mode,'eligible',['文献参考値：','/12 部位算出','各部位自身の文献基準を100','ROF-Jは本人が回答した疲労感'],['算出対象外','身体の部位別の参考値はまだありません']);
   const classification=await page.evaluate(()=>{
    const content=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1'));
    return {revision:content.revision,count:content.records.length,

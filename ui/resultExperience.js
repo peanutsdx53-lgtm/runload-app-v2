@@ -10,6 +10,14 @@ const positive=v=>{const n=number(v);return n!==null&&n>0?n:null};
 const format=(n,d=0)=>n===null||!Number.isFinite(n)?'—':n.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
 const icon=(name)=>({body:'◈',run:'↗',time:'◷',pace:'◉',fatigue:'♡',radar:'⬡',memo:'▤',save:'⇩',location:'⌁'})[name]||'◈';
 export const OFFICIAL_NAMES=Object.freeze(REGIONS.map(r=>Object.freeze([r.id,r.name])));
+/** The saved PNG must never misrepresent the scientific reference state. */
+export function resultImageAnnotation({gps=false,saved=false,reference=null}={}){
+ if(!gps&&!saved)return Object.freeze({status:'保存前：部位別値は未表示',detail:'保存した走行の文献適用条件を確認します'});
+ const count=Number.isInteger(reference?.count)&&reference.count>0&&reference.count<=12?reference.count:0;
+ if(count)return Object.freeze({status:'文献参考値：'+count+'/12 部位算出',detail:'各部位自身の文献基準を100とした参考値'});
+ const reasons={GAIT_NOT_SELECTED:'活動種別が未選択のため算出しません',MIXED_GAIT_NOT_QUANTIFIED:'走歩混在を一つの値に換算しません',OUT_OF_SPEED_RANGE:'文献が扱う速度範囲外のため算出できません'};
+ return Object.freeze({status:'文献参考値：算出対象外',detail:reasons[reference?.reason]||'該当条件で算出できる部位はありません'});
+}
 export function mountResult(host,inputDraft={},options={}){
  // GPS summaries reuse the same result experience; never convert GPS
  // reference values into an invented manual record.
@@ -195,8 +203,15 @@ export function mountResult(host,inputDraft={},options={}){
   t('距離',70,205,22,'#9ecbd7');t(format(distance,2)+' km',65,333,100);
   t('時間  '+format(duration,0)+' 分',70,414,28);t('平均ペース  '+pace+' /km',70,465,28);
   t(fromGps?'端末に保存したGPS記録':fromSaved?'端末に保存した手入力記録':'まだ保存していない記録',70,553,20,'#9ecbd7');
-  t(fromGps?'文献参考値を確認できる記録':'身体の部位別の参考値はまだありません',685,258,20,'#abd6de');
-  t('疲労感  '+(before??'—')+' → '+(after??'—'),685,320,29,'#f6d7b4');
+  const evidence=resultImageAnnotation({gps:fromGps,saved:fromSaved,reference});
+  t('文献参考値の表示状況',685,211,20,'#abd6de');
+  t(evidence.status,685,255,21);
+  t(evidence.detail,685,298,16,'#abd6de');
+  t('本人の身体負荷の実測値ではありません',685,353,17,'#effdff');
+  t('部位間の順位・傷害リスクを示しません',685,387,17,'#effdff');
+  t('ROF-Jは本人が回答した疲労感です',685,431,17,'#abd6de');
+  t('疲労感  '+(before??'—')+' → '+(after??'—'),685,478,27,'#f6d7b4');
+  t('部位別数値の詳細はアプリ内で確認',685,534,16,'#abd6de');
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
