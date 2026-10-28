@@ -44,6 +44,17 @@ try{
   assert.equal(parsed.local["runload-v2-legal-consent-v1"],undefined);
   assert.equal(JSON.parse(parsed.local["runload-v2-life-condition-v1"]).length,1);
   assert.equal(JSON.parse(parsed.local["runload-v2-user-profile-v1"]).nickname,"テスト");
+  await backup.locator("[data-dm-include-gps]").check();
+  const [downloadWithGps]=await Promise.all([page.waitForEvent("download"),backup.locator("[data-dm-export]").click()]);
+  const gpsBundle=JSON.parse(await readFile(await downloadWithGps.path(),"utf8"));
+  assert.equal(gpsBundle.gpsLegacy.format,"runload-gps-backup");
+  assert.equal(gpsBundle.gpsCurrent.format,"runload-gps-v2-backup");
+  await backup.locator("[data-dm-file]").setInputFiles({name:"現行記録.json",mimeType:"application/json",buffer:Buffer.from(backupJson)});
+  await backup.locator("[data-dm-restore]").waitFor();
+  assert.equal(await backup.locator("[data-dm-restore]").isDisabled(),true,"existing records require pre-restore backup");
+  await backup.locator("[data-dm-safety]").check();
+  assert.equal(await backup.locator("[data-dm-restore]").isEnabled(),true);
+
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),true,"No horizontal overflow "+mode.name);
   const deletion=page.locator(".s2-item").filter({hasText:"データの削除"}).first();
   await deletion.locator("summary").click();
