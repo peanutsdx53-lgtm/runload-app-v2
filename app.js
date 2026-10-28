@@ -28,7 +28,7 @@
   const dataManagementUi=await import("./ui/dataManagementUi.js?v=20261028-data-management-v1");
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-optional-guide-v2");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
-  const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
+  const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-print-integrity-v1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261028-life-separation-v1");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
