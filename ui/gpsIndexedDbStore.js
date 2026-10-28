@@ -136,3 +136,13 @@ export async function importGpsBackup(text){
   return {ok:true,added:additions.length,skipped};
  }catch{return {ok:false,reason:'GPSバックアップの復元に失敗しました。既存記録は変更されません'}}
 }
+
+export async function clearGpsRuns(){
+ try{
+  const db=await openDatabase(),tx=db.transaction(GPS_DB_STORE,'readwrite'),done=completed(tx);
+  tx.objectStore(GPS_DB_STORE).clear();
+  await done;
+  cache={ok:true,records:[]};
+  return {ok:true};
+ }catch{return {ok:false,reason:'GPS記録の削除に失敗しました'};}
+}

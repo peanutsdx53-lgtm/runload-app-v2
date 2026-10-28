@@ -216,3 +216,13 @@ export function gpsV2DetailToFeature(summary,detail){
   points:detail.route.length,elevationPoints:ele,elevationStatus:ele?'partial':'none',
   gapCount:Math.max(0,segments.length-1),simplified:detail.trackSimplified};
 }
+
+export async function clearGpsV2Runs(){
+ try{
+  const db=await database(),tx=db.transaction([GPS_V2_SUMMARIES,GPS_V2_DETAILS],'readwrite'),done=completion(tx);
+  tx.objectStore(GPS_V2_SUMMARIES).clear();
+  tx.objectStore(GPS_V2_DETAILS).clear();
+  await done;
+  return {ok:true};
+ }catch{return {ok:false,reason:'GPS結果の削除に失敗しました'};}
+}

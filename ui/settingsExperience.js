@@ -1,3 +1,4 @@
+import {renderDataBackup,renderDataDelete,makeDataUi} from "./dataManagementUi.js";
 // RunLoad v2 settings: local-only opt-in preferences. No legal consent is recorded here.
 export const PROFILE_KEY='runload-v2-user-profile-v1';
 export const DISPLAY_KEY='runload-v2-display-preferences-v1';
@@ -29,8 +30,8 @@ export const AGE_OPTIONS=ageOptions;
 const choice=(name,options,selected)=>options.map(([value,label])=>`<option value="${escape(value)}" ${selected===value?'selected':''}>${escape(label)}</option>`).join('');
 const item=(symbol,title,desc,body,{hint='',open=false}={})=>`<details class="s2-item" ${open?'open':''}><summary><span class="s2-item-icon" aria-hidden="true">${symbol}</span><span class="s2-item-copy"><strong>${title}</strong><small>${desc}</small></span>${hint?`<em class="s2-indicator">${hint}</em>`:''}<span class="s2-chevron" aria-hidden="true">⌄</span></summary><div class="s2-item-content">${body}</div></details>`;
 const group=(icon,title,children)=>{const tones={'表示と言語':'aqua','利用者情報':'mint','記録と測定':'blue','データとプライバシー':'violet','アプリとヘルプ':'slate'};return `<section class="s2-panel" data-settings-tone="${tones[title]||'aqua'}"><header class="s2-panel-head"><span class="s2-panel-icon" aria-hidden="true">${icon}</span><h2>${title}</h2></header><div class="s2-rows">${children.join('')}</div></section>`;};
-export function renderSettings({profile,display,notice=''}){
- const p=profile||loadProfile(null),d=display||loadDisplay(null);
+export function renderSettings({profile,display,notice='',dataUi}){
+ const p=profile||loadProfile(null),d=display||loadDisplay(null),management=dataUi||makeDataUi();
  const textOptions=`<div class="s2-choice-row" role="group" aria-label="文字サイズ"><button type="button" data-settings-text="standard" aria-pressed="${d.textSize==='standard'}">標準</button><button type="button" data-settings-text="large" aria-pressed="${d.textSize==='large'}">大きめ</button></div>`;
  const motionOptions=`<div class="s2-choice-row" role="group" aria-label="画面の動き"><button type="button" data-settings-motion="system" aria-pressed="${d.motion==='system'}">端末に合わせる</button><button type="button" data-settings-motion="reduce" aria-pressed="${d.motion==='reduce'}">動きを抑える</button></div>`;
  const purposeChoices=choice('purpose',purposeOptions,p.purpose);
@@ -40,13 +41,13 @@ export function renderSettings({profile,display,notice=''}){
  <div class="s3-field s3-full s4-purpose-field"><label for="s4-purpose">走る目的 <small>一つ選択・任意</small></label><div class="s4-purpose-select"><span class="s4-purpose-icon" aria-hidden="true">↗</span><select id="s4-purpose" name="purpose">${purposeChoices}</select><span class="s4-purpose-chevron" aria-hidden="true"></span></div><p class="s4-purpose-help">選択肢は必要なときだけ表示します。</p></div>
  <div class="s3-profile-metrics"><div class="s3-field"><label for="s3-height">身長 <small>任意</small></label><div class="s3-measure"><input id="s3-height" name="heightCm" type="number" inputmode="decimal" min="80" max="250" step="0.1" value="${p.heightCm??''}" placeholder="未入力"><span aria-hidden="true">cm</span></div></div><div class="s3-field"><label for="s3-weight">体重 <small>任意</small></label><div class="s3-measure"><input id="s3-weight" name="weightKg" type="number" inputmode="decimal" min="15" max="400" step="0.1" value="${p.weightKg??''}" placeholder="未入力"><span aria-hidden="true">kg</span></div></div></div>
  <div class="s3-field s3-full"><label for="s3-age">年齢帯 <small>任意</small></label><select id="s3-age" name="ageBand">${choice('ageBand',ageOptions,p.ageBand)}</select></div>
- <div class="s3-profile-action"><button class="s2-save s3-save-primary" type="submit"><span aria-hidden="true">✓</span> プロフィールを保存</button><p>探究・測定での利用は機能接続後に対応します。</p></div>
+ <div class="s3-profile-action"><button class="s2-save s3-save-primary" type="submit"><span aria-hidden="true">✓</span> プロフィールを保存</button><p>登録した情報は、後から設定画面で変更できます。</p></div>
  </form>`;
  const groups=[
   group('◈','表示と言語',[
    item('文','文字サイズ','読みやすい大きさに調整',textOptions,{hint:'変更可能'}),
    item('◌','画面の動き','端末の設定を尊重',motionOptions,{hint:'変更可能'}),
-   item('あ','表示言語','日本語',`<div class="s2-fixed"><span>日本語 <b>使用中</b></span><span class="s2-soon">English — 対応予定</span></div><p>英語の専門用語・研究上の表記を検証してから追加します。</p>`,{hint:'日本語'}),
+   item('あ','表示言語','日本語',`<div class="s2-fixed"><span>日本語 <b>使用中</b></span><span class="s2-soon">English — 対応予定</span></div><p>現在、英語への切り替えには対応していません。</p>`,{hint:'日本語'}),
    item('☾','外観','ダークモードを標準で使用',`<div class="s2-theme-preview"><span class="s2-theme-mini s2-dark-mini">☾ <b>ダーク</b> <small>使用中</small></span><span class="s2-theme-mini s2-light-mini">☀ <b>ライト</b> <small>対応予定</small></span></div><p>ライトモードは人体図・グラフまで対応した後に公開します。</p>`,{hint:'ダーク'})
   ]),
   group('♧','利用者情報',[
@@ -58,8 +59,8 @@ export function renderSettings({profile,display,notice=''}){
    item('◴','測定中のお知らせ','音・振動などの通知',`<p>GPSでの測定中に音や振動で知らせる機能は、まだ利用できません。</p>`,{hint:'準備中'})
   ]),
   group('▤','データとプライバシー',[
-   item('▣','バックアップ・復元','端末内の記録を保護',`<p>データ形式の検査・復元前バックアップ・破損防止が完成してから有効化します。現在、復元や書き出しは実行できません。</p>`,{hint:'準備中'}),
-   item('×','データの削除','保存した情報を安全に削除',`<p>正式保存とバックアップの連携後に、確認手順付きで提供します。設定画面から誤って削除できる状態にはしません。</p>`,{hint:'準備中'}),
+   item('▣','バックアップ・復元','記録と設定をファイルで管理',renderDataBackup(management),{hint:'利用可能'}),
+   item('×','データの削除','端末内の記録を削除',renderDataDelete(management),{hint:'確認が必要'}),
    item('§','利用規約・プライバシー','利用条件と情報の取扱い',`<div class="s2-choice-row"><button type="button" class="s2-inline-btn" data-legal-open="terms">利用規約を読む</button><button type="button" class="s2-inline-btn" data-legal-open="privacy">プライバシーポリシーを読む</button></div><p>文書の閲覧だけで同意済みになることはありません。</p>`,{hint:'全文を確認'})
   ]),
   group('ⓘ','アプリとヘルプ',[
