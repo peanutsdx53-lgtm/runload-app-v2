@@ -189,3 +189,35 @@ jobs:
           path: screenshots/webkit-*.png
           if-no-files-found: ignore
           retention-days: 14
+
+  data-management-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser for data management review
+        run: |
+          npm install --no-save playwright@1.56.1
+          BROWSER_PATH="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$BROWSER_PATH" ]; then
+            echo "RUNLOAD_CHROME=$BROWSER_PATH" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Japanese font support
+        run: |
+          if ! fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao'; then
+            sudo timeout 55s apt-get install -y --no-install-recommends fonts-ipafont-gothic || true
+          fi
+      - name: Full backup restore deletion in browser
+        run: node tests/dataManagementBrowserSmoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-management-review-screenshots
+          path: screenshots/data-management-*.png
+          if-no-files-found: ignore
+          retention-days: 14
