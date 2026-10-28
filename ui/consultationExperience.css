@@ -152,3 +152,5 @@
  .cp-app .cp-back{height:40px;width:40px;font-size:27px}
 }
 @media print{.cp-app .cp-back{display:none!important}}
+/* Long narratives may add physical PDF pages. Do not print misleading fixed sheet counts. */
+@media print{.cp-footer .number{display:none!important}}
