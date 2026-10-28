@@ -45,5 +45,5 @@ test('observation guide note has stable topic ID and survives reload; focused ro
 test('cached assets include new offline editorial guide and UX version for updated copies',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.match(sw,/explorationTopicGuides\.js/);
- assert.match(sw,/runload-ui-next-shell-20261028-life-separation-v1/);
+ assert.match(sw,/runload-ui-next-shell-20261028-print-integrity-v1/);
 });
