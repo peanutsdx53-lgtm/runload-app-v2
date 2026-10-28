@@ -24,6 +24,8 @@
   const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261026-user-copy-v21");
+  const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-first-use-v1");
+  const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
@@ -136,7 +138,9 @@
   const introStored=loadIntro();
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
-  const onboardingState={open:!introStored?.completed,step:0,language:"ja",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
+  const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
+  const needsLegalReconfirmation=!!introStored?.completed&&hasPriorLegalRecord&&!legalDocuments.readLegalConsent(onboardStorage);
+  const onboardingState={open:!introStored?.completed||needsLegalReconfirmation,step:needsLegalReconfirmation?1:0,reconsentOnly:needsLegalReconfirmation,replay:false,language:"ja",termsAccepted:false,privacyConfirmed:false,error:"",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
   const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -303,17 +307,12 @@
  </details><p class="rof-unsaved-note">ここで選んだ疲労感は、記録内容を確認して手入力の走行を保存すると一緒に保存されます。</p></div></details>
  </section>`;
 }
-  function onboardingView(){
- const steps=[
-  {title:"記録と振り返りを始めましょう",eyebrow:"はじめに",body:"走行や休養を記録して、自分の変化を振り返れます。手入力した走行を端末に保存できます。",html:`<div class="onboard-preview-tiles"><span>◎<strong>GPS</strong><small>測定の入口</small></span><span>✎<strong>記録</strong><small>運動前後の疲れ</small></span><span>✦<strong>探究</strong><small>自分の問いを深める</small></span></div>`},
-  {title:"言語を選ぶ",eyebrow:"表示する言語",body:"言語設定はあとから変更できます。現在の画面は日本語版のみ対応しています。",html:`<div class="onboard-language-options"><label class="is-selected"><input type="radio" name="onboard-language" value="ja" checked>日本語 <span>使用可能</span></label><label class="is-disabled"><input type="radio" name="onboard-language" disabled value="en">English <span>後日対応予定</span></label></div>`},
-  {title:"利用規約とデータの扱い",eyebrow:"情報の扱い",body:"利用規約とプライバシーに関する正式な説明は準備中です。この案内で同意を求めることはありません。",html:`<div class="onboard-legal"><strong>保存する情報について</strong><p>ホーム表示設定と希望者が入力した任意プロフィールは、このブラウザの保存領域にのみ保存します。手入力した走行記録はこの端末に保存できます。GPSで測定した記録は別の端末内保存領域に保管されます。GPS軌跡の保存は明示的に選択できます。ROF-Jのイラストを表示する際には、公開画像を読み込むための通信が発生します。</p><p>GPSの実走測定を利用できます。位置情報を使うときは端末側で許可を確認します。</p><small>正式な同意画面は規約の承認後に実装します。今は同意済みの扱いになりません。</small></div>`},
-  {title:"共有用プロフィール（任意）",eyebrow:"あなたの設定",body:"最初にプロフィールを設定できます。入力を省略しても進めます。記録や相談先への自動送信はしません。",html:`<div class="onboard-profile"><label>共有に使う表示名（任意）<input data-onboard-nickname maxlength="40" placeholder="未設定でも進めます" value="${esc(onboardingState.nickname)}"></label><label>記録を使う目的（任意）<select data-onboard-purpose><option value="">まだ決めていない</option>${[["health","健康のため"],["record","ランニングの記録"],["learn","身体への理解"],["other","その他"]].map(([v,t])=>`<option value="${v}" ${onboardingState.purpose===v?"selected":""}>${t}</option>`).join("")}</select></label><div class="onboard-extra-profile"><label>身長（cm・任意）<input type="number" min="80" max="250" step="0.1" inputmode="decimal" data-onboard-height placeholder="スキップできます" value="${esc(onboardingState.heightCm)}"></label><label>体重（kg・任意）<input type="number" min="15" max="400" step="0.1" inputmode="decimal" data-onboard-weight placeholder="スキップできます" value="${esc(onboardingState.weightKg)}"></label></div><p>入力内容はこの端末のプロフィールに保存します。設定した情報が外部へ自動送信されることはありません。</p></div>`},
-  {title:"始め方を確認",eyebrow:"使い方",body:"まずGPS測定か手入力を選び、疲労感を振り返りましょう。探究では、分野を選んで知識や記録との接点を調べられます。",html:`<div class="onboard-tour"><div><b>1</b><span><strong>GPS／手入力を選択</strong><small>GPS計測は権限を許可した場合に利用可能</small></span></div><div><b>2</b><span><strong>運動前後の疲れを記録</strong><small>運動前後の0～10を別々に選択</small></span></div><div><b>3</b><span><strong>結果と探究を振り返る</strong><small>人体図・走りの記録・探究</small></span></div></div>`}
- ];
- const current=steps[onboardingState.step];
- return `<div class="onboard-overlay" data-onboard-overlay><section class="onboard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboard-title"><div class="onboard-top"><strong>初めての方へ</strong><span>使い方のご案内</span><button type="button" data-onboard-close aria-label="案内を閉じる">×</button></div><div class="onboard-progress" aria-label="${onboardingState.step+1} / ${steps.length}">${steps.map((_,i)=>`<span class="${i<=onboardingState.step?"is-active":""}"></span>`).join("")}</div><div class="onboard-main"><p class="eyebrow">${current.eyebrow}</p><h2 id="onboard-title">${current.title}</h2><p class="onboard-description">${current.body}</p>${current.html}</div><div class="onboard-footer"><button type="button" class="btn" data-onboard-back ${onboardingState.step===0?"disabled":""}>戻る</button><span>${onboardingState.step+1} / ${steps.length}</span><button type="button" class="btn primary" data-onboard-next>${onboardingState.step===steps.length-1?"試用を始める":"次へ"}</button></div></section></div>`;
-}
+  function onboardingView(){return firstUseExperience.renderFirstUse(onboardingState);}
+  function finishOnboarding(){
+    onboardingState.open=false;onboardingState.replay=false;onboardingState.error="";
+    try{onboardStorage?.setItem(onboardingKey,JSON.stringify({completed:true,language:"ja"}))}catch{}
+    render();
+  }
   function recordStart(){return recordExperience.recordMethodPage();}
 function recordExtras(){
  const d=state.recordDraft, field=(id)=>esc(d[id]??"");
@@ -718,6 +717,12 @@ function recordExtras(){
     }
   });
   app.addEventListener("change",(event)=>{
+    if(event.target.matches("[data-onboard-terms],[data-onboard-privacy]")){
+      if(event.target.hasAttribute("data-onboard-terms"))onboardingState.termsAccepted=event.target.checked;
+      else onboardingState.privacyConfirmed=event.target.checked;
+      const advance=app.querySelector("[data-onboard-next]");if(advance)advance.disabled=!(onboardingState.termsAccepted&&onboardingState.privacyConfirmed);
+      return;
+    }
     if(event.target.matches('[data-condition-form] [name="date"]')){
       if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(event.target.value)){
         homeUi.conditionDate=event.target.value;render();
@@ -766,6 +771,15 @@ function recordExtras(){
     render();
   });
   app.addEventListener("click",async(event)=>{
+    const showLegal=event.target.closest("[data-onboard-document],[data-legal-open]");
+    if(showLegal){const kind=showLegal.dataset.onboardDocument||showLegal.dataset.legalOpen;
+      if(kind==="terms"||kind==="privacy"){
+        app.querySelector(".fu-doc-backdrop")?.remove();
+        app.insertAdjacentHTML("beforeend",firstUseExperience.renderLegalDocumentModal(kind));
+        app.querySelector(".fu-doc-scroll")?.focus();
+      }return;
+    }
+    if(event.target.closest("[data-legal-dismiss]")){app.querySelector(".fu-doc-backdrop")?.remove();return;}
     const manualGait=event.target.closest("[data-manual-gait]");
     if(manualGait&&currentPage()==='record'){
       const gait=manualGait.dataset.manualGait;
@@ -1083,16 +1097,21 @@ function recordExtras(){
     if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
     if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
-    if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.step=0;render();return}
-    if(event.target.closest("[data-onboard-close]")){onboardingState.open=false;render();return}
-    if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(0,onboardingState.step-1);render();return}
+    if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.replay=true;onboardingState.step=2;onboardingState.error="";render();return;}
+    if(event.target.closest("[data-onboard-close]")){if(onboardingState.replay){onboardingState.open=false;onboardingState.replay=false;render();}return;}
+    if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(onboardingState.replay?2:0,onboardingState.step-1);onboardingState.error="";render();return;}
+    if(event.target.closest("[data-onboard-skip-profile]")&&onboardingState.step===7){finishOnboarding();return;}
     if(event.target.closest("[data-onboard-next]")){
-      if(onboardingState.step<4){onboardingState.step+=1;render();return}
-      onboardingState.open=false;
+      if(onboardingState.step===1){
+        if(!onboardingState.termsAccepted||!onboardingState.privacyConfirmed)return;
+        const accepted=legalDocuments.saveLegalConsent(onboardStorage);
+        if(!accepted.ok){onboardingState.error=accepted.message;render();return;}
+        if(onboardingState.reconsentOnly){onboardingState.reconsentOnly=false;finishOnboarding();return;}
+      }
+      if(onboardingState.step<7){onboardingState.step+=1;onboardingState.error="";render();return;}
       const savedProfile=settingsExperience.saveProfile(onboardStorage,{nickname:onboardingState.nickname,purpose:onboardingState.purpose,heightCm:onboardingState.heightCm,weightKg:onboardingState.weightKg,ageBand:onboardingState.ageBand});
-      if(savedProfile.ok)settingsUi.profile=savedProfile.value;
-      try{onboardStorage?.setItem(onboardingKey,JSON.stringify({completed:true,language:"ja",nickname:onboardingState.nickname,purpose:onboardingState.purpose,formalTermsAccepted:false}))}catch{}
-      render();return;
+      if(!savedProfile.ok){onboardingState.error=savedProfile.message;render();return;}
+      settingsUi.profile=savedProfile.value;finishOnboarding();return;
     }
     const homeEdit=event.target.closest("[data-home-edit]");
     if(homeEdit){homeEditState.notice="";if(homeEditState.editing){homeEditState.editing=false;homeEditState.draft=null}else{homeEditState.editing=true;homeEditState.draft=dashboardPrefs.copyHomeDashboardLayout(homePreferenceState.layout)}render();return}
