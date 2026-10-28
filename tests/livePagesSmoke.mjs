@@ -56,7 +56,7 @@ try{
  if(await resultCheck.locator('[data-onboard-close]').count())await resultCheck.locator('[data-onboard-close]').click();
  const report=resultCheck.locator('#runload-result-v4');
  await report.locator('.rv4-region').first().waitFor({timeout:15000});
- assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
+ assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応|速度に対応する文献参考値/);
  assert.equal(await report.locator('[data-download]').isDisabled(),true);
  await resultCheck.screenshot({path:'screenshots/live-result-v4-mobile.png',fullPage:true});
 }finally{await resultCheck.close()}

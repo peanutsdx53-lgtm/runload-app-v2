@@ -1,0 +1,60 @@
+name: Research interpretation audit
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'ui/resultExperience.js'
+      - 'ui/runReflection.js'
+      - 'ui/explorationExperience.js'
+      - 'ui/resultInlineStyles.js'
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/interpretationBrowserSmoke.mjs'
+      - '.github/workflows/research-interpretation-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  logic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All Node research and app contracts
+        run: node --test tests/*.test.mjs
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Install Japanese fonts
+        run: |
+          if ! fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao'; then sudo timeout 90s apt-get install -y --no-install-recommends fonts-ipafont-gothic || true; fi
+      - name: Verify interpretation and capture screens
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/interpretationBrowserSmoke.mjs
+      - name: Publish visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-interpretation-${{ matrix.engine }}-screens
+          path: screenshots/interpretation-*.png
+          if-no-files-found: ignore
+          retention-days: 14

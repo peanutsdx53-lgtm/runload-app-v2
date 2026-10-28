@@ -11,7 +11,7 @@ test('Result v4 references all formal region names, with immutable official iden
 test('Result v4 does not fabricate biomechanical comparisons when no activity is selected',()=>{
  const js=read('ui/resultExperience.js');
  assert.match(js,/value:null/);
- assert.match(js,/比較する記録はありません/);
+ assert.match(js,/同じ活動種別の保存記録をもう1件残すと/);
  assert.match(js,/calculateActivityReference/);
  assert.match(js,/この部位自身の文献基準100/);
  assert.match(js,/まだ保存していない記録/);
@@ -24,7 +24,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261028-data-management-v1'));
+ assert.ok(html.includes('app.js?v=20261028-reflection-ux-v1'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.js'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.css'));
 });

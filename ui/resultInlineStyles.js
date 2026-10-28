@@ -22,3 +22,32 @@ export const RESULT_SIDEBYSIDE_PREVIEW_STYLES="\n/* PREVIEW ONLY: preserve a lef
 export const RESULT_ANATOMY_RELIEF_STYLES="\n/* Neutral light and shade only; never modify each region's science-derived fill. */\n.rv4-body .body-reference-relief,.rv4-body .body-reference-satin{pointer-events:none;stroke:none;transition:opacity .2s ease}\n.rv4-body .body-reference-satin{opacity:.75}\n.rv4-body .body-reference-relief.is-unavailable,.rv4-body .body-reference-satin.is-unavailable{opacity:.34}\n.rv4-body .rv4-region-stack:has(.rv4-region.selected) .body-reference-relief{opacity:.88}\n.rv4-body .rv4-silhouette{stroke:#72b8c5;stroke-width:.75;filter:drop-shadow(0 4px 5px #00162080)}\n.rv4-body .rv4-region{stroke:#8ab9bd;stroke-width:.52}\n.rv4-body .rv4-region.selected{stroke:#e0ffff;stroke-width:2;filter:drop-shadow(0 0 3px #e3ffff45)}\n.rv4-body .rv4-body-svg{filter:drop-shadow(0 7px 8px #000f1990)}\n.rv4-body .rv4-orbit{background:radial-gradient(ellipse at 36% 35%,#27879a24,transparent 45%);border-color:#369ba34a;box-shadow:0 0 16px #09c1c91b,inset 0 0 30px #06192444}\n@media(prefers-reduced-motion:reduce){.rv4-body .body-reference-relief,.rv4-body .body-reference-satin{transition:none}}\n";
 
 export const RESULT_GPS_GATE_STYLES="\n/* GPS-only invitation inside the shared tabbed body result. */\n.rv4-gps-gate{display:flex;align-items:center;justify-content:space-between;gap:15px;min-width:0;margin:15px 0 10px;padding:16px 18px;border:1px solid #3e9ea8;border-radius:16px;background:linear-gradient(120deg,#154c5b,#0b303e);color:#eafffd}\n.rv4-gps-gate>div{min-width:0;display:flex;flex-direction:column;gap:4px}\n.rv4-gps-gate small{font-size:11px;color:#8bdad6;font-weight:700}\n.rv4-gps-gate strong{font-size:15px;line-height:1.45}\n.rv4-gps-gate span{font-size:11px;line-height:1.5;color:#b7d6dc}\n.rv4-gps-gate a{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid #6acdd3;border-radius:10px;background:#197e8e;color:#fff;text-decoration:none;padding:10px 14px;font-size:12px;font-weight:800}\n.rv4-gps-gate a:focus-visible{outline:3px solid #9ff9ef;outline-offset:3px}\n@media(max-width:680px){.rv4-gps-gate{flex-direction:column;align-items:stretch;padding:13px;gap:10px}.rv4-gps-gate a{width:100%;min-height:44px}}\n@media print{.rv4-gps-gate{display:none}}\n";
+
+// Descriptive reading path and factual comparison; preserve the approved navy/teal language.
+export const RESULT_REFLECTION_STYLES=`
+.rv4-reading-route{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:11px 14px;border:1px solid #2d6177;border-radius:14px;background:linear-gradient(125deg,#0b2e40,#0a2735);color:#d9f4f6;line-height:1.55}
+.rv4-reading-route strong{font-size:12px;color:#6de3df;margin-right:9px}
+.rv4-reading-route span{font-size:10px;border:1px solid #326477;background:#103b4c;border-radius:999px;padding:4px 8px}
+.rv4-next-path{display:flex;flex-wrap:wrap;gap:10px;margin:9px 0 0}
+.rv4-next-path a,.rv4-learn-link,.rv4-back-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #3e8999;border-radius:10px;background:#124354;color:#d7fdfc;text-decoration:none;padding:9px 12px;font-size:11px;line-height:1.4;font-weight:730}
+.rv4-learn-link{margin-top:13px;max-width:100%}.rv4-learn-link:focus-visible,.rv4-back-link:focus-visible,.rv4-next-path a:focus-visible{outline:3px solid #93fff2;outline-offset:2px}
+.rv4-back-link{background:transparent;color:#b0d6de}
+.rv4-compare-label{display:block;font-size:11px;color:#bad9e0;margin:3px 0 8px}
+.rv4-history select[data-compare-select]{appearance:none;-webkit-appearance:none;color-scheme:dark;display:block;width:100%;min-height:44px;border-radius:10px;border:1px solid #468798;background-color:#0c3344;background-image:linear-gradient(45deg,transparent 50%,#9ee7e2 50%),linear-gradient(135deg,#9ee7e2 50%,transparent 50%);background-position:calc(100% - 17px) 54%,calc(100% - 11px) 54%;background-size:6px 6px;background-repeat:no-repeat;color:#e4fafa;font-size:13px;padding:9px 30px 9px 10px;max-width:100%;margin-bottom:14px}
+.rv4-comparison-scroller{max-width:100%;overflow-x:auto;scrollbar-color:#357587 #0b293a}
+.rv4-comparison-table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.55;min-width:275px;table-layout:auto}
+.rv4-comparison-table th,.rv4-comparison-table td{padding:9px 6px;border-bottom:1px solid #2e5b71;text-align:right;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
+.rv4-comparison-table th:first-child{text-align:left;color:#b7dfe1;min-width:78px}
+.rv4-comparison-table thead th{font-size:10px;color:#8dcac9}
+.rv4-comparison-table td{color:#eefaff}
+.rv4-compare-cards{display:none}
+.rv4-comparison-memos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;margin:13px 0}
+.rv4-comparison-memos>div{padding:11px;background:#0b3445;border:1px solid #285d6c;border-radius:10px;min-width:0}
+.rv4-comparison-memos small{font-size:10px;color:#88becd}.rv4-comparison-memos p{font-size:11px;line-height:1.6;color:#e4f5fa;overflow-wrap:anywhere;margin-top:6px}
+.rv4-comparison-caution,.rv4-comparison-empty{margin:8px 0 3px;font-size:11px;color:#c2d8de;line-height:1.75}
+.rv4-comparison-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.rv4-comparison-actions a{min-width:0;overflow-wrap:anywhere}
+@media(max-width:800px){.rv4-reading-route{padding:9px;gap:6px}.rv4-reading-route strong{width:100%}.rv4-next-path a{flex:1 1 120px}.rv4-comparison-memos{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rv4-comparison-table th,.rv4-comparison-table td{padding:8px 4px;font-size:10px}}
+@media(max-width:375px){.rv4-comparison-scroller{display:none}.rv4-compare-cards{display:grid;gap:8px}.rv4-compare-card{min-width:0;border:1px solid #2d5e70;border-radius:11px;padding:10px;background:#0a2b3b}.rv4-compare-card>strong{display:block;font-size:12px;color:#e4fbfb;margin-bottom:8px}.rv4-compare-card>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rv4-compare-card span{min-width:0;font-size:11px;font-weight:750;color:#eafffb;overflow-wrap:anywhere}.rv4-compare-card small{display:block;font-size:9px;font-weight:500;color:#9dced7;margin-bottom:5px}.rv4-reading-route span{font-size:9px;padding:4px 6px}.rv4-comparison-memos{grid-template-columns:1fr}.rv4-comparison-table th,.rv4-comparison-table td{font-size:9px;padding:8px 3px}}
+@media print{.rv4-reading-route,.rv4-next-path,.rv4-comparison-actions,.rv4-history select{display:none}}
+`;

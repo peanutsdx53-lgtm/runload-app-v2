@@ -3,7 +3,7 @@
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
-  const homeExperience=await import("./ui/homeExperience.js?v=20261026-achievement-v29");
+  const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
   const reviewDraft=await import("./ui/recordDraftReview.js");
@@ -21,7 +21,7 @@
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261028-back-symmetry-v2");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261028-back-symmetry-v2");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261028-reflection-ux-v1");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
   const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
@@ -29,7 +29,7 @@
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-first-use-v1");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-consultation-header-v1");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261026-explore-layout-v28");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261028-reflection-ux-v1");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
@@ -126,6 +126,7 @@
   }
   const simulationUi=simulationExperience.newSimulationUi();
   const historyUi=historyExperience.createHistoryUi();
+  let lastExploreRoute=null;
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
   const lifeCompareUi={a:"",b:"",open:false,notice:""};
   let manualSaveNotice="";
@@ -261,9 +262,15 @@
   topics:homeExperience.achievementCard(homeUi.preview,savedRunState),
   shortcuts:homeExperience.shortcutsCard(),
   trend:homeExperience.trendCard(homeUi.preview),
-  discovery:homeExperience.discoveryCard()
+  discovery:homeExperience.discoveryCard(explorationUi.notes)
  };
- const current=pref||dashboardPrefs.defaultHomeDashboardLayout();
+ const storedLayout=pref||dashboardPrefs.defaultHomeDashboardLayout();
+ // Only for the uncustomized default: a voluntary reflection makes the
+ // optional continuation card relevant. Never override a saved hide choice.
+ const hasReflection=explorationUi.notes.some(n=>n&&typeof n.text==='string'&&n.text.trim());
+ const defaultUncustomized=(()=>{try{return homePreferenceStorage?.getItem(dashboardPrefs.HOME_DASHBOARD_KEY)===null}catch{return false}})();
+ const current=!editing&&hasReflection&&defaultUncustomized&&!storedLayout.visible.includes('discovery')?
+  {...storedLayout,visible:[...storedLayout.visible,'discovery']}:storedLayout;
  const widgets=current.order.map(id=>{
   const w=names.find(e=>e.id===id);
   const visible=current.visible.includes(id);
@@ -425,8 +432,18 @@ function recordExtras(){
     }
     function explore(){
       const conditions=homeExperience.readConditions(onboardStorage);
-      return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:state.recordDraft,conditions,manualRuns:manualRunStore.readManualRuns(onboardStorage)});
-    }
+       const saved=manualRunStore.readManualRuns(onboardStorage);
+       const route=location.hash;
+       const params=new URLSearchParams(route.split('?')[1]||'');
+       if(route!==lastExploreRoute){
+         lastExploreRoute=route;
+         const cat=CATEGORIES.find(c=>c.id===params.get('category'));
+         if(cat&&cat.topics.includes(params.get('topic'))){explorationUi.selected=cat.id;explorationUi.topic=params.get('topic');explorationUi.tab='field';explorationUi.modal='';explorationUi.sample=false;}
+       }
+       const focusRunId=params.has('record')?params.get('record'):null;
+       const focusRun=focusRunId&&saved.ok?saved.records.find(r=>r.id===focusRunId)||null:null;
+       return explorationExperience.render(explorationUi,{categories:CATEGORIES,draft:focusRunId?null:state.recordDraft,conditions,manualRuns:saved,focusRunId,focusRun});
+     }
     function settings(){return settingsExperience.renderSettings({...settingsUi,dataUi});}
     function secondary(page){
  const title=pageLabels[page]||"その他";
@@ -486,7 +503,7 @@ function recordExtras(){
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
-    saved:true,recordId:record.id,record,
+    saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
     onAssignGait:gait=>{
      const changed=manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait);
      state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;

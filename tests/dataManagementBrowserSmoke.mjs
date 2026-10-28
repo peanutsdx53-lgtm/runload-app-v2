@@ -67,7 +67,7 @@ try{
   await deletion.locator("[data-dm-delete-agree]").check();
   await deletion.locator("[data-dm-delete-word]").fill("削除");
   assert.equal(await deletion.locator("[data-dm-delete-confirm]").isEnabled(),true);
-  await deletion.locator("[data-dm-delete-confirm]").click();
+  await Promise.all([page.waitForEvent("framenavigated",{predicate:f=>f===page.mainFrame(),timeout:20000}),deletion.locator("[data-dm-delete-confirm]").click()]);
   await page.waitForLoadState("domcontentloaded");
   await page.waitForFunction(()=>localStorage.getItem("runload-v2-life-condition-v1")===null);
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-legal-consent-v1")),null);

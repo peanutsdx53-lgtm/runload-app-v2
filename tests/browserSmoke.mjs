@@ -321,7 +321,7 @@ try{
   const report=page.locator('#runload-result-v4');
   await report.locator('.rv4-region').first().waitFor({timeout:15000});
   assert.equal(await report.locator('.rv4-region').count(),5,"front view has five official region targets");
-  assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度と身体の反応/);
+  assert.match(await report.locator('.rv4-card-heading').first().innerText(),/速度に対応する文献参考値/);
   assert.match(await report.locator('.rv4-notice').innerText(),/保存された走行記録はまだありません/);
   assert.match(await report.locator('.rv4-big-score').innerText(),/—/,"no synthetic scientific score");
   assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
