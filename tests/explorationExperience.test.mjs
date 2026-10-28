@@ -142,3 +142,22 @@ test('topic layout scales and reflection has one way to review',()=>{
  assert.match(note,/書き残す内容（500文字まで）/);
  assert.match(note,/気づきを書く/);
 });
+
+test('learning help distinguishes numerical definitions, ROF-J self-reports and literature reference instead of presenting a false generic arithmetic source',()=>{
+ const all=[...categories];
+ all[0]={...all[0],topics:['距離・時間・ペース','自分が感じた疲れ']};
+ all[1]={...all[1],topics:['12部位の参考値の見方']};
+ const ui=makeUi(memory());ui.modal='learn-help';
+ const base={categories:all,draft:{},conditions:{entries:[]}};
+ for(const row of [
+  ['01','距離・時間・ペース','距離と経過時間から求める算術上の定義'],
+  ['01','自分が感じた疲れ','本人が回答した疲労感の読み方'],
+  ['02','12部位の参考値の見方','測定量・適用条件は部位ごとに異なります'],
+  ['04','疲れの感じ方','本人が運動前後に回答した主観的疲労感の読み方']
+ ]){
+  ui.selected=row[0];ui.topic=row[1];
+  const html=render(ui,base);
+  assert.ok(html.includes(row[2]),row[1]);
+  if(row[1]!=='距離・時間・ペース')assert.doesNotMatch(html,/このテーマは距離と経過時間による算術上の定義を説明します/);
+ }
+});
