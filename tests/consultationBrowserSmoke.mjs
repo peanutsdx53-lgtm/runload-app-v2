@@ -45,11 +45,12 @@ try{
   // One focused print-integrity probe only; existing layout/record tests are reused.
   if(!useWebKit&&name==='desktop'){
    const out=resolve(root,'screenshots');await mkdir(out,{recursive:true});
-   const longValue=key=>(key+'：'+('日本語の相談文・共有範囲の確認。'*100)).slice(0,1180)+'【'+key+'完了】';
+   const longValue=key=>(key+'：'+'日本語の相談文・共有範囲の確認。'.repeat(100)).slice(0,1180)+'【'+key+'完了】';
    for(const mode of ['single','period']){
     await page.locator('[data-mode-button="'+mode+'"]').click();
     for(const key of ['purpose','observation','question'])await page.locator('#cp-'+key).fill(longValue(key));
     const longText=await page.locator('[data-report-question]').innerText();
+    assert.ok(longText.length>1000,'stress test must contain a long report narrative');
     assert.match(longText,/【question完了】/,'long message reaches the report before printing');
     await page.locator('input[data-share="body"]').uncheck();
     await page.emulateMedia({media:'print'});
