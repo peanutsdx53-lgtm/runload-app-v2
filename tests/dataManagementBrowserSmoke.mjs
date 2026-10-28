@@ -45,7 +45,11 @@ try{
   assert.equal(JSON.parse(parsed.local["runload-v2-life-condition-v1"]).length,1);
   assert.equal(JSON.parse(parsed.local["runload-v2-user-profile-v1"]).nickname,"テスト");
   await backup.locator("[data-dm-include-gps]").check();
-  const [downloadWithGps]=await Promise.all([page.waitForEvent("download"),backup.locator("[data-dm-export]").click()]);
+  const withGpsDownload=page.waitForEvent("download",{timeout:9000});
+  await backup.locator("[data-dm-export]").click();
+  let downloadWithGps;
+  try{downloadWithGps=await withGpsDownload;}
+  catch{throw Error("GPS込みのファイル保存を開始できません。設定画面: "+(await backup.innerText()).slice(-1100));}
   const gpsBundle=JSON.parse(await readFile(await downloadWithGps.path(),"utf8"));
   assert.equal(gpsBundle.gpsLegacy.format,"runload-gps-backup");
   assert.equal(gpsBundle.gpsCurrent.format,"runload-gps-v2-backup");
