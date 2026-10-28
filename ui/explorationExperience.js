@@ -94,10 +94,10 @@ const KNOWLEDGE={
  },
  "足・膝・股関節":{
    heading:"走るとき、脚の関節はどう働く？",lead:"地面を押して前に進むとき、股関節・膝・足首が連携して動きます。走る速さが変わると、関節の動きや仕事の分担も変化し得ます。",
-   cite:"Fukuchi ほか（2017）",url:"https://doi.org/10.7717/peerj.3298",warning:"一定条件で走った人々の研究に基づく一般知識です。あなたの関節への負荷やけがの可能性を判定するものではありません。"},
+   cite:"Fukuchi ほか（2017）",url:"https://doi.org/10.7717/peerj.3298",warning:"定速トレッドミル走を扱った研究に基づく一般知識です。初心者本人の関節への負荷やけがの可能性を判定するものではありません。",sourceNote:"Fukuchi ほか（2017）は習慣的に走る28人を対象に、2.5・3.5・4.5 m/sでのトレッドミル走行時の下肢関節角度・関節モーメント等を測定しました。利用者本人の関節を計測したものでも、負荷を個別推定できる根拠でもありません。"},
  "上り坂・下り坂":{
    heading:"上り坂と下り坂、走る動きの違い",lead:"上り坂では体を持ち上げて進む働きが、下り坂では前に進む勢いを受け止めて制御する働きが重要になります。",
-   cite:"Vernillo ほか（2020）",url:"https://doi.org/10.1111/sms.13708",warning:"主に条件を管理した走行の研究に基づきます。記録の割合だけから、あなたの筋肉への負荷やけがの危険を計算できません。"},
+   cite:"Vernillo ほか（2020）",url:"https://doi.org/10.1111/sms.13708",warning:"研究で設定した傾斜角度（度）と、アプリの上り・下りの走行コース構成比（％）は異なります。割合から個人の筋肉の負荷やけがの危険は計算できません。",sourceNote:"Vernillo ほか（2020）は成人19人のトレッドミル走で、速度2.50・3.33・4.17 m/s、傾斜角0・±5・±10度における地面反力・筋活動等を調べました。アプリの「上り30％」はコース構成比であり、実験の傾斜角度とは比較できません。"},
  "12部位の参考値の見方":{
    heading:"文献の参考値をどう読めばよい？",lead:"各部位の数値は、その部位自身の文献上の参照値を100として表したものです。あなたの身体の負荷を測定した数値ではありません。まず部位の名前と研究条件を確かめ、適用外の数値は表示しない決まりを確認しましょう。",
    cite:"部位ごとの採用研究（研究Currentの原典台帳）",warning:"異なる身体部位同士の大小比較や危険度の順位はできません。速度条件や活動種別に適用できない場合、参考値を無理に算出しません。",
@@ -108,20 +108,20 @@ const KNOWLEDGE={
    sourceNote:"ROF-Jで本人が回答した疲労感の読み方です。本人の主観的回答であり、身体組織の状態や負荷を測定した値ではありません。"},
  "過去の走りとの比較":{
    heading:"違いを見つけて、自分で考える",lead:"保存された2回の走行を、距離・経過時間・平均ペース・回答した疲労感など同じ意味の項目で並べると、何が異なっていたかを確かめられます。",
-   cite:"Li, Dey & Forlizzi（2011）",url:"https://doi.org/10.1145/2030112.2030166",warning:"過去との違いは、能力の向上・負荷・原因や次回の走行結果を示しません。活動種別が一致しない場合や欠測がある場合は、比較できない項目を補いません。"},
+   cite:"Li, Dey & Forlizzi（2011）",url:"https://doi.org/10.1145/2030112.2030166",warning:"過去との違いだけでは能力の向上・負荷・原因・次回の結果を示せません。活動種別の相違や欠測がある場合は不適切な比較や補完をしません。",sourceNote:"Li, Dey & Forlizzi（2011）は、自己記録に関する現在・履歴・目標・差異・文脈・要因などの情報ニーズを質的に調べました。記録を並べて問いを考えられるUIの設計背景ですが、この比較機能の効果を直接実証した研究ではありません。"},
  "気付きと次の確認":{
    heading:"気になることを、自分の言葉で残す",lead:"今回の記録と過去の記録を見て、次に何を確かめたいか、気になったことを任意で残せます。毎回メモを残す必要はありません。後で読み返し、考えが変わっていても構いません。",
-   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"メモの保存や再訪は学習・理解の向上を証明しません。行動の指示や医学的な助言ではありません。"},
+   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"メモの保存や再訪は自己理解の向上を証明しません。記述内容は本人の自由な考えであり、行動指示・医学的助言ではありません。",sourceNote:"Epstein ほか（2015）は日常的な自己記録の収集・振り返り・中断・再開を整理した個人情報学のモデルです。任意メモと後からの再訪を認める設計の背景であり、Runloadの効果を直接示したものではありません。"},
  "疲れの感じ方":{
    heading:"疲れの数字と、自分の感じ方",lead:"走る前の疲れと走った後の疲れは、同じ0〜10の尺度でも、記録した時点を区別して考えます。自分の感覚を思い出すための手掛かりであり、他人との優劣を表すものではありません。",
    warning:"運動前の回答を後から補ったものや、回答のない項目を推測しません。文献参考値と合算した総合スコアも作りません。",
    sourceNote:"本人が運動前後に回答した主観的疲労感の読み方です。原因や医学的な状態を判定する根拠資料ではありません。"},
  "自分に合う記録の使い方":{
    heading:"毎回すべてを記録しなくてもいい",lead:"気になる項目だけを確かめる、少し間が空いてから振り返る、記録なしで知識を調べるなど、使い方は本人が選べます。記録の量よりも、何を知りたいかを大切にします。",
-   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"この説明は設計方針です。利用継続率や自己理解への効果を検証済みと示すものではありません。"},
+   cite:"Epstein ほか（2015）",url:"https://doi.org/10.1145/2750858.2804250",warning:"これは自己記録に関する設計方針です。利用継続率や自己理解への効果を検証した結果ではありません。",sourceNote:"Epstein ほか（2015）は日常生活の中で自己記録を中断・再開する経験を扱いました。必要に応じた記録と再訪を可能にする設計上の理由であり、記録の省略が特定の効果を生むと示した研究ではありません。"},
  "睡眠":{
    heading:"睡眠と、走る日の調子",lead:"睡眠は回復や日中の注意・気分とも関係します。短い睡眠や質の低下が続くと運動への影響が懸念されますが、必要な睡眠の長さには個人差があります。",
-   cite:"Walsh ほか（2021）",url:"https://doi.org/10.1136/bjsports-2020-102025",warning:"競技者を対象とした研究を含む一般知識です。本人の記録が同じ日に並んでも、睡眠が調子の原因と判断することはできません。"}
+   cite:"Walsh ほか（2021）",url:"https://doi.org/10.1136/bjsports-2020-102025",warning:"競技者を主な対象とした研究・専門家の合意文書です。初心者個人の必要睡眠時間を指定せず、本人の生活記録から睡眠と走行の因果関係を推定しません。",sourceNote:"Walsh ほか（2021）は競技者の睡眠に関するナラティブレビューと専門家コンセンサスです。初心者向けの個別処方ではなく、本人の睡眠記録と主観的な調子を分けて考えるための背景知識として参照します。"}
 };
 const STARTER_GUIDES=Object.freeze({
   "距離・時間・ペース": "記録した距離と時間を見て、今日はどんなペースだったか確かめてみましょう。",
@@ -175,7 +175,7 @@ function experience(ui,ctx,cat,topic){
    const pace=`${Math.floor(paceSeconds/60)}:${String(paceSeconds%60).padStart(2,'0')}`;
    const elapsed=`${Math.floor(run.durationSeconds/60)}分${String(run.durationSeconds%60).padStart(2,'0')}秒`;
    const kmh=(run.distanceKm*3600/run.durationSeconds).toFixed(1);
-   tool='<div class="ex-tool-result"><strong>最新の保存済み走行（手入力）</strong>'
+   tool='<div class="ex-tool-result"><strong>'+(ctx.focusRunId?"選択した保存済み走行（手入力）":"最新の保存済み走行（手入力）")+'</strong>'
     +'<p>'+h(run.date)+'</p><p>距離：'+h(run.distanceKm.toFixed(2))+' km</p><p>経過時間：'+h(elapsed)+'</p>'
     +'<p>平均ペース：<strong>'+h(pace)+' 分/km</strong></p><p>平均速度：'+h(kmh)+' km/h</p>'
     +'<small>保存済みの距離と経過時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
@@ -201,7 +201,7 @@ function experience(ui,ctx,cat,topic){
   const choices={up:{label:"上り",title:"押して進む",body:"上りでは重力に逆らって身体を持ち上げる必要があり、平坦路とは動きや力の使い方が異なります。"},down:{label:"下り",title:"勢いを受け止める",body:"下りでは前へ進む勢いを制御するため、着地時のブレーキの働きが大切になります。"}};
   const c=choices[ui.toolChoice]||choices.up;
   const shares=course.status==='complete'&&course.shares?
-   `<div class="ex-course-bars" role="img" aria-label="入力途中の上り${course.shares.up}％、下り${course.shares.down}％、入力上の平坦${course.shares.flat}％"><span style="width:${course.shares.up}%;background:#65ddce"></span><span style="width:${course.shares.down}%;background:#80a9ef"></span><span style="width:${course.shares.flat}%;background:#426577"></span></div><small>${sourceLabel}の割合：上り ${course.shares.up}％／下り ${course.shares.down}％／平坦 ${course.shares.flat}％。GPSによる標高断面ではありません。</small>`:
+   `<div class="ex-course-bars" role="img" aria-label="${sourceLabel}の上り${course.shares.up}％、下り${course.shares.down}％、入力上の平坦${course.shares.flat}％"><span style="width:${course.shares.up}%;background:#65ddce"></span><span style="width:${course.shares.down}%;background:#80a9ef"></span><span style="width:${course.shares.flat}%;background:#426577"></span></div><small>${sourceLabel}の割合：上り ${course.shares.up}％／下り ${course.shares.down}％／平坦 ${course.shares.flat}％。GPSによる標高断面ではありません。割合はコースの構成比であり、文献にある傾斜角（度）や路面勾配（％）ではありません。</small>`:
    `<p>確定できる坂道の割合はありません。走行の入力がない場合も学べます。</p>`;
   tool=`<div class="ex-tool-switch" role="group" aria-label="坂道の方向">${Object.entries(choices).map(([id,item])=>`<button type="button" data-ex-slope="${id}" aria-pressed="${ui.toolChoice===id}">${item.label}</button>`).join('')}</div><div class="ex-tool-result"><strong>${c.title}</strong><p>${c.body}</p></div><div class="ex-course-source">${shares}</div><a class="ex-learning-link" href="${ctx.focusRunId&&ctx.focusRun?'#/result?record='+encodeURIComponent(ctx.focusRun.id):'#/record-course'}">${ctx.focusRunId&&ctx.focusRun?'この走行の結果に戻る':'自分のコース入力を確認'} ›</a>`;
  }else{
@@ -267,7 +267,7 @@ function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find
  if(ui.modal==="learn-help"){
   const k=KNOWLEDGE[title];
   body='<p>学びの内容は一般的な知識です。あなたの身体や調子の原因を自動的に判定しているわけではありません。</p>'
-  +(k?'<div class="ex-dialog-block"><strong>内容と適用上の注意</strong><p>'+esc(k.warning)+'</p></div>'+(k.url?'<p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p>':'<p>'+esc(k.sourceNote||"本人の記録を読み取るための設計上の説明です。個人への医学的な判断や効果を裏付ける文献引用ではありません。")+'</p>'):'<p>この内容は本人による観察のための設計上の問いです。科学的な解説としての出典審査はまだ完了していません。</p>')
+  +(k?'<div class="ex-dialog-block"><strong>内容と適用上の注意</strong><p>'+esc(k.warning)+'</p></div>'+(k.url?'<p>参考資料：<a class="ex-dialog-source" href="'+esc(k.url)+'" target="_blank" rel="noopener noreferrer">'+esc(k.cite)+' ↗</a></p><div class="ex-dialog-block"><strong>研究の対象・使える範囲</strong><p>'+esc(k.sourceNote||'出典の対象・適用条件はテーマごとに確認します。')+'</p></div>':'<p>'+esc(k.sourceNote||"本人の記録を読み取るための設計上の説明です。個人への医学的な判断や効果を裏付ける文献引用ではありません。")+'</p>'):'<p>この内容は本人による観察のための設計上の問いです。科学的な解説としての出典審査はまだ完了していません。</p>')
   +'<p class="ex-muted">光る星は、入力・保存記録とのつながりを表す目印です。重要度や危険度を示すものではありません。</p>';
  }
  if(ui.modal==="know")body=`<p>「${esc(title)}」に関連する知識を確認する場所です。</p><div class="ex-dialog-block"><strong>自分の情報との接点</strong><p>${esc(links.linked.get(category.id)||"このテーマを調べるのに記録は必要ありません。")}</p></div><div class="ex-dialog-block"><strong>読み取るときの注意</strong><p>記録や感覚の違いだけでは、原因や身体の状態を判断できません。</p></div><p class="ex-muted">根拠審査済みのコラム本文は今後接続します。未確認の医学的な説明は表示しません。</p>`;

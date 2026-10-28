@@ -38,13 +38,21 @@ try{
   if(width===390){
    for(const entry of [
     {category:'02',topic:'12部位の参考値の見方',expected:'測定量・適用条件は部位ごとに異なります'},
-    {category:'01',topic:'自分が感じた疲れ',expected:'本人が回答した疲労感の読み方'}
+    {category:'01',topic:'自分が感じた疲れ',expected:'本人が回答した疲労感の読み方'},
+    {category:'02',topic:'足・膝・股関節',expected:'習慣的に走る28人'},
+    {category:'03',topic:'上り坂・下り坂',expected:'成人19人'},
+    {category:'01',topic:'過去の走りとの比較',expected:'質的に調べました'},
+    {category:'01',topic:'気付きと次の確認',expected:'中断・再開'},
+    {category:'07',topic:'自分に合う記録の使い方',expected:'中断・再開'},
+    {category:'05',topic:'睡眠',expected:'専門家コンセンサス'}
    ]){
     await page.goto('http://127.0.0.1:4196/#/exploration-tree?category='+entry.category+'&topic='+encodeURIComponent(entry.topic),{waitUntil:'domcontentloaded'});
     await page.locator('.ex-learning [data-ex-action="learn-help"]').click();
     await page.locator('.ex-dialog').waitFor();
     const help=await page.locator('.ex-dialog').innerText();
     assert.ok(help.includes(entry.expected),entry.topic+' accurate provenance');
+    if(entry.topic==='上り坂・下り坂')assert.match(help,/傾斜角0・±5・±10度/);
+    if(!['12部位の参考値の見方','自分が感じた疲れ'].includes(entry.topic))assert.match(help,/研究の対象・使える範囲/);
     assert.doesNotMatch(help,/このテーマは距離と経過時間による算術上の定義を説明します/);
     await page.screenshot({path:resolve(root,'screenshots',prefix+'-source-'+entry.category+'.png'),fullPage:true});
    }
