@@ -43,8 +43,9 @@ try{
   assert.match(resultText,/本人の身体を測定した数値ではありません/);
   assert.match(resultText,/記録を理解する順番/);
   if(mode.width<=800)await page.locator('[data-tab="radar"]').click();
-  await page.locator('.rv4-comparison-table').waitFor();
-  const comparison=await page.locator('.rv4-comparison-table').innerText();
+  const compareView=page.locator(mode.width<=375?'.rv4-compare-cards':'.rv4-comparison-table');
+  await compareView.waitFor();
+  const comparison=await compareView.innerText();
   assert.match(comparison,/2026-10-18/);assert.match(comparison,/2026-10-25/);assert.match(comparison,/未回答|運動前に感じた疲れ/);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-compare.png'),fullPage:true});
   await page.locator('[data-compare-select]').selectOption(saved.otherGait);
@@ -53,7 +54,7 @@ try{
   assert.equal(await page.locator('.rv4-comparison-table').count(),0,'incompatible gait hides comparison');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-incompatible.png'),fullPage:true});
   await page.locator('[data-compare-select]').selectOption(saved.earlier);
-  await page.locator('.rv4-comparison-table').waitFor();
+  await compareView.waitFor();
   await page.locator('.rv4-comparison-actions .rv4-learn-link').click();
   await page.locator('.ex-record-return').waitFor();
   assert.match(await page.locator('.ex-record-return').innerText(),/2026-10-25/);

@@ -40,6 +40,7 @@ export const RESULT_REFLECTION_STYLES=`
 .rv4-comparison-table th:first-child{text-align:left;color:#b7dfe1;min-width:78px}
 .rv4-comparison-table thead th{font-size:10px;color:#8dcac9}
 .rv4-comparison-table td{color:#eefaff}
+.rv4-compare-cards{display:none}
 .rv4-comparison-memos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;margin:13px 0}
 .rv4-comparison-memos>div{padding:11px;background:#0b3445;border:1px solid #285d6c;border-radius:10px;min-width:0}
 .rv4-comparison-memos small{font-size:10px;color:#88becd}.rv4-comparison-memos p{font-size:11px;line-height:1.6;color:#e4f5fa;overflow-wrap:anywhere;margin-top:6px}
@@ -47,6 +48,6 @@ export const RESULT_REFLECTION_STYLES=`
 .rv4-comparison-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
 .rv4-comparison-actions a{min-width:0;overflow-wrap:anywhere}
 @media(max-width:800px){.rv4-reading-route{padding:9px;gap:6px}.rv4-reading-route strong{width:100%}.rv4-next-path a{flex:1 1 120px}.rv4-comparison-memos{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rv4-comparison-table th,.rv4-comparison-table td{padding:8px 4px;font-size:10px}}
-@media(max-width:375px){.rv4-reading-route span{font-size:9px;padding:4px 6px}.rv4-comparison-memos{grid-template-columns:1fr}.rv4-comparison-table th,.rv4-comparison-table td{font-size:9px;padding:8px 3px}}
+@media(max-width:375px){.rv4-comparison-scroller{display:none}.rv4-compare-cards{display:grid;gap:8px}.rv4-compare-card{min-width:0;border:1px solid #2d5e70;border-radius:11px;padding:10px;background:#0a2b3b}.rv4-compare-card>strong{display:block;font-size:12px;color:#e4fbfb;margin-bottom:8px}.rv4-compare-card>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rv4-compare-card span{min-width:0;font-size:11px;font-weight:750;color:#eafffb;overflow-wrap:anywhere}.rv4-compare-card small{display:block;font-size:9px;font-weight:500;color:#9dced7;margin-bottom:5px}.rv4-reading-route span{font-size:9px;padding:4px 6px}.rv4-comparison-memos{grid-template-columns:1fr}.rv4-comparison-table th,.rv4-comparison-table td{font-size:9px;padding:8px 3px}}
 @media print{.rv4-reading-route,.rv4-next-path,.rv4-comparison-actions,.rv4-history select{display:none}}
 `;
