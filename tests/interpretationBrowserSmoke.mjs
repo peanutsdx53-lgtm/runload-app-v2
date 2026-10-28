@@ -39,7 +39,7 @@ try{
   await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
   await page.locator('.rv4-body .rv4-reading').waitFor();
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-body.png'),fullPage:true});
-  const resultText=await page.locator('#runload-result-v4').innerText();
+  const resultText=await page.locator('.rv4-app').innerText();
   assert.match(resultText,/本人の身体を測定した数値ではありません/);
   assert.match(resultText,/記録を理解する順番/);
   if(mode.width<=800)await page.locator('[data-tab="radar"]').click();
