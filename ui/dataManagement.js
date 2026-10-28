@@ -6,7 +6,7 @@ import {CONDITION_INSIGHTS_KEY,loadConditionInsights} from "./conditionInsights.
 import {ACTION_INTENT_KEY,loadIntent} from "./actionIntentStore.js";
 import {EXPLORATION_NOTE_KEY,makeUi as makeExplorationUi} from "./explorationExperience.js";
 import {HOME_DASHBOARD_KEY,loadHomeDashboardLayout} from "./homeDashboardLayout.js";
-import {PROFILE_KEY,DISPLAY_KEY} from "./settingsExperience.js";
+const PROFILE_KEY="runload-v2-user-profile-v1",DISPLAY_KEY="runload-v2-display-preferences-v1";
 import {LEGAL_CONSENT_KEY} from "./legalDocuments.js";
 import * as gpsV1 from "./gpsIndexedDbStore.js";
 import * as gpsV2 from "./gpsReplayIndexedDbStore.js";
