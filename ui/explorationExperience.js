@@ -169,7 +169,9 @@ function experience(ui,ctx,cat,topic){
   const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns,ctx.focusRunId||null);
   if(ui.sample)tool='<div class="ex-tool-result"><strong>表示例を見ています</strong><p>この画面では実際の走行記録と表示例を混ぜません。表示例を終了すると保存済みの値を確認できます。</p></div>';
   else if(ctx.manualRuns?.ok===false)tool='<div class="ex-tool-result"><strong>走行記録を読み取れません</strong><p>保存データの読み取りに問題があります。記録は変更せず、数値の表示を中止しています。</p></div>';
-  else if(!run)tool='<div class="ex-tool-result"><strong>保存済みの走行はまだありません</strong><p>距離と時間を手入力で保存すると、ここに平均ペースと平均速度が表示されます。入力途中の数値は保存済みとして扱いません。</p></div><a class="ex-learning-link" href="#/record-start">記録を始める ›</a>';
+  else if(!run)tool=ctx.focusRunId?
+   '<div class="ex-tool-result"><strong>指定した走行を確認できません</strong><p>このリンクに対応する保存済み走行が見つかりません。別の走行の数値で代用せず、履歴から記録を選び直してください。</p></div><a class="ex-learning-link" href="#/history">履歴で記録を選び直す ›</a>':
+   '<div class="ex-tool-result"><strong>保存済みの走行はまだありません</strong><p>距離と時間を手入力で保存すると、ここに平均ペースと平均速度が表示されます。入力途中の数値は保存済みとして扱いません。</p></div><a class="ex-learning-link" href="#/record-start">記録を始める ›</a>';
   else{
    const paceSeconds=Math.round(run.durationSeconds/run.distanceKm);
    const pace=`${Math.floor(paceSeconds/60)}:${String(paceSeconds%60).padStart(2,'0')}`;
@@ -179,7 +181,7 @@ function experience(ui,ctx,cat,topic){
     +'<p>'+h(run.date)+'</p><p>距離：'+h(run.distanceKm.toFixed(2))+' km</p><p>経過時間：'+h(elapsed)+'</p>'
     +'<p>平均ペース：<strong>'+h(pace)+' 分/km</strong></p><p>平均速度：'+h(kmh)+' km/h</p>'
     +'<small>保存済みの距離と経過時間から算術計算した平均値です。速度の変化、疲れ、身体の負荷や結果の良し悪しを示す数値ではありません。</small></div>'
-    +'<a class="ex-learning-link" href="#/history">履歴で保存した走行を確認 ›</a>';
+    +'<a class="ex-learning-link" href="'+(ctx.focusRunId?'#/result?record='+encodeURIComponent(run.id):'#/history')+'">'+(ctx.focusRunId?'この走行の結果へ戻る':'履歴で保存した走行を確認')+' ›</a>';
   }
  }else if(['reference-reading','felt-fatigue','saved-comparison','voluntary-reflection','fatigue-reading','personal-record-use'].includes(key)){
   const run=ui.sample?null:latestSavedManualRun(ctx.manualRuns,ctx.focusRunId||null);
