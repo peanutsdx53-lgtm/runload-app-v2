@@ -138,7 +138,9 @@
   const introStored=loadIntro();
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
-  const onboardingState={open:!introStored?.completed,step:0,replay:false,language:"ja",termsAccepted:false,privacyConfirmed:false,error:"",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
+  const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
+  const needsLegalReconfirmation=!!introStored?.completed&&hasPriorLegalRecord&&!legalDocuments.readLegalConsent(onboardStorage);
+  const onboardingState={open:!introStored?.completed||needsLegalReconfirmation,step:needsLegalReconfirmation?1:0,reconsentOnly:needsLegalReconfirmation,replay:false,language:"ja",termsAccepted:false,privacyConfirmed:false,error:"",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
   const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
@@ -1104,6 +1106,7 @@ function recordExtras(){
         if(!onboardingState.termsAccepted||!onboardingState.privacyConfirmed)return;
         const accepted=legalDocuments.saveLegalConsent(onboardStorage);
         if(!accepted.ok){onboardingState.error=accepted.message;render();return;}
+        if(onboardingState.reconsentOnly){onboardingState.reconsentOnly=false;finishOnboarding();return;}
       }
       if(onboardingState.step<7){onboardingState.step+=1;onboardingState.error="";render();return;}
       const savedProfile=settingsExperience.saveProfile(onboardStorage,{nickname:onboardingState.nickname,purpose:onboardingState.purpose,heightCm:onboardingState.heightCm,weightKg:onboardingState.weightKg,ageBand:onboardingState.ageBand});
