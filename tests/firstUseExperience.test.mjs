@@ -29,7 +29,7 @@ test("terms and privacy must be separately acknowledged",()=>{
 });
 test("complete text and legal scope are present",()=>{
  assert.equal(TERMS.sections.length,18);assert.equal(PRIVACY.sections.length,17);
- for(const term of ["GPS","身体部位別","免責","利用の終了","未成年","故意","個人","無償","無料"]){
+ for(const term of ["GPS","身体部位別","責任","利用の終了","未成年","故意","個人","無料"]){
   assert.ok(JSON.stringify([TERMS,PRIVACY]).includes(term),"missing "+term);
  }
  const modal=renderLegalDocumentModal("terms");
