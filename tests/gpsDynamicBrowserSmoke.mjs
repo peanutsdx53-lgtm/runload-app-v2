@@ -121,6 +121,35 @@ try{
   await sharedResult.locator('.rv4-body').screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-tabbed-body-gate.png'),animations:'disabled'});
   await sharedResult.locator('[data-gps-dynamic-gate]').click();
   await page.locator('.gd-main').waitFor();
+
+  // Regression: the replay background and every foreground card must share
+  // the same viewport bounds on iPhone widths (not merely align with each other).
+  const assertViewportFit=async(widthLabel)=>{
+   const layout=await page.evaluate(()=>{
+    const sels=['.main-frame','.main-content','[data-gps-dynamic]','.gd-root','.gd-head','.gd-tag','.gd-metrics','.gd-view-bar','.gd-main','.gd-anatomy-panel','.gd-course-panel','.gd-linked-insight','.gd-speed-block'];
+    const rect=sel=>{const e=document.querySelector(sel);if(!e)return null;const r=e.getBoundingClientRect();return {left:+r.left.toFixed(2),right:+r.right.toFixed(2),width:+r.width.toFixed(2),clientWidth:e.clientWidth,scrollWidth:e.scrollWidth};};
+    const bounds=Object.fromEntries(sels.map(sel=>[sel,rect(sel)]));
+    return {width:innerWidth,docWidth:document.documentElement.scrollWidth,bounds};
+   });
+   assert.ok(layout.docWidth<=layout.width+1,widthLabel+' whole-page horizontal overflow '+JSON.stringify(layout));
+   for(const [sel,r] of Object.entries(layout.bounds)){
+    if(!r)continue;
+    assert.ok(r.left>=-1&&r.right<=layout.width+1,
+     widthLabel+' '+sel+' does not fit viewport '+JSON.stringify(layout));
+   }
+   return layout;
+  };
+  layoutReports.push({viewportFit:await assertViewportFit(mode.name)});
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-viewport-fit.png'),fullPage:false,animations:'disabled'});
+  if(mode.name==='mobile'){
+   for(const width of [320,430]){
+    await page.setViewportSize({width,height:844});
+    layoutReports.push({viewportFit:await assertViewportFit('mobile-'+width)});
+    await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-mobile-'+width+'-viewport-fit.png'),fullPage:false,animations:'disabled'});
+   }
+   await page.setViewportSize({width:mode.width,height:mode.height});
+  }
+
   assert.equal(await page.locator('.gd-panel').count(),2);
   assert.equal(await page.locator('.gd-body-path').count(),5);
   assert.equal(await page.locator('.gd-body .body-reference-relief').count(),5,
