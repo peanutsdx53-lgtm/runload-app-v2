@@ -34,7 +34,7 @@ const strictObject=x=>x!==null&&typeof x==="object"&&!Array.isArray(x);
 const encoded=x=>JSON.stringify(x);
 const same=(a,b)=>encoded(a)===encoded(b);
 const storeFor=(key,raw)=>({getItem:k=>k===key?raw:null,setItem() {},removeItem() {}});
-const legalNote="同意記録、初回ガイドの完了状態及びブラウザのキャッシュはバックアップに含まれません。";
+const legalNote="同意記録、利用開始時の案内の完了状態及びブラウザのキャッシュはバックアップに含まれません。";
 
 function checkLocal(key,raw){
  if(raw===null)return {ok:true,data:null,count:0};
