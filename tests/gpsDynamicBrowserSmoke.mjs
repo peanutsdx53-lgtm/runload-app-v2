@@ -97,6 +97,8 @@ try{
   await page.goto('http://127.0.0.1:4189/#/result?gps=gps-v2-00000000-0000-4000-8000-000000000001',{waitUntil:'networkidle'});
   await page.locator('.gd-enter').waitFor();
   await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-01-summary.png'),fullPage:true,animations:'disabled'});
+  assert.equal(await page.locator('.gd-summary-gate').count(),1);
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-result-gateway.png'),fullPage:true,animations:'disabled'});
   assert.match(await page.locator('.gd-summary').innerText(),/走行結果/);
   await page.locator('.gd-enter').click();
   await page.locator('.gd-main').waitFor();
@@ -153,6 +155,13 @@ try{
   assert.equal(await page.locator('.gd-body-path').count(),3);
   await page.locator('[data-jump-flag="0"]').click();
   assert.equal(await page.locator('.gd-scrub').inputValue(),'1');
+  assert.match(await page.locator('.gd-flag-insight').innerText(),/折り返し/);
+  assert.ok(await page.locator('.gd-map-flag.is-active').count()>0);
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-sole.png'),fullPage:true,animations:'disabled'});
+  await page.locator('[data-view="front"]').click();
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-front.png'),fullPage:true,animations:'disabled'});
+  await page.locator('[data-view="back"]').click();
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-back.png'),fullPage:true,animations:'disabled'});
   assert.equal(await page.locator('.gd-flag-note').count(),1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+' GPS dynamic UI overflows '+overflow);
