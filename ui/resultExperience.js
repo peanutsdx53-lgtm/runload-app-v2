@@ -1,6 +1,6 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {bodyReferenceRow,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays,bodyReferenceSilhouetteClipDef} from './bodyReferencePresentation.js';
-import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES} from './resultInlineStyles.js';
+import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES,RESULT_GPS_GATE_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
 const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -9,8 +9,14 @@ const positive=v=>{const n=number(v);return n!==null&&n>0?n:null};
 const format=(n,d=0)=>n===null||!Number.isFinite(n)?'—':n.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
 const icon=(name)=>({body:'◈',run:'↗',time:'◷',pace:'◉',fatigue:'♡',radar:'⬡',memo:'▤',save:'⇩',location:'⌁'})[name]||'◈';
 export const OFFICIAL_NAMES=Object.freeze(REGIONS.map(r=>Object.freeze([r.id,r.name])));
-export function mountResult(host,draft={},options={}){
- const fromSaved=options.saved===true&&typeof options.recordId==="string"&&options.recordId.length>0;
+export function mountResult(host,inputDraft={},options={}){
+ // GPS summaries reuse the same result experience; never convert GPS
+ // reference values into an invented manual record.
+ const gps=options.gpsSummary?.schema===2?options.gpsSummary:null;
+ const gpsSeconds=gps?Math.round(gps.activeSeconds):0;
+ const draft=gps?{date:gps.date,distance:gps.distanceKm,
+  hours:Math.floor(gpsSeconds/3600),minutes:Math.floor(gpsSeconds%3600/60),seconds:gpsSeconds%60}:inputDraft;
+ const fromGps=!!gps,fromSaved=options.saved===true&&typeof options.recordId==="string"&&options.recordId.length>0;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
  let chosen='BA-DISP-019',view='front',tab='body',picker=false,showBodyNumbers=false;
  const distance=positive(draft.distance),h=number(draft.hours),m=number(draft.minutes),s=number(draft.seconds);
@@ -24,7 +30,10 @@ export function mountResult(host,draft={},options={}){
  const data=OFFICIAL_NAMES.map(([id,name])=>({id,name,value:null}));
  // Derive reference values on demand from the real saved record. Never
  // silently reclassify an old/unknown activity or use an unsaved preview.
- const reference=fromSaved&&options.record?.id===options.recordId?calculateActivityReference(options.record):null;
+ const reference=fromGps?{rows:gps.finalReference.regions,
+  count:gps.finalReference.regions.filter(r=>r.calculationState==='CALCULATED'&&Number.isFinite(r.value)).length,
+  activity:gps.activity,speedMps:gps.finalReference.speedMps}
+  :fromSaved&&options.record?.id===options.recordId?calculateActivityReference(options.record):null;
  const activityMissing=fromSaved&&reference?.reason==='GAIT_NOT_SELECTED';
  for(const [i,item] of data.entries()){
    const row=bodyReferenceRow(reference?.rows,item.id);
@@ -75,6 +84,8 @@ export function mountResult(host,draft={},options={}){
     +(scale?.clipped?'<div class="rv4-scale-note">現在値は配色表示範囲（60〜140）の外側です。数値はそのまま表示しています。</div>':'')
     +'<button type="button" class="rv4-picker" data-picker-toggle aria-expanded="'+picker+'"><span>部位を選ぶ</span> <span>⌄</span></button></div></div>'
     +(picker?'<div class="rv4-choices">'+v.paths.map(([id])=>{const n=data.find(x=>x.id===id);return '<button type="button" data-region="'+id+'" class="'+(id===chosen?'active':'')+'">'+clean(n?.name||id)+'</button>'}).join('')+'</div>':'')
+    +(fromGps&&gps.detailSaved&&['RUNNING','JOGGING','WALK'].includes(gps.activity)?
+       '<div class="rv4-gps-gate"><div><small>GPSコースと身体の変化</small><strong>フラッグ地点の参考値を振り返る</strong><span>コース上の地点・速度・人体図を連動表示します</span></div><a data-gps-dynamic-gate href="#/dynamic-result?record='+encodeURIComponent(gps.id)+'">動的結果を見る ›</a></div>':'')
     +'<p class="rv4-disclaimer">色は各部位自身の基準100からの差を連続的に示します。危険度・部位間の順位ではありません。算出できない部位は灰色で表示します。</p></section>';
   };
  const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の変化</h2><p>運動前と運動後（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>変化</small><strong>'+(before!==null&&after!==null?(after-before>0?'+':'')+(after-before):'—')+'</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人が回答した疲労感です。未回答は「—」で表示します。</p></section>';
@@ -82,9 +93,10 @@ export function mountResult(host,draft={},options={}){
  const extras=()=>'<details class="rv4-details"><summary><span class="rv4-icon">'+icon('memo')+'</span><span><strong>その日の記録</strong><small>使用品・コース・メモ</small></span><b>⌄</b></summary><div class="rv4-extra-grid"><div><small>シューズ</small><strong>'+clean(draft.shoeName||'—')+'</strong></div><div><small>歩数</small><strong>'+(positive(draft.steps)!==null?format(positive(draft.steps))+' 歩':'—')+'</strong></div><div><small>上り割合</small><strong>'+(number(draft.upPercent)!==null?format(number(draft.upPercent))+'%':'—')+'</strong></div></div><div class="rv4-note"><small>メモ</small><p>'+clean(draft.memo||'記録がありません')+'</p></div></details>';
  const missingActivityPanel=()=>!activityMissing?'':`<section class="rv4-activity-missing" role="group" aria-label="保存済み記録の活動種別を設定"><div><strong>12部位の参考値を表示するために、活動種別を選択してください</strong><p>この記録は活動種別が未設定です。距離と時間から活動の種類を推測しないため、数値は未取得となっています。</p></div><div class="rv4-activity-options">${[['RUNNING','ランニング'],['JOGGING','ジョギング'],['WALK','ウォーキング']].map(([id,label])=>`<button type="button" data-result-gait="${id}">${label}</button>`).join('')}</div><small>選択した活動種別だけをこの記録に保存します。走歩混在や文献の適用速度範囲外では、数値を算出できない場合があります。</small></section>`;
  const summary=()=>!hasInput?'走行記録がありません。':distance!==null&&duration>0?'距離と時間から平均ペースを確認できます。':'入力した内容を確認できます。';
- const hero=()=>'<section class="rv4-hero"><div class="rv4-hero-glow"></div><div class="rv4-hero-left"><small class="rv4-date">'+titleDate+'　<span>走行</span></small><div class="rv4-measures"><div class="rv4-distance"><small>距離</small><strong>'+format(distance,2)+'</strong><span>km</span></div><div class="rv4-secondary"><div><small>時間</small><strong>'+(duration>0?format(duration,0)+' 分':'—')+'</strong></div><div><small>平均ペース</small><strong>'+pace+' <em>/km</em></strong></div></div></div></div><div class="rv4-hero-report"><span>今回の走り</span><h2>'+summary()+'</h2><div class="rv4-today-chips"><span>運動前 <b>'+(before??'—')+'</b></span><span>運動後 <b>'+(after??'—')+'</b></span></div><small>'+(fromSaved?'この端末に保存した手入力記録':'保存前の入力内容')+'</small></div></section>';
+ const hero=()=>'<section class="rv4-hero"><div class="rv4-hero-glow"></div><div class="rv4-hero-left"><small class="rv4-date">'+titleDate+'　<span>走行</span></small><div class="rv4-measures"><div class="rv4-distance"><small>距離</small><strong>'+format(distance,2)+'</strong><span>km</span></div><div class="rv4-secondary"><div><small>時間</small><strong>'+(duration>0?format(duration,0)+' 分':'—')+'</strong></div><div><small>平均ペース</small><strong>'+pace+' <em>/km</em></strong></div></div></div></div><div class="rv4-hero-report"><span>今回の走り</span><h2>'+summary()+'</h2><div class="rv4-today-chips"><span>運動前 <b>'+(before??'—')+'</b></span><span>運動後 <b>'+(after??'—')+'</b></span></div><small>'+(fromGps?'この端末に保存したGPS記録':fromSaved?'この端末に保存した手入力記録':'保存前の入力内容')+'</small></div></section>';
  function draw(){
-  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><h1>結果</h1></div><div class="rv4-actions"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存 ↓</button><button type="button" data-print>印刷</button></div></header><p class="rv4-notice">'+(fromSaved?(reference?.count?`この端末に保存した手入力記録です。 ${clean(ACTIVITY_LABELS[reference.activity])}・平均速度 ${format(reference.speedMps,2)}m/s の文献条件における部位内基準100の参考値を${reference.count}/12部位に表示しています。個人の身体負荷測定値ではありません。路面・勾配等は数値補正していません。`:`この端末に保存した手入力の走行記録です。${reference?.reason==='MIXED_GAIT_NOT_QUANTIFIED'?'走歩混在は単一の活動として数値化しません。':reference?.reason==='GAIT_NOT_SELECTED'?'活動種別が未選択のため部位別値は表示しません。':'この速度条件で算出可能な部位別文献参考値はありません。'}`):hasInput?'まだ保存していない入力内容です。身体の部位別の参考値は表示できません。':'保存された走行記録はまだありません。')+'</p>'+hero()+missingActivityPanel()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+'</div>';
+  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><h1>結果</h1></div><div class="rv4-actions"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存 ↓</button><button type="button" data-print>印刷</button></div></header><p class="rv4-notice">'+(fromGps?`GPSで保存した記録です。平均速度 ${format(reference.speedMps,2)}m/s に対応する文献参考値を${reference.count}/12部位に表示します。個人の身体負荷の測定値ではありません。`:
+     fromSaved?(reference?.count?`この端末に保存した手入力記録です。 ${clean(ACTIVITY_LABELS[reference.activity])}・平均速度 ${format(reference.speedMps,2)}m/s の文献条件における部位内基準100の参考値を${reference.count}/12部位に表示しています。個人の身体負荷測定値ではありません。路面・勾配等は数値補正していません。`:`この端末に保存した手入力の走行記録です。${reference?.reason==='MIXED_GAIT_NOT_QUANTIFIED'?'走歩混在は単一の活動として数値化しません。':reference?.reason==='GAIT_NOT_SELECTED'?'活動種別が未選択のため部位別値は表示しません。':'この速度条件で算出可能な部位別文献参考値はありません。'}`):hasInput?'まだ保存していない入力内容です。身体の部位別の参考値は表示できません。':'保存された走行記録はまだありません。')+'</p>'+hero()+missingActivityPanel()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+'</div>';
   root.querySelectorAll('[data-result-gait]').forEach(b=>b.addEventListener('click',()=>{
     if(!activityMissing||!['RUNNING','JOGGING','WALK'].includes(b.dataset.resultGait))return;
     options.onAssignGait?.(b.dataset.resultGait);
@@ -153,12 +165,12 @@ export function mountResult(host,draft={},options={}){
   t('走行結果',70,100,28);t(clean(draft.date||''),70,148,20,'#9ecbd7');
   t('距離',70,205,22,'#9ecbd7');t(format(distance,2)+' km',65,333,100);
   t('時間  '+format(duration,0)+' 分',70,414,28);t('平均ペース  '+pace+' /km',70,465,28);
-  t(fromSaved?'端末に保存した手入力記録':'まだ保存していない記録',70,553,20,'#9ecbd7');
-  t('身体の部位別の参考値はまだありません',685,258,20,'#abd6de');
+  t(fromGps?'端末に保存したGPS記録':fromSaved?'端末に保存した手入力記録':'まだ保存していない記録',70,553,20,'#9ecbd7');
+  t(fromGps?'文献参考値を確認できる記録':'身体の部位別の参考値はまだありません',685,258,20,'#abd6de');
   t('疲労感  '+(before??'—')+' → '+(after??'—'),685,320,29,'#f6d7b4');
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
- if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+RESULT_ANATOMY_RELIEF_STYLES+'</style><div class="rv4-app"></div>';
+ if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+RESULT_ANATOMY_RELIEF_STYLES+RESULT_GPS_GATE_STYLES+'</style><div class="rv4-app"></div>';
  draw();
 }
