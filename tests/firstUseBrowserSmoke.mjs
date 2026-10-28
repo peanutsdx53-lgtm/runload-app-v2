@@ -93,5 +93,34 @@ try{
   assert.deepEqual(errors,[],mode.name+" JavaScript exceptions");
   console.log("PASS",mode.name,"Japanese first use, two confirmations, legal documents, optional profile, settings replay");
   await page.close();
+  // Separate clean first-use path: mandatory legal confirmation cannot be skipped,
+  // while the five optional guide pages may be deferred for later replay.
+  const skip=await browser.newPage({viewport:{width:mode.width,height:mode.height},reducedMotion:"reduce"});
+  try{
+   await skip.goto("http://127.0.0.1:4186/#/home",{waitUntil:"domcontentloaded"});
+   await skip.locator(".fu-shell").waitFor();
+   assert.equal(await skip.locator("[data-onboard-skip-guide]").count(),0);
+   await skip.locator("[data-onboard-next]").click();
+   assert.equal(await skip.locator("[data-onboard-skip-guide]").count(),0);
+   await skip.locator("[data-onboard-terms]").check();
+   await skip.locator("[data-onboard-privacy]").check();
+   await skip.locator("[data-onboard-next]").click();
+   await skip.locator("[data-onboard-skip-guide]").waitFor();
+   const a=await skip.locator(".fu-shell").boundingBox();
+   assert.ok(a.width<=mode.width+2,"defer-guide overlay clipped");
+   assert.ok(await skip.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),"defer-guide horizontal overflow");
+   await skip.screenshot({path:resolve(root,"screenshots",mode.name+"-first-use-optional-skip.png")});
+   await skip.locator("[data-onboard-skip-guide]").click();
+   assert.match(await skip.locator("#onboard-title").innerText(),/プロフィール/);
+   await skip.locator("[data-onboard-skip-profile]").click();
+   assert.equal(await skip.locator(".fu-shell").count(),0);
+   assert.equal(await skip.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-introduction-preview-v1")).completed),true);
+   await skip.goto("http://127.0.0.1:4186/#/settings",{waitUntil:"domcontentloaded"});
+   const guide=skip.locator(".s2-item").filter({hasText:"初回ガイド"}).first();
+   await guide.locator("summary").click();
+   await skip.locator("[data-onboard-open]").click();
+   assert.match(await skip.locator("#onboard-title").innerText(),/記録と振り返り/);
+   assert.equal(await skip.locator("[data-onboard-skip-guide]").count(),0,"replayed guide is already optional");
+  }finally{await skip.close();}
  }
 }finally{await browser.close();await new Promise(ok=>server.close(ok));}
