@@ -27,6 +27,18 @@ test("terms and privacy must be separately acknowledged",()=>{
  assert.doesNotMatch(after,/data-onboard-next disabled/);
  assert.match(after,/同意して次へ/);
 });
+test("learning guide may be deferred only after required legal confirmation",()=>{
+ for(const step of [0,1,7])assert.doesNotMatch(renderFirstUse(state(step)),/data-onboard-skip-guide/);
+ for(const step of [2,3,4,5,6]){
+  assert.match(renderFirstUse(state(step)),/data-onboard-skip-guide/);
+  assert.match(renderFirstUse(state(step)),/ガイドを後で見る/);
+  assert.doesNotMatch(renderFirstUse(state(step,{replay:true})),/data-onboard-skip-guide/);
+ }
+ const app=readFileSync(new URL("../app.js",import.meta.url),"utf8");
+ assert.match(app,/data-onboard-skip-guide/);
+ assert.match(app,/onboardingState\.step=7/);
+ assert.match(app,/onboardingState\.open&&!onboardingState\.replay/);
+});
 test("complete text and legal scope are present",()=>{
  assert.equal(TERMS.sections.length,18);assert.equal(PRIVACY.sections.length,17);
  for(const term of ["GPS","身体部位別","責任","利用の終了","未成年","故意","個人","無料"]){
