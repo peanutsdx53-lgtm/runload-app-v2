@@ -1218,10 +1218,12 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-finished.png'),fullPage:true});
   await page.locator('[data-gps-save-route]').check();
   await page.locator('[data-gps-action="save"]').click();
-  await page.locator('.gd-summary').waitFor();
-  assert.match(await page.locator('.gd-summary').innerText(),/走行結果/);
-  // The legacy browser route intentionally measures MIXED; dynamic body reference remains disallowed.
-  assert.equal(await page.locator('.gd-enter').count(),0,'mixed activity cannot enter dynamic reference');
+  await page.locator('#runload-result-v4 .rv4-hero').waitFor();
+  assert.match(await page.locator('#runload-result-v4 .rv4-header').innerText(),/結果/);
+  assert.equal(await page.locator('#runload-result-v4 .rv4-mobile-tabs button').count(),3);
+  // MIXED GPS has no single-activity replay reference and must never offer a gate.
+  assert.equal(await page.locator('#runload-result-v4 [data-gps-dynamic-gate]').count(),0,
+    'mixed activity cannot enter dynamic reference');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const v2History=page.locator('.gps-v2-history .gps-history-item').first();
   await v2History.waitFor();

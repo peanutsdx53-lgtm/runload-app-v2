@@ -46,8 +46,9 @@ export function renderGpsResultSummary(summary){
  +'<div><small>平均速度</small><strong>'+avg.toFixed(1)+' <small>km/h</small></strong></div>'
  +(summary.energyEstimate?.ok?'<div><small>推定消費カロリー</small><strong>'+summary.energyEstimate.estimatedKcal.toFixed(1)+' <small>kcal</small></strong></div>':'')+'</div>'
  +'<p class="gd-note">この結果における12部位の数値は記録の平均速度に対応する文献参考値です（算出 '+count+'/12 部位）。個人の身体負荷の測定値ではありません。</p>'
+ +(flag?'<div class="gd-summary-gate"><div><small>GPS / 走行の振り返り</small><strong>コース上のフラッグと身体の変化</strong><span>地点を選ぶと、その時点の速度と部位別参考値を確認できます</span></div><a class="gd-enter" href="#/dynamic-result?record='+encodeURIComponent(summary.id)+'">動的結果を開く ›</a></div>':'')
  +'<section class="gd-summary-regions"><h2>12部位の文献参考値</h2><div class="gd-summary-rows">'+summary.finalReference.regions.map((r,i)=>'<div><small>'+esc(names[gpsBodyRegionId(r.regionId)]||r.regionId)+'</small><strong>'+(Number.isFinite(r.value)?r.value.toFixed(1):'—')+'</strong></div>').join('')+'</div></section>'
- +(flag?'<p style="margin-top:19px"><a class="gd-enter" href="#/dynamic-result?record='+encodeURIComponent(summary.id)+'">動的結果を見る ›</a></p>':'<p class="gd-note">動的結果は、保存時にコース・再生用データを選択した単一活動の記録で利用できます。</p>')
+ +(!flag?'<p class="gd-note">動的結果は、保存時にコース・再生用データを選択した単一活動の記録で利用できます。</p>':'')
  +'</section>';
 }
 export function mountGpsDynamicResult(host,summary,detail){
@@ -62,7 +63,7 @@ export function mountGpsDynamicResult(host,summary,detail){
  const origin=speed[0].t;
  const elapsed=f=>f.activeMs===null||f.activeMs===undefined?f.t-origin:f.activeMs;
  const duration=elapsed(speed.at(-1));
- let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null,playElapsed=0,showBodyNumbers=false;
+ let index=0,view='front',selected='BA-DISP-014',playing=false,timer=null,playElapsed=0,showBodyNumbers=false,activeFlagIndex=null;
  const geom=routeGeometry(detail.route);
  const labels=detail.flags||[];
  const nearest=t=>{
@@ -98,7 +99,7 @@ export function mountGpsDynamicResult(host,summary,detail){
   const [cx,cy]=geom.coords(target);
   const marks=labels.map((f,i)=>{
    const [x,y]=geom.coords(f);
-   return '<g data-jump-flag="'+i+'" role="button" tabindex="0" aria-label="フラッグ '+(i+1)+'" class="gd-map-flag" transform="translate('+x+' '+y+')">'
+   return '<g data-jump-flag="'+i+'" role="button" tabindex="0" aria-label="フラッグ '+(i+1)+'" class="gd-map-flag'+(activeFlagIndex===i?' is-active':'')+'" transform="translate('+x+' '+y+')">'
     +'<circle cx="5" cy="-6" r="22" fill="transparent" pointer-events="all"/><path class="gd-flag-icon" d="M0 7 V-17 L17 -11 L0 -4 Z"/><circle cx="0" cy="7" r="3.5" fill="#ffd397"/></g>';
   }).join('');
   return '<svg viewBox="0 0 400 320" role="group" aria-label="記録されたGPSコースと現在位置" class="gd-map-svg">'
@@ -132,22 +133,24 @@ export function mountGpsDynamicResult(host,summary,detail){
   const text=v?.calculationState==='CALCULATED'&&Number.isFinite(v.value)?v.value.toFixed(1):'—';
   const diff=text==='—'?'':'基準との差 '+(v.value>=100?'+':'')+(v.value-100).toFixed(1);
   const speedText=Number.isFinite(frame.speedMps)?(frame.speedMps*3.6).toFixed(1):'—';
-  const note=labels.find(f=>Math.abs(f.t-frame.t)<=1500);
+  const note=activeFlagIndex===null?labels.find(f=>Math.abs(f.t-frame.t)<=1500):labels[activeFlagIndex];
+  const flagInfo=note?'<span class="gd-flag-title">⚑ '+esc(note.note||'記録した地点')+'</span><span class="gd-flag-detail">'+time(elapsed(frame))+' / '+frame.km.toFixed(2)+' km · '+speedText+' km/h</span>':'<span class="gd-flag-empty">地図上の旗をタップして地点を確認</span>';
   host.innerHTML='<section class="gd-root" aria-label="GPS動的結果">'
    +'<header class="gd-head"><div class="gd-heading"><a href="#/result?gps='+encodeURIComponent(summary.id)+'" class="gd-back" style="display:grid;place-items:center;color:inherit;text-decoration:none" aria-label="通常結果に戻る">‹</a><div><div class="gd-eyebrow">DYNAMIC RESULT / GPS</div><h1>動的結果</h1><p class="gd-head-sub">'+esc(summary.date)+'　'+esc(types[summary.activity])+'</p></div></div><div class="gd-tag">文献参考値の変化</div></header>'
    +'<div class="gd-metrics"><div class="gd-metric"><span>経過時間</span><strong>'+time(elapsed(frame))+'</strong></div><div class="gd-metric"><span>走行距離</span><strong>'+frame.km.toFixed(2)+' <em>km</em></strong></div><div class="gd-metric"><span>GPS速度</span><strong>'+speedText+' <em>km/h</em></strong></div></div>'
-   +'<div class="gd-main"><section class="gd-panel"><header class="gd-panel-head"><strong>12部位の変化</strong><div class="gd-tabs">'
-   +BODY_REGION_VIEWS.map(v=>'<button data-view="'+v.key+'" aria-pressed="'+(v.key===view)+'">'+v.title+'</button>').join('')+'</div></header>'
-   +'<div class="gd-stage">'+bodySvg(ref)+'</div><div class="gd-panel-foot"><span>'+esc(names[selected])+'</span><span class="gd-value">'+text+'</span></div>'
-   +'<div class="gd-body-extra"><span class="gd-body-diff">'+diff+'</span><button type="button" data-body-label-toggle aria-pressed="'+showBodyNumbers+'">'+(showBodyNumbers?'図の数値を隠す':'図に数値を表示')+'</button></div></section>'
-   +'<section class="gd-panel"><header class="gd-panel-head"><strong>コース軌跡</strong><small>⚑ '+labels.length+' 地点</small></header>'
-   +'<div class="gd-stage">'+courseSvg()+'</div><div class="gd-panel-foot"><span>現在地点</span><span>'+frame.km.toFixed(2)+' km</span></div></section></div>'
+   +'<div class="gd-view-bar"><div class="gd-view-bar-copy"><strong>人体図とコース</strong><span>同じ再生位置に連動</span></div><div class="gd-tabs" role="group" aria-label="人体図の表示面">'
+   +BODY_REGION_VIEWS.map(v=>'<button data-view="'+v.key+'" aria-pressed="'+(v.key===view)+'">'+v.title+'</button>').join('')+'</div></div>'
+   +'<div class="gd-main"><section class="gd-panel gd-anatomy-panel"><header class="gd-panel-head"><strong>身体の反応</strong><small>文献参考値</small></header>'
+   +'<div class="gd-stage">'+bodySvg(ref)+'</div><div class="gd-panel-foot"><span>選択部位</span><strong>'+esc(names[selected])+'</strong></div></section>'
+   +'<section class="gd-panel gd-course-panel"><header class="gd-panel-head"><strong>GPSコース</strong><small>⚑ '+labels.length+' 地点</small></header>'
+   +'<div class="gd-stage">'+courseSvg()+'</div><div class="gd-panel-foot"><span>現在位置</span><strong>'+frame.km.toFixed(2)+' km</strong></div></section></div>'
+   +'<div class="gd-linked-insight" aria-label="地点と身体の連動情報"><div class="gd-region-insight"><small>選択部位の文献参考値</small><div class="gd-region-reading"><strong>'+text+'</strong><span>'+esc(names[selected])+'</span></div><div class="gd-reading-actions"><span>'+diff+'</span><button type="button" data-body-label-toggle aria-pressed="'+showBodyNumbers+'">'+(showBodyNumbers?'図の数値を隠す':'数値表示')+'</button></div></div>'
+   +'<div class="gd-flag-insight"><small>フラッグ地点の振り返り</small><div class="gd-flag-content">'+flagInfo+'</div><span class="gd-flag-hint">フラッグ選択時にコース・速度・人体図が同期します</span></div></div>'
    +'<div class="gd-palette-legend" aria-label="部位内基準100を中心とした連続した色の変化"><span>100より低い</span><div class="gd-palette-track" style="background:'+BODY_REFERENCE_GRADIENT+'"><i></i></div><span>100より高い</span></div>'
    +'<section class="gd-speed-block"><div class="gd-speed-head"><strong>速度の変化</strong><small>シークバー・コース・人体図が連動</small></div>'
    +speedSvg()+'<div class="gd-controls"><button data-play class="gd-play">'+(playing?'一時停止':'▶ 再生')+'</button>'
    +'<input class="gd-scrub" data-seek type="range" min="0" max="'+(speed.length-1)+'" value="'+index+'" aria-label="再生位置"/>'
    +'<span class="gd-duration">'+time(elapsed(frame))+' / '+time(duration)+'</span></div>'
-   +(note?'<div class="gd-flag-note">⚑ '+esc(note.note||'フラッグ地点')+'</div>':'')
    +'<p class="gd-note">人体図は速度条件に対応する文献参考値です。個人の身体負荷や損傷リスクの実測値ではありません。灰色は計算不能です。GPS欠損中の参考値は補完しません。</p></section></section>';
   host.querySelector('[data-body-label-toggle]')?.addEventListener('click',()=>{showBodyNumbers=!showBodyNumbers;render();});
   host.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;selected=(BODY_REGION_VIEWS.find(v=>v.key===view)?.paths[0]||['BA-DISP-014'])[0];render();}));
@@ -156,12 +159,12 @@ export function mountGpsDynamicResult(host,summary,detail){
    b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
   });
   host.querySelectorAll('[data-jump-flag]').forEach(b=>{
-   const jump=()=>{index=nearest(labels[Number(b.dataset.jumpFlag)].t);playElapsed=elapsed(getFrame());render();};
+   const jump=()=>{activeFlagIndex=Number(b.dataset.jumpFlag);index=nearest(labels[activeFlagIndex].t);playElapsed=elapsed(getFrame());render();};
    b.addEventListener('click',jump);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();jump();}});
   });
-  host.querySelector('[data-seek]')?.addEventListener('input',e=>{index=Number(e.target.value);playElapsed=elapsed(getFrame());render();});
+  host.querySelector('[data-seek]')?.addEventListener('input',e=>{index=Number(e.target.value);activeFlagIndex=null;playElapsed=elapsed(getFrame());render();});
   host.querySelector('[data-play]')?.addEventListener('click',()=>{
-   playing=!playing;
+   playing=!playing;activeFlagIndex=null;
    if(playing){
     playElapsed=elapsed(getFrame());
     timer=setInterval(()=>{

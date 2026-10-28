@@ -1,6 +1,6 @@
 /* Actual browser/IndexedDB integration contract for approved dynamic GPS result. */
 import {createServer} from 'node:http';
-import {readFile,mkdir} from 'node:fs/promises';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
@@ -23,6 +23,24 @@ const engine=engineName==='webkit'?webkit:chromium;
 const browser=await engine.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 try{
  await mkdir(resolve(root,'screenshots'),{recursive:true});
+ const layoutReports=[];
+ const measurePanels=async(page,mode,view)=>page.evaluate(({mode,view})=>{
+  const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2)}};
+  const intersects=(a,b)=>a&&b&&Math.min(a.right,b.right)-Math.max(a.x,b.x)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
+  const panels=[...document.querySelectorAll('.gd-main>.gd-panel')].map((p,index)=>{
+   const head=p.querySelector('.gd-panel-head'),title=head?.querySelector('strong'),tabs=head?.querySelector('.gd-tabs'),
+    info=head?.querySelector('small'),stage=p.querySelector('.gd-stage'),foot=p.querySelector('.gd-panel-foot');
+   const headItems=[title,tabs,info].filter(Boolean);
+   return {index,panel:rect(p),header:rect(head),title:rect(title),tabs:rect(tabs),headerMeta:rect(info),
+    stage:rect(stage),footer:rect(foot),value:rect(foot?.querySelector('.gd-value')),
+    headerOverlap:headItems.some((a,i)=>headItems.slice(i+1).some(b=>intersects(rect(a),rect(b)))),
+    headerOverflow:headItems.some(el=>{const a=rect(el),b=rect(head);return a&&b&&(a.x<b.x-1||a.right>b.right+1||a.y<b.y-1||a.bottom>b.bottom+1)}),
+    footerOverflow:foot?.scrollWidth-foot?.clientWidth||0,wholeOverflow:p.scrollWidth-p.clientWidth};
+  });
+  return {mode,view,width:innerWidth,height:innerHeight,documentOverflow:document.documentElement.scrollWidth-innerWidth,
+   panelTopDifference:panels.length===2?+(panels[1].panel.y-panels[0].panel.y).toFixed(2):null,
+   stageTopDifference:panels.length===2?+(panels[1].stage.y-panels[0].stage.y).toFixed(2):null,panels,hash:location.hash};
+ },{mode,view});
  for(const mode of [{name:'mobile',width:390,height:844},{name:'desktop',width:1440,height:900}]){
   const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',err=>errors.push(String(err)));
@@ -35,10 +53,12 @@ try{
     req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('summaries'))db.createObjectStore('summaries',{keyPath:'id'});if(!db.objectStoreNames.contains('details'))db.createObjectStore('details',{keyPath:'id'});};
     req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
    });
+   const scientific=await import('/ui/gpsReplayReference.js');
+   const staticReference=scientific.evaluateGpsReplayReference({activity:'RUNNING',speedMps:2.75});
    const summary={schema:2,id,activity:'RUNNING',date:'2026-10-27',createdAt:new Date(t).toISOString(),
      distanceKm:.0275,activeSeconds:10,accepted:3,rejected:0,detailSaved:true,
-     finalReference:{state:'REFERENCE_ONLY',speedMps:2.75,modelVersion:'e2e-seed',semanticVersion:'e2e-seed',
-      source:'test-seed',regions:Array.from({length:12},(_,i)=>({regionId:'R'+String(i+1).padStart(2,'0'),value:null,calculationState:'NOT_CALCULABLE',reasonCode:'SEED'}))}};
+     finalReference:{state:staticReference.state,speedMps:2.75,modelVersion:staticReference.modelVersion||null,semanticVersion:staticReference.semanticVersion||null,
+      source:staticReference.source||null,regions:staticReference.rows.map(r=>({regionId:r.regionId,value:r.calculationState==='CALCULATED'?r.value:null,calculationState:r.calculationState,reasonCode:r.reasonCode||null}))}};
    const route=[{lat:37.5000,lon:139.9000,km:0,t,breakBefore:true},
      {lat:37.5001,lon:139.9001,km:.0125,t:t+5000,breakBefore:false},
      {lat:37.5003,lon:139.9002,km:.0275,t:t+10000,breakBefore:false}];
@@ -77,9 +97,29 @@ try{
    withDetail:true,backup:true,backupValidated:true},'IndexedDB v2 save and export: '+JSON.stringify(persisted));
   await page.reload({waitUntil:'networkidle'});
   await page.goto('http://127.0.0.1:4189/#/result?gps=gps-v2-00000000-0000-4000-8000-000000000001',{waitUntil:'networkidle'});
-  await page.locator('.gd-enter').waitFor();
-  assert.match(await page.locator('.gd-summary').innerText(),/走行結果/);
-  await page.locator('.gd-enter').click();
+  const sharedResult=page.locator('#runload-result-v4');
+  await sharedResult.locator('.rv4-mobile-tabs').waitFor({state:'attached'});
+  assert.equal(await sharedResult.locator('[data-tab="body"]').count(),1);
+  assert.equal(await sharedResult.locator('[data-tab="fatigue"]').count(),1);
+  assert.equal(await sharedResult.locator('[data-tab="radar"]').count(),1);
+  assert.equal(await sharedResult.locator('.rv4-gps-gate').count(),1);
+  assert.equal(await sharedResult.locator('[data-gps-dynamic-gate]').count(),1);
+  assert.match(await sharedResult.locator('.rv4-notice').innerText(),/GPSで保存した記録/);
+  assert.match(await sharedResult.locator('.rv4-hero').innerText(),/距離/);
+  assert.equal(await sharedResult.locator('.rv4-region').count(),5);
+  assert.ok((await sharedResult.locator('.rv4-region[data-reference-state="available"]').count())>0);
+  if(mode.name==='mobile')await sharedResult.locator('[data-tab="fatigue"]').click();
+  else await sharedResult.locator('[data-tab="fatigue"]').evaluate(el=>el.click());
+  assert.match(await sharedResult.locator('.rv4-fatigue-numbers').innerText(),/—/,'GPS missing fatigue remains unreported');
+  if(mode.name==='mobile')await sharedResult.locator('[data-tab="radar"]').click();
+  else await sharedResult.locator('[data-tab="radar"]').evaluate(el=>el.click());
+  assert.match(await sharedResult.locator('.rv4-history').innerText(),/比較する記録はありません/);
+  if(mode.name==='mobile')await sharedResult.locator('[data-tab="body"]').click();
+  else await sharedResult.locator('[data-tab="body"]').evaluate(el=>el.click());
+  await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-01-summary.png'),fullPage:true,animations:'disabled'});
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-result-gateway.png'),fullPage:true,animations:'disabled'});
+  await sharedResult.locator('.rv4-body').screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-tabbed-body-gate.png'),animations:'disabled'});
+  await sharedResult.locator('[data-gps-dynamic-gate]').click();
   await page.locator('.gd-main').waitFor();
   assert.equal(await page.locator('.gd-panel').count(),2);
   assert.equal(await page.locator('.gd-body-path').count(),5);
@@ -93,11 +133,21 @@ try{
   assert.equal(await page.locator('[data-body-reference-label]').count(),0,
    'dynamic anatomy has no overlaid badges in default color mode');
   assert.equal(await page.locator('.gd-palette-track').count(),1);
+  layoutReports.push(await measurePanels(page,mode.name,'front-initial'));
+  await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-02-front-full.png'),fullPage:true,animations:'disabled'});
+  await page.locator('.gd-main').screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-02-front-cards.png'),animations:'disabled'});
+  await page.locator('[data-view="back"]').click();
+  layoutReports.push(await measurePanels(page,mode.name,'back-same-speed'));
+  await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-03-back-full.png'),fullPage:true,animations:'disabled'});
+  await page.locator('.gd-main').screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-03-back-cards.png'),animations:'disabled'});
+  await page.locator('[data-view="front"]').click();
   await page.screenshot({path:resolve(root,'screenshots',engineName+'-'+mode.name+'-dynamic-palette-clean.png'),fullPage:false});
   await page.locator('[data-body-label-toggle]').click();
   const hipAtOpen=page.locator('[data-body-reference-label="BA-DISP-014"]');
   assert.equal(await hipAtOpen.count(),1,'first calculable frame shows numeric hip badge on the body');
   assert.match(await hipAtOpen.getAttribute('data-body-reference-value'),/^\d+\.\d$/);
+  layoutReports.push(await measurePanels(page,mode.name,'front-labels-on'));
+  await page.screenshot({path:resolve(root,'screenshots','gps-audit-'+engineName+'-'+mode.name+'-04-numbers-full.png'),fullPage:true,animations:'disabled'});
   await page.locator('[data-body-label-toggle]').click();
   assert.equal(await hipAtOpen.count(),0,'user can return to unobstructed body color view');
   assert.equal(await page.locator('.gd-map-flag').count(),1);
@@ -124,7 +174,14 @@ try{
   assert.equal(await page.locator('.gd-body-path').count(),3);
   await page.locator('[data-jump-flag="0"]').click();
   assert.equal(await page.locator('.gd-scrub').inputValue(),'1');
-  assert.equal(await page.locator('.gd-flag-note').count(),1);
+  assert.match(await page.locator('.gd-flag-insight').innerText(),/折り返し/);
+  assert.ok(await page.locator('.gd-map-flag.is-active').count()>0);
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-sole.png'),fullPage:true,animations:'disabled'});
+  await page.locator('[data-view="front"]').click();
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-front.png'),fullPage:true,animations:'disabled'});
+  await page.locator('[data-view="back"]').click();
+  await page.screenshot({path:resolve(root,'screenshots','gps-proposal-'+engineName+'-'+mode.name+'-flag-back.png'),fullPage:true,animations:'disabled'});
+  assert.equal(await page.locator('.gd-flag-insight .gd-flag-title').count(),1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=3,mode.name+' GPS dynamic UI overflows '+overflow);
   assert.deepEqual(errors,[],mode.name+' console errors '+errors.join(';'));
@@ -132,4 +189,5 @@ try{
   console.log('PASS',engineName,mode.name,'v2 IndexedDB -> static gateway -> synced dynamic body/route/speed/flags');
   await page.close();
  }
+ await writeFile(resolve(root,'screenshots','gps-audit-'+engineName+'-geometry.json'),JSON.stringify(layoutReports,null,2)+'\n');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
