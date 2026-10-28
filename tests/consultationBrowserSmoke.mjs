@@ -26,18 +26,18 @@ try{
   await page.goto('http://127.0.0.1:4181/#/consultation',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#runload-consultation').count(),1,`${name}: route`);
   assert.equal(await page.locator('.cp-body-view').count(),3,`${name}: three official diagrams`);
-  assert.match(await page.locator('#cp-target option').first.innerText(),/保存された運動記録がありません/);
+  assert.match(await page.locator('#cp-target option').first().innerText(),/保存された運動記録がありません/);
   const saved=await page.evaluate(async()=>{
    const m=await import('./ui/manualRunStore.js');
    return m.saveManualRun(localStorage,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',courseName:'川沿い',shoeName:'シューズ',memo:'記録'});
   });
   assert.equal(saved.ok,true,`${name}: fixture save ${saved.reason||''}`);
   await page.reload({waitUntil:'networkidle'});
-  assert.match(await page.locator('[data-metric2-val]').first.innerText(),/5\.00 km/);
+  assert.match(await page.locator('[data-metric2-val]').first().innerText(),/5\.00 km/);
   await page.locator('#cp-purpose').fill('指導者に伝えたいこと');
   assert.equal(await page.locator('[data-report-purpose]').innerText(),'指導者に伝えたいこと');
   await page.locator('[data-mode-button="period"]').click();
-  assert.match(await page.locator('.cp-trend-holder').last.locator('svg').getAttribute('aria-label'),/距離km/);
+  assert.match(await page.locator('.cp-trend-holder').last().locator('svg').getAttribute('aria-label'),/距離km/);
   assert.equal(await page.locator('.cp-body-view').count(),3);
   if(name==='mobile')await page.locator('[data-switch="preview"]').click();
   if(!useWebKit){const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});assert.ok(pdf.length>10000,`${name}: PDF file size`);}
