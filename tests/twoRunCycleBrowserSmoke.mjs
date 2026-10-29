@@ -86,7 +86,17 @@ try{
  const noteData=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
  assert.equal(noteData.length,1);
  assert.equal(noteData[0].text,note);
- // Limit: exploration notes are topic-linked but NOT run-ID-linked; never report an automatic handoff.
- assert.equal(Object.hasOwn(noteData[0],'recordId'),false);
+ // The note is linked to the specific saved run selected at the time of writing.
+ assert.equal(noteData[0].recordId,firstId,'explicit selected run ID must persist');
+ assert.notEqual(noteData[0].recordId,secondId,'a later run must not inherit a prior note');
+ assert.ok(await page.locator('.ex-saved a[href="#/result?record='+firstId+'"]').count(),
+  'the note can return to its original, still-saved run');
+ await page.locator('[data-ex-action="close"]').click();
+ assert.equal(await page.locator('.ex-note-preview').count(),0,
+  'a different selected run must not display the prior run as its own topic note');
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ await page.locator('.ex-note-preview').waitFor();
+ assert.match(await page.locator('.ex-note-preview').innerText(),/次回は距離と平均ペース/,
+  'the original run can still revisit its own note');
  console.log('PASS stage 10: 2 actual saves, selected IDs, note persistence, comparison, reload and invalid-ID rejection');
 }finally{await browser.close();await new Promise(done=>server.close(done));}
