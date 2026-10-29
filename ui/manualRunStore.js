@@ -58,6 +58,8 @@ export function validateManualRunDraft(draft,{source='manual',type='run'}={}){
  if(String(draft.distance??'').trim()===''||!Number.isFinite(distance)||distance<=0||distance>10000||
   seconds===null||!Number.isInteger(seconds)||seconds>6000000)
    return {ok:false,reason:'距離・時間が正しく入力されていません'};
+ if(['courseName','shoeName'].some(k=>String(draft[k]??'').length>100))
+  return {ok:false,reason:'コース名とシューズ名は100文字以内で入力してください。入力内容は変更していません'};
  const snapshot={};
  for(const key of legacyRecordDraftFields){
   const v=draft[key];
