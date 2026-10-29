@@ -21,7 +21,7 @@
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261028-back-symmetry-v2");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261029-image-provenance-v1");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261029-region-evidence-v1");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
   const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
@@ -29,7 +29,7 @@
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-optional-guide-v2");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-print-integrity-v1");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261028-life-separation-v1");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261029-rof-source-v1");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
