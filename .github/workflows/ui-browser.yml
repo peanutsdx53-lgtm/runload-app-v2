@@ -87,12 +87,12 @@ jobs:
           fi
           fc-list :lang=ja | grep -Eqi 'Noto|IPA|Takao' || echo "CJK appearance verified separately in WebKit"
           fc-match :lang=ja
+      - name: Two saved runs and next-question continuity (Chromium)
+        run: node tests/twoRunCycleBrowserSmoke.mjs
       - name: GPS dynamic replay IndexedDB mobile and desktop
         run: node tests/gpsDynamicBrowserSmoke.mjs
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
-      - name: Two saved runs and next-question continuity (Chromium)
-        run: node tests/twoRunCycleBrowserSmoke.mjs
       - name: Region-source disclosure on real result UI (Chromium)
         run: node tests/regionEvidenceBrowserSmoke.mjs
       - name: First-use legal flow and smartphone/desktop screenshots
