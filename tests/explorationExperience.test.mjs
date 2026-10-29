@@ -151,9 +151,9 @@ test('learning help distinguishes numerical definitions, ROF-J self-reports and 
  const base={categories:all,draft:{},conditions:{entries:[]}};
  for(const row of [
   ['01','距離・時間・ペース','距離と経過時間から求める算術上の定義'],
-  ['01','自分が感じた疲れ','本人が回答した疲労感の読み方'],
+  ['01','自分が感じた疲れ','日本語版ROF-Jは大学生85人'],
   ['02','12部位の参考値の見方','測定量・適用条件は部位ごとに異なります'],
-  ['04','疲れの感じ方','本人が運動前後に回答した主観的疲労感の読み方']
+  ['04','疲れの感じ方','妥当性の検討対象は大学生']
  ]){
   ui.selected=row[0];ui.topic=row[1];
   const html=render(ui,base);
