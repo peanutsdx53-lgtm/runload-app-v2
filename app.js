@@ -9,6 +9,7 @@
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261027-manual-gait-v5");
+  const manualRunLock=await import("./ui/manualRunLock.js");
   const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
@@ -511,8 +512,9 @@ function recordExtras(){
    const record=found.ok?found.record:null;
    resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
     saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
-    onAssignGait:gait=>{
-     const changed=manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait);
+    onAssignGait:async gait=>{
+     const changed=await manualRunLock.withManualRunWriteLock(()=>
+       manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait));
      state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
      render();
     }
@@ -850,7 +852,7 @@ function recordExtras(){
       dataUi.busy=true;
       try{
         if(dataAction.hasAttribute('data-dm-export')){
-          const result=await dataManagement.exportPortableBackup(onboardStorage,{includeGps:dataUi.includeGps});
+          const result=await manualRunLock.withManualRunWriteLock(()=>dataManagement.exportPortableBackup(onboardStorage,{includeGps:dataUi.includeGps}));
           if(!result.ok)dataUi.notice=result.reason;
           else{
             try{downloadDataFile(result.text);dataUi.notice="ファイルの保存を開始しました。端末のダウンロード先を確認してください。";}
@@ -858,13 +860,13 @@ function recordExtras(){
           }
         }else if(dataAction.hasAttribute('data-dm-restore')){
           if(!dataUi.preview?.ok||!dataUi.pendingText||(dataUi.preview.hasExisting&&!dataUi.safetyCopy))return;
-          const restored=await dataManagement.restorePortableBackup(onboardStorage,dataUi.pendingText);
+          const restored=await manualRunLock.withManualRunWriteLock(()=>dataManagement.restorePortableBackup(onboardStorage,dataUi.pendingText));
           if(restored.ok){location.reload();return;}
           dataUi.notice=restored.reason;
           if(restored.partial){dataUi.preview=null;dataUi.pendingText="";}
         }else if(dataAction.hasAttribute('data-dm-delete-confirm')){
           if(!dataUi.deleteAgreed||dataUi.deleteWord!=="削除")return;
-          const removed=await dataManagement.removeAllPortableData(onboardStorage);
+          const removed=await manualRunLock.withManualRunWriteLock(()=>dataManagement.removeAllPortableData(onboardStorage));
           if(removed.ok){location.reload();return;}
           dataUi.notice=removed.reason;
         }
@@ -903,7 +905,7 @@ function recordExtras(){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
       }
-      const saved=manualRunStore.saveManualRun(onboardStorage,state.recordDraft,{source:state.recordReviewSource,type:state.recordType});
+      const saved=await manualRunLock.withManualRunWriteLock(()=>manualRunStore.saveManualRun(onboardStorage,state.recordDraft,{source:state.recordReviewSource,type:state.recordType}));
       if(!saved.ok){manualSaveNotice=saved.reason;const y=window.scrollY;render();window.scrollTo(0,y);return;}
       selectedRunId=saved.record.id;manualSaveNotice="";state.recordReviewReturn=false;
       state.toast="手入力の走行記録をこの端末に保存しました";
