@@ -128,6 +128,13 @@
   const historyUi=historyExperience.createHistoryUi();
   let lastExploreRoute=null;
   const explorationUi=explorationExperience.makeUi((()=>{try{return window.localStorage}catch{return null}})());
+  // Return keyboard users to the inquiry control that opened a modal, after re-rendering.
+  let explorationReturnAction="";
+  function restoreExplorationFocus(){
+    const action=explorationReturnAction;explorationReturnAction="";
+    if(!action)return;
+    [...app.querySelectorAll('[data-ex-action]')].find(el=>el.dataset.exAction===action)?.focus();
+  }
   const lifeCompareUi={a:"",b:"",open:false,notice:""};
   let manualSaveNotice="";
   let selectedRunId=null;
@@ -1256,24 +1263,25 @@ function recordExtras(){
     const slopeChoice=event.target.closest("[data-ex-slope]");
     if(slopeChoice){const y=window.scrollY;explorationUi.toolChoice=slopeChoice.dataset.exSlope;render();window.scrollTo(0,y);return;}
     const nextChoice=event.target.closest("[data-ex-next]");
-    if(nextChoice){const prompts={"02|足・膝・股関節":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],"03|上り坂・下り坂":["次は上りと下りで感じ方を確かめたい","坂道のある日とない日の記録を見比べたい"],"05|睡眠":["次は起床時の調子も記録してみたい","睡眠の記録を数日分見返してみたい"]};const options=prompts[explorationUi.selected+"|"+explorationUi.topic]||[];explorationUi.followup=options[Number(nextChoice.dataset.exNext)]||"";explorationUi.modal="note";render();app.querySelector("#ex-note")?.focus();return;}
+    if(nextChoice){explorationReturnAction="note";const prompts={"02|足・膝・股関節":["次は走るときの股関節の動きを意識してみたい","足首の動きについてもう少し調べたい"],"03|上り坂・下り坂":["次は上りと下りで感じ方を確かめたい","坂道のある日とない日の記録を見比べたい"],"05|睡眠":["次は起床時の調子も記録してみたい","睡眠の記録を数日分見返してみたい"]};const options=prompts[explorationUi.selected+"|"+explorationUi.topic]||[];explorationUi.followup=options[Number(nextChoice.dataset.exNext)]||"";explorationUi.modal="note";render();app.querySelector("#ex-note")?.focus();return;}
     const exploreAction=event.target.closest("[data-ex-action]");
     if(exploreAction){
       const action=exploreAction.dataset.exAction;
-      if(action==="close"){explorationUi.modal="";render();return;}
+      if(action==="close"){explorationUi.modal="";render();restoreExplorationFocus();return;}
       if(action==="catalog"){explorationUi.tab="catalog";render();return;}
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
       if(action==="save-note"){
         const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value);
         explorationUi.notice=result.ok?"書いたことを保存しました":result.reason;if(result.ok)explorationUi.followup="";
         if(result.ok)explorationUi.modal="";
-        render();return;
+        render();if(result.ok)restoreExplorationFocus();return;
       }
       if(action==="copy"){
         const value=app.querySelector("[data-ex-draft-text]")?.innerText||"";
         if(navigator.clipboard?.writeText){navigator.clipboard.writeText(value).then(()=>{const n=app.querySelector(".ex-dialog");if(n){const p=document.createElement("p");p.setAttribute("role","status");p.textContent="コピーしました";n.appendChild(p);}}).catch(()=>{const n=app.querySelector(".ex-dialog");if(n){const p=document.createElement("p");p.setAttribute("role","alert");p.textContent="コピーできませんでした";n.appendChild(p);}})}
         return;
       }
+      explorationReturnAction=action;
       explorationUi.modal=action;explorationUi.notice="";render();app.querySelector(".ex-dialog-head button")?.focus();return;
     }
     const exploreDelete=event.target.closest("[data-ex-delete]");
@@ -1348,7 +1356,19 @@ function recordExtras(){
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-region-focus]")){
       event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}));return;
     }
-    if(event.key==="Escape"&&explorationUi.modal){explorationUi.modal="";render();return;}
+    const explorationDialog=app.querySelector('.ex-dialog');
+    if(explorationUi.modal&&explorationDialog){
+      if(event.key==="Escape"){event.preventDefault();explorationUi.modal="";render();restoreExplorationFocus();return;}
+      if(event.key==="Tab"){
+        const items=[...explorationDialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+          .filter(el=>el.getClientRects().length>0);
+        if(items.length){
+          const first=items[0],last=items.at(-1),inside=explorationDialog.contains(document.activeElement);
+          if(event.shiftKey&&(!inside||document.activeElement===first)){event.preventDefault();last.focus();return;}
+          if(!event.shiftKey&&(!inside||document.activeElement===last)){event.preventDefault();first.focus();return;}
+        }
+      }
+    }
     if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
