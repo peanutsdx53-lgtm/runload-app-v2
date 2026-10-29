@@ -4,6 +4,7 @@ import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_
 import {REGIONS} from './bodyContextExperience.js';
 import {comparableRunChoices,compareSavedRuns,gaitOf} from './runReflection.js';
 import {calculateActivityReference,ACTIVITY_LABELS} from '../core/activity/activityReference.js';
+import {describeRegionEvidence} from './referenceEvidenceInfo.js';
 const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
 const positive=v=>{const n=number(v);return n!==null&&n>0?n:null};
@@ -87,7 +88,26 @@ export function mountResult(host,inputDraft={},options={}){
   };
  const chart=()=>{const labels=['距離','平均速度','走行時間','上り割合','歩数','運動後疲労感'];const p=(i,r)=>{const a=i*2*Math.PI/6-Math.PI/2;return (153+Math.cos(a)*r*83).toFixed(1)+','+(128+Math.sin(a)*r*83).toFixed(1)};return '<svg viewBox="0 0 306 267" class="rv4-radar" role="img" aria-label="比較する記録はありませんの六軸チャート">'+[.25,.5,.75,1].map(k=>'<polygon points="'+labels.map((_,i)=>p(i,k)).join(' ')+'" />').join('')+labels.map((l,i)=>'<line x1="153" y1="128" x2="'+p(i,1).split(',')[0]+'" y2="'+p(i,1).split(',')[1]+'"/><text x="'+p(i,1.27).split(',')[0]+'" y="'+p(i,1.27).split(',')[1]+'" text-anchor="middle">'+l+'</text>').join('')+'<text x="153" y="127" class="rv4-chart-empty" text-anchor="middle">比較する記録はありません</text><text x="153" y="144" class="rv4-chart-sub" text-anchor="middle">今後の記録を振り返れます</text></svg>'};
  const nav=()=>'<div class="rv4-mobile-tabs" role="group" aria-label="結果の表示切替">'+[['body','身体'],['fatigue','疲労感'],['radar','過去と比較']].map(([k,label])=>'<button type="button" data-tab="'+k+'" aria-pressed="'+(tab===k)+'" class="'+(tab===k?'active':'')+'">'+label+'</button>').join('')+'</div>';
-  const body=()=>{const r=current(),v=selectedView(),scale=bodyReferenceScale(r.value);
+  const evidencePanel=()=>{
+  if(!fromSaved&&!fromGps)return '';
+  const selected=current(),row=bodyReferenceRow(reference?.rows,selected.id);
+  const evidence=describeRegionEvidence({row,bodyId:selected.id,activity:reference?.activity,
+   source:fromSaved?'saved-manual':'gps'});
+  const badge=evidence.kind==='unavailable'?'出典の確認が必要':evidence.status;
+  const entry=evidence.kind==='unavailable'?'<p>'+clean(evidence.message)+'</p>':
+   '<div class="rv4-extra-grid"><div><small>研究上の測定量</small><strong>'+clean(evidence.metric)+'</strong></div>'+
+   '<div><small>参考原著・識別子</small><strong>'+clean(evidence.citation)+'</strong></div>'+
+   '<div><small>参考値の対象速度域</small><strong>'+clean(evidence.domain)+'</strong></div></div>'+
+   '<p>基準100：'+clean(evidence.reference)+'</p>'+
+   (evidence.unit?'<p>原著の単位：'+clean(evidence.unit)+'</p>':'')+
+   (evidence.sourceLocation?'<p>出典内の位置：'+clean(evidence.sourceLocation)+'</p>':'')+
+   (evidence.url?'<p><a href="'+clean(evidence.url)+'" target="_blank" rel="noopener noreferrer">原著の書誌・公開ページを見る ↗</a></p>':'')+
+   '<p>'+clean(evidence.note)+'</p>';
+  return '<details class="rv4-details rv4-region-evidence" data-region-evidence="'+clean(selected.id)+'">'+
+   '<summary><span class="rv4-icon">'+icon('memo')+'</span><span><strong>この部位の研究根拠と条件</strong><small>'+clean(badge)+'</small></span><b>⌄</b></summary>'+
+   '<div class="rv4-note">'+entry+'</div></details>';
+ };
+ const body=()=>{const r=current(),v=selectedView(),scale=bodyReferenceScale(r.value);
    const delta=r.value===null?'':(r.value>=100?'+':'')+format(r.value-100,1);
    return '<section class="rv4-card rv4-body" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>速度に対応する文献参考値</h2><p>本人の身体を測定した数値ではありません</p></div><span class="rv4-mini">'+(reference?.count?reference.count+'/12 算出':'未取得')+'</span></div>'
     +'<div class="rv4-tone-legend"><span><i class="rv4-low"></i>100より低い</span><span><i class="rv4-mid"></i>基準100</span><span><i class="rv4-high"></i>100より高い</span></div>'
@@ -107,7 +127,7 @@ export function mountResult(host,inputDraft={},options={}){
     +(fromGps&&gps.detailSaved&&['RUNNING','JOGGING','WALK'].includes(gps.activity)?
        '<div class="rv4-gps-gate"><div><small>GPSコースと身体の変化</small><strong>フラッグ地点の参考値を振り返る</strong><span>コース上の地点・速度・人体図を連動表示します</span></div><a data-gps-dynamic-gate href="#/dynamic-result?record='+encodeURIComponent(gps.id)+'">動的結果を見る ›</a></div>':'')
     +'<p class="rv4-disclaimer">色は各部位自身の基準100との差を示します。危険度・部位間の順位ではありません。算出できない部位は灰色で表示します。</p>'
-    +'<a class="rv4-learn-link" href="'+exploreLink('02','12部位の参考値の見方')+'">この数値の意味を探究で確かめる ›</a></section>';
+    +'<a class="rv4-learn-link" href="'+exploreLink('02','12部位の参考値の見方')+'">この数値の意味を探究で確かめる ›</a>'+evidencePanel()+'</section>';
   };
  const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の変化</h2><p>運動前と運動後（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>変化</small><strong>'+(before!==null&&after!==null?(after-before>0?'+':'')+(after-before):'—')+'</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人が回答した疲労感です。未回答は「—」で表示します。</p></section>';
  const radar=()=>{
