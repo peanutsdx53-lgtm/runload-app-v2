@@ -127,8 +127,35 @@ try{
     await page.locator('.app-shell').waitFor();
     assert.ok((await page.locator('.main-frame').innerText()).trim().length>25,'offline route has content: '+route);
    }
+   // New acceptance only: offline write, two-run comparison, and PNG export.
+   await page.goto(base+'#/exploration-tree?record='+encodeURIComponent(saved.current)+'&category=01&topic='+encodeURIComponent('気付きと次の確認'),{waitUntil:'domcontentloaded'});
+   await page.locator('.ex-page').waitFor();
+   await page.locator('[data-ex-action="note"]').click();
+   await page.locator('#ex-note').fill('通信なしで次回の確認事項を追記');
+   await page.locator('[data-ex-action="save-note"]').click();
+   const offlineNotes=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
+   assert.equal(offlineNotes.length,2,'offline write must preserve both distinct notes');
+   assert.ok(offlineNotes.some(n=>n.text==='通信なしで次回の確認事項を追記'));
+   await page.reload({waitUntil:'domcontentloaded'});
+   await page.locator('.ex-page').waitFor();
+   assert.match(await page.locator('.ex-header-memo').innerText(),/2/,'offline note persists after offline reload');
+   await page.locator('[data-ex-action="memories"]').click();
+   assert.match(await page.locator('.ex-dialog').innerText(),/通信なしで次回の確認事項を追記/);
+   await page.locator('.ex-dialog [data-ex-action="close"]').click();
+   await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
+   await page.locator('.rv4-reading-route').waitFor();
+   await page.locator('[data-tab="radar"]').click();
+   await page.locator('.rv4-comparison-table').waitFor();
+   assert.match(await page.locator('.rv4-comparison-table').innerText(),/2026-10-18/);
+   assert.match(await page.locator('.rv4-comparison-table').innerText(),/2026-10-25/);
+   const [offlineImage]=await Promise.all([page.waitForEvent('download'),page.locator('#runload-result-v4 [data-download]').click()]);
+   assert.equal(offlineImage.suggestedFilename(),'走行結果.png');
+   const savedPng=resolve(root,'screenshots',prefix+'-offline-export.png');
+   await offlineImage.saveAs(savedPng);
+   const bytes=await readFile(savedPng);
+   assert.ok(bytes.length>12000&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'offline image has a valid PNG signature');
    await page.goto(base+'#/home',{waitUntil:'domcontentloaded'});
-   assert.match(await page.locator('.hx-discovery-note').innerText(),/次の走行でも/);
+   assert.match(await page.locator('.hx-discovery-note').innerText(),/通信なしで次回の確認事項を追記/);
   }
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
   await context.close();
