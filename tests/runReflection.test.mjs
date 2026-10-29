@@ -13,6 +13,15 @@ test('same-gait saved run comparison shows facts, true zero and provenance safel
  assert.match(result.uncertainty,/原因/);assert.match(result.uncertainty,/文献参考値/);
  assert.equal(result.rows.find(x=>x.key==='distance').change,.5);
 });
+test('saved ROF-J comparisons disclose missing individual assessment timestamps',()=>{
+ const result=compareSavedRuns(run(2),run(1));
+ assert.equal(result.status,'ready');
+ assert.match(result.uncertainty,/ROF-Jの個別評価時刻は保存していない/);
+ assert.match(result.uncertainty,/時間的に変化した量は判定できません/);
+ // Differences between two entered scores remain descriptive, not temporal eligibility.
+ assert.equal(result.rows.find(x=>x.key==='rofBefore').change,0);
+});
+
 test('unsupported, cross-activity, invented and same records fail closed',()=>{
  assert.equal(compareSavedRuns(run(1),run(1)).status,'same-record');
  assert.equal(compareSavedRuns(run(1),run(2,{draft:{activityGait:'WALK'}})).status,'incompatible');
