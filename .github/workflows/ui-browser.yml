@@ -9,6 +9,7 @@ on:
       - 'sw.js'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/firstUseBrowserSmoke.mjs'
       - 'tests/dataManagementBrowserSmoke.mjs'
       - 'tests/gpsDynamicBrowserSmoke.mjs'
@@ -26,6 +27,7 @@ on:
       - 'assets/**'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
@@ -87,6 +89,8 @@ jobs:
         run: node tests/gpsDynamicBrowserSmoke.mjs
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
+      - name: Region-source disclosure on real result UI (Chromium)
+        run: node tests/regionEvidenceBrowserSmoke.mjs
       - name: First-use legal flow and smartphone/desktop screenshots
         run: node tests/firstUseBrowserSmoke.mjs
       - name: Data backup restore deletion and screenshots
@@ -157,6 +161,10 @@ jobs:
           fi
       - name: WebKit smartphone reading card and screenshot inspection
         run: node tests/explorationWebkitSmoke.mjs
+      - name: Region-source disclosure on real result UI (WebKit)
+        env:
+          RUNLOAD_BROWSER_ENGINE: webkit
+        run: node tests/regionEvidenceBrowserSmoke.mjs
       - name: Consultation report WebKit
         run: RUNLOAD_BROWSER=webkit node tests/consultationBrowserSmoke.mjs
       - name: WebKit GPS dynamic replay IndexedDB mobile and desktop
