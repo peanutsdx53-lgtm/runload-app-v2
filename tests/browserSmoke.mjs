@@ -1491,6 +1491,9 @@ try{
   assert.equal(await savedResult.locator('[data-result-gait]').count(),3,
    'existing saved unknown activity offers in-place repair');
   await savedResult.locator('[data-result-gait="RUNNING"]').click();
+  // Gait repair is now saved under the cross-tab lock; wait for its
+  // confirmed UI re-render rather than inspecting the stale result panel.
+  await savedResult.locator('[data-result-gait]').first().waitFor({state:'detached'});
   await savedResult.locator('.rv4-mini').waitFor();
   assert.match(await savedResult.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/);
   assert.equal(await savedResult.locator('[data-result-gait]').count(),0,
