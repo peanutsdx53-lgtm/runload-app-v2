@@ -54,6 +54,25 @@ export function checkRecordDraft(d={},isRun=true){
  const errors=[],warnings=[];
  if(!['','UNKNOWN','RUNNING','JOGGING','WALK'].includes(String(d.activityGait??'UNKNOWN')))errors.push('活動種別の値を確認してください');
  if(!isRun)return {errors,warnings,ready:true}; // Rest uses a separate record contract.
+ // New manual saves must not silently reinterpret unknown enum values as
+ // valid reference-model inputs. Historical records are read by their
+ // separate, non-destructive contract and are not rewritten here.
+ const enumValue=(key,allowed,label)=>{
+  const value=String(d[key]??"UNKNOWN");
+  if(!allowed.includes(value)&&value!=="")errors.push(label+"の選択値を確認してください");
+ };
+ enumValue("stepsProvenance",["UNKNOWN","DEVICE_MEASURED","ESTIMATED"],"歩数の取得方法");
+ enumValue("runningFormat",["UNKNOWN","CONTINUOUS_RUN","RUN_WALK"],"走り方");
+ enumValue("gradeMode",["UNKNOWN","FLAT","SUMMARY","SECTIONS"],"坂道");
+ enumValue("surfaceMode",["UNKNOWN","SINGLE","MIXED"],"路面設定");
+ if(nonblank(d.primarySurface)&&!surfaceKeys.includes(String(d.primarySurface)))
+  errors.push("主な路面の選択値を確認してください");
+ for(let i=0;i<5;i++){
+  if(nonblank(d["sectionDirection"+i])&&!["UNKNOWN","FLAT","UPHILL","DOWNHILL"].includes(String(d["sectionDirection"+i])))
+   errors.push("区間"+(i+1)+"の坂道の向きを確認してください");
+  if(nonblank(d["sectionSurface"+i])&&!["UNKNOWN",...surfaceKeys].includes(String(d["sectionSurface"+i])))
+   errors.push("区間"+(i+1)+"の路面を確認してください");
+ }
  range(d.distance,0,10000,errors,"距離");
  range(d.hours,0,10000,errors,"時間（時）");
  range(d.minutes,0,100000,errors,"時間（分）");

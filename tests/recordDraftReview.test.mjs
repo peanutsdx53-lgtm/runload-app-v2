@@ -43,3 +43,38 @@ test("slope, sections, surface percentages obey their own contracts",()=>{
 test("rest does not apply scientific run-only validation",()=>{
  assert.equal(checkRecordDraft({gradeMode:"SUMMARY",upPercent:"999",distance:"10001"},false).errors.length,0);
 });
+
+test("stage 7 enumerates the complete 54-field manual snapshot without inventing required optional values",()=>{
+ assert.equal(legacyRecordDraftFields.length,54);
+ const sectionFields=legacyRecordDraftFields.filter(k=>/^section(Share|Direction|Grade|Surface)[0-4]$/.test(k));
+ assert.equal(sectionFields.length,20);
+ const surfaceFields=legacyRecordDraftFields.filter(k=>/^surface(paved|track|treadmill|soil|trail|naturalGrass|artificialTurf|sand)$/.test(k));
+ assert.equal(surfaceFields.length,8);
+ assert.ok(legacyRecordDraftFields.includes("rofBefore")&&legacyRecordDraftFields.includes("rofAfter"));
+ assert.deepEqual(checkRecordDraft({}),{errors:[],warnings:[],ready:true});
+});
+test("stage 7 rejects invalid new manual classification codes without imposing them on rest",()=>{
+ for(const change of [
+  {stepsProvenance:"GUESSING"},{runningFormat:"SPRINT"},{gradeMode:"SYNTHETIC"},
+  {surfaceMode:"OTHER"},{primarySurface:"ice"},{sectionDirection0:"STEEP"},
+  {sectionSurface2:"interplanetary"}
+ ])assert.ok(checkRecordDraft(change).errors.length>0,JSON.stringify(change));
+ assert.deepEqual(checkRecordDraft({stepsProvenance:"DEVICE_MEASURED",runningFormat:"CONTINUOUS_RUN",gradeMode:"UNKNOWN",surfaceMode:"UNKNOWN",primarySurface:"",sectionDirection0:"FLAT",sectionSurface0:"UNKNOWN"}).errors,[]);
+ assert.equal(checkRecordDraft({sectionDirection0:"STEEP"},false).errors.length,0);
+});
+test("stage 7 forbids any mixed run-walk regional reference and aligns both input guides",async()=>{
+ const {readFileSync}=await import("node:fs");
+ const app=readFileSync(new URL("../app.js",import.meta.url),"utf8");
+ const gait=readFileSync(new URL("../ui/gaitExperience.js",import.meta.url),"utf8");
+ assert.match(app,/走歩混在の記録では、単一活動の12部位文献参考値は算出しません/);
+ assert.match(gait,/走歩混在では12部位文献参考値を算出せず/);
+ assert.doesNotMatch(app,/走った区間だけを対象にします/);
+ const {calculateActivityReference}=await import("../core/activity/activityReference.js");
+ const result=calculateActivityReference({
+  source:"manual",type:"run",schema:1,id:"run-v1-00000000-0000-4000-8000-000000000001",
+  distanceKm:5,durationSeconds:1800,draft:{activityGait:"RUNNING",runningFormat:"RUN_WALK"}
+ });
+ assert.equal(result.state,"NOT_CALCULABLE");
+ assert.equal(result.reason,"MIXED_GAIT_NOT_QUANTIFIED");
+ assert.equal(result.count,0);
+});
