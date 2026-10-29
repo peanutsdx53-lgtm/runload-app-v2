@@ -1414,7 +1414,7 @@ try{
   assert.notEqual(saveAppearance.color,'rgb(169, 199, 209)','save button text must have high contrast');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-review-save-v18.png'),fullPage:false});
   await review.locator('[data-manual-run-save]').click();
-  assert.match(page.url(),/#\/result\?record=run-v1-/);
+  await page.waitForURL(/#\/result\?record=run-v1-/);
   const savedResult=page.locator('#runload-result-v4');
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/端末に保存した手入力/);
   assert.equal(await savedResult.locator('style[data-result-inline-styles]').count(),1,'result shadow styles are available immediately');
