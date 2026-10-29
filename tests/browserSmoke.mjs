@@ -506,12 +506,14 @@ try{
    await ex.locator('[data-ex-next="0"]').click();
   assert.equal(await ex.locator('#ex-note').inputValue(),'次は上りと下りで感じ方を確かめたい');
   await ex.locator('[data-ex-action="save-note"]').click();
+  await ex.locator('.ex-memory-count').waitFor();
   assert.equal(await ex.locator('.ex-memory-count').count(),1,'saved note creates a visible memory marker');
    assert.match(await ex.locator('.ex-header-memo').innerText(),/ふり返り/);
   assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,1);
   await ex.locator('[data-ex-action="memories"]').first().click();
   assert.match(await ex.locator('.ex-dialog').innerText(),/次は上りと下りで感じ方を確かめたい/);
   await ex.locator('[data-ex-delete]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===0);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),0);
   await ex.locator('[data-ex-action="close"]').click();
   await ex.locator('[data-ex-tab="catalog"]').click();
