@@ -83,6 +83,10 @@ try{
   await page.locator('[data-ex-action="note"]').click();
   await page.locator('#ex-note').fill('次の走行でも前後の疲れを見比べたい');
   await page.locator('[data-ex-action="save-note"]').click();
+  await page.waitForFunction(()=>{
+   const notes=JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]');
+   return notes.length===1&&notes[0].text==='次の走行でも前後の疲れを見比べたい';
+  });
   const note=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
   assert.equal(note.length,1);assert.equal(note[0].text,'次の走行でも前後の疲れを見比べたい');
   await page.locator('.ex-record-return a').click();
@@ -133,6 +137,10 @@ try{
    await page.locator('[data-ex-action="note"]').click();
    await page.locator('#ex-note').fill('通信なしで次回の確認事項を追記');
    await page.locator('[data-ex-action="save-note"]').click();
+   await page.waitForFunction(()=>{
+    const notes=JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]');
+    return notes.length===2&&notes.some(n=>n.text==='通信なしで次回の確認事項を追記');
+   });
    const offlineNotes=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
    assert.equal(offlineNotes.length,2,'offline write must preserve both distinct notes');
    assert.ok(offlineNotes.some(n=>n.text==='通信なしで次回の確認事項を追記'));
