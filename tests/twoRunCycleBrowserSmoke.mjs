@@ -14,8 +14,9 @@ const server=createServer(async(req,res)=>{
   const name=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);
   const path=resolve(root,'.'+name.replace(/^\//,'/'));
   if(!(path===root||path.startsWith(root+sep)))throw Error('outside');
-  const bytes=await readFile(path===root?resolve(root,'index.html'):path);
-  res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');res.end(bytes);
+  const real=path===root?resolve(root,'index.html'):path;
+  const bytes=await readFile(real);
+  res.setHeader('Content-Type',mime[extname(real)]||'application/octet-stream');res.end(bytes);
  }catch{res.statusCode=404;res.end('Not found');}
 });
 await new Promise(done=>server.listen(4175,'127.0.0.1',done));
