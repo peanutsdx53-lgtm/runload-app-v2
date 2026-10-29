@@ -21,7 +21,7 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
   if(row.evidence?.sourceSha256&&row.evidence.sourceSha256!==series.sourceSha256)return incomplete('保存された結果の原著と現行の原著が一致しないため、出典の表示を保留します。');
   const citation=RUNNING_CITATIONS[series.sourceFile]||{label:'採用原著（研究台帳参照）',url:null};
   const lo=kmh(series.approvedSpeedMps[0]),hi=kmh(series.approvedSpeedMps[1]),ref=kmh(series.reference.speedMps);
-  return Object.freeze({kind:'running',metric:series.metricDescription,unit:series.unit,
+  return Object.freeze({kind:'running',metric:series.metricDescription,unit:series.unit,domainLabel:'採用した参考値の速度域',
    citation:citation.label,url:citation.url,sourceLocation:series.sourceLocation,
    domain:lo+'～'+hi+' km/h',reference:'基準速度 '+ref+' km/h を100とする部位内の比',
    status:row.calculationState==='CALCULATED'?'算出対象':'この記録の条件では未算出',
@@ -32,12 +32,12 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
   if(!evidence||typeof evidence.sourceId!=='string'||typeof evidence.constructId!=='string')
    return incomplete('この活動種別のモデルについて、部位別の出典情報を確認できません。');
   const lo=kmh(evidence.sourceDomain?.minMps),hi=kmh(evidence.sourceDomain?.maxMps),ref=kmh(evidence.referenceSpeedMps);
-  return Object.freeze({kind:'walk-jog',metric:'活動種別ごとに採用した研究上の指標（識別子：'+evidence.constructId+'）',
+  return Object.freeze({kind:'walk-jog',domainLabel:'原著の速度範囲（出力可能範囲ではありません）',metric:'活動種別ごとに採用した研究上の指標（識別子：'+evidence.constructId+'）',
    unit:'部位内の基準100に対する比',citation:'モデル内の原著ID：'+evidence.sourceId,url:null,
    sourceLocation:'活動別モデル '+activity,domain:lo&&hi?lo+'～'+hi+' km/h':'採用条件の詳細は研究台帳参照',
    reference:ref?'基準速度 '+ref+' km/h を100とする活動別の指標':'活動別の参照速度は研究台帳参照',
    status:row.calculationState==='CALCULATED'?'算出対象':'この記録の条件では未算出',
-   note:'ランニングの12部位と同じ原著・同じ測定量であるとは限りません。本人の身体測定値や安全性の判定には使用できません。'});
+   note:'この範囲は元研究が扱った速度条件であり、実際に出力できる速度域は活動別モデルの条件によってさらに制限されます。ランニングと同じ原著・同じ測定量であるとは限らず、本人の身体測定値や安全性の判定には使用できません。'});
  }
  return incomplete('活動種別が未設定または対象外のため、部位別の原著情報を特定できません。');
 }
