@@ -9,6 +9,7 @@ on:
       - 'sw.js'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/twoRunCycleBrowserSmoke.mjs'
       - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/firstUseBrowserSmoke.mjs'
       - 'tests/dataManagementBrowserSmoke.mjs'
@@ -27,6 +28,7 @@ on:
       - 'assets/**'
       - 'ui/**'
       - 'tests/browserSmoke.mjs'
+      - 'tests/twoRunCycleBrowserSmoke.mjs'
       - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
@@ -89,6 +91,8 @@ jobs:
         run: node tests/gpsDynamicBrowserSmoke.mjs
       - name: Desktop and smartphone UI interactions
         run: node tests/browserSmoke.mjs
+      - name: Two saved runs and next-question continuity (Chromium)
+        run: node tests/twoRunCycleBrowserSmoke.mjs
       - name: Region-source disclosure on real result UI (Chromium)
         run: node tests/regionEvidenceBrowserSmoke.mjs
       - name: First-use legal flow and smartphone/desktop screenshots
