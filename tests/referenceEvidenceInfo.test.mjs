@@ -10,7 +10,7 @@ test('all 12 running regions expose their own metric, original source, source sc
  assert.equal(RUNNING_REGION_SERIES.length,12);
  for(const series of RUNNING_REGION_SERIES){
   const bodyId=engineReferenceBodyId(series.regionId);
-  const row={regionId:bodyId,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}};
+  const row={regionId:series.regionId,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}};
   const info=describeRegionEvidence({row,bodyId,activity:'RUNNING'});
   assert.equal(info.kind,'running',series.regionId);
   assert.equal(info.metric,series.metricDescription,series.regionId);
@@ -24,19 +24,19 @@ test('all 12 running regions expose their own metric, original source, source sc
 });
 test('source mismatch does not silently claim the currently frozen paper',()=>{
  const series=RUNNING_REGION_SERIES[0],bodyId=engineReferenceBodyId(series.regionId);
- const row={regionId:bodyId,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:'different'}};
+ const row={regionId:series.regionId,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:'different'}};
  assert.equal(describeRegionEvidence({row,bodyId,activity:'RUNNING'}).kind,'unavailable');
 });
 test('not-calculable running regions disclose literature scope without inventing values',()=>{
  const series=RUNNING_REGION_SERIES[8],bodyId=engineReferenceBodyId(series.regionId);
- const info=describeRegionEvidence({row:{regionId:bodyId,calculationState:'NOT_CALCULABLE',evidence:{reasonCode:'OUTSIDE_SOURCE_RANGE'}},bodyId,activity:'RUNNING'});
+ const info=describeRegionEvidence({row:{regionId:series.regionId,calculationState:'NOT_CALCULABLE',evidence:{reasonCode:'OUTSIDE_SOURCE_RANGE'}},bodyId,activity:'RUNNING'});
  assert.equal(info.kind,'running');
  assert.match(info.status,/未算出/);
  assert.equal(info.domain,'10.008～18 km/h');
 });
 test('walking/jogging never inherit the running source and GPS never guesses it',()=>{
  const bodyId=engineReferenceBodyId('R01');
- const base={regionId:bodyId,calculationState:'CALCULATED',evidence:{constructId:'WALK_HIP_WORK_JIN',sourceId:'JIN_2018_UO',sourceDomain:{minMps:.8,maxMps:2},referenceSpeedMps:1.5}};
+ const base={regionId:'R01',calculationState:'CALCULATED',evidence:{constructId:'WALK_HIP_WORK_JIN',sourceId:'JIN_2018_UO',sourceDomain:{minMps:.8,maxMps:2},referenceSpeedMps:1.5}};
  const walk=describeRegionEvidence({row:base,bodyId,activity:'WALK'});
  assert.equal(walk.kind,'walk-jog');
  assert.match(walk.citation,/JIN_2018_UO/);
