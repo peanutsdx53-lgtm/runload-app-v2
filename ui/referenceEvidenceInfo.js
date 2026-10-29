@@ -17,6 +17,7 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
  if(activity==='RUNNING'){
   const id=bodyReferenceEngineId(bodyId),series=RUNNING_REGION_BY_ID[id];
   if(!series)return incomplete('この部位に対応する採用原著がありません。');
+  if(row.calculationState==='CALCULATED'&&(!row.evidence?.metricId||!row.evidence?.sourceSha256))return incomplete('計算済み値の原著識別情報が足りないため、出典の断定を保留します。');
   if(row.evidence?.metricId&&row.evidence.metricId!==series.metricId)return incomplete('保存された計算結果と現行の原著定義が異なるため、出典の表示を保留します。');
   if(row.evidence?.sourceSha256&&row.evidence.sourceSha256!==series.sourceSha256)return incomplete('保存された結果の原著と現行の原著が一致しないため、出典の表示を保留します。');
   const citation=RUNNING_CITATIONS[series.sourceFile]||{label:'採用原著（研究台帳参照）',url:null};
