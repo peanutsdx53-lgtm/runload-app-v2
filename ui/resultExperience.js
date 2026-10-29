@@ -129,7 +129,7 @@ export function mountResult(host,inputDraft={},options={}){
     +'<p class="rv4-disclaimer">色は各部位自身の基準100との差を示します。危険度・部位間の順位ではありません。算出できない部位は灰色で表示します。</p>'
     +'<a class="rv4-learn-link" href="'+exploreLink('02','12部位の参考値の見方')+'">この数値の意味を探究で確かめる ›</a>'+evidencePanel()+'</section>';
   };
- const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の変化</h2><p>運動前と運動後（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>変化</small><strong>'+(before!==null&&after!==null?(after-before>0?'+':'')+(after-before):'—')+'</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人が回答した疲労感です。未回答は「—」で表示します。</p></section>';
+ const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue" data-rof-time-status="unverified"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の記録</h2><p>「運動前／後」として入力した回答（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>前後差</small><strong>—</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人の回答です。各回答の評価時刻を保存していないため、時間的な前後差は判定していません。未回答は「—」で表示します。</p></section>';
  const radar=()=>{
   const optionsHtml=choices.map(r=>'<option value="'+clean(r.id)+'"'+(compareId===r.id?' selected':'')+'>'+clean(r.date)+' ｜ '+r.distanceKm.toFixed(2)+' km'+(gaitOf(r)===gaitOf(options.record)?'':'（活動種別が異なる）')+'</option>').join('');
   const selector=fromSaved&&choices.length?'<label class="rv4-compare-label" for="rv4-compare-select">比べる保存記録</label><select id="rv4-compare-select" data-compare-select><option value="">記録を選ぶ</option>'+optionsHtml+'</select>':'';
@@ -230,8 +230,9 @@ export function mountResult(host,inputDraft={},options={}){
   t('本人の身体負荷の実測値ではありません',685,353,17,'#effdff');
   t('部位間の順位・傷害リスクを示しません',685,387,17,'#effdff');
   t('ROF-Jは本人が回答した疲労感です',685,431,17,'#abd6de');
-  t('疲労感  '+(before??'—')+' → '+(after??'—'),685,478,27,'#f6d7b4');
-  t('部位別数値の詳細はアプリ内で確認',685,534,16,'#abd6de');
+  t('入力値：前 '+(before??'—')+' ／ 後 '+(after??'—'),685,478,24,'#f6d7b4');
+  t('評価時刻未記録：前後差は判定不可',685,506,15,'#abd6de');
+  t('部位別数値の詳細はアプリ内で確認',685,550,16,'#abd6de');
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
