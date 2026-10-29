@@ -13,7 +13,8 @@ const kmh=mps=>typeof mps==='number'&&Number.isFinite(mps)?String(Number((mps*3.
 const incomplete=message=>Object.freeze({kind:'unavailable',message});
 export function describeRegionEvidence({row,bodyId,activity,source='saved-manual'}={}){
  if(source!=='saved-manual')return incomplete('GPSなど、別の計算経路の出典詳細はこの説明では表示しません。記録や参考値の表示は引き続き利用できます。');
- if(!row||row.regionId!==bodyId)return incomplete('選択した部位の科学的な出典情報を確認できません。');
+ const engineRegionId=bodyReferenceEngineId(bodyId);
+ if(!row||!engineRegionId||row.regionId!==engineRegionId)return incomplete('選択した部位の科学的な出典情報を確認できません。');
  if(activity==='RUNNING'){
   const id=bodyReferenceEngineId(bodyId),series=RUNNING_REGION_BY_ID[id];
   if(!series)return incomplete('この部位に対応する採用原著がありません。');
