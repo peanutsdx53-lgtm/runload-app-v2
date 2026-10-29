@@ -51,7 +51,8 @@ try{
  const firstId=await saveRun('2026-10-19',4,28,'次回は同じコースでペースと疲れを確認する');
  assert.equal((await readRuns()).records.length,1);
  await page.goto(host+'#/result?record='+encodeURIComponent(firstId),{waitUntil:'networkidle'});
- assert.match(await page.locator('#runload-result-v4').innerText(),/4\.00|4 km|距離/);
+ await page.locator('.rv4-distance strong').waitFor();
+ assert.match(await page.locator('.rv4-distance strong').innerText(),/4\.00|4 km/);
  const note='次回は距離と平均ペースの違いを確認する。結果から原因を断定しない。';
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  await page.locator('[data-ex-action="note"]').first().click();
