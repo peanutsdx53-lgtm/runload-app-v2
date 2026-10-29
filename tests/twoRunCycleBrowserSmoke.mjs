@@ -58,6 +58,10 @@ try{
  await page.locator('[data-ex-action="note"]').first().click();
  await page.locator('#ex-note').fill(note);
  await page.locator('[data-ex-action="save-note"]').click();
+ await page.waitForFunction(()=>{
+  const notes=JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]');
+  return notes.length===1&&notes[0].recordId;
+ });
  await page.reload({waitUntil:'networkidle'});
  await page.locator('[data-ex-action="memories"]').click();
  assert.match(await page.locator('[data-ex-overlay]').innerText(),/次回は距離と平均ペース/);
