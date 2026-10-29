@@ -1275,8 +1275,10 @@ function recordExtras(){
       if(action==="save-note"){
         const noteParams=new URLSearchParams(location.hash.split('?')[1]||'');
         const focusId=location.hash.startsWith('#/exploration-tree')&&noteParams.has('record')?noteParams.get('record'):null;
-        const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value,
-          {focusRunId:focusId,manualRuns:manualRunStore.readManualRuns(onboardStorage)});
+        const noteText=app.querySelector("#ex-note")?.value;
+        const result=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.saveNote(
+          explorationUi,noteText,
+          {focusRunId:focusId,manualRuns:manualRunStore.readManualRuns(onboardStorage)}));
         explorationUi.notice=result.ok?"書いたことを保存しました":result.reason;if(result.ok)explorationUi.followup="";
         if(result.ok)explorationUi.modal="";
         render();if(result.ok)restoreExplorationFocus();return;
@@ -1290,7 +1292,7 @@ function recordExtras(){
       explorationUi.modal=action;explorationUi.notice="";render();app.querySelector(".ex-dialog-head button")?.focus();return;
     }
     const exploreDelete=event.target.closest("[data-ex-delete]");
-    if(exploreDelete){const success=explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete);explorationUi.notice=success?"削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
+    if(exploreDelete){const success=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete));explorationUi.notice=success?"削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const expandRegions=event.target.closest("[data-expand-regions]");
     if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
