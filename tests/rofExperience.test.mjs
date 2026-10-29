@@ -27,3 +27,16 @@ test('reading anchor does not change the selected integer',()=>{
  adjustRofScore(ui,d,1);assert.equal(d.rofBefore,5);assert.equal(ui.readingAnchor,false);
  adjustRofScore(ui,d,-1);assert.equal(d.rofBefore,4);
 });
+test('missing, blank and boolean inputs cannot become actual ROF-J zero',()=>{
+ const d=fresh(),ui=createRofUiState();
+ for(const invalid of [null,undefined,'','  ',false,true,[],{},'0.0','2.5']){
+  assert.equal(setRofScore(ui,d,invalid),false,'must reject '+String(invalid));
+  assert.equal(d.rofBefore,null,'invalid input must preserve missing');
+ }
+ assert.equal(setRofScore(ui,d,'0'),true);
+ assert.equal(d.rofBefore,0,'true scale zero remains valid');
+ assert.equal(setRofScore(ui,d,null),false);
+ assert.equal(d.rofBefore,0,'invalid reset must not erase actual zero');
+ clearRofScore(ui,d);
+ assert.equal(d.rofBefore,null,'only explicit clear changes zero to missing');
+});

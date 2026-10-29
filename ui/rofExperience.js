@@ -29,6 +29,8 @@ export function setRofPhase(ui,phase,d){
  ui.phase=phase;ui.readingAnchor=false;ui.focusedAnchor=nearestAnchorIndex(d[rofPhaseKey[phase]]);return true;
 }
 export function setRofScore(ui,d,raw){
+ // Null, empty or boolean input must never be silently coerced into the valid score 0.
+ if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^(?:10|[0-9])$/.test(raw.trim())))return false;
  const n=Number(raw);if(!isValidRofJ(n))return false;
  d[rofPhaseKey[ui.phase]]=n;ui.focusedAnchor=nearestAnchorIndex(n);ui.readingAnchor=false;return true;
 }

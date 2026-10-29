@@ -110,3 +110,25 @@ test('saved manual gait classification fails closed for corrupted storage, unkno
  assert.equal(classifySavedManualRun(c,r.record.id,'WALK').ok,false);
  assert.equal(c.getItem(MANUAL_RUN_KEY),'{broken');
 });
+
+test('ROF-J true zero, missing fatigue and retrospective date survive storage and history untouched',()=>{
+ const s=store(),first=saveManualRun(s,{...draft(),date:'2026-10-01',rofBefore:0,rofAfter:null});
+ assert.equal(first.ok,true,first.reason);
+ const second=saveManualRun(s,{...draft(),date:'2026-10-02',rofBefore:null,rofAfter:0});
+ assert.equal(second.ok,true,second.reason);
+ const read=readManualRuns(s);
+ assert.equal(read.ok,true);
+ assert.equal(read.records.length,2);
+ assert.deepEqual(read.records.map(r=>[r.rofBefore,r.rofAfter]),[[0,null],[null,0]]);
+ assert.deepEqual(toHistoryRows(read).map(r=>[r.rofBefore,r.rofAfter]),[[0,null],[null,0]]);
+ assert.equal(findManualRun(s,first.record.id).record.rofBefore,0);
+ assert.equal(findManualRun(s,first.record.id).record.rofAfter,null);
+ assert.equal(findManualRun(s,second.record.id).record.rofBefore,null);
+ assert.equal(findManualRun(s,second.record.id).record.rofAfter,0);
+ assert.deepEqual(read.records.map(r=>r.date),['2026-10-01','2026-10-02']);
+ assert.ok(read.records.every(r=>r.createdAt && Number.isFinite(Date.parse(r.createdAt))));
+ const orig=s.getItem(MANUAL_RUN_KEY);
+ const invalid=saveManualRun(s,{...draft(),rofBefore:2.5});
+ assert.equal(invalid.ok,false);
+ assert.equal(s.getItem(MANUAL_RUN_KEY),orig,'failed ROF-J validation preserves existing runs');
+});
