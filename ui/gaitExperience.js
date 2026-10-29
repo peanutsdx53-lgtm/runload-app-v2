@@ -53,7 +53,7 @@ export function gaitPage(d={}){
     <p class="g4-field-title">活動種別（12部位の文献参考値に使用）</p><div class="g4-choice" role="group" aria-label="活動種別">${activities}</div><p class="g4-note">未選択の場合は部位別値を算出しません。ジョギング・ウォーキングは独立した参考モデルで、走歩混在も単一活動として推定しません。</p>
     <p class="g4-field-title">当日の走行パターン</p><div class="g4-choice" role="group" aria-label="走り方を選択">${formats}</div>
     <div class="g4-runwalk" data-g4-runwalk ${selectedFormat==="RUN_WALK"?"":"hidden"}>
-     <h3>走った区間</h3><p class="g4-note">走った部分の距離と時間を記録します。歩行分は走行の分析値に含めません。</p>
+     <h3>走った区間</h3><p class="g4-note">走った部分の距離と時間を記録します。走歩混在では12部位文献参考値を算出せず、入力情報を保存します。</p>
      <div class="g4-numbers">
       <label>走った距離<span class="g4-number"><input data-draft="runWalkRunningDistanceKm" type="number" inputmode="decimal" step="0.01" min="0.01" max="10000" placeholder="未入力" value="${clean(d.runWalkRunningDistanceKm)}"><small>km</small></span></label>
       <label>走った時間<span class="g4-number"><input data-draft="runWalkRunningDurationMinutes" type="number" inputmode="decimal" step="0.1" min="0.01" max="100000" placeholder="未入力" value="${clean(d.runWalkRunningDurationMinutes)}"><small>分</small></span></label>
