@@ -1271,7 +1271,10 @@ function recordExtras(){
       if(action==="catalog"){explorationUi.tab="catalog";render();return;}
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
       if(action==="save-note"){
-        const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value);
+        const noteParams=new URLSearchParams(location.hash.split('?')[1]||'');
+        const focusId=location.hash.startsWith('#/exploration-tree')&&noteParams.has('record')?noteParams.get('record'):null;
+        const result=explorationExperience.saveNote(explorationUi,app.querySelector("#ex-note")?.value,
+          {focusRunId:focusId,manualRuns:manualRunStore.readManualRuns(onboardStorage)});
         explorationUi.notice=result.ok?"書いたことを保存しました":result.reason;if(result.ok)explorationUi.followup="";
         if(result.ok)explorationUi.modal="";
         render();if(result.ok)restoreExplorationFocus();return;
