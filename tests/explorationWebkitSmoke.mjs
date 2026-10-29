@@ -69,7 +69,7 @@ try{
   assert.ok(await page.locator('[data-manual-run-save]').isEnabled(),
    'webkit '+width+' explicit activity choice unlocks save');
   await page.locator('[data-manual-run-save]').click();
-  assert.match(page.url(),/#\/result\?record=run-v1-/);
+  await page.waitForURL(/#\/result\?record=run-v1-/);
    const referenceBody=page.locator('#runload-result-v4 .rv4-body');
    await referenceBody.waitFor();
    assert.equal(await referenceBody.locator('[data-body-reference-label]').count(),0,'WebKit clean body');
