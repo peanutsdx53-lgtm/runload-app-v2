@@ -95,9 +95,9 @@ export function mountResult(host,inputDraft={},options={}){
    source:fromSaved?'saved-manual':'gps'});
   const badge=evidence.kind==='unavailable'?'出典の確認が必要':evidence.status;
   const entry=evidence.kind==='unavailable'?'<p>'+clean(evidence.message)+'</p>':
-   '<div class="rv4-extra-grid"><div><small>研究上の測定量</small><strong>'+clean(evidence.metric)+'</strong></div>'+
-   '<div><small>参考原著・識別子</small><strong>'+clean(evidence.citation)+'</strong></div>'+
-   '<div><small>'+clean(evidence.domainLabel||'研究上の速度域')+'</small><strong>'+clean(evidence.domain)+'</strong></div></div>'+
+   '<p><strong>研究上の測定量：</strong>'+clean(evidence.metric)+'</p>'+
+   '<p><strong>参考原著・識別子：</strong>'+clean(evidence.citation)+'</p>'+
+   '<p><strong>'+clean(evidence.domainLabel||'研究上の速度域')+'：</strong>'+clean(evidence.domain)+'</p>'+
    '<p>基準100：'+clean(evidence.reference)+'</p>'+
    (evidence.unit?'<p>原著の単位：'+clean(evidence.unit)+'</p>':'')+
    (evidence.sourceLocation?'<p>出典内の位置：'+clean(evidence.sourceLocation)+'</p>':'')+
