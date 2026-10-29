@@ -28,7 +28,7 @@ function mapSvg(v,ui){const sid=`cx-${v.key}`;return `<svg class="cx-map-svg" vi
 ${v.paths.map(([id,path])=>{const chosen=ui.selected.includes(id),focused=ui.focusId===id;return `<path d="${path}" class="cx-region${chosen?' cx-selected':''}${focused?' cx-focused':''}" data-region-focus="${id}" tabindex="0" role="button" aria-label="${safe(region(id)?.name)}を確認" aria-pressed="${chosen}"><title>${safe(region(id)?.name)}</title></path>`;}).join('')}
 </svg>`;}
 const icon=(type)=>({note:'✎',shoe:'◇',memo:'▤'}[type]||'•');
-const fields=[['bodyObservation','身体の自覚情報','note',500,'例：右ふくらはぎに張りを感じた'],['shoeName','使用したシューズ','shoe',120,'今回のシューズ名を入力'],['memo','走行・休養時のメモ','memo',500,'自由に記録できます']];
+const fields=[['bodyObservation','身体の自覚情報','note',500,'例：右ふくらはぎに張りを感じた'],['shoeName','使用したシューズ','shoe',100,'今回のシューズ名を入力'],['memo','走行・休養時のメモ','memo',500,'自由に記録できます']];
 function fieldCard(d,[key,label,symbol,max,placeholder]){const single=key==='shoeName';return `<section class="cx-field-card"><div class="cx-field-title"><span class="cx-field-icon">${icon(symbol)}</span><label for="cx-${key}">${label}</label><span class="cx-optional">任意</span></div>${single?`<input id="cx-${key}" type="text" maxlength="${max}" data-draft="${key}" placeholder="${placeholder}" value="${safe(d[key])}">`:`<textarea id="cx-${key}" maxlength="${max}" data-draft="${key}" placeholder="${placeholder}" rows="${key==='memo'?3:3}">${safe(d[key])}</textarea>`}<div class="cx-counter" data-counter="${key}">${String(d[key]??'').length}/${max}</div></section>`;}
 export function renderScreen(d={},ui=makeUi()){
  const current=VIEWS.find(v=>v.key===ui.view)||VIEWS[0];
