@@ -88,12 +88,14 @@ try{
   await fit(page,prefix+' running');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-hip.png'),fullPage:false});
   await result.locator('[data-view="back"]').click();
-  await result.locator('.rv4-body-svg [data-region="BA-DISP-025"]').click();
+  await result.locator('.rv4-body-svg [data-region="BA-DISP-025"]').focus();
+  await page.keyboard.press('Enter');
   assert.equal(await panel.getAttribute('data-region-evidence'),'BA-DISP-025','Achilles selected');
   await panel.locator('summary').click();
   assert.match(await panel.innerText(),/Van Hooren/);
   await result.locator('[data-view="sole"]').click();
-  await result.locator('.rv4-body-svg [data-region="BA-DISP-027"]').click();
+  await result.locator('.rv4-body-svg [data-region="BA-DISP-027"]').focus();
+  await page.keyboard.press('Enter');
   await panel.locator('summary').click();
   assert.match(await panel.innerText(),/Li ほか（2020）/);
   assert.match(await panel.innerText(),/5～12 km\/h/);
