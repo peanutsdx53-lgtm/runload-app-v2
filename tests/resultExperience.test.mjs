@@ -32,6 +32,16 @@ test('PNG export explains calculated and uncalculated literature references',()=
  assert.match(js,/ROF-Jは本人が回答した疲労感です/);
 });
 
+test('ROF-J results and image export do not manufacture time-eligible before/after changes',()=>{
+ const js=read('ui/resultExperience.js');
+ assert.match(js,/data-rof-time-status="unverified"/);
+ assert.match(js,/各回答の評価時刻を保存していないため、時間的な前後差は判定していません/);
+ assert.match(js,/評価時刻未記録：前後差は判定不可/);
+ assert.match(js,/<small>前後差<\/small><strong>—<\/strong>/);
+ assert.doesNotMatch(js,/\(after-before\)/);
+ assert.doesNotMatch(js,/<h2>疲労感の変化<\/h2>/);
+});
+
 test('Result v4 view is isolated and precached',()=>{
  const app=read('app.js'),sw=read('sw.js'),html=read('index.html');
  assert.ok(app.includes('resultExperience.mountResult'));
