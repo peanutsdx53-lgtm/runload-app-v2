@@ -16,8 +16,9 @@ const server=createServer(async(req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1:4197');
   const path=resolve(root,'.'+decodeURIComponent(url.pathname));
   if(path!==root&&!path.startsWith(root+sep))throw Error('traversal');
-  res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');
-  res.end(await readFile(path===root?resolve(root,'index.html'):path));
+  const file=path===root?resolve(root,'index.html'):path;
+  res.setHeader('Content-Type',mime[extname(file)]||'application/octet-stream');
+  res.end(await readFile(file));
  }catch{res.statusCode=404;res.end('Not found');}
 });
 await new Promise(done=>server.listen(4197,'127.0.0.1',done));
