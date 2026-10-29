@@ -132,3 +132,26 @@ test('ROF-J true zero, missing fatigue and retrospective date survive storage an
  assert.equal(invalid.ok,false);
  assert.equal(s.getItem(MANUAL_RUN_KEY),orig,'failed ROF-J validation preserves existing runs');
 });
+
+test('stage 7 does not silently truncate a shoe or course name on manual save',()=>{
+ const storage=store();
+ const exact='靴'.repeat(100);
+ const good=saveManualRun(storage,{...draft(),shoeName:exact});
+ assert.equal(good.ok,true,good.reason);
+ assert.equal(good.record.shoeName,exact);
+ assert.equal(readManualRuns(storage).records[0].shoeName,exact);
+ for(const change of [{shoeName:'靴'.repeat(101)},{courseName:'道'.repeat(101)}]){
+  const before=storage.getItem(MANUAL_RUN_KEY);
+  const failed=saveManualRun(storage,{...draft(),...change});
+  assert.equal(failed.ok,false,JSON.stringify(change));
+  assert.match(failed.reason,/100文字/);
+  assert.equal(storage.getItem(MANUAL_RUN_KEY),before,'invalid long name cannot mutate existing runs');
+ }
+});
+test('stage 7 shoe-name UI caps match the non-truncating saved-record contract',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ const body=readFileSync(new URL('../ui/bodyContextExperience.js',import.meta.url),'utf8');
+ assert.match(app,/data-draft="shoeName" maxlength="100"/);
+ assert.match(body,/\['shoeName','使用したシューズ','shoe',100,/);
+});
