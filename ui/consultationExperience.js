@@ -51,6 +51,17 @@ function tableRows(rows){return REGIONS.map(r=>{const row=bodyReferenceRow(rows,
 function setText(root,sel,value){root.querySelectorAll(sel).forEach(el=>el.textContent=String(value??'—'));}
 function setHtml(root,sel,value){root.querySelectorAll(sel).forEach(el=>el.innerHTML=value);}
 function checkbox(root,key){return !!root.querySelector('[data-share="'+key+'"]')?.checked;}
+export function reportRecordContext(record,mode='single'){
+ if(!record)return mode==='period'?'期間内に該当する保存済み記録はありません。':'対象となる保存済み記録はありません。';
+ return (mode==='period'?'期間内の1記録（期間全体の平均・合計ではありません）':'選択した1記録')+
+  '：'+dateLabel(record.date)+'／'+gait(record)+'／'+(record.source==='manual'?'手入力':'GPS測定')+'／記録ID：'+record.id;
+}
+function setSourceNote(host,parentSelector,key,message){
+ const parent=host.querySelector(parentSelector);if(!parent)return;
+ let note=parent.querySelector('[data-source-note="'+key+'"]');
+ if(!note){note=document.createElement('p');note.className='cp-txtmeta cp-source-note';note.setAttribute('data-source-note',key);parent.appendChild(note);}
+ note.textContent=message;
+}
 export function mountConsultation(host,source){
  if(!host)return;
  const records=source.records,conditions=source.conditions;
@@ -80,13 +91,15 @@ export function mountConsultation(host,source){
   const hasRof=rof&&rof.source==='manual'&&Number.isInteger(rof.rofBefore)&&Number.isInteger(rof.rofAfter);
   setText(host,'[data-rof-heading]',hasRof?'運動前後の疲労感（ROF-J：'+dateLabel(rof.date)+'）':'運動前後の疲労感（ROF-J）');
   const bubbles=host.querySelectorAll('.cp-bubble');if(bubbles[0])bubbles[0].textContent=hasRof?String(rof.rofBefore):'—';if(bubbles[1])bubbles[1].textContent=hasRof?String(rof.rofAfter):'—';
+   setSourceNote(host,'.cp-wellbeing[data-output-section="rof"]','rof',hasRof?reportRecordContext(rof,state.mode)+'。本人の回答であり、個別の評価時刻がないため時間的な前後差は判定しません。':(state.mode==='period'?'期間内に運動前後の回答がそろった手入力記録はありません。期間の平均値ではありません。':'選択記録に運動前後の有効な回答がそろっていません。'));
   const life=lastCondition(single?.date||newest?.date||isoLocal(new Date()));
-  const lifeText=life?('記録日：'+dateLabel(life.date)+'／その日の調子：'+(life.feeling||'未記録')+'／'+(Number.isInteger(life.sleepMinutes)?(life.sleepSource==='clock'?'在床時間':'記録された時間')+'：'+Math.floor(life.sleepMinutes/60)+'時間'+pad(life.sleepMinutes%60)+'分':'時間未記録')):'該当する生活コンディションの記録はありません。';
+  const lifeText=life?((state.mode==='period'?'期間内の最新1日の記録（期間平均ではありません）／':'')+'記録日：'+dateLabel(life.date)+'／その日の調子：'+(life.feeling||'未記録')+'／'+(Number.isInteger(life.sleepMinutes)?(life.sleepSource==='clock'?'在床時間':'記録された時間')+'：'+Math.floor(life.sleepMinutes/60)+'時間'+pad(life.sleepMinutes%60)+'分':'時間未記録')):'該当する生活コンディションの記録はありません。';
   setText(host,'.cp-wellbeing[data-output-section="condition"] p',lifeText);
   setText(host,'.cp-wellbeing[data-output-section="condition"] h4','本人の生活・コンディション記録');
   setHtml(host,'.cp-body-figures',figures(rows));
   const tr=tableRows(rows),tables=host.querySelectorAll('.cp-part-table tbody');tables.forEach((tb,i)=>{tb.innerHTML=tr.slice(i*6,i*6+6).join('');});
-  const info=host.querySelector('[data-output-section="body"] .cp-info-note');if(info)info.textContent=count?('対象記録：'+dateLabel(scienceRun.date)+'／'+gait(scienceRun)+'／'+count+'/12部位を算出。各部位自身の文献基準を100とする参考値であり、傷害リスクではありません。'):(scienceRun?'活動種別または文献の適用速度範囲により、12部位参考値は算出対象外です。':'対応する保存済み手入力の単独活動がないため、12部位参考値は表示できません。');
+  const info=host.querySelector('[data-output-section="body"] .cp-info-note');if(info)info.textContent=reportRecordContext(scienceRun,state.mode)+'。'+(count?(count+'/12部位を算出。各部位自身の文献基準を100とする参考値であり、傷害リスクではありません。'):(scienceRun?'活動種別または文献の適用速度範囲により、12部位参考値は算出対象外です。':'対応する保存済み手入力の単独活動がないため、12部位参考値は表示できません。'));
+   // A single chosen reference and its conditions are not summaries of the whole period.
   const memo=single?.source==='manual'?single:scienceRun||newest;
   const conditionsList=host.querySelectorAll('.cp-condition strong');
   const d=memo?.source==='manual'?memo.draft||{}:{};
@@ -94,6 +107,7 @@ export function mountConsultation(host,source){
   if(conditionsList[0])conditionsList[0].textContent=surface&&surface!=='UNKNOWN'?surface:'未記録';
   if(conditionsList[1])conditionsList[1].textContent=memo?.courseName||'未記録';
   if(conditionsList[2])conditionsList[2].textContent=memo?.shoeName||'未記録';
+   setSourceNote(host,'[data-output-section="course"]','course',reportRecordContext(memo,state.mode)+'。走行条件と使用品はこの記録の情報です。');
   setHtml(host,'.cp-trend-holder',trendSvg(group));
   host.querySelector('[data-period-toggle]').hidden=state.mode!=='period';
   host.querySelectorAll('.cp-period-only').forEach(e=>e.classList.toggle('cp-printed',state.mode==='period'));

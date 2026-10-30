@@ -146,6 +146,6 @@ export function findManualRun(storage,id){
 export function toHistoryRows(readResult){
  if(!readResult?.ok)return [];
  return readResult.records.map(r=>({id:r.id,type:r.type,date:r.date,time:'',distanceKm:r.distanceKm,
-  durationSeconds:r.durationSeconds,courseName:r.courseName,shoeName:r.shoeName,
+  durationSeconds:r.durationSeconds,activityGait:r.draft?.activityGait??null,courseName:r.courseName,shoeName:r.shoeName,
   memo:r.memo,rofBefore:r.rofBefore,rofAfter:r.rofAfter}));
 }

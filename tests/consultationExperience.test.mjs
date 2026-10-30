@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {consultationSources, periodRecords,trendSvg,renderConsultation} from '../ui/consultationExperience.js';
+import {consultationSources, periodRecords,trendSvg,renderConsultation,reportRecordContext} from '../ui/consultationExperience.js';
 const saved=(id,date,distanceKm,extra={})=>({id,date,distanceKm,source:'manual',durationSeconds:1800,createdAt:date+'T12:00:00Z',...extra});
 test('read-only reporting uses only validated saved records and does not mutate inputs',()=>{
  const records=[saved('real','2026-10-25',5),saved('bad','2026-10-24',NaN)];
@@ -49,4 +49,12 @@ test('consultation hides the global install arrow without affecting other screen
  assert.match(css,/@media screen\s*\{\.cp-app \.topbar\{display:none!important\}\}/);
  assert.doesNotMatch(css,/\.cp-app \.topbar\{display:contents\}/);
  assert.doesNotMatch(css,/\.cp-app \.topbar-right\{position:absolute/);
+});
+
+test('consultation identifies one source record instead of implying period aggregate',()=>{
+ const r=saved('source-42','2026-10-27',5,{draft:{activityGait:'JOGGING'}});
+ assert.match(reportRecordContext(r,'period'),/期間内の1記録（期間全体の平均・合計ではありません）/);
+ assert.match(reportRecordContext(r,'period'),/2026\/10\/27／ジョギング／手入力／記録ID：source-42/);
+ assert.match(reportRecordContext(r,'single'),/選択した1記録/);
+ assert.match(reportRecordContext(null,'period'),/該当する保存済み記録はありません/);
 });

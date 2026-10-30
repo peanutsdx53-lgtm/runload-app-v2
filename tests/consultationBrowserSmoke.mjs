@@ -34,9 +34,14 @@ try{
   assert.equal(saved.ok,true,`${name}: fixture save ${saved.reason||''}`);
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('[data-metric2-val]').first().innerText(),/5\.00 km/);
+  assert.match(await page.locator('[data-source-note="rof"]').innerText(),/選択した1記録.*記録ID：run-v1-/);
+  assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/選択した1記録.*記録ID：run-v1-/);
   await page.locator('#cp-purpose').fill('指導者に伝えたいこと');
   assert.equal(await page.locator('[data-report-purpose]').innerText(),'指導者に伝えたいこと');
   await page.locator('[data-mode-button="period"]').click();
+  assert.match(await page.locator('[data-source-note="rof"]').innerText(),/期間内の1記録（期間全体の平均・合計ではありません）/);
+  assert.match(await page.locator('[data-source-note="course"]').innerText(),/期間内の1記録.*記録ID：run-v1-/);
+  assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/期間内の1記録.*記録ID：run-v1-/);
   assert.match(await page.locator('.cp-trend-holder').last().locator('svg').getAttribute('aria-label'),/距離km/);
   assert.equal(await page.locator('.cp-body-view').count(),3);
   if(name==='mobile')await page.locator('[data-switch="preview"]').click();

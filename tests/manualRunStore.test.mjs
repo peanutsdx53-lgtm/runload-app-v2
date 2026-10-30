@@ -155,3 +155,14 @@ test('stage 7 shoe-name UI caps match the non-truncating saved-record contract',
  assert.match(app,/data-draft="shoeName" maxlength="100"/);
  assert.match(body,/\['shoeName','使用したシューズ','shoe',100,/);
 });
+
+test('history projection preserves saved activity without mutating saved schema or guessing legacy gait',()=>{
+ const run={id:'run-v1-00000000-0000-0000-0000-000000000111',type:'run',date:'2026-10-25',durationSeconds:1200,distanceKm:2,draft:{activityGait:'WALK'}};
+ const unknown={...run,id:'run-v1-00000000-0000-0000-0000-000000000112',draft:{activityGait:''}};
+ const before=JSON.stringify([run,unknown]);
+ const rows=toHistoryRows({ok:true,records:[run,unknown]});
+ assert.deepEqual(rows.map(r=>r.activityGait),['WALK','']);
+ assert.deepEqual(normalizeRecords(rows).map(r=>r.activityGait),['WALK','UNKNOWN']);
+ assert.equal(JSON.stringify([run,unknown]),before);
+ assert.deepEqual(toHistoryRows({ok:false,records:[run]}),[]);
+});

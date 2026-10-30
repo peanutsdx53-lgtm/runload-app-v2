@@ -54,3 +54,22 @@ test('invalid IDs, duplicate IDs, invalid dates and injection are rejected or es
  assert.ok(html.includes('&lt;img'));
  assert.equal(lookupRecord(records,'absent'),null);
 });
+
+test('saved activity identity is visible in history row, focus and selected footer, without guessing missing gait',()=>{
+ const ui=createHistoryUi();ui.month='2026-10';ui.selectedId='walk';
+ const records=[
+  {id:'walk',type:'run',date:'2026-10-27',distanceKm:2,durationSeconds:1400,activityGait:'WALK',memo:'歩いた'},
+  {id:'jog',type:'run',date:'2026-10-26',distanceKm:3,durationSeconds:1600,activityGait:'JOGGING'},
+  {id:'run',type:'run',date:'2026-10-25',distanceKm:5,durationSeconds:1900,activityGait:'RUNNING'},
+  {id:'old',type:'run',date:'2026-10-24',distanceKm:4,durationSeconds:1900,activityGait:'INVALID'}
+ ];
+ const normalized=normalizeRecords(records);
+ assert.deepEqual(normalized.map(r=>r.activityGait),['WALK','JOGGING','RUNNING','UNKNOWN']);
+ const html=renderHistory(ui,records,{connected:true,onOpen(){}});
+ assert.match(html,/ウォーキング/);assert.match(html,/ジョギング/);assert.match(html,/ランニング/);
+ assert.match(html,/活動種別不明/);
+ assert.match(html,/2026年10月27日のウォーキング/);
+ assert.match(html,/2026年10月27日　ウォーキング/);
+ assert.match(html,/運動回数/);
+ assert.doesNotMatch(html,/走行回数/);
+});
