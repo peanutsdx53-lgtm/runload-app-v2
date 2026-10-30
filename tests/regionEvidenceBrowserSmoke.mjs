@@ -88,6 +88,14 @@ try{
   await fit(page,prefix+' running');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-hip.png'),fullPage:false});
   await result.locator('[data-view="back"]').click();
+  // GAZENDAM on the actual anatomical result screen: do not silently claim
+  // the published normalized-speed table has been reconciled.
+  await result.locator('.rv4-body-svg [data-region="BA-DISP-015"]').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await panel.getAttribute('data-region-evidence'),'BA-DISP-015');
+  await panel.locator('summary').click();
+  assert.match(await panel.innerText(),/Gazendam/);
+  assert.match(await panel.innerText(),/Table 2の掲載値に一部不一致/);
   await result.locator('.rv4-body-svg [data-region="BA-DISP-025"]').focus();
   await page.keyboard.press('Enter');
   assert.equal(await panel.getAttribute('data-region-evidence'),'BA-DISP-025','Achilles selected');
