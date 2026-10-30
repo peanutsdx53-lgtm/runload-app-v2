@@ -1,6 +1,6 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {bodyReferenceRow,bodyReferenceEngineId,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays,bodyReferenceSilhouetteClipDef} from './bodyReferencePresentation.js';
-import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES,RESULT_GPS_GATE_STYLES,RESULT_REFLECTION_STYLES,RESULT_ROF_AUDIT_STYLES} from './resultInlineStyles.js';
+import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES,RESULT_GPS_GATE_STYLES,RESULT_REFLECTION_STYLES,RESULT_ROF_AUDIT_STYLES,RESULT_QUESTION_STYLES} from './resultInlineStyles.js';
 import {REGIONS} from './bodyContextExperience.js';
 import {comparableRunChoices,compareSavedRuns,gaitOf} from './runReflection.js';
 import {compareBodyReferenceRows} from './regionReferenceComparison.js';
@@ -158,7 +158,21 @@ export function mountResult(host,inputDraft={},options={}){
   const compareCards=comparison?.status==='ready'?'<div class="rv4-compare-cards" aria-label="二件の記録の比較">'+comparison.rows.map(r=>'<div class="rv4-compare-card"><strong>'+clean(r.label)+'</strong><div><span><small>比較相手 '+clean(comparison.other.date)+'</small>'+clean(r.first)+'</span><span><small>選択中 '+clean(comparison.current.date)+'</small>'+clean(r.second)+'</span><span><small>差</small>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</span></div></div>').join('')+'</div>':'';
   const compareTable=comparison?.status==='ready'?'<div class="rv4-comparison-scroller"><table class="rv4-comparison-table"><thead><tr><th scope="col">項目</th><th scope="col">比較相手 '+clean(comparison.other.date)+'</th><th scope="col">選択中 '+clean(comparison.current.date)+'</th><th scope="col">差</th></tr></thead><tbody>'+comparison.rows.map(r=>'<tr><th scope="row">'+clean(r.label)+'</th><td>'+clean(r.first)+'</td><td>'+clean(r.second)+'</td><td>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</td></tr>').join('')+'</tbody></table></div>'+compareCards+'<div class="rv4-comparison-memos"><div><small>比較相手のメモ</small><p>'+clean(comparison.other.memo||'メモなし')+'</p></div><div><small>選択中の記録のメモ</small><p>'+clean(comparison.current.memo||'メモなし')+'</p></div></div><p class="rv4-comparison-caution">'+comparison.uncertainty+'</p>':
    '<p class="rv4-comparison-empty">'+clean(hasInvalidCompare?'指定された比較相手は保存記録にありません。':comparison?.reason||'同じ活動種別の保存記録をもう1件残すと、距離・時間・疲労感を見比べられます。')+'</p>';
-  return '<section class="rv4-card rv4-history" data-pane="radar"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('radar')+'</span><div><h2>過去と比較</h2><p>保存した走行の違いを確かめる</p></div></div>'+selector+provenance+regionCmpView+compareTable+
+
+  // A previous note remains on its original run. The user chooses a specific
+  // note AND writes a new observation before any new run-linked note is saved.
+  const applicable=fromSaved&&other&&comparison?.status==='ready'&&
+   other.date<=options.record.date&&
+   (other.date!==options.record.date||Date.parse(other.createdAt)<Date.parse(options.record.createdAt));
+  const notes=applicable&&Array.isArray(options.questionNotes)?
+   options.questionNotes.filter(n=>n.recordId===other.id&&typeof n.text==='string'&&n.text.trim()&&typeof n.id==='string'):[];
+  const questionPanel=notes.length?'<section class="rv4-question-continuation" aria-label="元の問いを今回の記録で振り返る">'+
+   '<h3>元の問いを今回の記録で振り返る（任意）</h3><p>比較相手 '+clean(other.date)+' ／ ID '+clean(other.id)+' の本人の問いです。自動では転記しません。</p>'+
+   '<label>元の問いを選ぶ<select data-run-question-source><option value="">選択してください</option>'+
+   notes.map(n=>'<option value="'+clean(n.id)+'">'+clean(n.text.slice(0,90))+'</option>').join('')+'</select></label>'+
+   '<label>今回考えたこと（1〜500文字）<textarea data-run-question-text maxlength="500" rows="3" placeholder="前回の問いを見て、今回どう感じたかを書きます"></textarea></label>'+
+   '<button type="button" data-run-question-save>本人が選んで保存する</button><small>元の問いや走行記録は変更しません。科学的な因果や改善を判定する機能ではありません。</small></section>':'';
+  return '<section class="rv4-card rv4-history" data-pane="radar"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('radar')+'</span><div><h2>過去と比較</h2><p>保存した走行の違いを確かめる</p></div></div>'+selector+provenance+regionCmpView+compareTable+questionPanel+
    '<div class="rv4-comparison-actions"><a class="rv4-learn-link" href="'+exploreLink('01','過去の走りとの比較')+'">比較の読み方を探究で確かめる ›</a><a class="rv4-back-link" href="#/history">履歴で記録を選ぶ ›</a></div></section>';
  };
  const extras=()=>'<details class="rv4-details"><summary><span class="rv4-icon">'+icon('memo')+'</span><span><strong>その日の記録</strong><small>使用品・コース・メモ</small></span><b>⌄</b></summary><div class="rv4-extra-grid"><div><small>シューズ</small><strong>'+clean(draft.shoeName||'—')+'</strong></div><div><small>歩数</small><strong>'+(positive(draft.steps)!==null?format(positive(draft.steps))+' 歩':'—')+'</strong></div><div><small>上り割合</small><strong>'+(number(draft.upPercent)!==null?format(number(draft.upPercent))+'%':'—')+'</strong></div></div><div class="rv4-note"><small>メモ</small><p>'+clean(draft.memo||'記録がありません')+'</p></div></details>';
@@ -233,6 +247,12 @@ export function mountResult(host,inputDraft={},options={}){
     dot.addEventListener('click',e=>{e.stopPropagation();chosen=path.dataset.region;draw()});
     liveSvg.append(dot);
   });
+  root.querySelector('[data-run-question-save]')?.addEventListener('click',()=>{
+    const sourceNoteId=root.querySelector('[data-run-question-source]')?.value||'';
+    const text=root.querySelector('[data-run-question-text]')?.value||'';
+    if(!sourceNoteId||!text.trim())return;
+    options.onContinueQuestion?.(sourceNoteId,text,other?.id);
+  });
   root.querySelector('[data-compare-select]')?.addEventListener('change',event=>{
     const target=event.currentTarget.value;
     // Stay on the same saved record; never treat a missing comparison as a different run.
@@ -275,6 +295,6 @@ export function mountResult(host,inputDraft={},options={}){
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
  }
- if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+RESULT_ANATOMY_RELIEF_STYLES+RESULT_GPS_GATE_STYLES+RESULT_REFLECTION_STYLES+RESULT_ROF_AUDIT_STYLES+'</style><div class="rv4-app"></div>';
+ if(!root.querySelector('.rv4-app'))root.innerHTML='<style data-result-inline-styles>'+RESULT_STYLES+RESULT_GAIT_STYLES+RESULT_VISUAL_STYLES+RESULT_SIDEBYSIDE_PREVIEW_STYLES+RESULT_ANATOMY_RELIEF_STYLES+RESULT_GPS_GATE_STYLES+RESULT_REFLECTION_STYLES+RESULT_ROF_AUDIT_STYLES+RESULT_QUESTION_STYLES+'</style><div class="rv4-app"></div>';
  draw();
 }

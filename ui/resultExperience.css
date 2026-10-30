@@ -56,3 +56,11 @@
 .rv4-rof-correct-form input,.rv4-rof-correct-form select{width:100%;min-width:0;max-width:100%;min-height:44px;border:1px solid #548c9d;background:#0b3041;color:#f7ffff;border-radius:9px;padding:9px;color-scheme:dark}
 .rv4-rof-correct-form button{min-height:44px;border-radius:10px;background:#147f8f;border:1px solid #61d5df;color:white;font-weight:800;cursor:pointer;padding:10px}
 .rv4-rof-correct-form :is(button,input,select):focus-visible{outline:2px solid #f4cc75;outline-offset:2px}
+
+.rv4-question-continuation{min-width:0;display:grid;gap:12px;margin:16px 0;padding:15px;border:1px solid #418997;background:#0c3142;border-radius:12px}
+.rv4-question-continuation h3{font-size:15px;margin:0;color:#f2ffff}
+.rv4-question-continuation p,.rv4-question-continuation small{margin:0;color:#b3dbe1;line-height:1.6;overflow-wrap:anywhere}
+.rv4-question-continuation label{display:grid;gap:6px;font-size:13px;color:#e5f9fc}
+.rv4-question-continuation select,.rv4-question-continuation textarea{width:100%;min-width:0;max-width:100%;padding:10px;min-height:44px;border:1px solid #60949f;background:#123a4d;color:#fff;border-radius:9px;font:inherit}
+.rv4-question-continuation button{min-height:44px;border-radius:9px;border:1px solid #79dade;background:#117c8b;color:white;font-weight:800;padding:10px}
+.rv4-question-continuation :is(button,select,textarea):focus-visible{outline:2px solid #ffda76;outline-offset:2px}

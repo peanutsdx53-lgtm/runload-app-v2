@@ -22,7 +22,8 @@
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261028-back-symmetry-v2");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261029-region-evidence-v1");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261030-question-continuity-v1");
+  const questionContinuation=await import("./ui/runQuestionContinuation.js");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
   const dataManagement=await import("./ui/dataManagement.js?v=20261028-data-management-v1");
@@ -519,7 +520,15 @@ function recordExtras(){
     resultHost.innerHTML='<div class="gd-empty" role="status">'+esc(message)+' <a href="#/history">履歴へ戻る</a></div>';
    }else{
     resultExperience.mountResult(resultHost,record?.draft||{},record?{
-     saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
+     saved:true,recordId:record.id,record,compareRecords:stored,questionNotes:explorationExperience.makeUi(onboardStorage).notes,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
+     onContinueQuestion:async (sourceNoteId,text,fromRunId)=>{
+      const saved=await manualRunLock.withManualRunWriteLock(()=>
+       questionContinuation.saveRunQuestionContinuation(onboardStorage,manualRunStore.readManualRuns(onboardStorage),
+        {sourceNoteId,text,fromRunId,toRunId:record.id}));
+      state.toast=saved.ok?'元の問いと今回の振り返りを関連づけて保存しました。':'振り返りを保存できません：'+saved.reason;
+      if(saved.ok)location.hash='#/exploration-tree?record='+encodeURIComponent(record.id)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース');
+      render();
+     },
      onCorrectRof:async (phase,score,meta)=>{
       const updated=await manualRunLock.withManualRunWriteLock(()=>
        manualRunStore.correctSavedRof(onboardStorage,record.id,phase,score,meta));
