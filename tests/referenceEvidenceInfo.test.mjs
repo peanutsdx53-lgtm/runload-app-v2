@@ -125,3 +125,18 @@ test('Gazendam four original-table discrepancy routes disclose limitation; no un
    'other source-specific routes must not inherit Gazendam warning');
  }
 });
+
+test('Gazendam note identifies the selected published 0.99 m rule and a separate printed-table rounding inconsistency',()=>{
+ for(const id of ['R02','R03','R04','R07']){
+  const series=RUNNING_REGION_SERIES.find(s=>s.regionId===id);
+  const info=describeRegionEvidence({
+   row:{regionId:id,calculationState:'CALCULATED',
+    evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}},
+   bodyId:engineReferenceBodyId(id),activity:'RUNNING'
+  });
+  assert.match(info.note,/平均脚長0\\.99 mを優先/);
+  assert.match(info.note,/Table 3の係数と式\\(4\\)/);
+  assert.match(info.note,/Table 2の掲載値に一部不一致/);
+  assert.doesNotMatch(info.note,/0\\.98 mを採用/);
+ }
+});
