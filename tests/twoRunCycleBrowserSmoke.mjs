@@ -191,5 +191,45 @@ try{
  assert.equal(state.records.filter(r=>r.date==='2026-10-25').length,3);
  assert.equal(new Set(state.records.map(r=>r.id)).size,state.records.length);
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
+ // Stage 8: a genuine saved-result UI correction appends history without changing the ID.
+ await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB),{waitUntil:'networkidle'});
+ await page.locator('[data-tab="fatigue"]').click();
+ await page.locator('.rv4-rof-audit summary').first().click();
+ await page.locator('[data-rof-correct-phase]').selectOption('before');
+ await page.locator('[data-rof-correct-score]').fill('0');
+ await page.locator('[data-rof-correct-basis]').selectOption('AT_ENTRY');
+ await page.locator('[data-rof-correct-reason]').fill('本人の回答');
+ await page.locator('[data-rof-correct-save]').click();
+ await page.waitForFunction(id=>{
+  const d=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null');
+  const r=d?.records.find(x=>x.id===id);
+  return r?.rofCorrections?.length===1&&r.rofBefore===0;
+ },sameDayB);
+ let revised=(await readRuns()).records.find(x=>x.id===sameDayB);
+ assert.equal(revised.rofEvidence.before.score,null);
+ assert.equal(revised.rofCorrections[0].old.score,null);
+ assert.equal(revised.rofCorrections[0].next.score,0);
+ assert.equal(revised.rofCorrections[0].next.timeBasis,'AT_ENTRY');
+ assert.equal(revised.rofCorrections[0].next.assessedAt,revised.rofCorrections[0].next.capturedAt);
+ await page.reload({waitUntil:'networkidle'});
+ await page.locator('[data-tab="fatigue"]').click();
+ await page.locator('.rv4-rof-audit summary').first().click();
+ assert.match(await page.locator('.rv4-rof-audit').innerText(),/訂正履歴 1件/);
+ await page.locator('[data-rof-correct-phase]').selectOption('before');
+ await page.locator('[data-rof-correct-score]').fill('');
+ await page.locator('[data-rof-correct-basis]').selectOption('UNKNOWN');
+ await page.locator('[data-rof-correct-save]').click();
+ await page.waitForFunction(id=>{
+  const d=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null');
+  return d?.records.find(x=>x.id===id)?.rofCorrections?.length===2;
+ },sameDayB);
+ revised=(await readRuns()).records.find(x=>x.id===sameDayB);
+ assert.equal(revised.rofBefore,null);
+ assert.equal(revised.rofCorrections[1].from,0);
+ assert.equal(revised.rofCorrections[1].to,null);
+ assert.equal(revised.draft.rofBefore,null);
+ assert.equal(revised.id,sameDayB);
+ assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
+ console.log('PASS stage 8: saved UI correction, 0 and null, immutable provenance and reload');
  console.log('PASS stage 10: same-day IDs, no-note continuity, cross-gait rejection and preserved three tabs');
 }finally{await browser.close();await new Promise(done=>server.close(done));}
