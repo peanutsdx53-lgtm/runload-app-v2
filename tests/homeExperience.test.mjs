@@ -114,3 +114,26 @@ test("achievements read only confirmed saved manual runs and distinguish broken 
  assert.doesNotMatch(achievementPanel(false,{ok:false,records:rows,reason:'破損'}),/51.0/);
  assert.equal(achievementSummary({ok:true,records:[{source:'gps',type:'run',id:'gps-1',distanceKm:200,durationSeconds:5000}]}).count,0);
 });
+
+// Stage 11 / F09: an unselected feeling must not be saved as an invented neutral report.
+test("new lifestyle entry requires an explicit feeling; legacy choices remain intact",()=>{
+ const s=store(),day=todayLocal();
+ const initial=conditionPanel(s,false,day);
+ assert.match(initial,/起床時の調子（保存時に選択）/);
+ assert.match(initial,/<option value="" disabled selected>選択してください（未回答）<\/option>/);
+ assert.doesNotMatch(initial,/<option value="ふつう" selected>/);
+ const base={date:day,sleepMode:"duration",durationHours:"7",durationMinutes:"30",memo:""};
+ const missing=conditionEntryFromForm({...base,feeling:""});
+ assert.equal(missing.ok,false);
+ assert.match(missing.reason,/起床時の調子を選択/);
+ assert.equal(readConditions(s).entries.length,0);
+ const stated=conditionEntryFromForm({...base,feeling:"ふつう"});
+ assert.equal(stated.ok,true);
+ assert.equal(saveCondition(s,stated.entry).ok,true);
+ const editing=conditionPanel(s,false,day);
+ assert.match(editing,/<option value="ふつう" selected>ふつう<\/option>/);
+ assert.doesNotMatch(editing,/<option value="" disabled selected>/);
+ const otherDay=conditionPanel(s,false,"2026-10-12");
+ assert.match(otherDay,/<option value="" disabled selected>/);
+ assert.equal(readConditions(s).entries[0].feeling,"ふつう");
+});

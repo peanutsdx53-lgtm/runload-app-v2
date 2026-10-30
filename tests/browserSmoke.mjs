@@ -242,6 +242,7 @@ try{
   assert.match(conditionDateVisual.text,/^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/);
   assert.ok(conditionDateVisual.overflow<=0 && conditionDateVisual.width<=235 && conditionDateVisual.transparent==="0","date native picker remains usable");
   assert.equal(await page.locator('[data-sleep-mode="clock"]').getAttribute("aria-pressed"),"true","clock is default on empty journal");
+  assert.equal(await page.locator('select[name="feeling"]').inputValue(),"","new lifestyle log must not silently choose neutral feeling");
   assert.match(await page.locator('[data-sleep-result]').innerText(),/—/,"no fake sleep history");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-empty-v2.png"),fullPage:false});
   await page.locator('[name="bedTime"]').fill("23:20");
@@ -271,6 +272,11 @@ try{
   assert.match(await page.locator("[data-sleep-error]").innerText(),/確認/,"invalid clock is not stored");
   assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20","validation preserves unfinished form");
   await page.locator('[name="bedDayRule"][value="auto"]').check();
+  // Counterexample: valid sleep time with no chosen feeling must not become a real neutral answer.
+  await page.locator("[data-condition-form] button[type=submit]").click();
+  assert.match(await page.locator("[data-sleep-error]").innerText(),/起床時の調子を選択/);
+  assert.equal(await page.locator('select[name="feeling"]').inputValue(),"");
+  assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-life-condition-v1")),null,"no synthetic feeling or sleep record is persisted");
   await page.locator('select[name="feeling"]').selectOption("ふつう");
   await page.locator("[data-condition-form] button[type=submit]").click();
   assert.match(await page.locator(".hx-condition").innerText(),/6時間40分/);
@@ -284,6 +290,7 @@ try{
   await page.locator("[data-condition-open]").click();
   assert.equal(await page.locator('[name="bedTime"]').inputValue(),"23:20");
   assert.equal(await page.locator('[name="wakeTime"]').inputValue(),"06:00");
+  assert.equal(await page.locator('select[name="feeling"]').inputValue(),"ふつう","existing explicit neutral answer is not lost on edit");
   await page.locator('[data-sleep-mode="duration"]').click();
   assert.equal(await page.locator('[name="durationHours"]').isVisible(),true);
   await page.locator('[name="durationHours"]').fill("7");

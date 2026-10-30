@@ -38,6 +38,7 @@ export function conditionEntryFromForm(fields) {
   if(minutes<=0||minutes>=1440)return {ok:false,reason:"合計時間は1分以上24時間未満にしてください"};
   entry={...entry,sleepMinutes:minutes,sleepSource:"duration"};
  }else return {ok:false,reason:"睡眠の入力方法を選択してください"};
+ if(!FEELINGS.includes(feeling))return {ok:false,reason:"起床時の調子を選択してください。未回答を「ふつう」として保存しません"};
  if(!validEntry(entry))return {ok:false,reason:"日付・起床時の調子・メモを確認してください"};
  return {ok:true,entry};
 }
@@ -216,8 +217,9 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  const state=readConditions(storage),chartEntries=preview?demoEntries():state.entries;
  const existing=state.entries.find(x=>x.date===selectedDate);
  const mode=existing?.sleepSource==="clock"||!existing?"clock":"duration";
- const feeling=existing?.feeling||"ふつう";
- const opts=FEELINGS.map(v=>'<option value="'+escape(v)+'"'+(feeling===v?' selected':'')+'>'+escape(v)+'</option>').join("");
+ const feeling=existing?.feeling||"";
+ // A first-time answer must never be inferred from a pre-selected neutral category.
+ const opts='<option value="" disabled'+(feeling===""?' selected':'')+'>選択してください（未回答）</option>'+FEELINGS.map(v=>'<option value="'+escape(v)+'"'+(feeling===v?' selected':'')+'>'+escape(v)+'</option>').join("");
  const bars=chartEntries.length?sevenBars(chartEntries):'<p class="hx-no-sleep">睡眠の記録はまだありません</p>';
  const durationHours=existing?Math.floor(existing.sleepMinutes/60):"";
  const durationMinutes=existing?existing.sleepMinutes%60:"";
@@ -247,7 +249,7 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  [0,15,30,45].map(v=>'<button type="button" data-duration-minute="'+v+'" aria-pressed="'+String(durationMinutes!==""&&Number(durationMinutes)===v)+'">'+String(v).padStart(2,"0")+'分</button>').join("")+
  '</div><small>分は1分単位で直接入力もできます。</small></div></div>'+
  '<div class="hx-sleep-result" aria-live="polite"><div data-sleep-result-label></div><strong data-sleep-result>—</strong><p data-sleep-result-note></p><small>時刻からの計算は実際に眠っていた時間とは異なる場合があります。</small></div></section>'+
- '<label>起床時の調子<select name="feeling">'+opts+'</select></label>'+
+ '<label>起床時の調子（保存時に選択）<select name="feeling" aria-required="true">'+opts+'</select></label>'+
  '<label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(existing?.memo||"")+'</textarea></label>'+
  '<p class="hx-form-error" data-sleep-error role="alert" hidden></p>'+
  '<div class="hx-dialog-foot"><button type="button" data-home-close>キャンセル</button><button type="submit" class="hx-save" '+(!state.canSave?'disabled':'')+'>保存</button></div></form>'+
