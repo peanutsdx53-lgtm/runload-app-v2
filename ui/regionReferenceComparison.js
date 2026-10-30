@@ -1,7 +1,7 @@
 /** Same body region, same source and same scientific construct; never a risk comparison. */
 export function compareBodyReferenceRows(current,previous,currentRef,previousRef,regionId){
  const bad=(status,reason)=>({status,reason});
- const valid=r=>r?.source==='manual'&&r?.type==='run'&&r?.schema===1&&
+ const valid=r=>r?.source==='manual'&&r?.type==='run'&&r?.schema===2&&
   typeof r.id==='string'&&/^run-v1-[0-9a-f-]{36}$/.test(r.id)&&
   Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
   Number.isInteger(r.durationSeconds)&&r.durationSeconds>0;
