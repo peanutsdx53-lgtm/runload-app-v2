@@ -129,8 +129,12 @@ try{
     const pages=Number(/^Pages:\s*(\d+)/m.exec(pdfInfo.stdout)?.[1]);
     assert.ok(Number.isInteger(pages)&&pages>=visibility.visibleSheets&&pages<=15,
       'actual PDF page count must cover the chosen sheets and stay bounded: '+pages);
-    assert.match(pdfInfo.stdout,/Page size:\s*595(?:\.2[0-9]*)? x 842(?:\.0[0-9]*)? pts|Page size:\s*595\.28 x 841\.89 pts/,
-      'A4 physical page dimensions');
+    const pageSize=/^Page size:\s*([0-9.]+)\s*x\s*([0-9.]+)\s*pts\s*\(A4\)/m.exec(pdfInfo.stdout);
+    assert.ok(pageSize,'PDF output must be a physical A4 page');
+    // Skia's mm-to-pt conversion can round 210mm to 594.96pt rather than 595.28pt.
+    const [physicalWidthPt,physicalHeightPt]=pageSize.slice(1,3).map(Number);
+    assert.ok(Math.abs(physicalWidthPt-595.276)<0.6&&Math.abs(physicalHeightPt-841.890)<0.6,
+      'actual page box must match 210x297mm within printer rounding tolerance');
     const pdfText=spawnSync('pdftotext',['-layout','-','-'],{input:longPdf,encoding:'utf8'});
     assert.equal(pdfText.status,0,'pdftotext must extract the printed report: '+String(pdfText.error?.message||pdfText.stderr||''));
     for(const marker of ['purpose','observation','question']){
