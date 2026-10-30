@@ -26,12 +26,12 @@ try{
  await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
  const host='http://127.0.0.1:4175/';
  const readRuns=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')||'null'));
- async function saveRun(date,distance,minutes,memo){
+ async function saveRun(date,distance,minutes,memo,gait='RUNNING'){
   await page.goto(host+'#/record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="date"]').fill(date);
   await page.locator('[data-draft="distance"]').fill(String(distance));
   await page.locator('[data-draft="minutes"]').fill(String(minutes));
-  await page.locator('[data-manual-gait="RUNNING"]').click();
+  await page.locator('[data-manual-gait="'+gait+'"]').click();
   await page.locator('a[href="#/record-reflection"]').first().click();
   await page.locator('[data-draft="memo"]').fill(memo);
   await page.locator('[data-apply]').click();
@@ -45,6 +45,7 @@ try{
   assert.equal(last.date,date);
   assert.equal(last.distanceKm,distance);
   assert.equal(last.memo,memo);
+  assert.equal(last.draft.activityGait,gait);
   assert.ok(last.id.startsWith('run-v1-'));
   return last.id;
  }
@@ -151,5 +152,44 @@ try{
   .some(el=>el.textContent.includes('指定された保存済み走行が見つからない')));
  assert.match(await page.locator('.ex-notice').last().innerText(),/指定された保存済み走行が見つからない/);
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
- console.log('PASS stage 10: two saved IDs, optional and orphan notes, deleted ID and reload');
+ // Two new records deliberately share a date, distance, duration and an empty note.
+ // The comparison must identify each saved run by ID, never by date alone.
+ const sameDayA=await saveRun('2026-10-25',4,28,'');
+ const sameDayB=await saveRun('2026-10-25',4,28,'');
+ assert.notEqual(sameDayA,sameDayB,'same-day records are not deduplicated');
+ let state=await readRuns();
+ assert.equal(state.records.filter(r=>r.date==='2026-10-25').length,2);
+ assert.equal(state.records.find(r=>r.id===sameDayA).memo,'','note remains truly optional');
+ assert.equal(state.records.find(r=>r.id===sameDayB).memo,'');
+ await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
+ await page.locator('.rv4-compare-provenance').waitFor();
+ const sources=await page.locator('.rv4-compare-provenance').innerText();
+ assert.ok(sources.includes(sameDayA)&&sources.includes(sameDayB),'same-day comparison keeps both IDs visible');
+ assert.match(sources,/比較相手/);assert.match(sources,/選択中/);
+ const selector=page.locator('[data-compare-select]');
+ assert.ok(await selector.locator('option[value="'+sameDayA+'"]').count());
+ assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング.*ID末尾/);
+ assert.equal((await page.locator('.rv4-comparison-table').innerText()).includes('距離'),true);
+ const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().innerText();
+ assert.match(zeroDistance,/0(\\.00)?/,'same-day zero change is a descriptive value, not missing');
+ await page.reload({waitUntil:'networkidle'});
+ assert.ok(await page.locator('.rv4-compare-provenance').innerText().then(x=>x.includes(sameDayA)&&x.includes(sameDayB)));
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(sameDayB)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ assert.equal(await page.locator('.ex-note-preview').count(),0,'no-note run never inherits older free/linked notes');
+ assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2,
+  'comparing and revisiting do not require creating an exploration note');
+ // Real UI cross-gait counterexample: WALK vs RUNNING is never presented
+ // as a quantitative comparison, including the literature region.
+ const walkId=await saveRun('2026-10-25',2,24,'','WALK');
+ await page.goto(host+'#/result?record='+encodeURIComponent(walkId)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
+ assert.match(await page.locator('[data-compare-select] option[value="'+sameDayA+'"]').innerText(),/ランニング.*活動種別が異なる/);
+ assert.equal(await page.locator('.rv4-comparison-table').count(),0,'cross gait factual comparisons must fail closed');
+ assert.match(await page.locator('.rv4-comparison-empty').innerText(),/活動種別が不明または異なります/);
+ assert.match(await page.locator('.rv4-region-compare').innerText(),/活動種別が異なる記録の参考値は比較できません/);
+ assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'three approved result tabs remain');
+ state=await readRuns();
+ assert.equal(state.records.filter(r=>r.date==='2026-10-25').length,3);
+ assert.equal(new Set(state.records.map(r=>r.id)).size,state.records.length);
+ assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
+ console.log('PASS stage 10: same-day IDs, no-note continuity, cross-gait rejection and preserved three tabs');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

@@ -38,3 +38,17 @@ test('no imported science calculator or storage write in comparison helper',()=>
  const code=readFileSync(new URL('../ui/runReflection.js',import.meta.url),'utf8');
  assert.doesNotMatch(code,/calculateActivityReference|setItem|localStorage|IndexedDB/);
 });
+
+test('same-day saved records remain two distinct candidates; blank notes do not block factual comparison',()=>{
+ const a=run(1,{date:'2026-10-25',memo:'',createdAt:'2026-10-25T08:00:00.000Z'});
+ const b=run(2,{date:'2026-10-25',memo:'',createdAt:'2026-10-25T09:00:00.000Z'});
+ const choices=comparableRunChoices({ok:true,records:[a,b]},b.id);
+ assert.deepEqual(choices.map(x=>x.id),[a.id]);
+ const compared=compareSavedRuns(b,a);
+ assert.equal(compared.status,'ready');
+ assert.equal(compared.rows.find(x=>x.key==='distance').change,0);
+ assert.equal(compared.rows.find(x=>x.key==='duration').change,0);
+ assert.equal(compared.current.memo,'');
+ assert.equal(compared.other.memo,'');
+ assert.match(compared.uncertainty,/原因/);
+});

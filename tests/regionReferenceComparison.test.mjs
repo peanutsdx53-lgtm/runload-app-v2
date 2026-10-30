@@ -51,3 +51,26 @@ test('reference values can decline but never become a risk classification',()=>{
  const r=compare(run(2),run(1),running(97.1),running(98),'R01');
  assert.equal(r.status,'ready');assert.equal(r.difference,-0.9);assert.doesNotMatch(r.note,/安全になった|危険になった/);
 });
+
+test('cross version, construct or source cannot produce a fake positive reference difference',()=>{
+ const current=run(2),prior=run(1);
+ const currentRef=running(120);
+ const altered=[
+  {...running(110),modelVersion:'unreviewed-v2'},
+  {...running(110),semanticVersion:'different-reference'},
+  {...running(110),rows:[{...running(110).rows[0],evidence:{...running(110).rows[0].evidence,metricId:'DIFFERENT'}}]},
+  {...running(110),rows:[{...running(110).rows[0],evidence:{...running(110).rows[0].evidence,sourceSha256:'different-hash'}}]}
+ ];
+ for(const other of altered){
+  const result=compare(current,prior,currentRef,other,'R01');
+  assert.notEqual(result.status,'ready');
+  assert.equal(result.difference,undefined,'rejected data must never expose numeric point differences');
+  assert.match(result.reason,/方法|出所/);
+ }
+ const outOfRange=running(110);
+ outOfRange.rows[0].calculationState='NOT_CALCULABLE';
+ outOfRange.rows[0].value=null;
+ const missing=compare(current,prior,currentRef,outOfRange,'R01');
+ assert.equal(missing.status,'not-calculable');
+ assert.equal(missing.difference,undefined);
+});
