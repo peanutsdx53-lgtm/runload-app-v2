@@ -306,7 +306,7 @@ try{
  assert.match(await page.locator('.ex-note-preview').innerText(),/今回の走行ではペースの違い/);
  await page.locator('[data-ex-action="memories"]').click();
  assert.match(await page.locator('[data-ex-overlay]').innerText(),/元の問いから本人が明示的に続けたメモ/);
- assert.match(await page.locator('[data-ex-overlay]').innerText(),sourceQuestion);
+ assert.ok((await page.locator('[data-ex-overlay]').innerText()).includes(sourceQuestion));
  await page.locator('[data-ex-action="close"]').click();
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(walkId)+'&view=compare',{waitUntil:'networkidle'});
  assert.equal(await page.locator('[data-run-question-source]').count(),0,'cross-gait comparison cannot offer linked continuation');
