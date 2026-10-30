@@ -126,6 +126,8 @@ const KNOWLEDGE={
    heading:"睡眠と、走る日の調子",lead:"睡眠は回復や日中の注意・気分とも関係します。短い睡眠や質の低下が続くと運動への影響が懸念されますが、必要な睡眠の長さには個人差があります。",
    cite:"Walsh ほか（2021）",url:"https://doi.org/10.1136/bjsports-2020-102025",warning:"競技者を主な対象とした研究・専門家の合意文書です。初心者個人の必要睡眠時間を指定せず、本人の生活記録から睡眠と走行の因果関係を推定しません。",sourceNote:"Walsh ほか（2021）は競技者の睡眠に関するナラティブレビューと専門家コンセンサスです。初心者向けの個別処方ではなく、本人の睡眠記録と主観的な調子を分けて考えるための背景知識として参照します。"}
 };
+// Read-only catalog export for scientific/engineering audit; does not change UI behavior.
+export const EXPLORATION_LEARNING_SOURCES=Object.freeze(KNOWLEDGE);
 const STARTER_GUIDES=Object.freeze({
   "距離・時間・ペース": "記録した距離と時間を見て、今日はどんなペースだったか確かめてみましょう。",
   "自分が感じた疲れ": "運動前と運動後に感じた疲れを、ROF-Jの記録と一緒に見返してみましょう。",

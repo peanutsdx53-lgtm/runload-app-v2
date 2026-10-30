@@ -147,3 +147,22 @@ test('distance and pace column reads only confirmed manual runs, never an unsave
  assert.match(sample,/表示例を終了すると/);
  assert.doesNotMatch(sample,/6:15 分\/km/);
 });
+
+test('all ten learning sources and eighteen prompts identify origin and prohibited causal/medical overreach',async()=>{
+ const {EXPLORATION_LEARNING_SOURCES}=await import('../ui/explorationExperience.js');
+ const {EXPLORATION_DRAFT_GUIDES,EXPLORATION_DRAFT_COUNT}=await import('../ui/explorationTopicGuides.js');
+ const entries=Object.entries(EXPLORATION_LEARNING_SOURCES);
+ assert.equal(entries.length,10,'knowledge entries are a fixed editorial catalog');
+ const attributed=entries.filter(([_,v])=>v.url&&v.cite);
+ assert.equal(attributed.length,8,'two are arithmetic/design descriptions, not invented citations');
+ for(const [topic,e] of entries){
+  assert.ok(e.heading&&e.lead&&e.warning&&e.sourceNote,topic+' lacks provenance or limits');
+  assert.ok(!e.url||e.url.startsWith('https://doi.org/'),topic+' scholarly link');
+  assert.doesNotMatch(e.warning,/安全な負荷を保証|傷害を予防できる|効果が確認されました/);
+ }
+ assert.equal(EXPLORATION_DRAFT_COUNT,18);
+ for(const [key,g] of Object.entries(EXPLORATION_DRAFT_GUIDES)){
+  assert.equal(g.status,'design-prompt',key+' must not impersonate a validated scientific lesson');
+  for(const field of ['question','record','limit','next'])assert.ok(g[field]?.trim(),key+' missing '+field);
+ }
+});
