@@ -45,7 +45,22 @@ try{
   assert.match(await page.locator('.cp-explain-card').filter({hasText:'運動前・運動後の回答（ROF-J）'}).innerText(),/時間的な変化量は判定しません/);
   assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/選択した1記録.*記録ID：run-v1-/);
   await page.locator('#cp-purpose').fill('指導者に伝えたいこと');
+  await page.locator('#cp-observation').fill('個人的な気づきの非公開試験');
+  await page.locator('#cp-question').fill('指導者に質問する内容の非公開試験');
   assert.equal(await page.locator('[data-report-purpose]').innerText(),'指導者に伝えたいこと');
+  await page.locator('input[data-share="notes"]').uncheck();
+  assert.equal(await page.locator('[data-report-purpose]').isVisible(),false,'sharing opt-out must hide purpose');
+  assert.equal(await page.locator('[data-report-observation]').isVisible(),false,'sharing opt-out hides observation');
+  assert.equal(await page.locator('[data-report-question]').isVisible(),false,'sharing opt-out hides question');
+  if(!useWebKit){
+   await page.emulateMedia({media:'print'});
+   const excluded=await page.locator('[data-output-section="notes"]').evaluateAll(els=>els.every(el=>getComputedStyle(el).display==='none'));
+   assert.equal(excluded,true,'print/PDF layout must not include excluded personal narration');
+   await page.emulateMedia({media:'screen'});
+  }
+  await page.locator('input[data-share="notes"]').check();
+  assert.equal(await page.locator('[data-report-purpose]').isVisible(),true,'re-enabled notes remain editable and visible');
+  assert.equal(await page.locator('[data-report-observation]').isVisible(),true);
   await page.locator('[data-mode-button="period"]').click();
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/期間内の1記録（期間全体の平均・合計ではありません）/);
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/時間的な前後差は判定しません/);

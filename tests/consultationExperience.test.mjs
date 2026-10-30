@@ -70,3 +70,10 @@ test('consultation explains V2 ROF-J provenance without a temporal difference',(
  assert.match(html,/時間的な変化量は判定しません/);
  assert.doesNotMatch(html,/疲労感の変化（ROF-J）|運動後 − 運動前/);
 });
+
+test('opt-out of personal narration includes the stated purpose, not just observations and questions',()=>{
+ const html=renderConsultation();
+ assert.match(html,/data-share="notes"[^>]*>本人の記述（目的・気付き・質問）/);
+ assert.match(html,/<section class="cp-section" data-output-section="notes"><div class="cp-section-heading"><b>01<\/b> 共有・相談の目的/);
+ assert.match(html,/<section class="cp-section" data-output-section="notes"><div class="cp-section-heading"><b>04<\/b> 本人の気付き/);
+});
