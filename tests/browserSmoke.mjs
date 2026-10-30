@@ -694,6 +694,9 @@ try{
   assert.equal(savedData.records.length,0,'course delete leaves empty collection');
   console.log('PASS',mode.name,'shared course editor: save / reload / reuse / delete');
   await page.goto(host+"#/record",{waitUntil:"networkidle"});
+  // A hash route can finish loading before the async canonical-store render commits.
+  // Keep the count assertion strict; wait only for the actual destination screen.
+  await page.locator(".rv-manual").waitFor({state:"visible"});
   assert.equal(await page.locator(".rv-manual").count(),1,"PC and mobile share manual screen");
   assert.equal(await page.locator("[data-record-type]").count(),2);
   assert.equal(await page.locator("[data-activity-type]").count(),0);
