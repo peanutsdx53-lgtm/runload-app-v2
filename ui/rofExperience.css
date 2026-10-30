@@ -66,3 +66,10 @@
 .rv4-page button:focus-visible,.rv4-page a:focus-visible,.rv4-page input:focus-visible{outline:2px solid #f4cc75;outline-offset:3px}
 @media(min-width:850px){.rv4-workspace{grid-template-columns:minmax(0,1fr) 270px;gap:17px}.rv4-current{grid-column:2;grid-row:1}.rv4-rail{grid-column:1;grid-row:1 / span 2;padding:18px}.rv4-aside{grid-column:2;grid-row:2}.rv4-picture{width:min(100%,103px);height:124px}.rv4-anchor{width:106px;padding:7px 3px 9px}.rv4-anchor>strong{font-size:12px}.rv4-anchor>small{font-size:11px}.rv4-rail-top{margin-bottom:20px}.rv4-anchor-row{height:185px;margin:0 57px}.rv4-axis{margin:20px 44px 0}}
 @media(max-width:355px){.rv4-card{padding:11px}.rv4-rail{padding:10px 5px}.rv4-picture{width:min(100%,50px);height:67px;padding:2px}.rv4-anchor{width:50px;padding:5px 0 8px}.rv4-anchor-row{margin:0 26px;height:124px}.rv4-current{padding:12px;gap:10px}.rv4-current>output{font-size:43px;flex-basis:51px}.rv4-title h2{font-size:15px}.rv4-rail-top{font-size:11px}.rv4-axis{margin:13px 12px 0;padding:0}.rv4-tools>[data-rof-v4-clear]{padding:0 8px}}
+/* User-declared timing: optional, readable without altering the authorized scale images. */
+.rv4-run-times,.rv4-timing{min-width:0;margin:10px 0;padding:12px;border:1px solid #508697;border-radius:12px;color:#e6f8f9;display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.rv4-run-times legend,.rv4-timing legend{font-weight:800;font-size:14px;padding:0 6px}
+.rv4-run-times label,.rv4-timing label{display:grid;gap:6px;min-width:0;font-size:13px}
+.rv4-run-times input,.rv4-timing input,.rv4-timing select{min-width:0;max-width:100%;width:100%;min-height:44px;padding:9px;background:#102f40;color:#f5ffff;border:1px solid #5797a1;border-radius:9px;color-scheme:dark}
+.rv4-run-times p,.rv4-timing small{grid-column:1/-1;margin:0;font-size:12px;line-height:1.6;color:#bdd7df}
+.rv4-run-times input:focus-visible,.rv4-timing input:focus-visible,.rv4-timing select:focus-visible{outline:2px solid #f4cc75;outline-offset:2px}
