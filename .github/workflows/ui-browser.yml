@@ -11,6 +11,7 @@ on:
       - 'tests/browserSmoke.mjs'
       - 'tests/twoRunCycleBrowserSmoke.mjs'
       - 'tests/manualRunLockBrowserSmoke.mjs'
+      - 'tests/offlineShellBrowserSmoke.mjs'
       - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/firstUseBrowserSmoke.mjs'
       - 'tests/dataManagementBrowserSmoke.mjs'
@@ -31,6 +32,7 @@ on:
       - 'tests/browserSmoke.mjs'
       - 'tests/twoRunCycleBrowserSmoke.mjs'
       - 'tests/manualRunLockBrowserSmoke.mjs'
+      - 'tests/offlineShellBrowserSmoke.mjs'
       - 'tests/regionEvidenceBrowserSmoke.mjs'
       - 'tests/livePagesSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
@@ -91,6 +93,8 @@ jobs:
           fc-match :lang=ja
       - name: Cross-tab saved-run lock acceptance (Chromium)
         run: node tests/manualRunLockBrowserSmoke.mjs
+      - name: Installed shell and cold-start offline behavior (Chromium)
+        run: node tests/offlineShellBrowserSmoke.mjs
       - name: Two saved runs and next-question continuity (Chromium)
         run: node tests/twoRunCycleBrowserSmoke.mjs
       - name: GPS dynamic replay IndexedDB mobile and desktop

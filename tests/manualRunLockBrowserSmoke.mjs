@@ -48,4 +48,13 @@ try{
  const afterReload=await b.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')));
  assert.deepEqual(afterReload,state);
  console.log('PASS browser lock: two tabs, two independent acknowledged records, no silent overwrite');
+ // Explicit counterexample: a stale tab not using Web Locks overwrites the V2 key.
+ const before=await a.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2'));
+ const stale=JSON.stringify({version:2,revision:1,records:state.records.slice(0,1)});
+ await b.evaluate(raw=>localStorage.setItem('runload-v2-manual-runs-v2',raw),stale);
+ const lost=await a.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')));
+ assert.equal(lost.records.length,1);
+ assert.equal(lost.records.some(r=>r.id===state.records[1].id),false);
+ assert.notEqual(await a.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2')),before);
+ console.log('BLOCKER stage9: non-cooperating old tab can silently replace an acknowledged run. Not a PASS.');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

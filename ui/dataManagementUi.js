@@ -32,7 +32,7 @@ export function renderDataBackup(ui){
   +'<button class="dm-btn dm-primary" type="button" data-dm-export '+(ui.busy?'disabled':'')+'>バックアップファイルを保存</button>'
   +'</div>'
   +'<div class="dm-section"><h3>バックアップを復元</h3>'
-  +'<p>保存したJSONファイルを選択します。形式と記録の内容を検証し、既存の記録を上書きせずに追加します。内容が競合した場合は復元を中止します。</p>'
+  +'<p>保存したJSONファイルを選択します。形式と記録の内容を検証し、既存の記録を上書きせずに追加します。内容が競合した場合は復元を中止します。</p><p class="dm-warning">復元・保存・削除の前に、古いバージョンのアプリを開いた別タブを閉じてください。Web Locksを使わない画面や外部からの同時書込みは防止できません。重要な記録は事前にバックアップしてください。</p>'
   +'<p class="dm-warning">GPSを含む復元は複数の保存先に順番に追加します。途中で失敗すると一部のみ復元される場合があります。実行前に現在の記録をバックアップし、失敗時は各記録を確認してください。</p>'
   +'<label class="dm-file"><strong>ファイルを選択</strong><input type="file" data-dm-file accept=".json,application/json" '+(ui.busy?'disabled':'')+'></label>'
   +(ui.preview?.ok?'<div class="dm-preview"><strong>読み込む内容</strong>'+summary(count,gps)
