@@ -130,7 +130,13 @@ export function mountResult(host,inputDraft={},options={}){
     +'<p class="rv4-disclaimer">色は各部位自身の基準100との差を示します。危険度・部位間の順位ではありません。算出できない部位は灰色で表示します。</p>'
     +'<a class="rv4-learn-link" href="'+exploreLink('02','12部位の参考値の見方')+'">この数値の意味を探究で確かめる ›</a>'+evidencePanel()+'</section>';
   };
- const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue" data-rof-time-status="unverified"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の記録</h2><p>「運動前／後」として入力した回答（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>前後差</small><strong>—</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人の回答です。各回答の評価時刻を保存していないため、時間的な前後差は判定していません。未回答は「—」で表示します。</p></section>';
+ const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue" data-rof-time-status="unverified"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の記録</h2><p>「運動前／後」として入力した回答（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow">→</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>前後差</small><strong>—</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-caption">本人の回答です。入力操作時刻と本人申告の評価時刻を分けて記録します。運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません。未回答は「—」です。</p>'
+ +(fromSaved&&options.record?.rofEvidence?'<details class="rv4-rof-audit"><summary>回答時刻と訂正履歴を確認・訂正</summary><p>取得時刻は端末での入力操作の時刻、評価時刻は本人申告です。実測的な保証ではありません。</p>'+
+ ['before','after'].map(phase=>{const e=options.record.rofCorrections?.filter(x=>x.phase===phase).at(-1)?.next||options.record.rofEvidence[phase];return '<p>'+(phase==='before'?'運動前':'運動後')+'：入力 '+clean(e?.capturedAt||'不明')+'／評価（本人申告） '+clean(e?.assessedAt||'不明')+'／'+clean(e?.timeBasis||'UNKNOWN')+'</p>'}).join('')+
+ '<p>訂正履歴 '+(options.record.rofCorrections?.length||0)+'件。訂正前の回答も保存されています。</p>'+
+ (options.record.rofCorrections?.length?'<details><summary>訂正履歴を開く</summary>'+options.record.rofCorrections.map(x=>'<p>'+clean(x.changedAt)+' '+clean(x.phase==='before'?'運動前':'運動後')+'：'+clean(x.from??'未回答')+' → '+clean(x.to??'未回答')+'／'+clean(x.reason||'理由未記入')+'</p>').join('')+'</details>':'')+
+ '<div class="rv4-rof-correct-form"><label>訂正する区分<select data-rof-correct-phase><option value="before">運動前</option><option value="after">運動後</option></select></label><label>訂正後の値（空欄は未回答）<input data-rof-correct-score type="number" min="0" max="10" step="1" placeholder="未回答"></label>'+
+ '<label>評価時点（本人申告）<select data-rof-correct-basis><option value="UNKNOWN">不明</option><option value="AT_ENTRY">今、この画面で評価した</option><option value="RECALLED">過去の状態を思い出して入力</option></select></label><label>過去の評価日時（任意・本人申告）<input data-rof-correct-assessed type="datetime-local"></label><label>訂正理由（任意）<input data-rof-correct-reason maxlength="140"></label><button type="button" data-rof-correct-save>訂正して履歴を保存</button></div></details>':'')+'</section>';
  const radar=()=>{
   const optionsHtml=choices.map(r=>'<option value="'+clean(r.id)+'"'+(compareId===r.id?' selected':'')+'>'+clean(r.date)+' ｜ '+r.distanceKm.toFixed(2)+' km ｜ '+clean(ACTIVITY_LABELS[gaitOf(r)]||'活動種別不明')+' ｜ ID末尾 '+clean(r.id.slice(-8))+(gaitOf(r)===gaitOf(options.record)?'':'（活動種別が異なる）')+'</option>').join('');
   const selector=fromSaved&&choices.length?'<label class="rv4-compare-label" for="rv4-compare-select">比べる保存記録</label><select id="rv4-compare-select" data-compare-select><option value="">記録を選ぶ</option>'+optionsHtml+'</select>':'';
@@ -168,6 +174,15 @@ export function mountResult(host,inputDraft={},options={}){
     if(!activityMissing||!['RUNNING','JOGGING','WALK'].includes(b.dataset.resultGait))return;
     options.onAssignGait?.(b.dataset.resultGait);
    }));
+  root.querySelector('[data-rof-correct-save]')?.addEventListener('click',()=>{
+   const phase=root.querySelector('[data-rof-correct-phase]')?.value;
+   const raw=root.querySelector('[data-rof-correct-score]')?.value;
+   const timeBasis=root.querySelector('[data-rof-correct-basis]')?.value||'UNKNOWN';
+   const text=root.querySelector('[data-rof-correct-assessed]')?.value||'';
+   const assessedAt=timeBasis==='RECALLED'&&text&&!Number.isNaN(Date.parse(text))?new Date(text).toISOString():null;
+   const reason=root.querySelector('[data-rof-correct-reason]')?.value||'';
+   options.onCorrectRof?.(phase,raw===''?null:Number(raw),{timeBasis,assessedAt,reason});
+  });
   root.querySelector('[data-label-toggle]')?.addEventListener('click',()=>{showBodyNumbers=!showBodyNumbers;draw()});
    root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;const v=selectedView();if(!v.paths.some(x=>x[0]===chosen))chosen=v.paths[0][0];picker=false;draw()}));
   root.querySelectorAll('[data-region]').forEach(b=>{const select=()=>{chosen=b.dataset.region;draw()};b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}})});
