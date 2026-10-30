@@ -1578,6 +1578,7 @@ try{
   assert.equal(await page.locator('#runload-result-v4 a[href="#/history"]').count(),1,'missing record offers history navigation');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const savedHistory=page.locator('#runload-history-v2');
+  await savedHistory.locator('.entry').first().waitFor({state:'visible',timeout:18000});
   assert.equal(await savedHistory.locator('.entry').count(),1);
   await savedHistory.locator('.entry').first().click();
   if(mode.name!=="desktop"){
