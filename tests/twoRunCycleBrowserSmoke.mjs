@@ -117,6 +117,10 @@ try{
  await page.locator('[data-ex-action="note"]').first().click();
  await page.locator('#ex-note').fill('記録IDなしの任意メモ');
  await page.locator('[data-ex-action="save-note"]').click();
+ await page.waitForFunction(()=>{
+  const notes=JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]');
+  return notes.length===2;
+ });
  const notesBefore=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
  assert.equal(notesBefore.length,2);
  assert.equal(notesBefore.filter(n=>n.recordId===firstId).length,1);
@@ -143,7 +147,9 @@ try{
  await page.locator('[data-ex-action="note"]').first().click();
  await page.locator('#ex-note').fill('削除済みIDには関連づけない');
  await page.locator('[data-ex-action="save-note"]').click();
- assert.match(await page.locator('.ex-notice').first().innerText(),/指定された保存済み走行が見つからない/);
+ await page.waitForFunction(()=>[...document.querySelectorAll('.ex-notice')]
+  .some(el=>el.textContent.includes('指定された保存済み走行が見つからない')));
+ assert.match(await page.locator('.ex-notice').last().innerText(),/指定された保存済み走行が見つからない/);
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
  console.log('PASS stage 10: two saved IDs, optional and orphan notes, deleted ID and reload');
 }finally{await browser.close();await new Promise(done=>server.close(done));}
