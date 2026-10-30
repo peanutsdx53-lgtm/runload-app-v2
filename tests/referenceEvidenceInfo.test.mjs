@@ -101,3 +101,27 @@ test('running source detail rejects a changed same-paper series or reference100 
   }
  }
 });
+
+test('Gazendam four original-table discrepancy routes disclose limitation; no unrelated paper inherits it',()=>{
+ for(const id of ['R02','R03','R04','R07']){
+  const series=RUNNING_REGION_SERIES.find(s=>s.regionId===id);
+  const info=describeRegionEvidence({
+   row:{regionId:id,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}},
+   bodyId:engineReferenceBodyId(id),activity:'RUNNING'
+  });
+  assert.equal(info.kind,'running');
+  assert.match(info.note,/速度の計算条件とTable 2の掲載値に一部不一致/);
+  assert.match(info.note,/原著の不一致が解決したと断定せず/);
+  assert.match(info.note,/個人の筋肉への実測負荷として解釈しない/);
+ }
+ for(const id of ['R01','R05','R06','R08','R09','R10','R11','R12']){
+  const series=RUNNING_REGION_SERIES.find(s=>s.regionId===id);
+  const info=describeRegionEvidence({
+   row:{regionId:id,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}},
+   bodyId:engineReferenceBodyId(id),activity:'RUNNING'
+  });
+  assert.equal(info.kind,'running');
+  assert.doesNotMatch(info.note,/速度の計算条件とTable 2の掲載値に一部不一致/,
+   'other source-specific routes must not inherit Gazendam warning');
+ }
+});

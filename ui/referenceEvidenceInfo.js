@@ -30,7 +30,7 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
    citation:citation.label,url:citation.url,sourceLocation:series.sourceLocation,
    domain:lo+'～'+hi+' km/h',reference:'基準速度 '+ref+' km/h を100とする部位内の比',
    status:row.calculationState==='CALCULATED'?'算出対象':'この記録の条件では未算出',
-   note:'原著の観測またはモデル由来の文献参考値です。本人の身体負荷・傷害危険度の実測値ではなく、異なる部位の数値の大小比較はできません。路面・勾配などを個別補正していません。'+(series.sourceFile==='Li_2020_Load_Transference_Running_Speed_Plantar_Pressure.pdf'?' この足底参考値の原著は、自然な踵接地で走る健康な男性39人の記録（5〜12 km/h）です。ほかの足接地様式・性別・個人への直接的な当てはまりを検証した数値ではありません。':'')});
+   note:'原著の観測またはモデル由来の文献参考値です。本人の身体負荷・傷害危険度の実測値ではなく、異なる部位の数値の大小比較はできません。路面・勾配などを個別補正していません。'+(series.sourceFile==='Li_2020_Load_Transference_Running_Speed_Plantar_Pressure.pdf'?' この足底参考値の原著は、自然な踵接地で走る健康な男性39人の記録（5〜12 km/h）です。ほかの足接地様式・性別・個人への直接的な当てはまりを検証した数値ではありません。':'')+(series.sourceFile==='Gazendam_Hof_2007_GaitPosture_EMG_Speed.pdf'?' この筋活動の文献参考値は、原著に記載された速度の計算条件とTable 2の掲載値に一部不一致があります。原著の不一致が解決したと断定せず、個人の筋肉への実測負荷として解釈しないでください。':'')});
  }
  if(activity==='JOGGING'||activity==='WALK'){
   const evidence=row.evidence;
