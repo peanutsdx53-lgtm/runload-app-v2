@@ -10,6 +10,7 @@
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
+  const canonical=await import("./ui/manualRunCanonical.js");
   const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
@@ -145,9 +146,12 @@
   const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
   const onboardingKey="runload-v2-introduction-preview-v1";
-  const onboardStorage=(()=>{try{return window.localStorage}catch{return null}})();
+  const nativeStorage=(()=>{try{return window.localStorage}catch{return null}})();
+  const canonicalStartup=await canonical.initialize();
+  const onboardStorage=canonical.viewStorage(nativeStorage);
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
+  if(!canonicalStartup.ok)state.toast='手入力記録の正本を利用できません。保存は停止しました。';
   const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
   const dataUi=dataManagementUi.makeDataUi();
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
@@ -540,13 +544,13 @@ function recordExtras(){
      },
      onCorrectRof:async (phase,score,meta)=>{
       const updated=await manualRunLock.withManualRunWriteLock(()=>
-       manualRunStore.correctSavedRof(onboardStorage,record.id,phase,score,meta));
+       canonical.mutate(s=>manualRunStore.correctSavedRof(s,record.id,phase,score,meta)));
       state.toast=updated.ok?'疲労感と訂正履歴を保存しました。時系列の前後差は判定しません。':updated.reason;
       render();
      },
      onAssignGait:async gait=>{
       const changed=await manualRunLock.withManualRunWriteLock(()=>
-        manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait));
+        canonical.mutate(s=>manualRunStore.classifySavedManualRun(s,record.id,gait)));
       state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
       render();
      }
@@ -902,7 +906,7 @@ function recordExtras(){
       dataUi.busy=true;
       try{
         if(dataAction.hasAttribute('data-dm-export')){
-          const result=await manualRunLock.withManualRunWriteLock(()=>dataManagement.exportPortableBackup(onboardStorage,{includeGps:dataUi.includeGps}));
+          const result=await manualRunLock.withManualRunWriteLock(()=>canonical.snapshotTask(nativeStorage,s=>dataManagement.exportPortableBackup(s,{includeGps:dataUi.includeGps})));
           if(!result.ok)dataUi.notice=result.reason;
           else{
             try{downloadDataFile(result.text);dataUi.notice="ファイルの保存を開始しました。端末のダウンロード先を確認してください。";}
@@ -910,13 +914,13 @@ function recordExtras(){
           }
         }else if(dataAction.hasAttribute('data-dm-restore')){
           if(!dataUi.preview?.ok||!dataUi.pendingText||(dataUi.preview.hasExisting&&!dataUi.safetyCopy))return;
-          const restored=await manualRunLock.withManualRunWriteLock(()=>dataManagement.restorePortableBackup(onboardStorage,dataUi.pendingText));
+          const restored=await manualRunLock.withManualRunWriteLock(()=>canonical.portableMutation(nativeStorage,s=>dataManagement.restorePortableBackup(s,dataUi.pendingText)));
           if(restored.ok){location.reload();return;}
           dataUi.notice=restored.reason;
           if(restored.partial){dataUi.preview=null;dataUi.pendingText="";}
         }else if(dataAction.hasAttribute('data-dm-delete-confirm')){
           if(!dataUi.deleteAgreed||dataUi.deleteWord!=="削除")return;
-          const removed=await manualRunLock.withManualRunWriteLock(()=>dataManagement.removeAllPortableData(onboardStorage));
+          const removed=await manualRunLock.withManualRunWriteLock(()=>canonical.portableMutation(nativeStorage,s=>dataManagement.removeAllPortableData(s)));
           if(removed.ok){location.reload();return;}
           dataUi.notice=removed.reason;
         }
@@ -955,7 +959,7 @@ function recordExtras(){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){
         manualSaveNotice="手入力の走行記録以外は保存できません";render();return;
       }
-      const saved=await manualRunLock.withManualRunWriteLock(()=>manualRunStore.saveManualRun(onboardStorage,state.recordDraft,{source:state.recordReviewSource,type:state.recordType}));
+      const saved=await manualRunLock.withManualRunWriteLock(()=>canonical.mutate(s=>manualRunStore.saveManualRun(s,state.recordDraft,{source:state.recordReviewSource,type:state.recordType})));
       if(!saved.ok){manualSaveNotice=saved.reason;const y=window.scrollY;render();window.scrollTo(0,y);return;}
       selectedRunId=saved.record.id;manualSaveNotice="";state.recordReviewReturn=false;
       state.toast="手入力の走行記録をこの端末に保存しました";
@@ -1440,7 +1444,8 @@ function recordExtras(){
   };
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGpsOnHidden();});
   window.addEventListener('pagehide',pauseGpsOnHidden);
-  window.addEventListener("focus",async()=>{await gpsStore.reloadGpsRuns();gpsV2Cache=await gpsV2.readGpsV2Summaries();if(["history","simulation"].includes(currentPage()))render();});
+  window.addEventListener("focus",async()=>{await canonical.refresh();await gpsStore.reloadGpsRuns();gpsV2Cache=await gpsV2.readGpsV2Summaries();render();});
+  document.addEventListener("visibilitychange",async()=>{if(!document.hidden){await canonical.refresh();render();}});
   window.addEventListener("hashchange",()=>{
     gpsConsentAction="";
     if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();releaseGpsWakeLock();}

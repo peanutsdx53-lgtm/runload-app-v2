@@ -5,11 +5,11 @@ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
 const lock=readFileSync(new URL('../ui/manualRunLock.js',import.meta.url),'utf8');
 test('manual run, correction, export, restore and deletion all use one exclusion lock',()=>{
  for(const snippet of [
-  'withManualRunWriteLock(()=>manualRunStore.saveManualRun',
-  'withManualRunWriteLock(()=>dataManagement.exportPortableBackup',
-  'withManualRunWriteLock(()=>dataManagement.restorePortableBackup',
-  'withManualRunWriteLock(()=>dataManagement.removeAllPortableData',
-  'manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait)'
+  'withManualRunWriteLock(()=>canonical.mutate(s=>manualRunStore.saveManualRun',
+  'withManualRunWriteLock(()=>canonical.snapshotTask(nativeStorage,s=>dataManagement.exportPortableBackup',
+  'withManualRunWriteLock(()=>canonical.portableMutation(nativeStorage,s=>dataManagement.restorePortableBackup',
+  'withManualRunWriteLock(()=>canonical.portableMutation(nativeStorage,s=>dataManagement.removeAllPortableData',
+  'manualRunStore.classifySavedManualRun(s,record.id,gait)'
  ])assert.ok(app.includes(snippet),'missing serialized operation: '+snippet);
  assert.match(app,/onAssignGait:async gait=>/);
  assert.match(lock,/mode:'exclusive'/);
