@@ -4,6 +4,9 @@ import {readManualRuns,saveManualRun,findManualRun,classifySavedManualRun,toHist
 import {normalizeRecords} from '../ui/historyExperience.js';
 import {calculateActivityReference} from '../core/activity/activityReference.js';
 import {reviewView} from '../ui/recordReviewExperience.js';
+import {makeUi,saveNote,EXPLORATION_NOTE_KEY} from '../ui/explorationExperience.js';
+import {noteRunBackLink,visibleTopicNotes} from '../ui/noteRunLink.js';
+import {compareSavedRuns} from '../ui/runReflection.js';
 const store=()=>{const map=new Map();return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
 const draft=()=>({date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',memo:'朝のランニング',courseName:'川沿い',shoeName:'靴'});
 test('valid manual run saves stable explicit ID and survives reload',()=>{
@@ -165,4 +168,50 @@ test('history projection preserves saved activity without mutating saved schema 
  assert.deepEqual(normalizeRecords(rows).map(r=>r.activityGait),['WALK','UNKNOWN']);
  assert.equal(JSON.stringify([run,unknown]),before);
  assert.deepEqual(toHistoryRows({ok:false,records:[run]}),[]);
+});
+
+test('stage 10 partial correction preserves two saved IDs, linked question and original note storage',()=>{
+ const storage=store();
+ const first=saveManualRun(storage,{...draft(),date:'2026-10-22',rofBefore:0,rofAfter:null});
+ const second=saveManualRun(storage,{...draft(),date:'2026-10-23',memo:'second run stays unchanged'});
+ assert.equal(first.ok,true,first.reason);assert.equal(second.ok,true,second.reason);
+ const initial=readManualRuns(storage);
+ assert.equal(initial.ok,true);assert.equal(initial.records.length,2);
+ const old=initial.records.find(r=>r.id===first.record.id),another=initial.records.find(r=>r.id===second.record.id);
+ // Simulate a valid older saved V1 record with an unknown activity.
+ storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:1,revision:initial.revision+1,
+  records:initial.records.map(r=>r.id===first.record.id?{...r,draft:{...r.draft,activityGait:'UNKNOWN'}}:r)}));
+ const savedUnknown=readManualRuns(storage);
+ assert.equal(savedUnknown.ok,true);
+ assert.equal(compareSavedRuns(another,savedUnknown.records.find(r=>r.id===old.id)).status,'incompatible');
+ const ui=makeUi(storage);ui.selected='01';ui.topic='距離・時間・ペース';
+ const question='次回は同じ区間の距離と感じ方を確認する';
+ const created=saveNote(ui,question,{focusRunId:old.id,manualRuns:savedUnknown});
+ assert.equal(created.ok,true,created.reason);
+ const noteRaw=storage.getItem(EXPLORATION_NOTE_KEY);
+ const runIds=savedUnknown.records.map(r=>r.id);
+ const corrected=classifySavedManualRun(storage,old.id,'JOGGING');
+ assert.equal(corrected.ok,true,corrected.reason);
+ const after=readManualRuns(storage);
+ assert.equal(after.ok,true);assert.equal(after.revision,savedUnknown.revision+1);
+ assert.deepEqual(after.records.map(r=>r.id),runIds,'classification must neither create nor replace run identities');
+ assert.deepEqual(after.records.find(r=>r.id===another.id),another,'another run is never edited');
+ const newOld=after.records.find(r=>r.id===old.id);
+ assert.equal(newOld.rofBefore,0,'true zero survives classification');
+ assert.equal(newOld.rofAfter,null,'missing self-report remains missing');
+ assert.equal(newOld.date,old.date);
+ assert.equal(newOld.memo,old.memo);
+ assert.equal(newOld.draft.activityGait,'JOGGING');
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),noteRaw,'saved optional note bytes are not silently rewritten');
+ const reloaded=makeUi(storage);
+ assert.equal(reloaded.canSave,true);
+ assert.equal(reloaded.notes.length,1);
+ assert.equal(reloaded.notes[0].text,question);
+ assert.equal(reloaded.notes[0].recordId,old.id);
+ assert.deepEqual(noteRunBackLink(reloaded.notes[0],after),{recordId:old.id,date:old.date});
+ assert.deepEqual(visibleTopicNotes(reloaded.notes,reloaded.notes[0].topicId,another.id),[],
+  'the second run never inherits the earlier question');
+ assert.equal(classifySavedManualRun(storage,old.id,'RUNNING').ok,false,'a second reclassification is not permitted');
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),noteRaw);
+ assert.equal(compareSavedRuns(another,newOld).status,'incompatible','different gait still blocks descriptive comparison');
 });
