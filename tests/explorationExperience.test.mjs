@@ -85,7 +85,7 @@ test('all 28 topics have a useful beginner prompt or a sourced learning panel',(
 });
 
 test('saved manual run lights only supported categories and identifies its provenance',()=>{
- const run={source:'manual',type:'run',schema:1,date:'2026-10-25',createdAt:'2026-10-25T07:00:00Z',
+ const run={source:'manual',type:'run',schema:2,date:'2026-10-25',createdAt:'2026-10-25T07:00:00Z',
    distanceKm:5,durationSeconds:1800,rofBefore:0,rofAfter:null,
    draft:{gradeMode:'SUMMARY',upPercent:'20',downPercent:'10',bodyObservation:''}};
  const signalsSaved=signals({}, {entries:[]}, {ok:true,records:[run]});
@@ -99,8 +99,8 @@ test('saved manual run lights only supported categories and identifies its prove
  assert.equal((html.match(/class="ex-node is-related/g)||[]).length,3);
 });
 test('bad saved store, GPS and empty noneligible records never create saved-run glow',()=>{
- const cases=[{ok:false,records:[]},{ok:true,records:[{source:'gps',type:'run',schema:1,distanceKm:5,durationSeconds:1800,date:'2026-10-25'}]},
-  {ok:true,records:[{source:'manual',type:'run',schema:1,distanceKm:0,durationSeconds:0,date:'2026-10-25'}]}];
+ const cases=[{ok:false,records:[]},{ok:true,records:[{source:'gps',type:'run',schema:2,distanceKm:5,durationSeconds:1800,date:'2026-10-25'}]},
+  {ok:true,records:[{source:'manual',type:'run',schema:2,distanceKm:0,durationSeconds:0,date:'2026-10-25'}]}];
  for(const read of cases){
   const found=signals({}, {entries:[]},read);
   assert.equal(found.hasSavedRun,false);

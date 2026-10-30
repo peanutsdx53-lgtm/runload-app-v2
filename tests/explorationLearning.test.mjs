@@ -38,7 +38,7 @@ test('body teaches movements rather than pretending the twelve-region personal m
 test('focused run never displays unrelated sleep record, but general exploration can',()=>{
  const ui=makeUi(memory());ui.selected='05';ui.topic='睡眠';
  const conditions={canSave:true,entries:[{date:'2026-10-27',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}]};
- const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950,draft:{}};
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:2,distanceKm:5.2,durationSeconds:1950,draft:{}};
  const selected=render(ui,{...ctx({},conditions),manualRuns:{ok:true,records:[run]},focusRunId:run.id,focusRun:run});
  assert.match(selected,/走行と生活記録は別々に扱います/);
  assert.match(selected,/別の日の生活記録を、この走行の日の状態として表示しません/);
@@ -88,7 +88,7 @@ test('next check can be explicitly saved and recovered by stable topic key, with
 });
 
 test('selected-run exploration does not highlight unrelated life records',()=>{
- const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950,rofBefore:0,rofAfter:4,draft:{activityGait:'RUNNING'}};
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:2,distanceKm:5.2,durationSeconds:1950,rofBefore:0,rofAfter:4,draft:{activityGait:'RUNNING'}};
  const conditions={canSave:true,entries:[{date:'2026-10-24',sleepMinutes:450,sleepSource:'duration',feeling:'良い',memo:''}]};
  const focused=signals(null,conditions,{ok:true,records:[run]},run.id);
  assert.equal(focused.linked.has('01'),true);
@@ -99,7 +99,7 @@ test('selected-run exploration does not highlight unrelated life records',()=>{
 
 test('focused distance-and-pace lesson returns to the selected saved run, not a newer entry or the history list',()=>{
  const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
- const target={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-18',createdAt:'2026-10-18T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5,durationSeconds:2100};
+ const target={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-18',createdAt:'2026-10-18T05:00:00Z',source:'manual',type:'run',schema:2,distanceKm:5,durationSeconds:2100};
  const newer={...target,id:'run-v1-99999999-9999-4999-8999-999999999999',date:'2026-10-26',createdAt:'2026-10-26T05:00:00Z',distanceKm:8,durationSeconds:2200};
  const runs={ok:true,records:[newer,target]},base={...ctx(),manualRuns:runs,focusRunId:target.id,focusRun:target};
  const focused=render(u,base);
@@ -125,7 +125,7 @@ test('focused distance-and-pace lesson returns to the selected saved run, not a 
 test('distance and pace column reads only confirmed manual runs, never an unsaved editor draft',()=>{
  const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
  const draft={distance:'99',minutes:'9'};
- const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:1,distanceKm:5.2,durationSeconds:1950};
+ const run={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-25',createdAt:'2026-10-25T05:00:00Z',source:'manual',type:'run',schema:2,distanceKm:5.2,durationSeconds:1950};
  const initial=render(u,{...ctx(draft),manualRuns:{ok:true,records:[]}});
  assert.match(initial,/保存済みの走行はまだありません/);
  assert.doesNotMatch(initial,/99 km/);

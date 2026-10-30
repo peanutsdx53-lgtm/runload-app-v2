@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isRunId,findLinkableRun,resolveOptionalNoteRunLink,noteIsForRun,visibleTopicNotes,noteRunBackLink} from '../ui/noteRunLink.js';
 const id=n=>'run-v1-00000000-0000-4000-8000-'+String(n).padStart(12,'0');
-const run=n=>({id:id(n),date:'2026-10-'+String(n).padStart(2,'0'),source:'manual',type:'run',schema:1,distanceKm:5,durationSeconds:1800});
+const run=n=>({id:id(n),date:'2026-10-'+String(n).padStart(2,'0'),source:'manual',type:'run',schema:2,distanceKm:5,durationSeconds:1800});
 const saved={ok:true,records:[run(1),run(2)]};
 test('only an explicitly selected valid saved run ID links a note',()=>{
  assert.deepEqual(resolveOptionalNoteRunLink(id(1),saved),{ok:true,recordId:id(1),recordDate:'2026-10-01'});

@@ -9,7 +9,7 @@ export const ACTIVITY_GAITS=Object.freeze(['RUNNING','JOGGING','WALK']);
 export const ACTIVITY_LABELS=Object.freeze({RUNNING:'ランニング',JOGGING:'ジョギング',WALK:'ウォーキング'});
 const failure=(reason,activity=null)=>({state:'NOT_CALCULABLE',reason,activity,rows:[],count:0});
 export function calculateActivityReference(record){
- if(!record||record.source!=='manual'||record.type!=='run'||record.schema!==1)return failure('NOT_SAVED_MANUAL_RUN');
+ if(!record||record.source!=='manual'||record.type!=='run'||record.schema!==2)return failure('NOT_SAVED_MANUAL_RUN');
  const gait=String(record.draft?.activityGait||'UNKNOWN');
  if(!ACTIVITY_GAITS.includes(gait))return failure('GAIT_NOT_SELECTED');
  if(String(record.draft?.runningFormat||'UNKNOWN')==='RUN_WALK')return failure('MIXED_GAIT_NOT_QUANTIFIED',gait);

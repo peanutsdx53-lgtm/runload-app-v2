@@ -22,7 +22,7 @@ test('all 4 authoritative scientific files are git-blob byte-identical to pinned
 });
 const rawRecord=(activityGait,speedMps,runningFormat='CONTINUOUS_RUN')=>{
  const durationSeconds=1800,distanceKm=speedMps*durationSeconds/1000;
- return {source:'manual',type:'run',schema:1,id:'run-v1-00000000-0000-4000-8000-000000000001',
+ return {source:'manual',type:'run',schema:2,id:'run-v1-00000000-0000-4000-8000-000000000001',
   distanceKm,durationSeconds,draft:{activityGait,runningFormat}};
 };
 test('RUNNING: every region number, route and eligibility equals the v4 original product engine',()=>{
@@ -60,7 +60,7 @@ test('unselected gait, running-walking mixes and unsupported speeds never fabric
  assert.equal(mixed.state,'NOT_CALCULABLE');assert.equal(mixed.reason,'MIXED_GAIT_NOT_QUANTIFIED');assert.equal(mixed.count,0);
  const walkOut=calculateActivityReference(rawRecord('WALK',5));
  assert.equal(walkOut.count,0);assert.equal(walkOut.state,'NO_AUTHORIZED_SPEED_REFERENCE');
- assert.equal(calculateActivityReference({source:'gps',type:'run',schema:1}).reason,'NOT_SAVED_MANUAL_RUN');
+ assert.equal(calculateActivityReference({source:'gps',type:'run',schema:2}).reason,'NOT_SAVED_MANUAL_RUN');
 });
 test('manual input -> validated saved record -> reload -> original model -> 12 reference output for every explicit gait',()=>{
  const makeStorage=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};

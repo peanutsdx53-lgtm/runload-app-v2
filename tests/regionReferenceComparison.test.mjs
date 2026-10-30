@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {compareBodyReferenceRows as compare} from '../ui/regionReferenceComparison.js';
 const id=n=>'run-v1-00000000-0000-4000-8000-'+String(n).padStart(12,'0');
-const run=(n,gait='RUNNING')=>({id:id(n),source:'manual',type:'run',schema:1,distanceKm:5,durationSeconds:1800,draft:{activityGait:gait}});
+const run=(n,gait='RUNNING')=>({id:id(n),source:'manual',type:'run',schema:2,distanceKm:5,durationSeconds:1800,draft:{activityGait:gait}});
 const running=(v,opts={})=>({activity:'RUNNING',source:'runload-app/runningEvidence/v4.0',
  modelVersion:'science-v1',semanticVersion:'reference-v1',rows:[{regionId:'R01',calculationState:'CALCULATED',
  value:v,evidence:{regionId:'R01',activity:'RUNNING_PRIMARY',modelVersion:'science-v1',
@@ -36,7 +36,7 @@ test('missing, calculated-out-of-range, other-body, and fake records reject',()=
  assert.equal(compare(run(2),run(1),running(110),running(105),'R02').status,'not-calculable');
  assert.equal(compare(run(2),run(1),running(110),running(105),'R13').status,'invalid-region');
  assert.equal(compare(run(1),run(1),running(110),running(105),'R01').status,'same-record');
- assert.equal(compare({id:'fake',source:'manual',type:'run',schema:1},run(1),running(110),running(105),'R01').status,'unavailable');
+ assert.equal(compare({id:'fake',source:'manual',type:'run',schema:2},run(1),running(110),running(105),'R01').status,'unavailable');
  assert.equal(compare(run(2),run(1),null,running(105),'R01').status,'unavailable');
 });
 test('cross gait and unknown activity never compare, same jogging construct does',()=>{

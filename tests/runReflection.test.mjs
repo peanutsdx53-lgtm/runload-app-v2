@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {compareSavedRuns,comparableRunChoices} from '../ui/runReflection.js';
 const id=x=>'run-v1-00000000-0000-4000-8000-'+String(x).padStart(12,'0');
-const run=(n,overrides={})=>({source:'manual',type:'run',schema:1,id:id(n),date:'2026-10-2'+n,createdAt:'2026-10-2'+n+'T08:00:00.000Z',distanceKm:5,durationSeconds:1800,rofBefore:0,rofAfter:4,courseName:'川沿い',memo:'自分の感覚を記録',draft:{activityGait:'RUNNING'},...overrides});
+const run=(n,overrides={})=>({source:'manual',type:'run',schema:2,id:id(n),date:'2026-10-2'+n,createdAt:'2026-10-2'+n+'T08:00:00.000Z',distanceKm:5,durationSeconds:1800,rofBefore:0,rofAfter:4,courseName:'川沿い',memo:'自分の感覚を記録',draft:{activityGait:'RUNNING'},...overrides});
 test('same-gait saved run comparison shows facts, true zero and provenance safely',()=>{
  const earlier=run(1),later=run(2,{distanceKm:5.5,durationSeconds:1980,rofAfter:null});
  const result=compareSavedRuns(later,earlier);
