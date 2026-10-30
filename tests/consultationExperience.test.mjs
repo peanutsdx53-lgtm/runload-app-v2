@@ -88,3 +88,12 @@ test('report scope does not promise unavailable sensitive-data inclusion control
   assert.doesNotMatch(html,new RegExp('data-share="'+forbidden+'"'),'unimplemented options must not appear');
  }
 });
+
+test('keyboard focus and mobile >=16px controls are limited to screen and do not alter print',()=>{
+ const css=readFileSync(new URL('../ui/consultationExperience.css',import.meta.url),'utf8');
+ assert.match(css,/\.cp-mode-button:focus-visible/);
+ assert.match(css,/\.cp-check input:focus-visible/);
+ assert.match(css,/outline:3px solid #9af9e9/);
+ assert.match(css,/@media screen and \(max-width:800px\)/);
+ assert.match(css,/\.cp-select,\.cp-app \.cp-field\{font-size:16px!important/);
+});

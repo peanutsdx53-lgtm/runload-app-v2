@@ -26,6 +26,15 @@ try{
   await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
   await page.goto('http://127.0.0.1:4181/#/consultation',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#runload-consultation').count(),1,`${name}: route`);
+  // WCAG 2.2 keyboard focus visibility (2.4.7) and browser text legibility.
+  const chooser=page.locator('#cp-target');
+  await chooser.focus();
+  const ring=await chooser.evaluate(el=>({width:parseFloat(getComputedStyle(el).outlineWidth),style:getComputedStyle(el).outlineStyle}));
+  assert.ok(ring.width>=3&&ring.style!=='none',name+' selection keyboard focus ring '+JSON.stringify(ring));
+  if(width<=800){
+   const editFontSizes=await page.locator('.cp-select,.cp-field').evaluateAll(els=>els.map(x=>parseFloat(getComputedStyle(x).fontSize)));
+   assert.ok(editFontSizes.every(v=>v>=16),name+' all editable fields use >=16px for handheld readability');
+  }
   assert.match(await page.locator('.cp-sensitive').innerText(),/このレポートに追加する項目がありません/);
   assert.match(await page.locator('.cp-privacy').innerText(),/このレポートにはGPS詳細軌跡・個人プロフィール/);
   assert.equal(await page.locator('[data-share="profile"]').count(),0,'do not promise nonexistent profile opt-in');

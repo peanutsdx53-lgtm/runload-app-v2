@@ -154,3 +154,15 @@
 @media print{.cp-app .cp-back{display:none!important}}
 /* Long narratives may add physical PDF pages. Do not print misleading fixed sheet counts. */
 @media print{.cp-footer .number{display:none!important}}
+
+/* Stage 11 app-side keyboard/legibility: keep page-print typography unaffected. */
+@media screen{
+ .cp-app .cp-mode-button:focus-visible,.cp-app .cp-button:focus-visible,
+ .cp-app .cp-mobile-switch button:focus-visible,.cp-app .cp-select:focus-visible,
+ .cp-app .cp-field:focus-visible,.cp-app .cp-check input:focus-visible{
+  outline:3px solid #9af9e9;outline-offset:3px;
+ }
+}
+@media screen and (max-width:800px){
+ .cp-app .cp-select,.cp-app .cp-field{font-size:16px!important;line-height:1.5}
+}

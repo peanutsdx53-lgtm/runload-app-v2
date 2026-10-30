@@ -1123,6 +1123,7 @@ try{
   assert.equal(await page.locator('[data-interpret-toggle]').count(),0);
   assert.equal(await page.locator('#runload-history-v2').count(),1);
   await page.goto(host+'#/condition',{waitUntil:'networkidle'});
+  await page.locator('[data-condition-journey]').waitFor({state:'visible'});
   assert.equal(await page.locator('[data-condition-journey]').count(),1);
   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-exploration-notes-v1')!==null),true,'old exploration notes kept');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-v15-condition-journey.png'),fullPage:false});
