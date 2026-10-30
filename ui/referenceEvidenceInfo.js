@@ -7,7 +7,7 @@ const RUNNING_CITATIONS=Object.freeze({
  'Fukuchi_2017_PeerJ_e3298.pdf':Object.freeze({label:'Fukuchi ほか（2017）',url:'https://doi.org/10.7717/peerj.3298'}),
  'Gazendam_Hof_2007_GaitPosture_EMG_Speed.pdf':Object.freeze({label:'Gazendam・Hof（2007）',url:'https://doi.org/10.1016/j.gaitpost.2006.06.013'}),
  'per_step_cumulative_load_running_injury_locations_speed_gradient_cadence.pdf':Object.freeze({label:'Van Hooren ほか（2024）',url:'https://doi.org/10.1111/sms.14570'}),
- 'Li_2020_Load_Transference_Running_Speed_Plantar_Pressure.pdf':Object.freeze({label:'Li ほか（2020）',url:null})
+ 'Li_2020_Load_Transference_Running_Speed_Plantar_Pressure.pdf':Object.freeze({label:'Li ほか（2020）',url:'https://doi.org/10.24264/lfj.20.2.7'})
 });
 const kmh=mps=>typeof mps==='number'&&Number.isFinite(mps)?String(Number((mps*3.6).toFixed(3))):null;
 const incomplete=message=>Object.freeze({kind:'unavailable',message});
@@ -27,7 +27,7 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
    citation:citation.label,url:citation.url,sourceLocation:series.sourceLocation,
    domain:lo+'～'+hi+' km/h',reference:'基準速度 '+ref+' km/h を100とする部位内の比',
    status:row.calculationState==='CALCULATED'?'算出対象':'この記録の条件では未算出',
-   note:'原著の観測またはモデル由来の文献参考値です。本人の身体負荷・傷害危険度の実測値ではなく、異なる部位の数値の大小比較はできません。路面・勾配などを個別補正していません。'});
+   note:'原著の観測またはモデル由来の文献参考値です。本人の身体負荷・傷害危険度の実測値ではなく、異なる部位の数値の大小比較はできません。路面・勾配などを個別補正していません。'+(series.sourceFile==='Li_2020_Load_Transference_Running_Speed_Plantar_Pressure.pdf'?' この足底参考値の原著は、自然な踵接地で走る健康な男性39人の記録（5〜12 km/h）です。ほかの足接地様式・性別・個人への直接的な当てはまりを検証した数値ではありません。':'')});
  }
  if(activity==='JOGGING'||activity==='WALK'){
   const evidence=row.evidence;

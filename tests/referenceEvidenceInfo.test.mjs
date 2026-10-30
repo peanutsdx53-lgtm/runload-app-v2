@@ -64,3 +64,25 @@ test('both fatigue lessons cite the open Japanese ROF-J validation with its scop
   assert.match(html,/研究の対象・使える範囲/);
  }
 });
+
+// Source-scope audit: Li 2020 is not a generalizable all-beginners foot load measurement.
+test('Li heel, medial midfoot and central metatarsal disclose published DOI and sampled population; other regions do not inherit it',()=>{
+ for(const id of ['R10','R11','R12']){
+  const series=RUNNING_REGION_SERIES.find(x=>x.regionId===id);
+  const bodyId=engineReferenceBodyId(id);
+  const row={regionId:id,calculationState:'CALCULATED',evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}};
+  const info=describeRegionEvidence({row,bodyId,activity:'RUNNING'});
+  assert.equal(info.kind,'running');
+  assert.equal(info.url,'https://doi.org/10.24264/lfj.20.2.7');
+  assert.match(info.note,/踵接地.*男性39人/);
+  assert.match(info.note,/ほかの足接地様式・性別・個人/);
+  assert.match(info.note,/身体負荷・傷害危険度の実測値ではなく/);
+  const partial=describeRegionEvidence({row:{regionId:id,calculationState:'NOT_CALCULABLE',evidence:{reasonCode:'OUTSIDE_SOURCE_RANGE'}},bodyId,activity:'RUNNING'});
+  assert.match(partial.note,/踵接地.*男性39人/,'ineligible speeds must not hide source limits');
+ }
+ const hip=RUNNING_REGION_SERIES.find(x=>x.regionId==='R01');
+ const info=describeRegionEvidence({row:{regionId:'R01',calculationState:'CALCULATED',evidence:{metricId:hip.metricId,sourceSha256:hip.sourceSha256}},bodyId:engineReferenceBodyId('R01'),activity:'RUNNING'});
+ assert.doesNotMatch(info.note,/男性39人/);
+ const misleading=describeRegionEvidence({row:{regionId:'R10',calculationState:'CALCULATED',evidence:{metricId:'LI_CENTRAL_METATARSAL_MAX_FORCE',sourceSha256:RUNNING_REGION_SERIES.find(x=>x.regionId==='R10').sourceSha256}},bodyId:engineReferenceBodyId('R10'),activity:'RUNNING'});
+ assert.equal(misleading.kind,'unavailable','source metric mismatch must fail closed');
+});

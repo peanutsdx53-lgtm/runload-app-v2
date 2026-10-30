@@ -99,6 +99,8 @@ try{
   await panel.locator('summary').click();
   assert.match(await panel.innerText(),/Li ほか（2020）/);
   assert.match(await panel.innerText(),/5～12 km\/h/);
+  assert.match(await panel.innerText(),/踵接地.*男性39人/,'Li sample restriction stays visible in result UI');
+  assert.match(await panel.locator('a').getAttribute('href'),/doi\.org\/10\.24264\/lfj\.20\.2\.7/);
   await fit(page,prefix+' switching');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-foot.png'),fullPage:false});
 
