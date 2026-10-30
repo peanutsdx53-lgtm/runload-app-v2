@@ -28,8 +28,10 @@ function open(){
 const single=v=>({getItem:k=>k===MANUAL_RUN_KEY?v:null,setItem(){},removeItem(){}});
 const valid=v=>v===null||(typeof v==='string'&&readManualRuns(single(v)).ok);
 const failure=reason=>({ok:false,reason:reason||error});
+const usable=base=>base&&typeof base.getItem==='function'&&typeof base.setItem==='function'&&typeof base.removeItem==='function';
+const unsupported='端末の保存領域を利用できません。他の保存情報も含めて確認できないため処理を停止しました';
 export const viewStorage=base=>({
- getItem(key){if(key!==MANUAL_RUN_KEY)return base?.getItem(key)??null;if(!ready)throw Error(notice);return raw},
+ getItem(key){if(key!==MANUAL_RUN_KEY){if(!usable(base))throw Error(unsupported);return base.getItem(key)}if(!ready)throw Error(notice);return raw},
  setItem(key,value){if(key===MANUAL_RUN_KEY)throw Error('IndexedDB正本は書込APIのみ');return base.setItem(key,value)},
  removeItem(key){if(key===MANUAL_RUN_KEY)throw Error('IndexedDB正本は書込APIのみ');return base.removeItem(key)}
 });
@@ -68,6 +70,7 @@ export async function mutate(operation){
 }
 /** For export, IDB snapshot is refreshed then rechecked after other stores. */
 export async function snapshotTask(base,operation){
+ if(!usable(base))return failure(unsupported);
  const first=await refresh();if(!first.ok)return first;
  let result;try{result=await operation(viewStorage(base))}catch{return failure('バックアップを実行できません')}
  const final=await readCanonical();
@@ -79,6 +82,7 @@ export async function snapshotTask(base,operation){
  * GPS may remain partially committed if its IndexedDB operation failed.
  */
 export async function portableMutation(base,operation){
+ if(!usable(base))return failure(unsupported);
  const previous=await refresh();if(!previous.ok)return previous;
  const initial=previous.raw;let staged=initial;
  const proxy={
@@ -86,8 +90,12 @@ export async function portableMutation(base,operation){
   setItem(k,v){if(k===MANUAL_RUN_KEY){staged=String(v);return}return base.setItem(k,v)},
   removeItem(k){if(k===MANUAL_RUN_KEY){staged=null;return}return base.removeItem(k)}
  };
- let result;try{result=await operation(proxy)}catch{return failure('復元・削除を完了できません。すべての保存先を確認してください')}
- if(staged===initial){await refresh();return result}
+ let result;try{result=await operation(proxy)}catch{return {ok:false,partial:true,reason:'復元・削除の途中で例外が発生しました。複数の保存先を照合してください'}}
+ if(staged===initial){
+  const verified=await refresh();
+  if(!verified.ok||verified.raw!==initial)return {ok:false,partial:true,reason:'処理中に正本が変更された可能性があります。再読込して照合してください'};
+  return result;
+ }
  if(!result?.ok&&!result?.partial)return result;
  if(!valid(staged))return {ok:false,partial:true,reason:'保存正本の形式を確認できません'};
  try{const db=await open(),tx=db.transaction(MANUAL_STORE,'readwrite'),done=settled(tx),store=tx.objectStore(MANUAL_STORE);
