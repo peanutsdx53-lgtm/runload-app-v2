@@ -55,5 +55,57 @@ try{
  assert.ok(state.records.every(x=>x.source==='manual'));
  assert.ok([...recordIds].every(id=>state.records.some(r=>r.id===id)),'all previously acknowledged IDs remain');
  assert.notEqual(JSON.stringify(state),untouched);
+ // A writer which fails after staging may never publish a partial transaction.
+ const aborted=await a.evaluate(async()=>{
+  const c=await import('/ui/manualRunCanonical.js');
+  return c.mutate(s=>{s.setItem('runload-v2-manual-runs-v2','{"version":0}');return {ok:false,reason:'injected abort'}});
+ });
+ assert.equal(aborted.ok,false);
+ assert.deepEqual(await read(a),state,'aborted IDB write must not publish invalid bytes');
+ const invalid=await a.evaluate(async()=>{
+  const c=await import('/ui/manualRunCanonical.js');
+  return c.mutate(s=>{s.setItem('runload-v2-manual-runs-v2','{"version":0}');return {ok:true}});
+ });
+ assert.equal(invalid.ok,false,'invalid envelope cannot commit even if writer claims success');
+ assert.deepEqual(await read(a),state);
+ // A damaged authoritative envelope must not silently be replaced from the
+ // stale localStorage key. Fail closed and require explicit recovery.
+ const damaged=await a.evaluate(async()=>{
+  const c=await import('/ui/manualRunCanonical.js');
+  const request=indexedDB.open(c.MANUAL_DB);
+  const db=await new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(c.MANUAL_STORE,'readwrite');
+   tx.objectStore(c.MANUAL_STORE).put('{"version":"invalid"}',c.MANUAL_ENTRY);
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+  });db.close();return c.refresh();
+ });
+ assert.equal(damaged.ok,false);
+ const refused=await a.evaluate(async()=>(await import('/ui/manualRunCanonical.js')).mutate(()=>({ok:true})));
+ assert.equal(refused.ok,false,'corrupt records cannot be overwritten by a new save');
+ assert.equal(await a.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2'))!==null,true,
+   'untrusted older localStorage key remains untouched and never used for recovery');
+ await a.evaluate(async previous=>{
+  const c=await import('/ui/manualRunCanonical.js'),request=indexedDB.open(c.MANUAL_DB);
+  const db=await new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(c.MANUAL_STORE,'readwrite');
+   tx.objectStore(c.MANUAL_STORE).put(JSON.stringify(previous),c.MANUAL_ENTRY);
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+  });db.close();await c.refresh();
+ },state);
+ assert.deepEqual(await read(a),state,'test-only recovery retains exactly four original IDs');
+ const blockedCtx=await browser.newContext();
+ await blockedCtx.addInitScript(()=>{Object.defineProperty(window,'indexedDB',{configurable:true,value:undefined})});
+ const blocked=await blockedCtx.newPage();
+ await blocked.goto('http://127.0.0.1:4176/',{waitUntil:'networkidle'});
+ const off=await blocked.evaluate(async()=>{
+  const c=await import('/ui/manualRunCanonical.js');
+  const fresh=await c.refresh(),save=await c.mutate(()=>({ok:true}));
+  return {fresh:fresh.ok,save:save.ok,old:localStorage.getItem('runload-v2-manual-runs-v2')};
+ });
+ assert.deepEqual(off,{fresh:false,save:false,old:null},'missing IndexedDB is a fail-closed condition');
+ await blockedCtx.close();
+ console.log('PASS stage 9: aborted and corrupt IDB records fail closed; missing IDB never falls back to localStorage');
  console.log('PASS stage 9: native IDB transaction serializes unlocked new tabs; stale localStorage writes cannot alter 4 acknowledged records');
 }finally{await browser.close();await new Promise(done=>server.close(done));}
