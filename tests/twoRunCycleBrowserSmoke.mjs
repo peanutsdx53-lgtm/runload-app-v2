@@ -312,6 +312,29 @@ try{
  assert.equal(await page.locator('[data-run-question-source]').count(),0,'cross-gait comparison cannot offer linked continuation');
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare=invalid-id&view=compare',{waitUntil:'networkidle'});
  assert.equal(await page.locator('[data-run-question-source]').count(),0,'invalid comparison cannot offer a link');
+ // Positive scientific case must use *two actually saved* in-domain runs,
+ // never a synthetic fixture or a reference table without a selected saved ID.
+ const eligibleA=await saveRun('2026-10-27',5.4,30,'');
+ const eligibleB=await saveRun('2026-10-28',6,30,'');
+ await page.goto(host+'#/result?record='+encodeURIComponent(eligibleB)+'&compare='+encodeURIComponent(eligibleA)+'&view=compare',{waitUntil:'networkidle'});
+ const eligiblePanel=page.locator('.rv4-region-compare');
+ await eligiblePanel.waitFor();
+ const eligibleText=await eligiblePanel.innerText();
+ assert.match(eligibleText,/同一部位の文献参考値/);
+ assert.match(eligibleText,/比較相手|選択中/);
+ assert.match(eligibleText,/差 [+-]?[0-9]/,'two genuinely saved eligible runs must show a same-region descriptive reference difference');
+ assert.doesNotMatch(eligibleText,/この部位は比較できません/);
+ const actualRuns=await readRuns();
+ assert.ok(actualRuns.records.some(r=>r.id===eligibleA)&&actualRuns.records.some(r=>r.id===eligibleB));
+ assert.equal(actualRuns.records.find(r=>r.id===eligibleA).distanceKm,5.4);
+ assert.equal(actualRuns.records.find(r=>r.id===eligibleB).distanceKm,6);
+ await page.reload({waitUntil:'networkidle'});
+ assert.match(await eligiblePanel.innerText(),/差 [+-]?[0-9]/,'same-method scientific comparison survives reload');
+ const outside=await saveRun('2026-10-29',0.5,30,'','RUNNING');
+ await page.goto(host+'#/result?record='+encodeURIComponent(outside)+'&compare='+encodeURIComponent(eligibleA)+'&view=compare',{waitUntil:'networkidle'});
+ assert.match(await page.locator('.rv4-region-compare').innerText(),/この部位は比較できません/,'ineligible speed must not invent a comparative reference');
+ console.log('PASS stage 10: two real in-domain saved references and speed-out-of-range rejection');
+
  console.log('PASS stage 10: explicit question ID, two saved run IDs, no automatic transfer and browser reload');
 
  console.log('PASS stage 10: same-day IDs, no-note continuity, cross-gait rejection and preserved three tabs');
