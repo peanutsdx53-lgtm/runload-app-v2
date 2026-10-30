@@ -1,4 +1,8 @@
 /* Research provenance for the result UI only. Does not calculate or alter reference values.
+ * Gazendam research adoption: use published leg length 0.99 m (Methods/Table 2 note)
+ * with Table 3 coefficients and Eq(4). Rounded Table 2 entries are NOT
+ * silently substituted as exact velocities or as a competing reference rule.
+ * The publisher-table discrepancy remains an explicitly documented limitation.
  * Every field is selected from the actual activity's approved evidence route. */
 import {RUNNING_REGION_BY_ID} from '../core/runningEvidence/runningEvidenceRegistry.js';
 import {bodyReferenceEngineId} from './bodyReferencePresentation.js';
