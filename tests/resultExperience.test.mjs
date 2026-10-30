@@ -35,7 +35,7 @@ test('PNG export explains calculated and uncalculated literature references',()=
 test('ROF-J results and image export do not manufacture time-eligible before/after changes',()=>{
  const js=read('ui/resultExperience.js');
  assert.match(js,/data-rof-time-status="unverified"/);
- assert.match(js,/各回答の評価時刻を保存していないため、時間的な前後差は判定していません/);
+ assert.match(js,/運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません/);
  assert.match(js,/評価時刻未記録：前後差は判定不可/);
  assert.match(js,/<small>前後差<\/small><strong>—<\/strong>/);
  assert.doesNotMatch(js,/\(after-before\)/);

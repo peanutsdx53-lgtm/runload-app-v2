@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRofUiState,rofPage,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor} from '../ui/rofExperience.js';
+import {createRofUiState,rofPage,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput} from '../ui/rofExperience.js';
 const fresh=()=>({rofBefore:null,rofAfter:null});
 test('approved 11 integer inputs and five non-numeric representative anchors',()=>{
  assert.deepEqual(Array.from({length:11},(_,i)=>nearestAnchorIndex(i)),[0,1,1,1,2,2,2,3,3,4,4]);
@@ -39,4 +39,22 @@ test('missing, blank and boolean inputs cannot become actual ROF-J zero',()=>{
  assert.equal(d.rofBefore,0,'invalid reset must not erase actual zero');
  clearRofScore(ui,d);
  assert.equal(d.rofBefore,null,'only explicit clear changes zero to missing');
+});
+
+test('stage 8 explicit contemporary and retrospective ROF-J entries have separate captured and declared times',()=>{
+ const d={rofBefore:null,rofAfter:null},ui=createRofUiState();
+ assert.equal(setRofTiming(d,'before','AT_ENTRY'),true);
+ assert.equal(recordRofInput(d,'before',0,'2026-10-30T01:00:00.000Z'),true);
+ assert.equal(d.rofBefore,0);
+ assert.deepEqual(d.rofEntryEvidence.before,{capturedAt:'2026-10-30T01:00:00.000Z',
+  assessedAt:'2026-10-30T01:00:00.000Z',timeBasis:'AT_ENTRY'});
+ setRofPhase(ui,'after',d);
+ assert.equal(setRofTiming(d,'after','RECALLED','2026-10-29T16:00'),true);
+ assert.equal(recordRofInput(d,'after',8,'2026-10-30T02:00:00.000Z'),true);
+ assert.equal(d.rofEntryEvidence.after.capturedAt,'2026-10-30T02:00:00.000Z');
+ assert.equal(d.rofEntryEvidence.after.timeBasis,'RECALLED');
+ assert.notEqual(d.rofEntryEvidence.after.assessedAt,d.rofEntryEvidence.after.capturedAt);
+ assert.equal(setRofTiming(d,'after','RECALLED','invalid'),false);
+ assert.equal(recordRofInput(d,'after',null,'2026-10-30T03:00:00.000Z'),true);
+ assert.equal(d.rofAfter,null);
 });

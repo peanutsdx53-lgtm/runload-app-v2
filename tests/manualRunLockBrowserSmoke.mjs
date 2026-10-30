@@ -39,13 +39,13 @@ try{
  const [first,second]=await Promise.all([save(a,'2026-10-20',60),save(b,'2026-10-21',0)]);
  assert.equal(first.ok,true,first.reason);
  assert.equal(second.ok,true,second.reason);
- const state=await a.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')));
- assert.equal(state.version,1);assert.equal(state.revision,2);
+ const state=await a.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')));
+ assert.equal(state.version,2);assert.equal(state.revision,2);
  assert.equal(state.records.length,2);
  assert.deepEqual(new Set(state.records.map(x=>x.date)),new Set(['2026-10-20','2026-10-21']));
  assert.equal(new Set(state.records.map(x=>x.id)).size,2);
  await b.reload({waitUntil:'networkidle'});
- const afterReload=await b.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')));
+ const afterReload=await b.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')));
  assert.deepEqual(afterReload,state);
  console.log('PASS browser lock: two tabs, two independent acknowledged records, no silent overwrite');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

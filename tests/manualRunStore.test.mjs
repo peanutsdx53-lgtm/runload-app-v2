@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readManualRuns,saveManualRun,findManualRun,classifySavedManualRun,toHistoryRows,MANUAL_RUN_KEY} from '../ui/manualRunStore.js';
+import {readManualRuns,saveManualRun,findManualRun,classifySavedManualRun,correctSavedRof,toHistoryRows,MANUAL_RUN_KEY} from '../ui/manualRunStore.js';
 import {normalizeRecords} from '../ui/historyExperience.js';
 import {calculateActivityReference} from '../core/activity/activityReference.js';
 import {reviewView} from '../ui/recordReviewExperience.js';
@@ -214,4 +214,58 @@ test('stage 10 partial correction preserves two saved IDs, linked question and o
  assert.equal(classifySavedManualRun(storage,old.id,'RUNNING').ok,false,'a second reclassification is not permitted');
  assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),noteRaw);
  assert.equal(compareSavedRuns(another,newOld).status,'incompatible','different gait still blocks descriptive comparison');
+});
+
+test('stage 8 V2 preserves real zero, absent score, explicit assessment time and immutable corrections',()=>{
+ const s=store(),legacyRaw='{"version":1,"records":[{"id":"historic"}]}';
+ s.setItem('runload-v2-manual-runs-v1',legacyRaw);
+ const saved=saveManualRun(s,{...draft(),rofBefore:0,rofAfter:null,
+   rofEntryEvidence:{before:{capturedAt:'2026-10-30T01:00:00.000Z',assessedAt:'2026-10-30T01:00:00.000Z',timeBasis:'AT_ENTRY'}}});
+ assert.equal(saved.ok,true,saved.reason);
+ assert.equal(saved.record.schema,2);
+ assert.equal(JSON.parse(s.getItem(MANUAL_RUN_KEY)).version,2);
+ assert.equal(saved.record.rofEvidence.before.score,0);
+ assert.equal(saved.record.rofEvidence.before.capturedAt,'2026-10-30T01:00:00.000Z');
+ assert.equal(saved.record.rofEvidence.before.assessedAt,'2026-10-30T01:00:00.000Z');
+ assert.equal(saved.record.rofEvidence.after.score,null);
+ assert.equal(saved.record.rofEvidence.after.assessedAt,null);
+ assert.equal(s.getItem('runload-v2-manual-runs-v1'),legacyRaw);
+ const id=saved.record.id;
+ const changed=correctSavedRof(s,id,'before',3,{timeBasis:'RECALLED',reason:'訂正',changedAt:'2026-10-30T02:00:00.000Z'});
+ assert.equal(changed.ok,true,changed.reason);
+ assert.equal(changed.record.rofBefore,3);
+ assert.equal(changed.record.rofCorrections.length,1);
+ assert.equal(changed.record.rofCorrections[0].from,0);
+ assert.equal(changed.record.rofCorrections[0].to,3);
+ assert.equal(changed.record.rofCorrections[0].old.score,0);
+ assert.equal(changed.record.rofCorrections[0].next.assessedAt,null);
+ const cleared=correctSavedRof(s,id,'before',null,{changedAt:'2026-10-30T03:00:00.000Z'});
+ assert.equal(cleared.ok,true,cleared.reason);
+ assert.equal(cleared.record.rofBefore,null);
+ assert.equal(cleared.record.rofCorrections.length,2);
+ assert.equal(cleared.record.rofCorrections[1].from,3);
+ assert.equal(cleared.record.rofCorrections[1].to,null);
+ const final=readManualRuns(s);assert.equal(final.ok,true);assert.equal(final.records[0].id,id);
+ assert.equal(final.records[0].draft.rofBefore,null);
+ assert.equal(s.getItem('runload-v2-manual-runs-v1'),legacyRaw);
+ const bytes=s.getItem(MANUAL_RUN_KEY);
+ assert.equal(correctSavedRof(s,id,'before','',{}).ok,false);
+ assert.equal(correctSavedRof(s,'run-v1-00000000-0000-4000-8000-000000000099','after',5).ok,false);
+ assert.equal(s.getItem(MANUAL_RUN_KEY),bytes);
+ const broken=JSON.parse(bytes);broken.records[0].rofCorrections[0].from=5;
+ s.setItem(MANUAL_RUN_KEY,JSON.stringify(broken));
+ assert.equal(readManualRuns(s).ok,false,'broken correction history is not accepted or silently repaired');
+ assert.equal(s.getItem('runload-v2-manual-runs-v1'),legacyRaw);
+});
+test('stage 8 correction rejection for quota and invalid future-only attribution is non-destructive',()=>{
+ const s=store(),saved=saveManualRun(s,{...draft(),rofBefore:0});
+ assert.equal(saved.ok,true,saved.reason);
+ const before=s.getItem(MANUAL_RUN_KEY);
+ assert.equal(correctSavedRof(s,saved.record.id,'after',2,{timeBasis:'AT_ENTRY',assessedAt:'2026-01-01T01:00:00.000Z',
+   changedAt:'2026-10-30T02:00:00.000Z'}).ok,true,'at-entry assessment belongs to change time');
+ const last=s.getItem(MANUAL_RUN_KEY);
+ s.setItem=()=>{throw Error('quota')};
+ assert.equal(correctSavedRof(s,saved.record.id,'after',6).ok,false);
+ assert.equal(s.getItem(MANUAL_RUN_KEY),last);
+ assert.notEqual(last,before);
 });
