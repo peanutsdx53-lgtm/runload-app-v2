@@ -106,7 +106,11 @@ try{
   await restoreBlock.locator("[data-dm-restore]").waitFor();
   assert.match(await restoreBlock.innerText(),/読み込む内容/);
   await importPage.screenshot({path:resolve(root,"screenshots","data-management-"+mode.name+"-restore.png"),fullPage:true});
-  await restoreBlock.locator("[data-dm-restore]").click();
+  await Promise.all([
+   importPage.waitForEvent('framenavigated',{predicate:f=>f===importPage.mainFrame(),timeout:20000}),
+   restoreBlock.locator("[data-dm-restore]").click()
+  ]);
+  await importPage.waitForLoadState('networkidle');
   await importPage.waitForFunction(()=>localStorage.getItem("runload-v2-user-profile-v1")!==null);
   assert.equal(await importPage.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-user-profile-v1")).nickname),"テスト");
   assert.equal(await importPage.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")).length),1);

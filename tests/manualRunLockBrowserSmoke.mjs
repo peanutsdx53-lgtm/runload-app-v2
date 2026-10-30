@@ -30,7 +30,8 @@ try{
    import('/ui/manualRunStore.js'),import('/ui/manualRunLock.js'),import('/ui/manualRunCanonical.js')]);
   const draft={date,distance:'5',hours:'',minutes:'32',seconds:'',rofBefore:0,rofAfter:null,
    steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'CONTINUOUS_RUN',memo:date};
-  const task=async()=>{await new Promise(r=>setTimeout(r,holdMs));return canonical.mutate(s=>saveManualRun(s,draft))};
+  const task=async()=>{await new Promise(r=>setTimeout(r,holdMs));const fresh=await canonical.refresh();if(!fresh.ok)return fresh;
+   return canonical.mutate(s=>saveManualRun(s,draft))};
   return cooperate?withManualRunWriteLock(task):task();
  },{date,holdMs,cooperate});
  const [first,second]=await Promise.all([save(a,'2026-10-20',60),save(b,'2026-10-21',0)]);
