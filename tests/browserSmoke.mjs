@@ -548,8 +548,12 @@ try{
   console.log('PASS',mode.name,'exploration beginner: categories / topics / opt-in notes / grouped catalog');
   // Consultation also hides the legacy install arrow; other standard routes keep the install entry.
   await page.goto(host+"#/consultation",{waitUntil:"networkidle"});
+  await page.locator("#runload-consultation").waitFor({state:"visible"});
   assert.equal(await page.locator("[data-install-app]").first().isVisible(),false,"consultation does not show the install arrow");
   await page.goto(host+"#/body-part-detail",{waitUntil:"networkidle"});
+  // Hash navigation can outlive networkidle while the async IDB route refresh finishes.
+  // Wait for the destination shell; never weaken the actual visibility assertion.
+  await page.locator(".app-shell:not(.cp-app)").waitFor({state:"visible"});
   assert.ok(await page.locator("[data-install-app]").first().isVisible(),"install trigger remains available outside consultation");
   await page.locator("[data-install-app]").first().click();
   assert.ok(await page.locator(".install-dialog").isVisible());
