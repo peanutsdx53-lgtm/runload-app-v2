@@ -3,6 +3,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {chromium,webkit} from 'playwright';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
@@ -112,6 +113,23 @@ try{
     const longPdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
     assert.ok(longPdf.length>11000,'long report PDF emitted');
     await writeFile(file,longPdf);
+    // Read the PHYSICAL PDF rather than inferring page integrity from the DOM.
+    // poppler-utils is a standard runner dependency; fail explicitly if absent.
+    const pdfInfo=spawnSync('pdfinfo',['-'],{input:longPdf,encoding:'utf8'});
+    assert.equal(pdfInfo.status,0,'pdfinfo must parse the emitted A4 PDF: '+String(pdfInfo.stderr||''));
+    const pages=Number(/^Pages:\\s*(\\d+)/m.exec(pdfInfo.stdout)?.[1]);
+    assert.ok(Number.isInteger(pages)&&pages>=visibility.visibleSheets&&pages<=15,
+      'actual PDF page count must cover the chosen sheets and stay bounded: '+pages);
+    assert.match(pdfInfo.stdout,/Page size:\\s*595(?:\\.2[0-9]*)? x 842(?:\\.0[0-9]*)? pts|Page size:\\s*595\\.28 x 841\\.89 pts/,
+      'A4 physical page dimensions');
+    const pdfText=spawnSync('pdftotext',['-layout','-','-'],{input:longPdf,encoding:'utf8'});
+    assert.equal(pdfText.status,0,'pdftotext must extract the printed report: '+String(pdfText.stderr||''));
+    for(const marker of ['purpose','observation','question']){
+      assert.ok(pdfText.stdout.includes(marker+'完了'),
+        'print pages must retain the trailing sentinel of the '+marker+' user note');
+    }
+    assert.match(pdfText.stdout,/期間内の|選択した1記録|活動記録/,'actual report content survives PDF generation');
+    console.log('PDF CONTENT QA',mode,'physical A4 pages',pages,'all three long-note suffixes retained');
     await page.emulateMedia({media:'screen'});
     await page.locator('input[data-share="body"]').check();
     console.log('PRINT QA',mode,JSON.stringify(visibility),'pdf bytes',longPdf.length);
