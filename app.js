@@ -1446,7 +1446,7 @@ function recordExtras(){
   window.addEventListener('pagehide',pauseGpsOnHidden);
   window.addEventListener("focus",async()=>{await canonical.refresh();await gpsStore.reloadGpsRuns();gpsV2Cache=await gpsV2.readGpsV2Summaries();render();});
   document.addEventListener("visibilitychange",async()=>{if(!document.hidden){await canonical.refresh();render();}});
-  window.addEventListener("hashchange",()=>{
+  window.addEventListener("hashchange",async()=>{await canonical.refresh();
     gpsConsentAction="";
     if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();releaseGpsWakeLock();}
     // GPS saves and deletes show toast; do not immediately erase them on navigation.
