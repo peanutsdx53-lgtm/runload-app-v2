@@ -56,6 +56,20 @@ try{
  assert.ok([...recordIds].every(id=>state.records.some(r=>r.id===id)),'all previously acknowledged IDs remain');
  assert.notEqual(JSON.stringify(state),untouched);
  // A writer which fails after staging may never publish a partial transaction.
+ const quota=await a.evaluate(async()=>{
+  const canonical=await import('/ui/manualRunCanonical.js'),store=await import('/ui/manualRunStore.js');
+  const original=IDBObjectStore.prototype.put;
+  IDBObjectStore.prototype.put=function(value,key){
+   if(this.name===canonical.MANUAL_STORE)throw new DOMException('simulated capacity','QuotaExceededError');
+   return original.call(this,value,key);
+  };
+  try{return await canonical.mutate(s=>store.saveManualRun(s,{date:'2026-10-24',distance:'5',
+   hours:'',minutes:'30',seconds:'',rofBefore:0,rofAfter:null,steps:'',stepsProvenance:'UNKNOWN',
+   activityGait:'RUNNING',runningFormat:'UNKNOWN',memo:'must not commit'}));}
+  finally{IDBObjectStore.prototype.put=original;}
+ });
+ assert.equal(quota.ok,false,'simulated QuotaExceededError must not acknowledge a record');
+ assert.deepEqual(await read(a),state,'quota failure must preserve all existing acknowledged run IDs');
  const aborted=await a.evaluate(async()=>{
   const c=await import('/ui/manualRunCanonical.js');
   return c.mutate(s=>{s.setItem('runload-v2-manual-runs-v2','{"version":0}');return {ok:false,reason:'injected abort'}});
