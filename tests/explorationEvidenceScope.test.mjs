@@ -33,3 +33,19 @@ test("course composition is not experimental slope",()=>{
  assert.match(html,/上り 30％／下り 20％／平坦 50％/);
  assert.match(html,/構成比であり、文献にある傾斜角（度）や路面勾配（％）ではありません/);
 });
+
+test('ROF-J learning never calls a self-selected before/after category a verified measurement-time difference',()=>{
+ const both=[...categories,{id:"04",name:"疲れと回復",topics:["疲れの感じ方"]}];
+ both[0]={...both[0],topics:[...both[0].topics,"自分が感じた疲れ"]};
+ for(const [cat,topic] of [["01","自分が感じた疲れ"],["04","疲れの感じ方"]]){
+  const ui=makeUi(storage);ui.selected=cat;ui.topic=topic;ui.modal="learn-help";
+  const html=render(ui,{categories:both,draft:{},conditions:{entries:[],canSave:true},manualRuns:{ok:true,records:[]}});
+  assert.match(html,/ROF-J/);
+  assert.match(html,/大学生/);
+  assert.doesNotMatch(html,/運動前後の値は本人が記録した時点の違いとして示します/);
+  if(cat==="01"){
+   assert.match(html,/本人が選択した回答区分/);
+   assert.match(html,/同一走行内の時間的な前後差は判定しません/);
+  }
+ }
+});
