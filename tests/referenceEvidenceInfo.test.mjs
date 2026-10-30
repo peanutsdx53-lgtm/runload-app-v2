@@ -134,9 +134,9 @@ test('Gazendam note identifies the selected published 0.99 m rule and a separate
     evidence:{metricId:series.metricId,sourceSha256:series.sourceSha256}},
    bodyId:engineReferenceBodyId(id),activity:'RUNNING'
   });
-  assert.match(info.note,/平均脚長0\\.99 mを優先/);
-  assert.match(info.note,/Table 3の係数と式\\(4\\)/);
+  assert.match(info.note,/平均脚長0\.99 mを優先/);
+  assert.match(info.note,/Table 3の係数と式\(4\)/);
   assert.match(info.note,/Table 2の掲載値に一部不一致/);
-  assert.doesNotMatch(info.note,/0\\.98 mを採用/);
+  assert.doesNotMatch(info.note,/0\.98 mを採用/);
  }
 });
