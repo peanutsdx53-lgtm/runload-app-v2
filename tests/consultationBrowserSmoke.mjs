@@ -29,17 +29,26 @@ try{
   assert.match(await page.locator('#cp-target option').first().innerText(),/保存された運動記録がありません/);
   const saved=await page.evaluate(async()=>{
    const m=await import('./ui/manualRunStore.js');
-   return (await (await import('./ui/manualRunCanonical.js')).mutate(s=>m.saveManualRun(s,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',courseName:'川沿い',shoeName:'シューズ',memo:'記録'})));
+   return (await (await import('./ui/manualRunCanonical.js')).mutate(s=>m.saveManualRun(s,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:0,rofAfter:6,rofEntryEvidence:{before:{capturedAt:'2026-10-27T10:00:00.000Z',assessedAt:'2026-10-27T10:00:00.000Z',timeBasis:'AT_ENTRY'},after:{capturedAt:'2026-10-27T11:00:00.000Z',assessedAt:'2026-10-27T10:45:00.000Z',timeBasis:'RECALLED'}},steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',courseName:'川沿い',shoeName:'シューズ',memo:'記録'})));
   });
   assert.equal(saved.ok,true,`${name}: fixture save ${saved.reason||''}`);
+  assert.equal(saved.record.rofBefore,0,`${name}: real zero remains a valid ROF-J response`);
+  assert.equal(saved.record.rofEvidence.after.timeBasis,'RECALLED',`${name}: V2 self-reported assessment provenance persisted`);
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('[data-metric2-val]').first().innerText(),/5\.00 km/);
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/選択した1記録.*記録ID：run-v1-/);
+  const rofText=await page.locator('[data-source-note="rof"]').innerText();
+  assert.match(rofText,/入力操作時刻・本人申告の評価日時が保存されていても/);
+  assert.match(rofText,/同一走行内の時間的な前後差は判定しません/);
+  assert.doesNotMatch(rofText,/個別の評価時刻がないため/);
+  assert.equal(await page.locator('.cp-bubble').first().innerText(),'0');
+  assert.match(await page.locator('.cp-explain-card').filter({hasText:'運動前・運動後の回答（ROF-J）'}).innerText(),/時間的な変化量は判定しません/);
   assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/選択した1記録.*記録ID：run-v1-/);
   await page.locator('#cp-purpose').fill('指導者に伝えたいこと');
   assert.equal(await page.locator('[data-report-purpose]').innerText(),'指導者に伝えたいこと');
   await page.locator('[data-mode-button="period"]').click();
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/期間内の1記録（期間全体の平均・合計ではありません）/);
+  assert.match(await page.locator('[data-source-note="rof"]').innerText(),/時間的な前後差は判定しません/);
   assert.match(await page.locator('[data-source-note="course"]').innerText(),/期間内の1記録.*記録ID：run-v1-/);
   assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/期間内の1記録.*記録ID：run-v1-/);
   assert.match(await page.locator('.cp-trend-holder').last().locator('svg').getAttribute('aria-label'),/距離km/);

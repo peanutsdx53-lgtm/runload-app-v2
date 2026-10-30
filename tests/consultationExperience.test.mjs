@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {consultationSources, periodRecords,trendSvg,renderConsultation,reportRecordContext} from '../ui/consultationExperience.js';
+import {consultationSources, periodRecords,trendSvg,renderConsultation,reportRecordContext,reportRofInterpretation} from '../ui/consultationExperience.js';
 const saved=(id,date,distanceKm,extra={})=>({id,date,distanceKm,source:'manual',durationSeconds:1800,createdAt:date+'T12:00:00Z',...extra});
 test('read-only reporting uses only validated saved records and does not mutate inputs',()=>{
  const records=[saved('real','2026-10-25',5),saved('bad','2026-10-24',NaN)];
@@ -57,4 +57,16 @@ test('consultation identifies one source record instead of implying period aggre
  assert.match(reportRecordContext(r,'period'),/2026\/10\/27／ジョギング／手入力／記録ID：source-42/);
  assert.match(reportRecordContext(r,'single'),/選択した1記録/);
  assert.match(reportRecordContext(null,'period'),/該当する保存済み記録はありません/);
+});
+
+// Stage 11: report language must reflect V2 provenance, not invent temporal causality.
+test('consultation explains V2 ROF-J provenance without a temporal difference',()=>{
+ const note=reportRofInterpretation();
+ for(const phrase of ['0は有効な回答','未回答','回答区分','入力操作時刻','本人申告の評価日時','客観的に検証されていません','時間的な前後差は判定しません'])assert.ok(note.includes(phrase),phrase);
+ assert.doesNotMatch(note,/個別の評価時刻がないため|前後の変化量は測定/);
+ const html=renderConsultation();
+ assert.match(html,/運動前・運動後の回答（ROF-J）/);
+ assert.match(html,/回答区分別の主観値/);
+ assert.match(html,/時間的な変化量は判定しません/);
+ assert.doesNotMatch(html,/疲労感の変化（ROF-J）|運動後 − 運動前/);
 });
