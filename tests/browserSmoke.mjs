@@ -1473,13 +1473,18 @@ try{
    'user can optionally show verified scientific numbers on the anatomy');
   // Simulate a record written by an older app version, which could save UNKNOWN.
   // Existing records must stay readable and offer an explicit repair path.
-  const legacyBefore=await page.evaluate(()=>{
-   const key='runload-v2-manual-runs-v2';
-   const history=JSON.parse(localStorage.getItem(key));
-   const record=history.records[0],original={id:record.id,distance:record.distanceKm,time:record.durationSeconds};
-   record.draft.activityGait='UNKNOWN';
-   history.revision+=1;localStorage.setItem(key,JSON.stringify(history));
-   return original;
+  const legacyBefore=await page.evaluate(async()=>{
+   const {MANUAL_DB,MANUAL_STORE,MANUAL_ENTRY}=await import('/ui/manualRunCanonical.js');
+   const db=await new Promise((res,rej)=>{const req=indexedDB.open(MANUAL_DB);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)});
+   let original;
+   await new Promise((res,rej)=>{
+    const tx=db.transaction(MANUAL_STORE,'readwrite'),store=tx.objectStore(MANUAL_STORE),req=store.get(MANUAL_ENTRY);
+    req.onsuccess=()=>{
+     const history=JSON.parse(req.result),record=history.records[0];
+     original={id:record.id,distance:record.distanceKm,time:record.durationSeconds};
+     record.draft.activityGait='UNKNOWN';history.revision++;store.put(JSON.stringify(history),MANUAL_ENTRY);
+    };tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error);
+   });db.close();return original;
   });
   await page.reload({waitUntil:'networkidle'});
   assert.match(await savedResult.locator('.rv4-notice').innerText(),/活動種別が未選択/,'legacy/unspecified runs have no inferred activity');
@@ -1505,8 +1510,8 @@ try{
   assert.ok(await savedResult.locator('[data-body-reference-label]').count()>0);
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-result-gait-repaired.png'),fullPage:false});
   await checkSavedResultPng(page,savedResult,mode,'eligible',['文献参考値：','/12 部位算出','各部位自身の文献基準を100','ROF-Jは本人が回答した疲労感'],['算出対象外','身体の部位別の参考値はまだありません']);
-  const classification=await page.evaluate(()=>{
-   const content=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2'));
+  const classification=await page.evaluate(async()=>{
+   const content=JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw);
    return {revision:content.revision,count:content.records.length,
      gait:content.records[0].draft.activityGait,distance:content.records[0].distanceKm,
      duration:content.records[0].durationSeconds,id:content.records[0].id};
@@ -1516,7 +1521,7 @@ try{
   assert.equal(classification.distance,legacyBefore.distance);
   assert.equal(classification.duration,legacyBefore.time);
   assert.equal(classification.id,legacyBefore.id,'old record ID is unchanged after classification');
-  const recordIds=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')).records.map(r=>r.id));
+  const recordIds=await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
   await page.reload({waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
