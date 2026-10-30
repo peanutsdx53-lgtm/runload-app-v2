@@ -35,7 +35,7 @@ async function mount(page,{speed=3,activity='RUNNING',mixed=false}={}){
   const draft={date:'2026-10-25',distance:String(distanceKm),minutes:'30',activityGait:activity,
    runningFormat:mixed?'RUN_WALK':'CONTINUOUS_RUN',rofBefore:0,rofAfter:4,
    shoeName:'QA',memo:'検証用の記録',courseName:'QA'};
-  const record={schema:1,source:'manual',type:'run',id,date:'2026-10-25',
+  const record={schema:2,source:'manual',type:'run',id,date:'2026-10-25',
    distanceKm,durationSeconds:1800,rofBefore:0,rofAfter:4,draft};
   const host=document.querySelector('#runload-result-v4');
   if(!host)throw Error('Result host is absent');
