@@ -50,8 +50,8 @@ const validRecord=r=>{
  if(!['courseName','shoeName','memo'].every(k=>cleanString(r[k],k==='memo'?MAX_CHARS:100)!==null))return false;
  if(!validSnapshot(r.draft))return false;
  if(!r.exerciseTiming||r.exerciseTiming.source!=='UNKNOWN'||r.exerciseTiming.startedAt!==null||r.exerciseTiming.endedAt!==null||
-  !r.rofEvidence||!validEvidence(r.rofEvidence.before,r.rofCorrections?.find(x=>x.phase==='before')?.from??r.rofBefore)||
-  !validEvidence(r.rofEvidence.after,r.rofCorrections?.find(x=>x.phase==='after')?.from??r.rofAfter)||
+  !r.rofEvidence||!validEvidence(r.rofEvidence.before,(()=>{const first=r.rofCorrections?.find(x=>x.phase==='before');return first?first.from:r.rofBefore})())||
+  !validEvidence(r.rofEvidence.after,(()=>{const first=r.rofCorrections?.find(x=>x.phase==='after');return first?first.from:r.rofAfter})())||
   !Array.isArray(r.rofCorrections)||r.rofCorrections.length>100||!r.rofCorrections.every(validCorrection))return false;
  for(const phase of ['before','after']){
   let previous=r.rofEvidence[phase];
