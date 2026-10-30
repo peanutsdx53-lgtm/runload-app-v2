@@ -21,6 +21,9 @@ export function describeRegionEvidence({row,bodyId,activity,source='saved-manual
   if(row.calculationState==='CALCULATED'&&(!row.evidence?.metricId||!row.evidence?.sourceSha256))return incomplete('計算済み値の原著識別情報が足りないため、出典の断定を保留します。');
   if(row.evidence?.metricId&&row.evidence.metricId!==series.metricId)return incomplete('保存された計算結果と現行の原著定義が異なるため、出典の表示を保留します。');
   if(row.evidence?.sourceSha256&&row.evidence.sourceSha256!==series.sourceSha256)return incomplete('保存された結果の原著と現行の原著が一致しないため、出典の表示を保留します。');
+  // Same paper and metric do not guarantee identical normalization or source series.
+  if(row.evidence?.seriesId&&row.evidence.seriesId!==series.seriesId)return incomplete('計算系列が現行の参考値と一致しないため、出典の表示を保留します。');
+  if(row.evidence?.referenceSignature&&row.evidence.referenceSignature!==series.referenceSignature)return incomplete('基準100の定義が一致しないため、出典の表示を保留します。');
   const citation=RUNNING_CITATIONS[series.sourceFile]||{label:'採用原著（研究台帳参照）',url:null};
   const lo=kmh(series.approvedSpeedMps[0]),hi=kmh(series.approvedSpeedMps[1]),ref=kmh(series.reference.speedMps);
   return Object.freeze({kind:'running',metric:series.metricDescription,unit:series.unit,domainLabel:'採用した参考値の速度域',

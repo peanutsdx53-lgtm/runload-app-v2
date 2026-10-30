@@ -86,3 +86,18 @@ test('Li heel, medial midfoot and central metatarsal disclose published DOI and 
  const misleading=describeRegionEvidence({row:{regionId:'R10',calculationState:'CALCULATED',evidence:{metricId:'LI_CENTRAL_METATARSAL_MAX_FORCE',sourceSha256:RUNNING_REGION_SERIES.find(x=>x.regionId==='R10').sourceSha256}},bodyId:engineReferenceBodyId('R10'),activity:'RUNNING'});
  assert.equal(misleading.kind,'unavailable','source metric mismatch must fail closed');
 });
+
+test('running source detail rejects a changed same-paper series or reference100 signature',()=>{
+ for(const id of ['R02','R05','R10']){
+  const series=RUNNING_REGION_SERIES.find(s=>s.regionId===id),bodyId=engineReferenceBodyId(id);
+  const evidence={metricId:series.metricId,sourceSha256:series.sourceSha256,seriesId:series.seriesId,referenceSignature:series.referenceSignature};
+  const good={regionId:id,calculationState:'CALCULATED',evidence};
+  assert.equal(describeRegionEvidence({row:good,bodyId,activity:'RUNNING'}).kind,'running');
+  for(const [field,value] of [['seriesId','LEGACY_DIFFERENT_SERIES'],['referenceSignature','LEGACY_DIFFERENT_BASELINE']]){
+   const bad={...good,evidence:{...evidence,[field]:value}};
+   const result=describeRegionEvidence({row:bad,bodyId,activity:'RUNNING'});
+   assert.equal(result.kind,'unavailable',id+' '+field);
+   assert.match(result.message,/一致しない/);
+  }
+ }
+});
