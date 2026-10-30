@@ -47,3 +47,16 @@ test('ROF-J learning never calls a self-selected before/after category a verifie
   assert.match(html,/同一走行内の時間的な前後差は判定しません/);
  }
 });
+
+test('2026 open-access ROF-J original study protocol is not mistaken for RunLoad retrospective measurement timing',()=>{
+ const cats=[{id:"01",name:"走りの記録",topics:["自分が感じた疲れ"]},{id:"04",name:"疲れと回復",topics:["疲れの感じ方"]}];
+ for(const [id,title] of [["01","自分が感じた疲れ"],["04","疲れの感じ方"]]){
+  const ui=makeUi(storage);ui.selected=id;ui.topic=title;ui.modal="learn-help";
+  const html=render(ui,{categories:cats,draft:{},conditions:{entries:[],canSave:true},manualRuns:{ok:true,records:[]}});
+  assert.match(html,/大学運動部員35人/);
+  assert.match(html,/RunLoad/);
+  assert.match(html,/時間的|測定手順/);
+  assert.match(html,/10\.1186\/s40798-026-01108-8/);
+  assert.doesNotMatch(html,/RunLoadで運動前後の変化を測定|ROF-Jは初心者ランナーに対する予測検査/);
+ }
+});
