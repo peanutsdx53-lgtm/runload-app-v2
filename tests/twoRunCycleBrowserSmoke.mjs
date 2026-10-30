@@ -79,6 +79,13 @@ try{
  assert.match(await table.innerText(),/2026-10-19/);
  assert.match(await table.innerText(),/2026-10-21/);
  assert.match(await table.innerText(),/距離/);
+ const regionPanel=page.locator('.rv4-region-compare');
+ await regionPanel.waitFor();
+ assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
+ assert.match(await regionPanel.innerText(),/現在の同一モデルでそれぞれ再計算/);
+ assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
+  'same-region scientific result or explicit rejection must be visible');
+ assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
  await page.reload({waitUntil:'networkidle'});
  assert.equal((await readRuns()).records.length,2,'both records survive reload');
  assert.ok(await table.isVisible(),'comparison survives interruption/reload');

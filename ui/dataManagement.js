@@ -205,20 +205,41 @@ export async function restorePortableBackup(storage,text){
  const {data}=plan.parsed;
  // Local Storage is reversible within the same operation. IndexedDB imports add-only:
  // a later failure cannot overwrite or remove the user's original records.
- let changed=[];
+ // Track attempted writes BEFORE setItem: a storage adapter may write and then
+ // throw, or a post-write verification may fail. Both paths need rollback.
+ // A non-cooperating writer can still race this operation: do not overwrite
+ // unexpected values during rollback or claim cross-tab atomicity.
+ const attempted=[];
+ let concurrentChange=false;
  try{
   for(const [key,next] of Object.entries(plan.writes)){
-   if(storage.getItem(key)!==plan.old[key])throw Error("保存中に記録が変更されました");
+   if(storage.getItem(key)!==plan.old[key]){
+    concurrentChange=true;
+    throw Error("保存中に記録が変更されました");
+   }
+   attempted.push({key,next});
    storage.setItem(key,next);
    if(storage.getItem(key)!==next)throw Error("保存後のデータを検証できません");
-   changed.push(key);
   }
  }catch(e){
   let reverted=true;
-  for(const key of changed.reverse()){
-   try{if(plan.old[key]===null)storage.removeItem(key);else storage.setItem(key,plan.old[key]);}catch{reverted=false;}
+  for(const {key,next} of attempted.reverse()){
+   try{
+    const observed=storage.getItem(key);
+    if(observed===plan.old[key])continue;
+    if(observed!==next){
+     // An unknown value may belong to another writer; never clobber it.
+     reverted=false;continue;
+    }
+    if(plan.old[key]===null)storage.removeItem(key);
+    else storage.setItem(key,plan.old[key]);
+    if(storage.getItem(key)!==plan.old[key])reverted=false;
+   }catch{reverted=false;}
   }
-  return {ok:false,reason:reverted?"復元を中止し、変更前の保存状態に戻しました":"復元を中止しました。一部の設定が変更されている可能性があります"};
+  const unchanged=reverted&&!concurrentChange;
+  return {ok:false,partial:!unchanged,
+   reason:unchanged?"復元を中止し、今回の書込みを変更前の状態に戻しました":
+    "復元を中止しました。別の変更または復旧できない保存状態がある可能性があります。記録を再読込し、バックアップと照合してください"};
  }
  const stages=[];
  if(data.gpsLegacy){

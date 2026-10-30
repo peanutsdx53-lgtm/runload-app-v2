@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {DATA_KEYS,RESET_KEYS,PORTABLE_FORMAT,PORTABLE_VERSION,inspectLocalStorage,
- inspectPortableBackup,planPortableRestore} from "../ui/dataManagement.js";
+ inspectPortableBackup,planPortableRestore,restorePortableBackup} from "../ui/dataManagement.js";
 import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagementUi.js";
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
@@ -68,4 +68,72 @@ test("settings copy gives explicit GPS disclosure, verification, and deliberate 
  assert.match(remove,/元に戻せません/);
  assert.match(remove,/data-dm-delete-confirm disabled/);
  assert.doesNotMatch(backup+remove,/RunLoad|ランロード/);
+});
+
+test("restore rolls back both earlier writes and the just-written key when post-write verification fails",async()=>{
+ const originalCondition=JSON.stringify([day("2026-10-10")]);
+ const existing=fake({[CONDITION_KEY]:originalCondition,unrelated_key:"keep"});
+ const incoming=fake({
+  [CONDITION_KEY]:JSON.stringify([day("2026-10-12")]),
+  [PROFILE_KEY]:JSON.stringify({nickname:"復元",purpose:"",heightCm:null,weightKg:null,ageBand:""})
+ });
+ const backup=file(incoming);
+ let badRead=false;
+ const storage={
+  getItem(k){if(k===PROFILE_KEY&&badRead){badRead=false;return "unverified-write";}return existing.getItem(k);},
+  setItem(k,v){existing.setItem(k,v);if(k===PROFILE_KEY)badRead=true;},
+  removeItem:k=>existing.removeItem(k)
+ };
+ const result=await restorePortableBackup(storage,backup);
+ assert.equal(result.ok,false);
+ assert.equal(result.partial,false,result.reason);
+ assert.match(result.reason,/今回の書込みを変更前の状態に戻しました/);
+ assert.equal(existing.getItem(CONDITION_KEY),originalCondition,"earlier successful key must also roll back");
+ assert.equal(existing.getItem(PROFILE_KEY),null,"verified-write failure must roll back the currently attempted key");
+ assert.equal(existing.getItem("unrelated_key"),"keep");
+});
+test("restore handles adapters that write data and then throw without claiming success",async()=>{
+ const originalCondition=JSON.stringify([day("2026-10-10")]);
+ const existing=fake({[CONDITION_KEY]:originalCondition});
+ const incoming=fake({
+  [CONDITION_KEY]:JSON.stringify([day("2026-10-12")]),
+  [PROFILE_KEY]:JSON.stringify({nickname:"復元",purpose:"",heightCm:null,weightKg:null,ageBand:""})
+ });
+ let failOnce=true;
+ const storage={
+  getItem:k=>existing.getItem(k),
+  setItem(k,v){
+   existing.setItem(k,v);
+   if(k===PROFILE_KEY&&failOnce){failOnce=false;throw Error("simulated post-commit storage failure");}
+  },
+  removeItem:k=>existing.removeItem(k)
+ };
+ const result=await restorePortableBackup(storage,file(incoming));
+ assert.equal(result.ok,false);
+ assert.equal(result.partial,false,result.reason);
+ assert.equal(existing.getItem(CONDITION_KEY),originalCondition);
+ assert.equal(existing.getItem(PROFILE_KEY),null);
+});
+test("restore does not overwrite an unexpected competing value during rollback",async()=>{
+ const originalCondition=JSON.stringify([day("2026-10-10")]);
+ const existing=fake({[CONDITION_KEY]:originalCondition});
+ const incoming=fake({
+  [CONDITION_KEY]:JSON.stringify([day("2026-10-12")]),
+  [PROFILE_KEY]:JSON.stringify({nickname:"復元",purpose:"",heightCm:null,weightKg:null,ageBand:""})
+ });
+ let competing=true;
+ const storage={
+  getItem:k=>existing.getItem(k),
+  setItem(k,v){
+   existing.setItem(k,v);
+   if(k===PROFILE_KEY&&competing){competing=false;existing.setItem(k,"different-writer");}
+  },
+  removeItem:k=>existing.removeItem(k)
+ };
+ const result=await restorePortableBackup(storage,file(incoming));
+ assert.equal(result.ok,false);
+ assert.equal(result.partial,true);
+ assert.match(result.reason,/別の変更|再読込/);
+ assert.equal(existing.getItem(CONDITION_KEY),originalCondition);
+ assert.equal(existing.getItem(PROFILE_KEY),"different-writer","unknown concurrent content must not be clobbered");
 });
