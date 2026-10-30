@@ -47,7 +47,10 @@ try{
   if(!key)return false;
   const cache=await caches.open(key),base=location.origin+'/';
   return !!(await cache.match(base+'index.html'))&&!!(await cache.match(base+'app.js'))&&
-   !!(await cache.match(base+'ui/manualRunStore.js?v=20261030-rof-evidence-v2'));
+   !!(await cache.match(base+'ui/manualRunStore.js?v=20261030-rof-evidence-v2'))&&
+   !!(await cache.match(base+'ui/consultationExperience.js?v=20261028-print-integrity-v1'))&&
+   !!(await cache.match(base+'ui/explorationExperience.js?v=20261029-rof-source-v1'))&&
+   !!(await cache.match(base+'ui/referenceEvidenceInfo.js'));
  });
  assert.equal(cached,true,'shell and saved-run V2 scripts are cached');
  await context.setOffline(true);
@@ -69,10 +72,27 @@ try{
  await page.locator('.rv4-distance strong').waitFor();
  assert.equal((await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw))).records[0].id,state.records[0].id);
  assert.equal(await page.evaluate(()=>navigator.onLine),false);
+ // Stage 11: one saved run survives a whole offline interpretation and sharing path.
+ await page.goto(host+'#/consultation',{waitUntil:'load',timeout:18000});
+ await page.locator('[data-metric2-val]').first().waitFor({state:'attached'});
+ await page.waitForFunction(()=>document.querySelector('[data-metric2-val]')?.textContent?.includes('4.00 km'),null,{timeout:18000});
+ assert.match(await page.locator('[data-metric2-val]').first().innerText(),/4\.00 km/);
+ assert.match(await page.locator('[data-source-note="rof"]').innerText(),/同一走行内の時間的な前後差は判定しません|有効な回答がそろっていません/);
+ const seenId=await page.locator('#cp-target').inputValue();
+ assert.equal(seenId,state.records[0].id,'offline consultation must use the same saved ID');
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(state.records[0].id),{waitUntil:'load',timeout:18000});
+ await page.locator('.ex-record-return').waitFor({state:'visible'});
+ assert.match(await page.locator('.ex-record-return').innerText(),/保存した走行/);
+ assert.match(await page.locator('.ex-record-return a').getAttribute('href'),/#\/result\?record=/);
+ await page.goto(host+'#/result?record='+encodeURIComponent(state.records[0].id),{waitUntil:'load',timeout:18000});
+ await page.locator('.rv4-distance strong').waitFor();
+ assert.match(await page.locator('.rv4-distance strong').innerText(),/4\.00/);
+ assert.equal((await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw))).records[0].id,state.records[0].id);
+ assert.equal(await page.evaluate(()=>navigator.onLine),false);
  const uncached=await page.evaluate(async()=>{
   try{await fetch('https://example.com/runload-network-probe',{cache:'no-store'});return false;}catch{return true;}
  });
  assert.equal(uncached,true,'uncached external URL cannot work offline');
- console.log('PASS stage9: cold-start offline unavailable; installed cache, local save and reload survive network cut');
+ console.log('PASS stage9/11: cold-start offline unavailable; installed cache, canonical ID, consultation, exploration and result survive network cut');
  await context.close();
 }finally{await browser.close();await new Promise(done=>server.close(done));}
