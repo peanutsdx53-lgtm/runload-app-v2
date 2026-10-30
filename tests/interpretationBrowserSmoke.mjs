@@ -27,11 +27,12 @@ try{
   await page.goto(base+'#/home',{waitUntil:'domcontentloaded'});
   await page.locator('.app-shell').waitFor({timeout:20000});
   const saved=await page.evaluate(async()=>{
-   const m=await import('./ui/manualRunStore.js');
+   const [m,canonical]=await Promise.all([import('./ui/manualRunStore.js'),import('./ui/manualRunCanonical.js')]);
+   const initialized=await canonical.refresh();if(!initialized.ok)throw Error(initialized.reason);
    const draft={date:'2026-10-18',distance:'5',hours:'',minutes:'33',seconds:'',rofBefore:0,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',memo:'最初の日はゆっくり走った',courseName:'川沿い',shoeName:'練習用'};
-   const a=m.saveManualRun(localStorage,draft);
-   const b=m.saveManualRun(localStorage,{...draft,date:'2026-10-25',distance:'5.5',minutes:'32',rofBefore:2,rofAfter:5,memo:'今回の気づきを整理した'});
-   const c=m.saveManualRun(localStorage,{...draft,date:'2026-10-26',distance:'4',minutes:'44',activityGait:'WALK',rofBefore:0,rofAfter:null,memo:'異なる活動種別'});
+   const a=await canonical.mutate(store=>m.saveManualRun(store,draft));
+   const b=await canonical.mutate(store=>m.saveManualRun(store,{...draft,date:'2026-10-25',distance:'5.5',minutes:'32',rofBefore:2,rofAfter:5,memo:'今回の気づきを整理した'}));
+   const c=await canonical.mutate(store=>m.saveManualRun(store,{...draft,date:'2026-10-26',distance:'4',minutes:'44',activityGait:'WALK',rofBefore:0,rofAfter:null,memo:'異なる活動種別'}));
    if(!a.ok||!b.ok||!c.ok)throw Error(JSON.stringify({a,b,c}));
    return {earlier:a.record.id,current:b.record.id,otherGait:c.record.id};
   });
