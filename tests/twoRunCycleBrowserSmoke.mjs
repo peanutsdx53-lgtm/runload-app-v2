@@ -25,7 +25,7 @@ try{
  const page=await browser.newPage({viewport:{width:390,height:844},acceptDownloads:true});
  await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
  const host='http://127.0.0.1:4175/';
- const readRuns=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null'));
+ const readRuns=()=>page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw||'null'));
  async function saveRun(date,distance,minutes,memo,gait='RUNNING'){
   await page.goto(host+'#/record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="date"]').fill(date);
@@ -129,11 +129,15 @@ try{
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(secondId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  assert.equal(await page.locator('.ex-note-preview').count(),0,'unlinked and old notes must not move to another run');
  // Simulate deletion inside the existing V1 format. Do not alter schema.
- await page.evaluate(id=>{
-  const key='runload-v2-manual-runs-v2',data=JSON.parse(localStorage.getItem(key));
-  data.records=data.records.filter(r=>r.id!==id);data.revision++;
-  localStorage.setItem(key,JSON.stringify(data));
- },firstId);
+ await page.evaluate(async id=>{
+   const {MANUAL_DB,MANUAL_STORE,MANUAL_ENTRY}=await import('/ui/manualRunCanonical.js');
+   const db=await new Promise((resolve,reject)=>{const req=indexedDB.open(MANUAL_DB);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+   await new Promise((resolve,reject)=>{
+    const tx=db.transaction(MANUAL_STORE,'readwrite'),store=tx.objectStore(MANUAL_STORE),req=store.get(MANUAL_ENTRY);
+    req.onsuccess=()=>{const d=JSON.parse(req.result);d.records=d.records.filter(r=>r.id!==id);d.revision++;store.put(JSON.stringify(d),MANUAL_ENTRY)};
+    tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+   });db.close();
+  },firstId);
  await page.goto(host+'#/result?record='+encodeURIComponent(firstId),{waitUntil:'networkidle'});
  assert.match(await page.locator('[role="status"]').last().innerText(),/指定された保存済み走行記録が見つかりません/);
  assert.equal(await page.locator('.rv4-distance').count(),0,'no other run substituted for deleted ID');
@@ -201,7 +205,7 @@ try{
  await page.locator('[data-rof-correct-reason]').fill('本人の回答');
  await page.locator('[data-rof-correct-save]').click();
  await page.waitForFunction(id=>{
-  const d=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null');
+  const d=JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw||'null');
   const r=d?.records.find(x=>x.id===id);
   return r?.rofCorrections?.length===1&&r.rofBefore===0;
  },sameDayB);
@@ -220,7 +224,7 @@ try{
  await page.locator('[data-rof-correct-basis]').selectOption('UNKNOWN');
  await page.locator('[data-rof-correct-save]').click();
  await page.waitForFunction(id=>{
-  const d=JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null');
+  const d=JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw||'null');
   return d?.records.find(x=>x.id===id)?.rofCorrections?.length===2;
  },sameDayB);
  revised=(await readRuns()).records.find(x=>x.id===sameDayB);
@@ -275,7 +279,7 @@ try{
 
  // Stage 10: user explicitly chooses the first run's own question,
  // writes a new answer and attaches only that new note to the second run.
- const runBytesBefore=await page.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2'));
+ const runBytesBefore=await page.evaluate(async()=>(await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw);
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(sameDayA)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  await page.locator('[data-ex-action="note"]').first().click();
  const sourceQuestion='同じ日の2回目に、ペースをどう感じたか確かめる';
@@ -299,7 +303,7 @@ try{
  assert.equal(continued.continuedFromNoteId,prior.id,'origin note ID explicitly preserved');
  assert.equal(continued.topicId,prior.topicId,'topic meaning remains traceable');
  assert.equal(continued.text,'今回の走行ではペースの違いを感じた。原因は未確認。');
- assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2')),runBytesBefore,'inquiry never modifies run facts');
+ assert.equal(await page.evaluate(async()=>(await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw),runBytesBefore,'inquiry never modifies run facts');
  await page.waitForFunction(id=>location.hash.includes('exploration-tree')&&location.hash.includes(encodeURIComponent(id)),sameDayB);
  await page.reload({waitUntil:'networkidle'});
  await page.locator('.ex-note-preview').waitFor();
