@@ -62,8 +62,13 @@ try{
    await page.emulateMedia({media:'screen'});
   }
   await page.locator('input[data-share="notes"]').check();
-  assert.equal(await page.locator('[data-report-purpose]').isVisible(),true,'re-enabled notes remain editable and visible');
-  assert.equal(await page.locator('[data-report-observation]').isVisible(),true);
+  // The mobile edit tab hides the entire preview even when sharing is enabled.
+  // Check the actual user-visible preview tab, then return to editing.
+  if(name==='mobile')await page.locator('[data-switch="preview"]').click();
+  assert.equal(await page.locator('[data-report-purpose]').isVisible(),true,'re-enabled purpose is visible in active preview');
+  assert.equal(await page.locator('[data-report-observation]').isVisible(),true,'re-enabled observation is visible in active preview');
+  assert.equal(await page.locator('[data-report-question]').isVisible(),true,'re-enabled question is visible in active preview');
+  if(name==='mobile')await page.locator('[data-switch="edit"]').click();
   await page.locator('[data-mode-button="period"]').click();
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/期間内の1記録（期間全体の平均・合計ではありません）/);
   assert.match(await page.locator('[data-source-note="rof"]').innerText(),/時間的な前後差は判定しません/);
