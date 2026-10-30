@@ -51,6 +51,7 @@ try{
   assert.equal(await page.locator('.ex-focus .ex-context').count(),0,'unrelated life record is not a selected-run link');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-focused-sleep-unlinked.png'),fullPage:true});
   await page.goto(base+'#/exploration-tree?category=05&topic='+encodeURIComponent('睡眠'),{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>document.querySelector('[data-ex-learning="sleep-recovery"]')?.textContent?.includes('2026-10-27'),null,{timeout:20000});
   const generalSleep=await page.locator('[data-ex-learning="sleep-recovery"]').innerText();
   assert.match(generalSleep,/2026-10-27/,'general exploration may show independent life data');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-general-sleep-independent.png'),fullPage:true});
