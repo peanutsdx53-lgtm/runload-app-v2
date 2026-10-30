@@ -231,5 +231,46 @@ try{
  assert.equal(revised.id,sameDayB);
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
  console.log('PASS stage 8: saved UI correction, 0 and null, immutable provenance and reload');
+ // Stage 8: real dedicated input, recorded input time and optional declared exercise window.
+ await page.goto(host+'#/record',{waitUntil:'networkidle'});
+ await page.locator('[data-draft="date"]').fill('2026-10-26');
+ await page.locator('[data-draft="distance"]').fill('5');
+ await page.locator('[data-draft="minutes"]').fill('30');
+ await page.locator('[data-manual-gait="RUNNING"]').click();
+ await page.goto(host+'#/record-rof',{waitUntil:'networkidle'});
+ await page.locator('[data-rof-run-start]').fill('2026-10-26T09:00');
+ await page.locator('[data-rof-run-start]').dispatchEvent('change');
+ await page.locator('[data-rof-run-end]').fill('2026-10-26T09:30');
+ await page.locator('[data-rof-run-end]').dispatchEvent('change');
+ await page.locator('[data-rof-v4-timing]').selectOption('AT_ENTRY');
+ await page.locator('[data-rof-v4-range]').evaluate(el=>{
+  el.value='0';el.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+ await page.locator('[data-rof-v4-phase="after"]').click();
+ await page.locator('[data-rof-v4-timing]').selectOption('RECALLED');
+ await page.locator('[data-rof-v4-declared]').fill('2026-10-26T09:35');
+ await page.locator('[data-rof-v4-declared]').dispatchEvent('change');
+ await page.locator('[data-rof-v4-range]').evaluate(el=>{
+  el.value='4';el.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+ await page.locator('.rv4-done').click();
+ await page.locator('[data-demo-save]').click();
+ await page.locator('[data-manual-run-save]').click();
+ await page.waitForFunction(()=>location.hash.startsWith('#/result?record='));
+ const timingRun=(await readRuns()).records.at(-1);
+ assert.equal(timingRun.rofBefore,0);
+ assert.equal(timingRun.rofAfter,4);
+ assert.equal(timingRun.rofEvidence.before.timeBasis,'AT_ENTRY');
+ assert.equal(timingRun.rofEvidence.before.assessedAt,timingRun.rofEvidence.before.capturedAt);
+ assert.equal(timingRun.rofEvidence.after.timeBasis,'RECALLED');
+ assert.ok(Date.parse(timingRun.rofEvidence.after.assessedAt)<Date.parse(timingRun.rofEvidence.after.capturedAt));
+ assert.equal(timingRun.exerciseTiming.source,'USER_DECLARED');
+ assert.equal(timingRun.exerciseTiming.endedAt!==null,true);
+ assert.equal(timingRun.exerciseTiming.startedAt!==null,true);
+ assert.ok(Date.parse(timingRun.exerciseTiming.endedAt)>Date.parse(timingRun.exerciseTiming.startedAt));
+ assert.equal(timingRun.rofCorrections.length,0);
+ await page.reload({waitUntil:'networkidle'});
+ assert.equal((await readRuns()).records.at(-1).id,timingRun.id,'timestamps survive real browser reload');
+ console.log('PASS stage 8: dedicated ROF-J entry, now vs recalled provenance and optional exercise times');
  console.log('PASS stage 10: same-day IDs, no-note continuity, cross-gait rejection and preserved three tabs');
 }finally{await browser.close();await new Promise(done=>server.close(done));}
