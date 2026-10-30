@@ -204,7 +204,7 @@ try{
  await page.locator('[data-rof-correct-basis]').selectOption('AT_ENTRY');
  await page.locator('[data-rof-correct-reason]').fill('本人の回答');
  await page.locator('[data-rof-correct-save]').click();
- await page.waitForFunction(id=>{
+ await page.waitForFunction(async id=>{
   const d=JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw||'null');
   const r=d?.records.find(x=>x.id===id);
   return r?.rofCorrections?.length===1&&r.rofBefore===0;
@@ -223,7 +223,7 @@ try{
  await page.locator('[data-rof-correct-score]').fill('');
  await page.locator('[data-rof-correct-basis]').selectOption('UNKNOWN');
  await page.locator('[data-rof-correct-save]').click();
- await page.waitForFunction(id=>{
+ await page.waitForFunction(async id=>{
   const d=JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw||'null');
   return d?.records.find(x=>x.id===id)?.rofCorrections?.length===2;
  },sameDayB);
