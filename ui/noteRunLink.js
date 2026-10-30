@@ -6,7 +6,7 @@ export function findLinkableRun(manualRuns,recordId){
  const matches=manualRuns.records.filter(r=>r?.id===recordId);
  if(matches.length!==1)return null;
  const r=matches[0];
- return r.source==='manual'&&r.type==='run'&&r.schema===1&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&Number.isInteger(r.durationSeconds)&&r.durationSeconds>0?r:null;
+ return r.source==='manual'&&r.type==='run'&&r.schema===2&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&Number.isInteger(r.durationSeconds)&&r.durationSeconds>0?r:null;
 }
 export function resolveOptionalNoteRunLink(focusRunId,manualRuns){
  if(focusRunId===null||focusRunId===undefined||focusRunId==='')return {ok:true,recordId:null};

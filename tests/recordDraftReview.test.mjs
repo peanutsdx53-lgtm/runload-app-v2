@@ -71,7 +71,7 @@ test("stage 7 forbids any mixed run-walk regional reference and aligns both inpu
  assert.doesNotMatch(app,/走った区間だけを対象にします/);
  const {calculateActivityReference}=await import("../core/activity/activityReference.js");
  const result=calculateActivityReference({
-  source:"manual",type:"run",schema:1,id:"run-v1-00000000-0000-4000-8000-000000000001",
+  source:"manual",type:"run",schema:2,id:"run-v1-00000000-0000-4000-8000-000000000001",
   distanceKm:5,durationSeconds:1800,draft:{activityGait:"RUNNING",runningFormat:"RUN_WALK"}
  });
  assert.equal(result.state,"NOT_CALCULABLE");

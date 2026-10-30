@@ -7,7 +7,7 @@ import {saveManualRun,readManualRuns,MANUAL_RUN_KEY} from '../ui/manualRunStore.
 import {noteRunBackLink,visibleTopicNotes} from '../ui/noteRunLink.js';
 import {createLifeIntent,loadIntent,ACTION_INTENT_KEY} from '../ui/actionIntentStore.js';
 const id=n=>'run-v1-00000000-0000-4000-8000-'+String(n).padStart(12,'0');
-const run=(n,distanceKm=.15,seconds=60,overrides={})=>({id:id(n),source:'manual',type:'run',schema:1,
+const run=(n,distanceKm=.15,seconds=60,overrides={})=>({id:id(n),source:'manual',type:'run',schema:2,
  date:'2026-10-'+String(n).padStart(2,'0'),distanceKm,durationSeconds:seconds,
  draft:{activityGait:'RUNNING',runningFormat:'CONTINUOUS_RUN'},...overrides});
 const storage=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)}};
@@ -32,7 +32,7 @@ test('exploration note save persists a validated explicit run reference only',()
  const notes=JSON.parse(memory.getItem(EXPLORATION_NOTE_KEY));
  assert.equal(notes[0].recordId,before.id);
  assert.equal(notes[0].text,'次回は同じ条件で確認する');
- assert.equal(memory.getItem('runload-v2-manual-runs-v1'),null);
+ assert.equal(memory.getItem('runload-v2-manual-runs-v2'),null);
  const loaded=makeUi(memory);assert.equal(loaded.canSave,true);
  assert.equal(loaded.notes[0].recordId,before.id);
 });

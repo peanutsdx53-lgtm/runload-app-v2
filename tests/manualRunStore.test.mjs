@@ -83,7 +83,7 @@ test('old unspecified saved manual record can be classified only by an explicit 
  assert.equal(created.ok,true,created.reason);
  const history=readManualRuns(storage);
  const legacy=history.records[0];
- storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:1,revision:history.revision+1,
+ storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:2,revision:history.revision+1,
   records:[{...legacy,draft:{...legacy.draft,activityGait:''}}]}));
  const before=readManualRuns(storage),id=created.record.id;
  assert.equal(before.records[0].draft.activityGait,'');
@@ -179,7 +179,7 @@ test('stage 10 partial correction preserves two saved IDs, linked question and o
  assert.equal(initial.ok,true);assert.equal(initial.records.length,2);
  const old=initial.records.find(r=>r.id===first.record.id),another=initial.records.find(r=>r.id===second.record.id);
  // Simulate a valid older saved V1 record with an unknown activity.
- storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:1,revision:initial.revision+1,
+ storage.setItem(MANUAL_RUN_KEY,JSON.stringify({version:2,revision:initial.revision+1,
   records:initial.records.map(r=>r.id===first.record.id?{...r,draft:{...r.draft,activityGait:'UNKNOWN'}}:r)}));
  const savedUnknown=readManualRuns(storage);
  assert.equal(savedUnknown.ok,true);

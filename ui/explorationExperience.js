@@ -35,7 +35,7 @@ export function makeUi(storage){
    Do not derive any injury, body loading or health interpretation here. */
 function latestSavedManualRun(read,requestedId=null){
  if(read?.ok!==true||!Array.isArray(read.records))return null;
- return read.records.filter(r=>(requestedId===null||r.id===requestedId)&&r?.source==="manual"&&r.type==="run"&&r.schema===1&&
+ return read.records.filter(r=>(requestedId===null||r.id===requestedId)&&r?.source==="manual"&&r.type==="run"&&r.schema===2&&
     /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
     Number.isInteger(r.durationSeconds)&&r.durationSeconds>0)
   .slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt).localeCompare(String(a.createdAt)))[0]||null;

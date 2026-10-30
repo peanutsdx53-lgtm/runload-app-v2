@@ -4,7 +4,7 @@
  */
 const ELIGIBLE_GAITS=new Set(['RUNNING','JOGGING','WALK']);
 const round=(value,digits=2)=>Number(value.toFixed(digits));
-export const isComparableManualRun=r=>!!r&&r.schema===1&&r.source==='manual'&&r.type==='run'&&
+export const isComparableManualRun=r=>!!r&&r.schema===2&&r.source==='manual'&&r.type==='run'&&
  typeof r.id==='string'&&/^run-v1-[0-9a-f-]{36}$/.test(r.id)&&
  /^\d{4}-\d{2}-\d{2}$/.test(r.date||'')&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
  Number.isInteger(r.durationSeconds)&&r.durationSeconds>0;

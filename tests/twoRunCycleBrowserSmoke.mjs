@@ -25,7 +25,7 @@ try{
  const page=await browser.newPage({viewport:{width:390,height:844},acceptDownloads:true});
  await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
  const host='http://127.0.0.1:4175/';
- const readRuns=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v1')||'null'));
+ const readRuns=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')||'null'));
  async function saveRun(date,distance,minutes,memo,gait='RUNNING'){
   await page.goto(host+'#/record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="date"]').fill(date);
@@ -40,7 +40,7 @@ try{
   await page.locator('[data-manual-run-save]').click();
   await page.waitForFunction(()=>location.hash.startsWith('#/result?record='));
   const state=await readRuns();
-  assert.ok(state&&state.version===1);
+  assert.ok(state&&state.version===2);
   const last=state.records.at(-1);
   assert.equal(last.date,date);
   assert.equal(last.distanceKm,distance);
@@ -130,7 +130,7 @@ try{
  assert.equal(await page.locator('.ex-note-preview').count(),0,'unlinked and old notes must not move to another run');
  // Simulate deletion inside the existing V1 format. Do not alter schema.
  await page.evaluate(id=>{
-  const key='runload-v2-manual-runs-v1',data=JSON.parse(localStorage.getItem(key));
+  const key='runload-v2-manual-runs-v2',data=JSON.parse(localStorage.getItem(key));
   data.records=data.records.filter(r=>r.id!==id);data.revision++;
   localStorage.setItem(key,JSON.stringify(data));
  },firstId);
