@@ -28,6 +28,13 @@ function open(){
 const single=v=>({getItem:k=>k===MANUAL_RUN_KEY?v:null,setItem(){},removeItem(){}});
 const valid=v=>v===null||(typeof v==='string'&&readManualRuns(single(v)).ok);
 const failure=reason=>({ok:false,reason:reason||error});
+/* Best-effort stronger durability hint. Browsers may ignore it or fall back to
+ * default; even strict does not warrant survival of every OS or device failure.
+ */
+const writeTransaction=db=>{
+ try{return db.transaction(MANUAL_STORE,'readwrite',{durability:'strict'})}
+ catch{return db.transaction(MANUAL_STORE,'readwrite')}
+};
 const usable=base=>base&&typeof base.getItem==='function'&&typeof base.setItem==='function'&&typeof base.removeItem==='function';
 const unsupported='端末の保存領域を利用できません。他の保存情報も含めて確認できないため処理を停止しました';
 export const viewStorage=base=>({
@@ -50,7 +57,7 @@ export const initialize=refresh;
 export async function mutate(operation){
  if(typeof operation!=='function')return failure('保存操作を確認できません');
  if(!ready)return failure(notice);
- try{const db=await open(),tx=db.transaction(MANUAL_STORE,'readwrite'),done=settled(tx),store=tx.objectStore(MANUAL_STORE);
+ try{const db=await open(),tx=writeTransaction(db),done=settled(tx),store=tx.objectStore(MANUAL_STORE);
   const saved=await requested(store.get(MANUAL_ENTRY)),old=saved===undefined?null:saved;
   if(!valid(old)){tx.abort();await done.catch(()=>{});return failure(error)}
   let next=old;
@@ -98,7 +105,7 @@ export async function portableMutation(base,operation){
  }
  if(!result?.ok&&!result?.partial)return result;
  if(!valid(staged))return {ok:false,partial:true,reason:'保存正本の形式を確認できません'};
- try{const db=await open(),tx=db.transaction(MANUAL_STORE,'readwrite'),done=settled(tx),store=tx.objectStore(MANUAL_STORE);
+ try{const db=await open(),tx=writeTransaction(db),done=settled(tx),store=tx.objectStore(MANUAL_STORE);
   const current=await requested(store.get(MANUAL_ENTRY));
   if((current===undefined?null:current)!==initial){tx.abort();await done.catch(()=>{});return {ok:false,partial:true,reason:'復元中に別の正本更新がありました。各記録とバックアップを照合してください'}}
   if(staged===null)store.delete(MANUAL_ENTRY);else store.put(staged,MANUAL_ENTRY);
