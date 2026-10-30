@@ -171,7 +171,7 @@ export function mountResult(host,inputDraft={},options={}){
    '<label>元の問いを選ぶ<select data-run-question-source><option value="">選択してください</option>'+
    notes.map(n=>'<option value="'+clean(n.id)+'">'+clean(n.text.slice(0,90))+'</option>').join('')+'</select></label>'+
    '<label>今回考えたこと（1〜500文字）<textarea data-run-question-text maxlength="500" rows="3" placeholder="前回の問いを見て、今回どう感じたかを書きます"></textarea></label>'+
-   '<button type="button" data-run-question-save>本人が選んで保存する</button><small>元の問いや走行記録は変更しません。科学的な因果や改善を判定する機能ではありません。</small></section>':'';
+   '<button type="button" data-run-question-save>本人が選んで保存する</button><p role="status" class="rv4-question-notice"></p><small>元の問いや走行記録は変更しません。科学的な因果や改善を判定する機能ではありません。</small></section>':'';
   return '<section class="rv4-card rv4-history" data-pane="radar"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('radar')+'</span><div><h2>過去と比較</h2><p>保存した走行の違いを確かめる</p></div></div>'+selector+provenance+regionCmpView+compareTable+questionPanel+
    '<div class="rv4-comparison-actions"><a class="rv4-learn-link" href="'+exploreLink('01','過去の走りとの比較')+'">比較の読み方を探究で確かめる ›</a><a class="rv4-back-link" href="#/history">履歴で記録を選ぶ ›</a></div></section>';
  };
@@ -250,7 +250,11 @@ export function mountResult(host,inputDraft={},options={}){
   root.querySelector('[data-run-question-save]')?.addEventListener('click',()=>{
     const sourceNoteId=root.querySelector('[data-run-question-source]')?.value||'';
     const text=root.querySelector('[data-run-question-text]')?.value||'';
-    if(!sourceNoteId||!text.trim())return;
+    if(!sourceNoteId||!text.trim()){
+      const notice=root.querySelector('.rv4-question-notice');
+      if(notice)notice.textContent='元の問いを選び、今回の気づきを入力してください';
+      return;
+    }
     options.onContinueQuestion?.(sourceNoteId,text,other?.id);
   });
   root.querySelector('[data-compare-select]')?.addEventListener('change',event=>{

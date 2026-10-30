@@ -526,6 +526,7 @@ function recordExtras(){
        questionContinuation.saveRunQuestionContinuation(onboardStorage,manualRunStore.readManualRuns(onboardStorage),
         {sourceNoteId,text,fromRunId,toRunId:record.id}));
       state.toast=saved.ok?'元の問いと今回の振り返りを関連づけて保存しました。':'振り返りを保存できません：'+saved.reason;
+      if(saved.ok)explorationUi.notes=explorationExperience.makeUi(onboardStorage).notes;
       if(saved.ok)location.hash='#/exploration-tree?record='+encodeURIComponent(record.id)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース');
       render();
      },
