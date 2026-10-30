@@ -62,12 +62,12 @@ try{
  await page.locator('[data-demo-save]').click();
  await page.locator('[data-manual-run-save]').click();
  await page.waitForFunction(()=>location.hash.startsWith('#/result?record='),null,{timeout:18000});
- const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')));
+ const state=await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw));
  assert.equal(state.version,2);assert.equal(state.records.length,1);
  assert.equal(state.records[0].memo,'オフラインの走行メモ');
  await page.reload({waitUntil:'load',timeout:18000});
  await page.locator('.rv4-distance strong').waitFor();
- assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-manual-runs-v2')))).records[0].id,state.records[0].id);
+ assert.equal((await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw))).records[0].id,state.records[0].id);
  assert.equal(await page.evaluate(()=>navigator.onLine),false);
  const uncached=await page.evaluate(async()=>{
   try{await fetch('https://example.com/runload-network-probe',{cache:'no-store'});return false;}catch{return true;}

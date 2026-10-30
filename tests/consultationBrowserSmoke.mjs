@@ -29,7 +29,7 @@ try{
   assert.match(await page.locator('#cp-target option').first().innerText(),/保存された運動記録がありません/);
   const saved=await page.evaluate(async()=>{
    const m=await import('./ui/manualRunStore.js');
-   return m.saveManualRun(localStorage,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',courseName:'川沿い',shoeName:'シューズ',memo:'記録'});
+   return (await (await import('./ui/manualRunCanonical.js')).mutate(s=>m.saveManualRun(s,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',rofBefore:3,rofAfter:6,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',runningFormat:'UNKNOWN',courseName:'川沿い',shoeName:'シューズ',memo:'記録'})));
   });
   assert.equal(saved.ok,true,`${name}: fixture save ${saved.reason||''}`);
   await page.reload({waitUntil:'networkidle'});
