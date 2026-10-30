@@ -32,6 +32,15 @@ try{
    localStorage.setItem("runload-v2-legal-consent-v1",JSON.stringify({termsAccepted:true,privacyConfirmed:true,acceptedAt:"2026-10-28T00:00:00Z",termsVersion:"2026-10-28",privacyVersion:"2026-10-28"}));
   });
   await page.goto(url,{waitUntil:"domcontentloaded"});await page.locator("[data-settings-v2]").waitFor();
+  const run=await page.evaluate(async()=>{
+   const [{saveManualRun},canonical]=await Promise.all([import('/ui/manualRunStore.js'),import('/ui/manualRunCanonical.js')]);
+   await canonical.refresh();
+   return canonical.mutate(storage=>saveManualRun(storage,{date:'2026-10-27',distance:'5',hours:'',minutes:'30',seconds:'',
+    rofBefore:0,rofAfter:null,steps:'',stepsProvenance:'UNKNOWN',activityGait:'RUNNING',
+    runningFormat:'UNKNOWN',courseName:'',shoeName:'',memo:'バックアップ対象'}));
+  });
+  assert.equal(run.ok,true,run.reason);
+  await page.reload({waitUntil:'networkidle'});
   const backup=page.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
   await backup.locator("summary").click();
   assert.match(await backup.innerText(),/GPSを含む復元は複数の保存先に順番に追加/);
@@ -45,6 +54,13 @@ try{
   assert.equal(parsed.local["runload-v2-legal-consent-v1"],undefined);
   assert.equal(JSON.parse(parsed.local["runload-v2-life-condition-v1"]).length,1);
   assert.equal(JSON.parse(parsed.local["runload-v2-user-profile-v1"]).nickname,"テスト");
+  const archived=JSON.parse(parsed.local["runload-v2-manual-runs-v2"]);
+  assert.equal(archived.records.length,1);
+  assert.equal(archived.records[0].id,run.record.id);
+  assert.equal(archived.records[0].rofBefore,0);
+  assert.equal(archived.records[0].rofAfter,null);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2')),null,
+   'IDB manual authority must never be duplicated to legacy localStorage');
   await backup.locator("[data-dm-include-gps]").check();
   const withGpsDownload=page.waitForEvent("download",{timeout:9000});
   await backup.locator("[data-dm-export]").click();
@@ -71,6 +87,8 @@ try{
   await Promise.all([page.waitForEvent("framenavigated",{predicate:f=>f===page.mainFrame(),timeout:20000}),deletion.locator("[data-dm-delete-confirm]").click()]);
   await page.waitForLoadState("domcontentloaded");
   await page.waitForFunction(()=>localStorage.getItem("runload-v2-life-condition-v1")===null);
+  const canonicalCleared=await page.evaluate(async()=>(await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw);
+  assert.equal(canonicalCleared,null,'deletion removes IDB run truth');
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-legal-consent-v1")),null);
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-user-profile-v1")),null);
   await page.goto(url,{waitUntil:"domcontentloaded"});
@@ -93,6 +111,13 @@ try{
   assert.equal(await importPage.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-user-profile-v1")).nickname),"テスト");
   assert.equal(await importPage.evaluate(()=>JSON.parse(localStorage.getItem("runload-v2-life-condition-v1")).length),1);
   assert.equal(await importPage.evaluate(()=>localStorage.getItem("runload-v2-legal-consent-v1")),null,"consent excluded");
+  const restored=await importPage.evaluate(async()=>(await (await import('/ui/manualRunCanonical.js')).readCanonical()).read);
+  assert.equal(restored.ok,true);
+  assert.equal(restored.records.length,1);
+  assert.equal(restored.records[0].id,run.record.id);
+  assert.equal(restored.records[0].rofBefore,0);
+  assert.equal(restored.records[0].rofAfter,null);
+  assert.equal(await importPage.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2')),null);
   assert.deepEqual(errors,[],mode.name+" source errors");
   assert.deepEqual(importErrors,[],mode.name+" restore errors");
   await importCtx.close();
