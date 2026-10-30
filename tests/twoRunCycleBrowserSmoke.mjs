@@ -320,7 +320,7 @@ try{
  const eligiblePanel=page.locator('.rv4-region-compare');
  await eligiblePanel.waitFor();
  const eligibleText=await eligiblePanel.innerText();
- assert.match(eligibleText,/同一部位の文献参考値/);
+ assert.match(eligibleText,/選択した部位の文献参考値/);
  assert.match(eligibleText,/比較相手|選択中/);
  assert.match(eligibleText,/差 [+-]?[0-9]/,'two genuinely saved eligible runs must show a same-region descriptive reference difference');
  assert.doesNotMatch(eligibleText,/この部位は比較できません/);
