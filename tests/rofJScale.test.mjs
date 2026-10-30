@@ -22,3 +22,26 @@ test("the v2 project serves authorized original ROF figures locally, preserving 
  assert.match(ROF_J_RIGHTS.imagesLicense,/by\/4\.0/);
  assert.match(ROF_J_RIGHTS.scaleLicense,/by-nc-nd\/4\.0/);
 });
+
+// Protect the previously reviewed corrected 5-anchor placement.
+// The publicly published supplementary spreadsheet's position rows are not
+// interchangeable with the corrected display; the private permission
+// correspondence is retained outside this public repository.
+test("all five ROF-J descriptors and labels stay aligned with the corrected display",()=>{
+ const expected=[
+  [0,"0","まったく疲れていない","lowest"],
+  [2.5,"2と3の間","少し疲れている","low"],
+  [5,"5","中程度に疲れている","moderate"],
+  [7.5,"7と8の間","とても疲れている","high"],
+  [10,"10","完全な疲労困憊（何も残っていない状態）","highest"]
+ ];
+ assert.deepEqual(
+  ROF_J_ANCHORS.map(a=>[a.position,a.positionLabel,a.descriptor,a.file]),
+  expected
+ );
+ assert.equal(ROF_J_ANCHORS.length,5);
+ for(const a of ROF_J_ANCHORS){
+  assert.equal(isValidRofJ(a.position),Number.isInteger(a.position),
+   "guide-only midpoints must not become user-selectable values");
+ }
+});
