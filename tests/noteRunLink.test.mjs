@@ -30,3 +30,14 @@ test('deleted linked run does not create an invented backlink',()=>{
  assert.equal(noteRunBackLink({topicId:'PACE',text:'legacy'},saved),null);
  assert.equal(isRunId('some id'),false);
 });
+
+test('orphan notes and legacy unlinked notes cannot inherit a different run',()=>{
+ const old={topicId:'PACE',text:'legacy note'};
+ const orphan={topicId:'PACE',text:'linked to missing record',recordId:id(1)};
+ const remaining={ok:true,records:[run(2)]};
+ assert.equal(noteRunBackLink(old,remaining),null);
+ assert.equal(noteRunBackLink(orphan,remaining),null);
+ assert.deepEqual(visibleTopicNotes([old,orphan],'PACE',id(2)),[]);
+ assert.deepEqual(visibleTopicNotes([old,orphan],'PACE').map(x=>x.text),[old.text,orphan.text]);
+ assert.equal(resolveOptionalNoteRunLink(id(1),remaining).ok,false);
+});

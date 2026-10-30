@@ -82,6 +82,9 @@ try{
  const regionPanel=page.locator('.rv4-region-compare');
  await regionPanel.waitFor();
  assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
+ const labels=await page.locator('.rv4-compare-provenance').innerText();
+ assert.ok(labels.includes(firstId)&&labels.includes(secondId),'two saved IDs remain independently visible');
+ assert.match(labels,/比較相手/);assert.match(labels,/選択中/);
  assert.match(await regionPanel.innerText(),/現在の同一モデルでそれぞれ再計算/);
  assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
   'same-region scientific result or explicit rejection must be visible');
@@ -109,5 +112,38 @@ try{
  await page.locator('.ex-note-preview').waitFor();
  assert.match(await page.locator('.ex-note-preview').innerText(),/次回は距離と平均ペース/,
   'the original run can still revisit its own note');
- console.log('PASS stage 10: 2 actual saves, selected IDs, note persistence, comparison, reload and invalid-ID rejection');
+ // Save an unlinked note and verify it does not become the second run's note.
+ await page.goto(host+'#/exploration-tree?category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ await page.locator('[data-ex-action="note"]').first().click();
+ await page.locator('#ex-note').fill('記録IDなしの任意メモ');
+ await page.locator('[data-ex-action="save-note"]').click();
+ const notesBefore=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
+ assert.equal(notesBefore.length,2);
+ assert.equal(notesBefore.filter(n=>n.recordId===firstId).length,1);
+ assert.equal(notesBefore.filter(n=>!Object.hasOwn(n,'recordId')).length,1);
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(secondId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ assert.equal(await page.locator('.ex-note-preview').count(),0,'unlinked and old notes must not move to another run');
+ // Simulate deletion inside the existing V1 format. Do not alter schema.
+ await page.evaluate(id=>{
+  const key='runload-v2-manual-runs-v1',data=JSON.parse(localStorage.getItem(key));
+  data.records=data.records.filter(r=>r.id!==id);data.revision++;
+  localStorage.setItem(key,JSON.stringify(data));
+ },firstId);
+ await page.goto(host+'#/result?record='+encodeURIComponent(firstId),{waitUntil:'networkidle'});
+ assert.match(await page.locator('[role="status"]').last().innerText(),/指定された保存済み走行記録が見つかりません/);
+ assert.equal(await page.locator('.rv4-distance').count(),0,'no other run substituted for deleted ID');
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ assert.match(await page.locator('.ex-notice').first().innerText(),/指定された走行記録が見つかりません/);
+ await page.locator('[data-ex-action="memories"]').click();
+ assert.match(await page.locator('[data-ex-overlay]').innerText(),/次回は距離と平均ペース/);
+ assert.match(await page.locator('[data-ex-overlay]').innerText(),/元の走行記録が見つからないためリンクを表示しません/);
+ assert.equal(await page.locator('.ex-saved a[href="#/result?record='+firstId+'"]').count(),0);
+ assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1'))),notesBefore,'notes preserved');
+ await page.locator('[data-ex-action="close"]').click();
+ await page.locator('[data-ex-action="note"]').first().click();
+ await page.locator('#ex-note').fill('削除済みIDには関連づけない');
+ await page.locator('[data-ex-action="save-note"]').click();
+ assert.match(await page.locator('.ex-notice').first().innerText(),/指定された保存済み走行が見つからない/);
+ assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
+ console.log('PASS stage 10: two saved IDs, optional and orphan notes, deleted ID and reload');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

@@ -53,7 +53,7 @@ test('Result v4 view is isolated and precached',()=>{
 });
 test('History does not read unsaved input or present fake saved-record links',()=>{
  const app=read('app.js');
- assert.match(app,/manualRunStore\.findManualRun/);assert.match(app,/resultExperience\.mountResult\(app\.querySelector\("#runload-result-v4"\),record\?\.draft\|\|\{\}/);
+ assert.match(app,/manualRunStore\.findManualRun/);assert.match(app,/resultExperience\.mountResult\(resultHost,record\?\.draft\|\|\{\}/);
  assert.ok(app.includes('historyExperience.mountHistory'));
  assert.ok(!app.includes('const data=[{day:22')); 
  assert.ok(read('ui/historyExperience.js').includes('data-history-unconnected')); 
@@ -102,4 +102,16 @@ test('saved UNKNOWN manual record has explicit repair choices with no inferred a
  assert.match(result,/options\.onAssignGait/);
  assert.match(store,/classifySavedManualRun/);
  assert.match(result,/GAIT_NOT_SELECTED/);
+});
+
+test('result route explains missing or deleted explicit IDs, with no fallback',()=>{
+ const app=read('app.js'),result=read('ui/resultExperience.js');
+ assert.match(app,/if\(params\.has\("record"\)&&!record\)/);
+ assert.match(app,/指定された保存済み走行記録が見つかりません/);
+ assert.match(app,/found\.reason/);
+ assert.match(result,/rv4-compare-provenance/);
+ assert.match(result,/記録ID/);
+ assert.match(result,/ID末尾/);
+ assert.match(result,/比較相手/);
+ assert.match(result,/選択中/);
 });

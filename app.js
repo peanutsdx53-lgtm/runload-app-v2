@@ -510,15 +510,24 @@ function recordExtras(){
    const runId=params.has("record")?params.get("record"):selectedRunId||recent?.id||null;
    const found=manualRunStore.findManualRun(onboardStorage,runId);
    const record=found.ok?found.record:null;
-   resultExperience.mountResult(app.querySelector("#runload-result-v4"),record?.draft||{},record?{
-    saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
-    onAssignGait:async gait=>{
-     const changed=await manualRunLock.withManualRunWriteLock(()=>
-       manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait));
-     state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
-     render();
-    }
-   }:{});
+   const resultHost=app.querySelector("#runload-result-v4");
+   if(params.has("record")&&!record){
+    // Explicit deleted/unknown IDs never fall through to another saved run.
+    const message=found.ok
+     ?"指定された保存済み走行記録が見つかりません。削除されたか、この端末に保存されていない可能性があります。"
+     :found.reason||"保存済み走行記録を安全に読み取れません。元のデータを確認してください。";
+    resultHost.innerHTML='<div class="gd-empty" role="status">'+esc(message)+' <a href="#/history">履歴へ戻る</a></div>';
+   }else{
+    resultExperience.mountResult(resultHost,record?.draft||{},record?{
+     saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
+     onAssignGait:async gait=>{
+      const changed=await manualRunLock.withManualRunWriteLock(()=>
+        manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait));
+      state.toast=changed.ok?'活動種別を保存しました。文献の適用範囲内で参考値を更新しました。':changed.reason;
+      render();
+     }
+    }:{});
+   }
    }
  }
  if(page==="dynamic-result"){
