@@ -526,8 +526,16 @@ function recordExtras(){
        questionContinuation.saveRunQuestionContinuation(onboardStorage,manualRunStore.readManualRuns(onboardStorage),
         {sourceNoteId,text,fromRunId,toRunId:record.id}));
       state.toast=saved.ok?'元の問いと今回の振り返りを関連づけて保存しました。':'振り返りを保存できません：'+saved.reason;
-      if(saved.ok)explorationUi.notes=explorationExperience.makeUi(onboardStorage).notes;
-      if(saved.ok)location.hash='#/exploration-tree?record='+encodeURIComponent(record.id)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース');
+      if(saved.ok){
+       explorationUi.notes=explorationExperience.makeUi(onboardStorage).notes;
+       const selectedCategory=CATEGORIES.find(c=>c.id===saved.note.category);
+       const matchingTopic=selectedCategory?.topics.find(topic=>
+         explorationExperience.LEARNING_TOPICS[saved.note.category+'|'+topic]===saved.note.topicId);
+       // Never relabel a follow-up from a different topic as "distance and pace".
+       const topic=matchingTopic||selectedCategory?.topics[0]||'距離・時間・ペース';
+       location.hash='#/exploration-tree?record='+encodeURIComponent(record.id)+
+        '&category='+encodeURIComponent(saved.note.category)+'&topic='+encodeURIComponent(topic);
+      }
       render();
      },
      onCorrectRof:async (phase,score,meta)=>{
