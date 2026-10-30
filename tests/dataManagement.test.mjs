@@ -6,6 +6,7 @@ import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagement
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
 import {LEGAL_CONSENT_KEY} from "../ui/legalDocuments.js";
+import {saveManualRun,correctSavedRof,readManualRuns,MANUAL_RUN_KEY} from "../ui/manualRunStore.js";
 const fake=(entries={})=>{
  const m=new Map(Object.entries(entries));
  return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),map:m};
@@ -210,4 +211,37 @@ test("failed rollback reports partial result instead of claiming recovery",async
  assert.match(result.reason,/記録を再読込/);
  assert.notEqual(existing.getItem(CONDITION_KEY),null);
  assert.equal(existing.getItem(PROFILE_KEY),null);
+});
+
+test('stage 8 portable V2 roundtrip preserves before/after attribution, correction chain and unrelated storage',async()=>{
+ const source=fake(),draft={date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',
+  activityGait:'RUNNING',runningFormat:'UNKNOWN',rofBefore:0,rofAfter:null,steps:'',
+  stepsProvenance:'UNKNOWN',courseName:'',shoeName:'',memo:'本人の観察',
+  exerciseTimingDraft:{startedAt:'2026-10-25T00:00:00.000Z',endedAt:'2026-10-25T00:30:00.000Z'},
+  rofEntryEvidence:{before:{capturedAt:'2026-10-25T00:00:30.000Z',assessedAt:'2026-10-25T00:00:30.000Z',timeBasis:'AT_ENTRY'}}};
+ const saved=saveManualRun(source,draft);
+ assert.equal(saved.ok,true,saved.reason);
+ const change=correctSavedRof(source,saved.record.id,'after',4,{
+  timeBasis:'RECALLED',assessedAt:'2026-10-25T00:35:00.000Z',changedAt:'2026-10-30T04:00:00.000Z',reason:'思い出して訂正'});
+ assert.equal(change.ok,true,change.reason);
+ const archived=source.getItem(MANUAL_RUN_KEY);
+ const backup=await exportPortableBackup(source);
+ assert.equal(backup.ok,true,backup.reason);
+ assert.equal(inspectPortableBackup(backup.text).ok,true);
+ const restored=fake({'external-key':'keep me'});
+ const finish=await restorePortableBackup(restored,backup.text);
+ assert.equal(finish.ok,true,finish.reason);
+ const read=readManualRuns(restored);
+ assert.equal(read.ok,true,read.reason);
+ assert.deepEqual(read.records,readManualRuns(source).records);
+ assert.equal(restored.getItem(MANUAL_RUN_KEY),archived,'restoration retains original byte-encoded audit events');
+ assert.equal(restored.getItem('external-key'),'keep me');
+ const a=read.records[0];
+ assert.equal(a.rofEvidence.before.score,0);
+ assert.equal(a.rofEvidence.after.score,null);
+ assert.equal(a.rofCorrections.length,1);
+ assert.equal(a.rofCorrections[0].to,4);
+ assert.equal(a.rofCorrections[0].next.timeBasis,'RECALLED');
+ assert.equal(a.rofCorrections[0].next.assessedAt,'2026-10-25T00:35:00.000Z');
+ assert.equal(a.exerciseTiming.source,'USER_DECLARED');
 });
