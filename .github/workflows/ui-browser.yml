@@ -110,6 +110,11 @@ jobs:
         run: node tests/firstUseBrowserSmoke.mjs
       - name: Data backup restore deletion and screenshots
         run: node tests/dataManagementBrowserSmoke.mjs
+      - name: Install PDF semantic inspection tools (A4 size and extracted user text)
+        run: |
+          sudo timeout 75s apt-get install -y --no-install-recommends poppler-utils
+          command -v pdfinfo
+          command -v pdftotext
       - name: Consultation report Chromium and PDF
         run: node tests/consultationBrowserSmoke.mjs
       - name: Verify the actual public Pages screen
