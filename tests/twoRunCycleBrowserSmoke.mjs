@@ -272,5 +272,47 @@ try{
  await page.reload({waitUntil:'networkidle'});
  assert.equal((await readRuns()).records.at(-1).id,timingRun.id,'timestamps survive real browser reload');
  console.log('PASS stage 8: dedicated ROF-J entry, now vs recalled provenance and optional exercise times');
+
+ // Stage 10: user explicitly chooses the first run's own question,
+ // writes a new answer and attaches only that new note to the second run.
+ const runBytesBefore=await page.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2'));
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(sameDayA)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ await page.locator('[data-ex-action="note"]').first().click();
+ const sourceQuestion='同じ日の2回目に、ペースをどう感じたか確かめる';
+ await page.locator('#ex-note').fill(sourceQuestion);
+ await page.locator('[data-ex-action="save-note"]').click();
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===3);
+ const prior=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1'))[0]);
+ assert.equal(prior.recordId,sameDayA);
+ await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
+ await page.locator('[data-run-question-source]').waitFor();
+ assert.match(await page.locator('.rv4-question-continuation').innerText(),/本人が選んで保存/);
+ const emptySelection=await page.locator('[data-run-question-source]').inputValue();
+ assert.equal(emptySelection,'','previous question cannot be preselected');
+ assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,3);
+ await page.locator('[data-run-question-source]').selectOption(prior.id);
+ await page.locator('[data-run-question-text]').fill('今回の走行ではペースの違いを感じた。原因は未確認。');
+ await page.locator('[data-run-question-save]').click();
+ await page.waitForFunction(id=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').some(n=>n.recordId===id&&n.continuedFromNoteId),sameDayB);
+ const continued=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1'))[0]);
+ assert.equal(continued.recordId,sameDayB,'continuation belongs only to selected target');
+ assert.equal(continued.continuedFromNoteId,prior.id,'origin note ID explicitly preserved');
+ assert.equal(continued.topicId,prior.topicId,'topic meaning remains traceable');
+ assert.equal(continued.text,'今回の走行ではペースの違いを感じた。原因は未確認。');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-manual-runs-v2')),runBytesBefore,'inquiry never modifies run facts');
+ await page.waitForFunction(id=>location.hash.includes('exploration-tree')&&location.hash.includes(encodeURIComponent(id)),sameDayB);
+ await page.reload({waitUntil:'networkidle'});
+ await page.locator('.ex-note-preview').waitFor();
+ assert.match(await page.locator('.ex-note-preview').innerText(),/今回の走行ではペースの違い/);
+ await page.locator('[data-ex-action="memories"]').click();
+ assert.match(await page.locator('[data-ex-overlay]').innerText(),/元の問いから本人が明示的に続けたメモ/);
+ assert.match(await page.locator('[data-ex-overlay]').innerText(),sourceQuestion);
+ await page.locator('[data-ex-action="close"]').click();
+ await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(walkId)+'&view=compare',{waitUntil:'networkidle'});
+ assert.equal(await page.locator('[data-run-question-source]').count(),0,'cross-gait comparison cannot offer linked continuation');
+ await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare=invalid-id&view=compare',{waitUntil:'networkidle'});
+ assert.equal(await page.locator('[data-run-question-source]').count(),0,'invalid comparison cannot offer a link');
+ console.log('PASS stage 10: explicit question ID, two saved run IDs, no automatic transfer and browser reload');
+
  console.log('PASS stage 10: same-day IDs, no-note continuity, cross-gait rejection and preserved three tabs');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

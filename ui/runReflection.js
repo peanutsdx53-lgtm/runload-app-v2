@@ -35,5 +35,5 @@ export function compareSavedRuns(current,other){
   makeRow('rofAfter','運動後に感じた疲れ',afterA===null?'未回答':String(afterA),afterB===null?'未回答':String(afterB),afterA!==null&&afterB!==null?afterB-afterA:null,'点')
  ];
  return {status:'ready',current,other,gait:a,rows,
-  uncertainty:'この表は入力した走行の事実と本人が回答した疲労感の記録間の差です。ROF-Jの個別評価時刻は保存していないため、同じ記録内で運動前から運動後へ時間的に変化した量は判定できません。差が生じた原因、能力の向上、身体負荷や安全性は判断できません。文献参考値は測定量や適用条件が異なるため、この表では混ぜません。'};
+  uncertainty:'この表は入力した走行の事実と本人が回答した疲労感の記録間の差です。ROF-Jの回答操作時刻・本人申告の評価時刻があっても運動開始・終了との前後関係を実測で確認していないため、同じ記録内の時間的な前後変化量は判定しません。差が生じた原因、能力の向上、身体負荷や安全性は判断できません。文献参考値は測定量や適用条件が異なるため、この表では混ぜません。'};
 }
