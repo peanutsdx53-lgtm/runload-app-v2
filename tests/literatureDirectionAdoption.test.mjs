@@ -76,7 +76,11 @@ test('reference100 is a within-series ratio, and unsupported range never becomes
  for(const id of [...Object.keys(tableSeries),...Object.keys(formulaSeries)]){
   const reg=RUNNING_REGION_BY_ID[id],ref=calc(id,reg.reference.speedMps);
   assert.equal(ref.state,'CALCULATED');
-  almost(ref.reference100,100,id+' baseline');
+  // Published polynomial reference raw values are stored to ~8 significant digits.
+  // Their independent recomputation can yield a few micro-points around 100;
+  // do not mistake published reference rounding for a directional mismatch.
+  assert.ok(Math.abs(ref.reference100-100)<=1e-4,
+   id+' baseline outside explicit 0.0001-point reference-rounding tolerance: '+ref.reference100);
   for(const s of [reg.approvedSpeedMps[0]-.02,reg.approvedSpeedMps[1]+.02]){
    const v=calc(id,s);assert.equal(v.state,'NOT_CALCULABLE');assert.equal(v.reasonCode,'OUTSIDE_SOURCE_RANGE');
   }
