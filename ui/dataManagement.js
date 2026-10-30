@@ -121,6 +121,14 @@ export async function exportPortableBackup(storage,{includeGps=false}={}){
   if(!second.ok)return {ok:false,reason:"GPS結果を書き出せません："+second.reason};
   legacy=JSON.parse(first.text);current=JSON.parse(second.text);
  }
+ // All participating tabs use the shared lock, but older tabs might write
+ // during a multi-store export. Detect changes across the snapshot read.
+ // This cannot guarantee atomicity against non-cooperating writers or GPS
+ // IndexedDB changes; never present it as a cross-store transaction.
+ const checkedAgain=inspectLocalStorage(storage);
+ if(!checkedAgain.ok)return {ok:false,reason:"保存情報の再確認に失敗したため、バックアップを作成しませんでした："+checkedAgain.reason};
+ if(DATA_KEYS.some(key=>snap.local[key]!==checkedAgain.local[key]))
+  return {ok:false,reason:"バックアップ中に端末の保存情報が変更されました。不整合なファイルを作成しないため中止しました。ほかのタブを閉じてから再試行してください"};
  const data={format:PORTABLE_FORMAT,version:PORTABLE_VERSION,exportedAt:new Date().toISOString(),
   local:snap.local,gpsLegacy:legacy,gpsCurrent:current};
  const text=encoded(data);

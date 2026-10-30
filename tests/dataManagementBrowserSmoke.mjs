@@ -34,6 +34,7 @@ try{
   await page.goto(url,{waitUntil:"domcontentloaded"});await page.locator("[data-settings-v2]").waitFor();
   const backup=page.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
   await backup.locator("summary").click();
+  assert.match(await backup.innerText(),/GPSを含む復元は複数の保存先に順番に追加/);
   await page.screenshot({path:resolve(root,"screenshots","data-management-"+mode.name+"-backup.png"),fullPage:true});
   assert.equal(await backup.locator("[data-dm-include-gps]").isChecked(),false);
   const [download]=await Promise.all([page.waitForEvent("download"),backup.locator("[data-dm-export]").click()]);

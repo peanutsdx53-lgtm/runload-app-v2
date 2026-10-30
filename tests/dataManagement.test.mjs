@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {DATA_KEYS,RESET_KEYS,PORTABLE_FORMAT,PORTABLE_VERSION,inspectLocalStorage,
- inspectPortableBackup,planPortableRestore,restorePortableBackup} from "../ui/dataManagement.js";
+ inspectPortableBackup,planPortableRestore,restorePortableBackup,exportPortableBackup} from "../ui/dataManagement.js";
 import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagementUi.js";
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
@@ -65,6 +65,7 @@ test("settings copy gives explicit GPS disclosure, verification, and deliberate 
  assert.match(backup,/暗号化されません/);
  assert.match(backup,/外部へ自動送信されません/);
  assert.match(backup,/data-dm-file/);
+ assert.match(backup,/GPSを含む復元は複数の保存先に順番に追加/);
  assert.match(remove,/元に戻せません/);
  assert.match(remove,/data-dm-delete-confirm disabled/);
  assert.doesNotMatch(backup+remove,/RunLoad|ランロード/);
@@ -136,4 +137,77 @@ test("restore does not overwrite an unexpected competing value during rollback",
  assert.match(result.reason,/別の変更|再読込/);
  assert.equal(existing.getItem(CONDITION_KEY),originalCondition);
  assert.equal(existing.getItem(PROFILE_KEY),"different-writer","unknown concurrent content must not be clobbered");
+});
+
+test("backup exports one unchanged local snapshot and excludes consent without modifying storage",async()=>{
+ const s=fake({[CONDITION_KEY]:JSON.stringify([day("2026-10-10")]),unrelated_key:"keep",
+  [LEGAL_CONSENT_KEY]:"private-consent"});
+ const before=Object.fromEntries(s.map);
+ const output=await exportPortableBackup(s);
+ assert.equal(output.ok,true,output.reason);
+ const parsed=inspectPortableBackup(output.text);
+ assert.equal(parsed.ok,true,parsed.reason);
+ assert.equal(parsed.data.local[LEGAL_CONSENT_KEY],undefined);
+ assert.equal(parsed.data.local[CONDITION_KEY],before[CONDITION_KEY]);
+ assert.deepEqual(Object.fromEntries(s.map),before);
+});
+test("backup stops without producing a file if a non-cooperating writer changes an earlier key",async()=>{
+ const s=fake({[CONDITION_KEY]:JSON.stringify([day("2026-10-10")])});
+ const original=s.getItem(CONDITION_KEY),last=DATA_KEYS.at(-1);let changed=false;
+ const adapter={
+  getItem(k){
+   const raw=s.getItem(k);
+   if(k===last&&!changed){changed=true;s.setItem(CONDITION_KEY,JSON.stringify([day("2026-10-11")]));}
+   return raw;
+  }
+ };
+ const exported=await exportPortableBackup(adapter);
+ assert.equal(changed,true);
+ assert.equal(exported.ok,false);
+ assert.match(exported.reason,/バックアップ中に端末の保存情報が変更/);
+ assert.equal(Object.hasOwn(exported,"text"),false,"no mixed-time backup file");
+ assert.notEqual(s.getItem(CONDITION_KEY),original,"external write was not overwritten");
+});
+test("backup stops if second snapshot becomes unreadable",async()=>{
+ const s=fake({[CONDITION_KEY]:JSON.stringify([day("2026-10-10")])});
+ let reads=0;
+ const adapter={
+  getItem(k){if(k===CONDITION_KEY&&++reads===2)throw Error("read blocked");return s.getItem(k);}
+ };
+ const result=await exportPortableBackup(adapter);
+ assert.equal(result.ok,false);assert.match(result.reason,/再確認に失敗/);
+ assert.equal(Object.hasOwn(result,"text"),false);
+});
+test("restore quota error after an earlier successful key rolls back without erasing originals",async()=>{
+ const original=JSON.stringify([day("2026-10-10")]);
+ const existing=fake({[CONDITION_KEY]:original});
+ const source=fake({
+  [CONDITION_KEY]:JSON.stringify([day("2026-10-11")]),
+  [PROFILE_KEY]:JSON.stringify({nickname:"復元",purpose:"",heightCm:null,weightKg:null,ageBand:""})
+ });
+ const backup=file(source);
+ const storage={
+  getItem:k=>existing.getItem(k),
+  setItem(k,v){if(k===PROFILE_KEY)throw Object.assign(Error("QuotaExceededError"),{name:"QuotaExceededError"});existing.setItem(k,v);},
+  removeItem:k=>existing.removeItem(k)
+ };
+ const result=await restorePortableBackup(storage,backup);
+ assert.equal(result.ok,false);assert.equal(result.partial,false,result.reason);
+ assert.equal(existing.getItem(CONDITION_KEY),original);
+ assert.equal(existing.getItem(PROFILE_KEY),null);
+});
+test("failed rollback reports partial result instead of claiming recovery",async()=>{
+ const existing=fake();
+ const source=fake({[CONDITION_KEY]:JSON.stringify([day("2026-10-11")]),
+  [PROFILE_KEY]:JSON.stringify({nickname:"復元",purpose:"",heightCm:null,weightKg:null,ageBand:""})});
+ const adapter={
+  getItem:k=>existing.getItem(k),
+  setItem(k,v){if(k===PROFILE_KEY)throw Error("capacity failure");existing.setItem(k,v);},
+  removeItem(k){if(k===CONDITION_KEY)throw Error("cannot roll back");existing.removeItem(k);}
+ };
+ const result=await restorePortableBackup(adapter,file(source));
+ assert.equal(result.ok,false);assert.equal(result.partial,true);
+ assert.match(result.reason,/記録を再読込/);
+ assert.notEqual(existing.getItem(CONDITION_KEY),null);
+ assert.equal(existing.getItem(PROFILE_KEY),null);
 });
