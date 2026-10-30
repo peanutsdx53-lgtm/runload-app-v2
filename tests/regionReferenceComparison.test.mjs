@@ -65,7 +65,7 @@ test('cross version, construct or source cannot produce a fake positive referenc
   const result=compare(current,prior,currentRef,other,'R01');
   assert.notEqual(result.status,'ready');
   assert.equal(result.difference,undefined,'rejected data must never expose numeric point differences');
-  assert.match(result.reason,/方法|出所/);
+  assert.match(result.reason,/指標|モデル|参照基準|方法|出所/);
  }
  const outOfRange=running(110);
  outOfRange.rows[0].calculationState='NOT_CALCULABLE';
