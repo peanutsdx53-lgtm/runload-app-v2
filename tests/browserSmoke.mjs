@@ -1568,7 +1568,9 @@ try{
   await page.goto(host+'#/result',{waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/,'result navigation defaults to latest saved run');
   await page.goto(host+'#/result?record=missing-record',{waitUntil:'networkidle'});
-  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存された走行記録はまだありません/,'invalid explicit ID does not alias a valid run');
+  assert.match(await page.locator('#runload-result-v4 [role="status"]').innerText(),/指定された保存済み走行記録が見つかりません/,'invalid explicit ID is explicitly rejected');
+  assert.equal(await page.locator('#runload-result-v4 .rv4-notice').count(),0,'invalid ID cannot alias a valid result');
+  assert.equal(await page.locator('#runload-result-v4 a[href="#/history"]').count(),1,'missing record offers history navigation');
   await page.goto(host+'#/history',{waitUntil:'networkidle'});
   const savedHistory=page.locator('#runload-history-v2');
   assert.equal(await savedHistory.locator('.entry').count(),1);
