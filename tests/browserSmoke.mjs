@@ -681,6 +681,9 @@ try{
   await page.locator('[data-sm-source="manual"]').click();
   assert.ok(await page.locator('[data-sm-field="distance"]').count());
   await page.goto(host+"#/course",{waitUntil:"networkidle"});
+  // The canonical route can render asynchronously after networkidle.
+  // Preserve the strict one-record assertion after the real destination is present.
+  await page.locator('[data-course-row]').waitFor({state:"visible"});
   assert.equal(await page.locator('[data-course-row]').count(),1,'scenario never deletes or edits course');
   console.log('PASS',mode.name,'what-if simulation: saved course, target, time, no-course, responsive geometry');
   await page.locator('[data-course-delete]').click();

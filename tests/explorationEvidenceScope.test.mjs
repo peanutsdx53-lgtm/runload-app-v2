@@ -43,9 +43,7 @@ test('ROF-J learning never calls a self-selected before/after category a verifie
   assert.match(html,/ROF-J/);
   assert.match(html,/大学生/);
   assert.doesNotMatch(html,/運動前後の値は本人が記録した時点の違いとして示します/);
-  if(cat==="01"){
-   assert.match(html,/本人が選択した回答区分/);
-   assert.match(html,/同一走行内の時間的な前後差は判定しません/);
-  }
+  assert.match(html,/回答区分/);
+  assert.match(html,/同一走行内の時間的な前後差は判定しません/);
  }
 });
