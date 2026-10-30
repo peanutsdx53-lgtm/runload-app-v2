@@ -68,6 +68,8 @@ export function rofPage(d,ui){
  syncRofUiState(ui,d);
  const n=d[rofPhaseKey[ui.phase]],hasScore=isValidRofJ(n),anchor=ROF_J_ANCHORS[ui.focusedAnchor];
  const chosen=d.rofTimingChoices?.[ui.phase]||{mode:'UNKNOWN',declaredAt:''};
+ const runTimes=d.exerciseTimingDraft||{};
+ const exerciseTiming='<fieldset class="rv4-run-times"><legend>運動開始・終了の時刻（任意・本人申告）</legend><label>運動開始<input type="datetime-local" data-rof-run-start value="'+esc(runTimes.startedLocal||'')+'"></label><label>運動終了<input type="datetime-local" data-rof-run-end value="'+esc(runTimes.endedLocal||'')+'"></label><p>分からない場合は空欄のままで構いません。記録の保存時刻や走行時間から推測して埋めません。</p></fieldset>';
  const provenance='<fieldset class="rv4-timing"><legend>この疲労感を評価した時点（本人申告）</legend><label>回答の時点 <select data-rof-v4-timing><option value="UNKNOWN"'+(chosen.mode==='UNKNOWN'?' selected':'')+'>時点不明・未指定</option><option value="AT_ENTRY"'+(chosen.mode==='AT_ENTRY'?' selected':'')+'>今この画面で評価</option><option value="RECALLED"'+(chosen.mode==='RECALLED'?' selected':'')+'>過去の状態を思い出して入力</option></select></label>'+(chosen.mode==='RECALLED'?'<label>実際に評価した時刻（分かる場合のみ・本人申告）<input type="datetime-local" data-rof-v4-declared value="'+esc(chosen.declaredAt||'')+'"></label>':'')+'<small>操作時刻と評価時刻は区別します。どちらも本人の経験を実測した証拠ではありません。</small></fieldset>';
  const tabs=Object.entries(rofPhaseKey).map(([phase,key],i)=>`<button type="button" role="tab" data-rof-v4-phase="${phase}" id="rof-v4-${phase}-tab" aria-controls="rof-v4-panel" aria-selected="${ui.phase===phase}" tabindex="${ui.phase===phase?0:-1}">${labels[i]}<small>${isValidRofJ(d[key])?esc(d[key]+'/10'):'未入力'}</small></button>`).join('');
  const anchors=ROF_J_ANCHORS.map((a,i)=>`<button type="button" class="rv4-anchor" style="--anchor-position:${a.position*10}%" data-rof-v4-anchor="${i}" aria-label="代表位置 ${esc(a.positionLabel)}：${esc(a.descriptor)}。説明を確認します。数値は変えません。" aria-pressed="${ui.focusedAnchor===i}">
@@ -76,7 +78,7 @@ export function rofPage(d,ui){
  return `<div class="record-v3 rv4-page" data-rof-v4-root><header class="rv-head rv4-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><div><h1>運動前後の疲労感</h1><p>ROF-J｜0〜10の整数11段階</p></div></header>
  <section class="rv4-card" aria-labelledby="rv4-title"><div class="rv4-title"><h2 id="rv4-title">疲労感の記録</h2><span>任意</span></div>
  <div class="rv4-tabs" role="tablist" aria-label="疲労感の入力タイミング">${tabs}</div>
- ${provenance}<div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
+ ${exerciseTiming}${provenance}<div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
  <div class="rv4-current${hasScore?'':' is-empty'}" aria-live="polite"><output data-rof-v4-number>${hasScore?n:'—'}</output><div><small data-rof-v4-scoreline>${ui.phase==='before'?'運動前':'運動後'} / 10</small><strong data-rof-v4-meaning>${hasScore?esc(guidanceForRofJ(n)):'まだ選択されていません'}</strong><p data-rof-v4-caption>${hasScore?'選択値：'+n+' / 10':'横軸で数値を選択してください'}</p></div></div>
  <div class="rv4-rail" aria-label="評価軸と対応する代表イラスト"><div class="rv4-rail-top"><strong>代表イラスト</strong><small>タップで説明を確認</small></div>
  <div class="rv4-anchor-row" aria-label="原版の5つの代表位置">${anchors}</div>

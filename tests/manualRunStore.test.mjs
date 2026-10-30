@@ -269,3 +269,20 @@ test('stage 8 correction rejection for quota and invalid future-only attribution
  assert.equal(s.getItem(MANUAL_RUN_KEY),last);
  assert.notEqual(last,before);
 });
+
+test('stage 8 optional declared exercise times stay distinct from record savedAt and ROF-J assessment',()=>{
+ const s=store(),d={...draft(),rofBefore:0,rofAfter:null,
+  exerciseTimingDraft:{startedAt:'2026-10-29T22:00:00.000Z',endedAt:'2026-10-29T22:35:00.000Z'}};
+ const made=saveManualRun(s,d);
+ assert.equal(made.ok,true,made.reason);
+ assert.equal(made.record.exerciseTiming.source,'USER_DECLARED');
+ assert.equal(made.record.exerciseTiming.startedAt,'2026-10-29T22:00:00.000Z');
+ assert.equal(made.record.exerciseTiming.endedAt,'2026-10-29T22:35:00.000Z');
+ assert.notEqual(made.record.exerciseTiming.startedAt,made.record.createdAt);
+ assert.equal(made.record.rofEvidence.before.assessedAt,null);
+ const bytes=s.getItem(MANUAL_RUN_KEY);
+ const invalid=saveManualRun(s,{...d,exerciseTimingDraft:{
+  startedAt:'2026-10-29T23:00:00.000Z',endedAt:'2026-10-29T20:00:00.000Z'}});
+ assert.equal(invalid.ok,false);
+ assert.equal(s.getItem(MANUAL_RUN_KEY),bytes);
+});

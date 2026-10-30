@@ -14,12 +14,22 @@ const makeEvidence=(score,metadata)=>{
   assessedAt:isoInstant(m.assessedAt)?m.assessedAt:null,
   timeBasis:['UNKNOWN','AT_ENTRY','RECALLED'].includes(m.timeBasis)?m.timeBasis:'UNKNOWN'};
 };
+const cleanExerciseTiming=input=>{
+ if(!input)return {startedAt:null,endedAt:null,source:'UNKNOWN'};
+ const startedAt=input.startedAt??null,endedAt=input.endedAt??null;
+ if(startedAt===null&&endedAt===null)return {startedAt:null,endedAt:null,source:'UNKNOWN'};
+ return {startedAt,endedAt,source:'USER_DECLARED'};
+};
 const validEvidence=(v,score)=>v&&typeof v==='object'&&!Array.isArray(v)&&v.score===score&&
  (v.capturedAt===null||isoInstant(v.capturedAt))&&(v.assessedAt===null||isoInstant(v.assessedAt))&&
  ['UNKNOWN','AT_ENTRY','RECALLED'].includes(v.timeBasis)&&
  (v.timeBasis!=='UNKNOWN'||v.assessedAt===null)&&
  (v.timeBasis!=='AT_ENTRY'||(v.capturedAt!==null&&v.assessedAt===v.capturedAt))&&
  (v.assessedAt===null||v.capturedAt!==null);
+const validExerciseTiming=e=>e&&['UNKNOWN','USER_DECLARED'].includes(e.source)&&
+ (e.startedAt===null||isoInstant(e.startedAt))&&(e.endedAt===null||isoInstant(e.endedAt))&&
+ ((e.startedAt===null&&e.endedAt===null)===(e.source==='UNKNOWN'))&&
+ (e.startedAt===null||e.endedAt===null||Date.parse(e.startedAt)<=Date.parse(e.endedAt));
 const validCorrection=e=>e&&['before','after'].includes(e.phase)&&
  rof(e.from)&&rof(e.to)&&validEvidence(e.old,e.from)&&validEvidence(e.next,e.to)&&
  isoInstant(e.changedAt)&&typeof e.reason==='string'&&e.reason.length<=140;
@@ -49,7 +59,7 @@ const validRecord=r=>{
  if(!rof(r.rofBefore)||!rof(r.rofAfter)||!nullable(r.steps,0,10000000)||r.steps!==null&&!Number.isInteger(r.steps))return false;
  if(!['courseName','shoeName','memo'].every(k=>cleanString(r[k],k==='memo'?MAX_CHARS:100)!==null))return false;
  if(!validSnapshot(r.draft))return false;
- if(!r.exerciseTiming||r.exerciseTiming.source!=='UNKNOWN'||r.exerciseTiming.startedAt!==null||r.exerciseTiming.endedAt!==null||
+ if(!validExerciseTiming(r.exerciseTiming)||
   !r.rofEvidence||!validEvidence(r.rofEvidence.before,(()=>{const first=r.rofCorrections?.find(x=>x.phase==='before');return first?first.from:r.rofBefore})())||
   !validEvidence(r.rofEvidence.after,(()=>{const first=r.rofCorrections?.find(x=>x.phase==='after');return first?first.from:r.rofAfter})())||
   !Array.isArray(r.rofCorrections)||r.rofCorrections.length>100||!r.rofCorrections.every(validCorrection))return false;
@@ -117,14 +127,15 @@ export function validateManualRunDraft(draft,{source='manual',type='run'}={}){
   shoeName:String(draft.shoeName??'').slice(0,100),
   memo:String(draft.memo??'').slice(0,MAX_CHARS),
   draft:snapshot,
-  exerciseTiming:{startedAt:null,endedAt:null,source:'UNKNOWN'},
+  exerciseTiming:cleanExerciseTiming(draft.exerciseTimingDraft),
   rofEvidence:{
    before:makeEvidence(draft.rofBefore==null||draft.rofBefore===''?null:Number(draft.rofBefore),draft.rofEntryEvidence?.before),
    after:makeEvidence(draft.rofAfter==null||draft.rofAfter===''?null:Number(draft.rofAfter),draft.rofEntryEvidence?.after)
   },
   rofCorrections:[]
  };
- if(!validEvidence(cleaned.rofEvidence.before,cleaned.rofBefore)||!validEvidence(cleaned.rofEvidence.after,cleaned.rofAfter))
+ if(!validExerciseTiming(cleaned.exerciseTiming)||
+  !validEvidence(cleaned.rofEvidence.before,cleaned.rofBefore)||!validEvidence(cleaned.rofEvidence.after,cleaned.rofAfter))
   return {ok:false,reason:'疲労感の取得時刻の出所と形式を確認してください'};
  return {ok:true,value:cleaned,warnings:audit.warnings};
 }

@@ -823,6 +823,15 @@ function recordExtras(){
       homeExperience.updateSleepForm(event.target.closest("[data-condition-form]"));
       return;
     }
+    if(event.target.matches("[data-rof-run-start],[data-rof-run-end]")){
+     const start=event.target.matches("[data-rof-run-start]");
+     const old=state.recordDraft.exerciseTimingDraft||{};
+     const local=event.target.value;
+     const parsed=local&&!Number.isNaN(Date.parse(local))?new Date(local).toISOString():null;
+     state.recordDraft.exerciseTimingDraft={...old,[start?'startedAt':'endedAt']:parsed,
+      [start?'startedLocal':'endedLocal']:local};
+     return;
+    }
     if(event.target.matches("[data-rof-v4-timing]")){
      rofExperience.setRofTiming(state.recordDraft,rofUi.phase,event.target.value);
      const y=window.scrollY;render();window.scrollTo(0,y);return;
