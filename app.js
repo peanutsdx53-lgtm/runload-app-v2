@@ -5,10 +5,10 @@
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
   const rofScale=await import("./ui/rofJScale.js");
-  const rofExperience=await import("./ui/rofExperience.js?v=20261026-user-copy-v21");
+  const rofExperience=await import("./ui/rofExperience.js?v=20261030-rof-evidence-v2");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
-  const manualRunStore=await import("./ui/manualRunStore.js?v=20261027-manual-gait-v5");
+  const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
   const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
@@ -520,6 +520,12 @@ function recordExtras(){
    }else{
     resultExperience.mountResult(resultHost,record?.draft||{},record?{
      saved:true,recordId:record.id,record,compareRecords:stored,compareId:params.has('compare')?params.get('compare'):undefined,showCompare:params.get('view')==='compare',
+     onCorrectRof:async (phase,score,meta)=>{
+      const updated=await manualRunLock.withManualRunWriteLock(()=>
+       manualRunStore.correctSavedRof(onboardStorage,record.id,phase,score,meta));
+      state.toast=updated.ok?'疲労感と訂正履歴を保存しました。時系列の前後差は判定しません。':updated.reason;
+      render();
+     },
      onAssignGait:async gait=>{
       const changed=await manualRunLock.withManualRunWriteLock(()=>
         manualRunStore.classifySavedManualRun(onboardStorage,record.id,gait));
@@ -790,7 +796,7 @@ function recordExtras(){
     if(event.target.matches("[data-rof-input]")){
       const key=event.target.dataset.rofInput,value=Number(event.target.value);
       if(!rofScale.isValidRofJ(value))return;
-      state.recordDraft[key]=value;
+      rofExperience.recordRofInput(state.recordDraft,key==='rofBefore'?'before':'after',value);
       const box=event.target.closest("[data-rof-entry]");
       if(box){
         box.querySelector("[data-rof-output]").textContent=String(value);
@@ -816,6 +822,14 @@ function recordExtras(){
     if(event.target.matches('[data-condition-form] [name="bedDayRule"]')){
       homeExperience.updateSleepForm(event.target.closest("[data-condition-form]"));
       return;
+    }
+    if(event.target.matches("[data-rof-v4-timing]")){
+     rofExperience.setRofTiming(state.recordDraft,rofUi.phase,event.target.value);
+     const y=window.scrollY;render();window.scrollTo(0,y);return;
+    }
+    if(event.target.matches("[data-rof-v4-declared]")){
+     rofExperience.setRofTiming(state.recordDraft,rofUi.phase,'RECALLED',event.target.value);
+     const y=window.scrollY;render();window.scrollTo(0,y);return;
     }
     if(!event.target.matches("[data-draft]"))return;
     const key=event.target.dataset.draft,value=event.target.value;state.recordDraft[key]=value;
@@ -1312,7 +1326,7 @@ function recordExtras(){
     const rofTab=event.target.closest("[data-rof-v4-phase]");
     if(rofTab){
       rofExperience.setRofPhase(rofUi,rofTab.dataset.rofV4Phase,state.recordDraft);
-      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+      const y=window.scrollY;render();window.scrollTo(0,y);return;
     }
     const rofAnchor=event.target.closest("[data-rof-v4-anchor]");
     if(rofAnchor){
@@ -1329,7 +1343,7 @@ function recordExtras(){
       rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
     }
     const rofClear=event.target.closest("[data-rof-clear]");
-    if(rofClear){const y=window.scrollY;state.recordDraft[rofClear.dataset.rofClear]=null;render();window.scrollTo(0,y);return}
+    if(rofClear){const y=window.scrollY;rofExperience.recordRofInput(state.recordDraft,rofClear.dataset.rofClear==='rofBefore'?'before':'after',null);render();window.scrollTo(0,y);return}
     const feeling=event.target.closest("[data-feeling]");
     if(feeling){const y=window.scrollY;state.feeling=feeling.dataset.feeling;render();window.scrollTo(0,y);return}
     const type=event.target.closest("[data-record-type]");
