@@ -126,10 +126,10 @@ try{
     // poppler-utils is a standard runner dependency; fail explicitly if absent.
     const pdfInfo=spawnSync('pdfinfo',['-'],{input:longPdf,encoding:'utf8'});
     assert.equal(pdfInfo.status,0,'pdfinfo must parse the emitted A4 PDF: '+String(pdfInfo.error?.message||pdfInfo.stderr||''));
-    const pages=Number(/^Pages:\\s*(\\d+)/m.exec(pdfInfo.stdout)?.[1]);
+    const pages=Number(/^Pages:\s*(\d+)/m.exec(pdfInfo.stdout)?.[1]);
     assert.ok(Number.isInteger(pages)&&pages>=visibility.visibleSheets&&pages<=15,
       'actual PDF page count must cover the chosen sheets and stay bounded: '+pages);
-    assert.match(pdfInfo.stdout,/Page size:\\s*595(?:\\.2[0-9]*)? x 842(?:\\.0[0-9]*)? pts|Page size:\\s*595\\.28 x 841\\.89 pts/,
+    assert.match(pdfInfo.stdout,/Page size:\s*595(?:\.2[0-9]*)? x 842(?:\.0[0-9]*)? pts|Page size:\s*595\.28 x 841\.89 pts/,
       'A4 physical page dimensions');
     const pdfText=spawnSync('pdftotext',['-layout','-','-'],{input:longPdf,encoding:'utf8'});
     assert.equal(pdfText.status,0,'pdftotext must extract the printed report: '+String(pdfText.error?.message||pdfText.stderr||''));
