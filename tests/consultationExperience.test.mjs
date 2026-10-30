@@ -77,3 +77,14 @@ test('opt-out of personal narration includes the stated purpose, not just observ
  assert.match(html,/<section class="cp-section" data-output-section="notes"><div class="cp-section-heading"><b>01<\/b> 共有・相談の目的/);
  assert.match(html,/<section class="cp-section" data-output-section="notes"><div class="cp-section-heading"><b>04<\/b> 本人の気付き/);
 });
+
+test('report scope does not promise unavailable sensitive-data inclusion controls',()=>{
+ const html=renderConsultation();
+ assert.match(html,/GPS詳細軌跡・個人プロフィール・身体の違和感に関する個別メモは、このレポートに追加する項目がありません/);
+ assert.match(html,/別の方法で本人が伝えてください/);
+ assert.match(html,/共有先への自動送信も行いません/);
+ assert.doesNotMatch(html,/明示的な追加選択が必要です|本人が選択しない限り含めず/);
+ for(const forbidden of ['gps-track','profile','body-memo']){
+  assert.doesNotMatch(html,new RegExp('data-share="'+forbidden+'"'),'unimplemented options must not appear');
+ }
+});

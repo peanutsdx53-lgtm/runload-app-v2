@@ -25,6 +25,9 @@ try{
   await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
   await page.goto('http://127.0.0.1:4181/#/consultation',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#runload-consultation').count(),1,`${name}: route`);
+  assert.match(await page.locator('.cp-sensitive').innerText(),/このレポートに追加する項目がありません/);
+  assert.match(await page.locator('.cp-privacy').innerText(),/このレポートにはGPS詳細軌跡・個人プロフィール/);
+  assert.equal(await page.locator('[data-share="profile"]').count(),0,'do not promise nonexistent profile opt-in');
   assert.equal(await page.locator('.cp-body-view').count(),3,`${name}: three official diagrams`);
   assert.match(await page.locator('#cp-target option').first().innerText(),/保存された運動記録がありません/);
   const saved=await page.evaluate(async()=>{
