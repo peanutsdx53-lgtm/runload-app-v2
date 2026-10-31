@@ -1,0 +1,42 @@
+name: Current 20-screen design acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'ui/**'
+      - 'tests/screenDesign20PopulatedBrowser.mjs'
+      - '.github/workflows/current-20-screen-design-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  screen-states:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Verify all twenty Current screens in real populated and cross-cutting states on 320 390 1440
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/screenDesign20PopulatedBrowser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: current-20-populated-${{ matrix.engine }}
+          path: audit-output/current-20-populated-${{ matrix.engine }}.json
+          if-no-files-found: ignore
+          retention-days: 14
