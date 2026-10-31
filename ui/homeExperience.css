@@ -461,3 +461,11 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 .home-v3 .hx-ach-data strong,.home-v3 .hx-ach-data small{overflow-wrap:anywhere}
 .home-v3 .hx-ach-grid span.is-unearned{opacity:.69;border-color:#71818c6c;background:#51606a22}
 @media(max-width:420px){.home-v3 .hx-ach-main{gap:12px}.home-v3 .hx-medal{width:64px;height:64px;flex-basis:64px;font-size:2.3rem}.home-v3 .hx-ach-data strong{font-size:1.32rem}}
+
+/* B-F09: an explicitly selected dated record can be removed without wiping
+   unrelated days, questions or reflections. Destructive action stays separate. */
+#app .hx-delete-record{margin-top:16px;padding:13px;border:1px solid #8d9bb0;border-radius:12px;background:#1c3546}
+#app .hx-delete-record p{margin:0 0 12px;line-height:1.6;overflow-wrap:anywhere}
+#app .hx-delete-record button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:9px 14px;margin:0 7px 8px 0;border:1px solid #83aab5;background:#214858;color:#f3fbfe;border-radius:10px;white-space:normal;cursor:pointer}
+#app .hx-delete-record [data-condition-delete-confirm]{border-color:#f2b5a2;background:#723a38;color:#fff}
+#app .hx-delete-record button:focus-visible{outline:3px solid #a8eee9;outline-offset:3px}
