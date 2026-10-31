@@ -274,7 +274,7 @@
   condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
   topics:homeExperience.achievementCard(homeUi.preview,savedRunState),
   shortcuts:homeExperience.shortcutsCard(),
-  trend:homeExperience.trendCard(homeUi.preview),
+  trend:homeExperience.trendCard(homeUi.preview,savedRunState),
   discovery:homeExperience.discoveryCard(explorationUi.notes)
  };
  const storedLayout=pref||dashboardPrefs.defaultHomeDashboardLayout();

@@ -225,8 +225,30 @@ export function shortcutsCard(){
  const links=[["course","コース設計","map"],["simulation","条件を変えて考える","sim"],["consultation","相談・共有","share"]];
  return '<section class="hx-card hx-shortcuts">'+head("クイックアクセス","bolt")+'<div class="hx-shortcut-grid">'+links.map(([url,label,ico])=>'<a href="#/'+url+'" class="hx-shortcut hx-shortcut-'+ico+'"><span>'+icon(ico)+'</span><strong>'+label+'</strong></a>').join("")+'</div></section>';
 }
-export function trendCard(preview){
- return '<section class="hx-card hx-optional">'+head("活動の推移","chart",preview?sample():"")+(preview?'<div class="hx-demo-activity">'+[24,50,32,68,45,80,65].map(v=>'<span style="height:'+v+'%"></span>').join("")+'</div><p>直近7日間の走行距離（表示例）</p>':'<p>正式な走行記録と接続すると推移が表示されます</p>')+'</section>';
+/** C F18: optional trend reads only confirmed, saved manual running records.
+ * Each point is a recorded run (not a day); unrecorded days have no zero.
+ * An inaccessible save is an error, never a zero-run history. */
+export function trendCard(preview,savedRuns={ok:true,records:[]}){
+ const shell=head("記録の移り変わり","chart",preview?sample():"");
+ if(preview)return '<section class="hx-card hx-optional">'+shell+
+   '<div class="hx-demo-activity">'+[24,50,32,68,45,80,65].map(v=>'<span style="height:'+v+'%"></span>').join("")+'</div><p>保存済み走行の表示例です。あなたの記録ではありません。</p></section>';
+ if(!savedRuns?.ok||!Array.isArray(savedRuns.records))
+  return '<section class="hx-card hx-optional">'+shell+
+   '<p role="alert">走行履歴を確認できません。記録が0件という意味ではありません。'+escape(savedRuns?.reason||'保存領域を確認してください。')+'</p></section>';
+ const actual=savedRuns.records.filter(r=>r?.source==='manual'&&r?.type==='run'&&typeof r.id==='string'&&
+  /^\\d{4}-\\d{2}-\\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
+  Number.isInteger(r.durationSeconds)&&r.durationSeconds>0)
+  .slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,7).reverse();
+ if(!actual.length)return '<section class="hx-card hx-optional">'+shell+
+   '<p>保存済みの手入力走行はまだありません。新たな走行を記録すると確認できます。</p></section>';
+ const max=Math.max(...actual.map(r=>r.distanceKm));
+ const items=actual.map(r=>'<li class="hx-run-trend-point"><span class="hx-run-trend-date">'+escape(r.date)+'</span>'+
+  '<span class="hx-run-trend-bar"><span style="width:'+Math.max(2,Math.round(100*r.distanceKm/max))+'%"></span></span>'+
+  '<strong>'+r.distanceKm.toFixed(2)+' km</strong></li>').join('');
+ return '<section class="hx-card hx-optional">'+shell+
+  '<p class="hx-run-trend-source">保存済み手入力走行の直近'+actual.length+'件。過去から今回の順に並べています。</p>'+
+  '<ol class="hx-run-trend-list" aria-label="保存済み手入力走行の距離（活動1件ごと）">'+items+'</ol>'+
+  '<p class="hx-run-trend-limit">棒はこの表示内の最大距離との相対的な長さです。同じ日の複数走行も別々に表示します。未記録日は0kmにせず、走力・健康状態や原因を評価しません。</p></section>';
 }
 export function discoveryCard(notes=[]){
  const latest=Array.isArray(notes)?notes.filter(x=>x&&typeof x.text==='string'&&x.text.trim()&&typeof x.createdAt==='string').slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0]:null;

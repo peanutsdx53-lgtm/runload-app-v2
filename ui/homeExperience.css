@@ -469,3 +469,13 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 #app .hx-delete-record button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:9px 14px;margin:0 7px 8px 0;border:1px solid #83aab5;background:#214858;color:#f3fbfe;border-radius:10px;white-space:normal;cursor:pointer}
 #app .hx-delete-record [data-condition-delete-confirm]{border-color:#f2b5a2;background:#723a38;color:#fff}
 #app .hx-delete-record button:focus-visible{outline:3px solid #a8eee9;outline-offset:3px}
+
+/* C-F18: optional observed history, no fabricated zero days or health score. */
+.home-v3 .hx-run-trend-list{padding:0;margin:12px 0;list-style:none;display:grid;gap:10px}
+.home-v3 .hx-run-trend-point{display:grid;grid-template-columns:minmax(0,100px) minmax(50px,1fr) minmax(0,68px);gap:9px;align-items:center;font-size:.79rem;color:#e5f6fa}
+.home-v3 .hx-run-trend-date{overflow-wrap:anywhere;color:#b9dce3}
+.home-v3 .hx-run-trend-bar{height:12px;border-radius:8px;background:#183c4d;border:1px solid #476f7d;overflow:hidden}
+.home-v3 .hx-run-trend-bar>span{display:block;height:100%;background:#39bcc8;border-radius:8px}
+.home-v3 .hx-run-trend-point strong{text-align:right;font-variant-numeric:tabular-nums}
+.home-v3 .hx-run-trend-source,.home-v3 .hx-run-trend-limit{font-size:.76rem;line-height:1.65;color:#bddee5;overflow-wrap:anywhere}
+@media(max-width:390px){.home-v3 .hx-run-trend-point{grid-template-columns:minmax(0,83px) minmax(24px,1fr) 65px;gap:6px;font-size:.69rem}}
