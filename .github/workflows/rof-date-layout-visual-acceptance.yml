@@ -1,0 +1,41 @@
+name: ROF date and mobile layout visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/rofExperience.js'
+      - 'ui/rofExperience.css'
+      - 'app.js'
+      - 'tests/rofTimingLayoutBrowser.mjs'
+      - '.github/workflows/rof-date-layout-visual-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-rof-mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless test browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Inspect inherited run date and mobile input containment
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/rofTimingLayoutBrowser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rof-mobile-layout-${{ matrix.engine }}
+          path: audit-output/rof-date-layout/
+          if-no-files-found: warn
+          retention-days: 14
