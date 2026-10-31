@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRofUiState,rofPage,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput} from '../ui/rofExperience.js';
+import {createRofUiState,rofPage,setExerciseClockTime,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput} from '../ui/rofExperience.js';
 const fresh=()=>({rofBefore:null,rofAfter:null});
 test('approved 11 integer inputs and five non-numeric representative anchors',()=>{
  assert.deepEqual(Array.from({length:11},(_,i)=>nearestAnchorIndex(i)),[0,1,1,1,2,2,2,3,3,4,4]);
@@ -75,4 +75,27 @@ test('S06: optional metadata collapses by default while phase switching remains 
  assert.match(next,/まだ選択されていません/);
 });
 
-test('S06 native condition-style time inputs use date+time separately, no overflowing datetime-local',()=>{const v=rofPage({rofBefore:null,rofAfter:null,exerciseTimingDraft:{startedLocal:'2026-10-30T10:20',endedLocal:''}},createRofUiState());assert.match(v,/data-rof-run-start-date/);assert.match(v,/data-rof-run-end-date/);assert.match(v,/type="time" data-rof-run-start/);assert.match(v,/value="10:20"/);assert.doesNotMatch(v,/type="datetime-local" data-rof-run-start/);assert.doesNotMatch(v,/data-rof-v4-next-phase/);});
+test('S06 reuses recorded running date and native time picker, without duplicated date entry',()=>{
+ const d={date:'2026-10-31',rofBefore:null,rofAfter:null,exerciseTimingDraft:{startedLocal:'2026-10-31T10:20',endedLocal:''}};
+ const v=rofPage(d,createRofUiState());
+ assert.match(v,/走行日：<strong>2026\/10\/31<\/strong>/);
+ assert.match(v,/type="time" data-rof-run-start/);
+ assert.match(v,/value="10:20"/);
+ assert.doesNotMatch(v,/type="date"/);
+ assert.doesNotMatch(v,/data-rof-run-start-date|data-rof-v4-next-phase/);
+});
+test('S06 calendar auto resolution matches condition midnight principle and does not infer missing times',()=>{
+ const d={date:'2026-10-31',rofBefore:null,rofAfter:null};
+ assert.equal(setExerciseClockTime(d,'start','23:55'),true);
+ assert.equal(d.exerciseTimingDraft.endedAt,null);
+ assert.equal(setExerciseClockTime(d,'end','00:15'),true);
+ assert.equal(d.exerciseTimingDraft.endedLocal,'2026-11-01T00:15');
+ assert.equal(d.exerciseTimingDraft.endDayOffset,1);
+ assert.equal(setExerciseClockTime(d,'end','00:15','same'),true);
+ assert.equal(d.exerciseTimingDraft.endedLocal,'2026-10-31T00:15');
+ assert.equal(setExerciseClockTime(d,'end','00:15','next'),true);
+ assert.equal(d.exerciseTimingDraft.endedLocal,'2026-11-01T00:15');
+ assert.equal(setExerciseClockTime(d,'start',''),true);
+ assert.equal(d.exerciseTimingDraft.startedAt,null);
+ assert.equal(setExerciseClockTime(d,'end','99:99'),false);
+});

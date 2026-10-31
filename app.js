@@ -868,19 +868,24 @@ function recordExtras(){
       homeExperience.updateSleepForm(event.target.closest("[data-condition-form]"));
       return;
     }
-    if(event.target.matches("[data-rof-run-start],[data-rof-run-end],[data-rof-run-start-date],[data-rof-run-end-date]")){
-     const start=event.target.hasAttribute('data-rof-run-start')||event.target.hasAttribute('data-rof-run-start-date');
-     const key=start?'start':'end',prefix=start?'started':'ended';
-     const timeInput=app.querySelector('[data-rof-run-'+key+']');
-     const dateInput=app.querySelector('[data-rof-run-'+key+'-date]');
-     const time=timeInput?.value||'',date=dateInput?.value||'';
-     const local=/^\d{4}-\d{2}-\d{2}$/.test(date)&&/^\d{2}:\d{2}$/.test(time)?date+'T'+time:'';
-     const parsed=local&&!Number.isNaN(Date.parse(local))?new Date(local).toISOString():null;
-     const old=state.recordDraft.exerciseTimingDraft||{};
-     state.recordDraft.exerciseTimingDraft={...old,[prefix+'At']:parsed,[prefix+'Local']:local};
-     const output=app.querySelector('[data-rof-time-display="'+key+'"]');
-     if(output)output.textContent=time||'時刻を選択';
-     return;
+    if(event.target.matches('[data-rof-run-start],[data-rof-run-end],[data-rof-end-day-rule]')){
+      const dayRule=app.querySelector('[data-rof-end-day-rule]:checked')?.value||'auto';
+      const isDayRule=event.target.matches('[data-rof-end-day-rule]');
+      const phase=event.target.matches('[data-rof-run-start]')?'start':'end';
+      const value=isDayRule?app.querySelector('[data-rof-run-end]')?.value||'':event.target.value;
+      const ok=rofExperience.setExerciseClockTime(state.recordDraft,phase,value,dayRule);
+      if(!ok)return;
+      if(isDayRule){
+        rofUi.metaOpen=true;
+        const y=window.scrollY;render();window.scrollTo(0,y);return;
+      }
+      const output=app.querySelector('[data-rof-time-display="'+phase+'"]');
+      if(output)output.textContent=value||'時刻を選択';
+      const day=app.querySelector('.rv4-end-day-caption');
+      const computed=state.recordDraft.exerciseTimingDraft;
+      if(day&&computed?.endedLocal)day.textContent='終了日：'+computed.endedLocal.slice(0,10).replaceAll('-','/')+
+          (computed.endDayOffset?'（翌日）':'（当日）');
+      return;
     }
     if(event.target.matches("[data-rof-v4-timing]")){
      rofExperience.setRofTiming(state.recordDraft,rofUi.phase,event.target.value);
@@ -894,6 +899,12 @@ function recordExtras(){
     }
     if(!event.target.matches("[data-draft]"))return;
     const key=event.target.dataset.draft,value=event.target.value;state.recordDraft[key]=value;
+    if(key==='date'&&state.recordDraft.exerciseTimingDraft){
+      const old=state.recordDraft.exerciseTimingDraft;
+      const start=String(old.startedLocal||'').slice(11),end=String(old.endedLocal||'').slice(11);
+      const result=rofExperience.resolveExerciseTimes(value,start,end,old.endDayRule||'auto');
+      if(result.ok)state.recordDraft.exerciseTimingDraft={...old,...result};
+    }
     const container=event.target.closest(".record-editor, .record-v3");
     if(!container||!["gradeMode","surfaceMode","runningFormat"].includes(key))return;
     const attr=key==="gradeMode"?"data-grade-submode":key==="surfaceMode"?"data-surface-submode":"data-running-format";

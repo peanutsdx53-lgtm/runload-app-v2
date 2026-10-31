@@ -122,3 +122,28 @@
 @media(max-width:380px){
  #app .rv4-page .rv4-run-time-picks{grid-template-columns:minmax(0,1fr)}
 }
+
+/* S06 conditional date source layout: a single run date reused throughout the form.
+   No inner fieldset frame around inputs, avoiding 100%-width content-box overlaps. */
+#app .rv4-page .rv4-run-times{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;padding:12px;border:0;background:transparent;margin:0}
+#app .rv4-page .rv4-run-times h3{margin:0 0 10px;font-size:14px;line-height:1.5;color:#eefcff;overflow-wrap:anywhere}
+#app .rv4-page .rv4-inherited-date{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 9px;border:1px solid #497e8c;border-radius:10px;background:#0d3445;padding:11px;margin:0 0 12px;color:#e3f6fb;line-height:1.5;min-width:0}
+#app .rv4-page .rv4-inherited-date strong{white-space:nowrap;font-variant-numeric:tabular-nums;color:#9ef2ee}
+#app .rv4-page .rv4-inherited-date small{color:#b9d3de;font-size:11px}
+#app .rv4-page .rv4-run-times-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0;max-width:100%}
+#app .rv4-page .rv4-run-time-card{display:grid;min-width:0;max-width:100%;gap:7px}
+#app .rv4-page .rv4-run-time-card strong{line-height:1.4;font-size:12px;overflow-wrap:anywhere}
+#app .rv4-page .rv4-run-times .rv4-native-time{box-sizing:border-box;min-width:0;max-width:100%;width:100%;height:48px}
+#app .rv4-page .rv4-end-day{margin:12px 0 6px;min-width:0}
+#app .rv4-page .rv4-end-day summary{cursor:pointer;font-weight:700;line-height:1.5;padding:7px 0;font-size:12px}
+#app .rv4-page .rv4-day-rule{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#app .rv4-page .rv4-day-rule label{display:flex;align-items:center;gap:6px;min-height:42px;padding:5px 10px;border:1px solid #558596;border-radius:9px;font-size:12px}
+#app .rv4-page .rv4-day-rule input{width:18px;height:18px;min-width:18px;margin:0}
+#app .rv4-page .rv4-end-day-caption{margin:6px 0;font-weight:700;color:#baf2ed}
+#app .rv4-page .rv4-run-times p{line-height:1.65;overflow-wrap:anywhere;max-width:100%;min-width:0}
+#app .rv4-page .rv4-timing{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-inline-size:0}
+#app .rv4-page .rv4-meta-body{box-sizing:border-box;min-width:0;max-width:100%;width:100%;overflow:visible}
+#app .rv4-page .rv4-optional-meta{min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:380px){
+ #app .rv4-page .rv4-run-times-grid{grid-template-columns:minmax(0,1fr)}
+}
