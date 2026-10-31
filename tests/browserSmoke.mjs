@@ -619,6 +619,9 @@ try{
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width=''});
   // What-if uses the existing saved course without modifying its source or manufacturing GPS coordinates.
   await page.goto(host+"#/simulation",{waitUntil:"networkidle"});
+  // SPA route hydration may finish after networkidle (notably after a saved
+  // course reload). Count only after the expected screen has actually mounted.
+  await page.locator('[data-sim-page]').waitFor({state:"visible",timeout:15000});
   assert.equal(await page.locator('[data-sim-page]').count(),1,'simulation replaces disconnected placeholder');
   assert.equal(await page.locator('.sm-panel').count(),4,'top-to-bottom what-if workflow');
   assert.equal(await page.locator('[data-sm-source]').count(),4,'manual, GPX, GPS history and no-course are available');
