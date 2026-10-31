@@ -37,6 +37,8 @@ jobs:
         if: always()
         with:
           name: current-20-populated-${{ matrix.engine }}
-          path: audit-output/current-20-populated-${{ matrix.engine }}.json
+          path: |
+            audit-output/current-20-populated-${{ matrix.engine }}.json
+            audit-output/${{ matrix.engine }}-S*.png
           if-no-files-found: ignore
           retention-days: 14
