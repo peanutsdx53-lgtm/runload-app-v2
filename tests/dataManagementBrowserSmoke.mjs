@@ -8,6 +8,7 @@ const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromiu
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
 const server=createServer(async(req,res)=>{
+ if(process.env.RUNLOAD_BROWSER_ENGINE==='webkit')console.log('P0 HTTP REQUEST',req.url);
  try{
   const pathname=decodeURIComponent(new URL(req.url,"http://127.0.0.1").pathname);
   const file=resolve(root,"."+pathname);
@@ -27,6 +28,7 @@ try{
   const ctx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>errors.push(x.message));
   page.on('download',download=>console.log('P0 NAV DOWNLOAD',engineName,mode.name,download.suggestedFilename()));
+  page.on('request',request=>console.log('P0 NAV REQUEST',engineName,request.url()));
   page.on('requestfailed',request=>console.log('P0 NAV REQUESTFAILED',engineName,request.url(),request.failure()?.errorText));
   const firstResponse=await page.goto("http://127.0.0.1:4190/index.html",{waitUntil:"load"});
   console.log('P0 NAV SERVER',engineName,mode.name,'url',page.url());
