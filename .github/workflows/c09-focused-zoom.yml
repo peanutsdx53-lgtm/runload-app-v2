@@ -1,0 +1,43 @@
+name: C09 focused CSS zoom diagnosis
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/recordReviewExperience.css'
+      - 'ui/consultationExperience.css'
+      - 'ui/measurementExperience.css'
+      - 'ui/simulationExperience.css'
+      - 'tests/c09ReflowDiagnosticBrowser.mjs'
+      - '.github/workflows/c09-focused-zoom.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  four-screen-css-zoom:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Run original Current C09 CSS zoom condition on four affected screens
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/c09ReflowDiagnosticBrowser.mjs
+      - name: Preserve screenshots and structured diagnostic, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c09-zoom-${{ matrix.engine }}
+          path: screenshots/c09-${{ matrix.engine }}-*
+          retention-days: 14
+          if-no-files-found: warn
