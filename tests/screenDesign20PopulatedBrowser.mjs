@@ -94,7 +94,7 @@ try{
    assert.equal(await t.locator('[data-view="front"]').count(),1);
    assert.equal(await t.locator('[data-view="back"]').count(),1);
    assert.equal(await t.locator('[data-view="sole"]').count(),1);
-   assert.match(await t.innerText(),/参考値|文献/);
+   assert.match(await t.locator('.rv4-notice').innerText(),/参考値|文献|算出/);
   });
   await verify('S10','history','#runload-history-v2',async t=>{
    assert.equal(await t.locator('.stage').count(),1);
@@ -132,7 +132,7 @@ try{
    const button=t.locator('[data-download]');
    assert.equal(await button.count(),1);
    assert.equal(await button.isEnabled(),true);
-   assert.match(await t.innerText(),/参考|文献/);
+   assert.match(await t.locator('.rv4-notice').innerText(),/参考値|文献|算出/);
   });
   await verify('S20','settings','[data-settings-v2]',async t=>{
    assert.match(await t.innerText(),/文字サイズ/);
