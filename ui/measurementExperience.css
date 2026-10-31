@@ -259,3 +259,19 @@
 }
 
 .gps-live-actions--paused .gps-action-pause{grid-column:1/-1}
+
+/* C09: responsive text-only zoom at 390px. Keep the existing layout and
+ * palette; avoid the 3.1rem clock and no-wrap stage labels exceeding the
+ * available mobile column when root font is scaled to 200%. */
+@media(max-width:800px){
+ .gps-v35 .gps-live-time strong{
+  font-size:clamp(1.35rem,12vw,3.1rem);
+  min-width:0;
+  max-width:100%;
+ }
+ .gps-v35 .gps-live-steps span{
+  min-width:0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+ }
+}
