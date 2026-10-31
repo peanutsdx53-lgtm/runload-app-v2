@@ -1,0 +1,50 @@
+name: GPS ROF and confirmation acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'ui/measurementExperience.js'
+      - 'ui/measurementExperience.css'
+      - 'ui/gpsReplayIndexedDbStore.js'
+      - 'ui/resultExperience.js'
+      - 'ui/rofExperience.js'
+      - 'ui/rofExperience.css'
+      - 'tests/gpsRofReviewBrowser.mjs'
+      - 'tests/gpsReplayIndexedDbStore.test.mjs'
+      - 'tests/measurementExperience.test.mjs'
+      - '.github/workflows/gps-rof-review-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gps-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test GPS measured vs reported provenance and backward compatibility
+        run: node --test tests/gpsReplayIndexedDbStore.test.mjs tests/measurementExperience.test.mjs tests/gpsMeasurementPolish.test.mjs tests/rofExperience.test.mjs
+  browser-save-journey:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real browser engine
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Run first-hand GPS-to-review-to-result experience and missing-vs-zero check
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/gpsRofReviewBrowser.mjs
