@@ -73,3 +73,5 @@ test('GPS permission revocation stops watcher and pauses until fresh consent',()
  h.gps.discard();
  assert.equal(h.stats().clear,2);
 });
+
+test('GPS pre-run and saved-populated review expose two optional independent ROF scores',()=>{const before=measurementPage({...previewState,phase:'ready'},0,{rofBefore:0});assert.match(before,/data-gps-rof="before"/);assert.match(before,/<option value="0" selected>0 \/ 10/);const finished=gpsReviewPage({...previewState,phase:'finished',distanceM:100,accepted:3},30000,{rofBefore:0,rofAfter:null,memo:''});assert.match(finished,/data-gps-rof="after"/);assert.match(finished,/data-gps-action="save"/);assert.match(finished,/GPSで取得した記録（編集不可）/);assert.doesNotMatch(finished,/data-gps-rof="before"/);});

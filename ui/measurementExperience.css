@@ -303,3 +303,26 @@
  .gps-v35 .gps-live-status,.gps-v35 .gps-live-section-head{flex-wrap:wrap}
  .gps-v35 .gps-live-actions button,.gps-v35 .gps-live-prep-grid select{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 }
+
+/* S17 GPS before/after: accessible, same proven provenance but clear input order */
+.gps-v2 .gps-review-pre{display:grid;gap:8px;min-width:0;margin:18px 0 12px;padding:12px;border:1px solid #5f9dab;background:#113b4d;border-radius:12px;color:#f4fcff;font-size:.9rem;font-weight:800}
+.gps-v2 .gps-review-pre select,.gps-v2 .gps-review-rof-grid select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:48px;padding:9px 12px;border:1px solid #659eac;border-radius:9px;background:#082d3e;color:#f4ffff;font-size:16px;color-scheme:dark}
+.gps-v2 .gps-review-pre small{font-size:.75rem;line-height:1.6;color:#c1dce6;font-weight:400}
+.gps-v2.gps-review{width:100%;max-width:1000px;margin:auto;display:grid;gap:13px;min-width:0}
+.gps-review .gps-v35-panel{min-width:0}
+.gps-review .gps-v35-panel h2{font-size:1.12rem;color:#f4ffff;line-height:1.4;margin:0 0 12px;overflow-wrap:anywhere}
+.gps-review .gps-v35-panel p{font-size:.82rem;color:#c1dce6;line-height:1.75;overflow-wrap:anywhere}
+.gps-review-facts dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 0}
+.gps-review-facts dl>div{min-width:0;padding:11px;border:1px solid #558898;border-radius:10px;background:#113a4d}
+.gps-review-facts dt{font-size:.73rem;color:#b5d3de;margin-bottom:6px}
+.gps-review-facts dd{margin:0;font-size:1.1rem;color:white;font-weight:800;overflow-wrap:anywhere}
+.gps-review-rof-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0;min-width:0}
+.gps-review-rof-grid>div,.gps-review-rof-grid>label{display:grid;gap:8px;min-width:0;padding:13px;border:1px solid #528798;border-radius:12px;background:#123f50}
+.gps-review-rof-grid strong{font-size:.9rem}
+.gps-review-rof-grid output{font-size:1.4rem;font-weight:800;color:#80ecea}
+.gps-review-rof-grid small{font-size:.73rem;color:#bdd9e1;line-height:1.6}
+.gps-review-note{display:grid;gap:8px;min-width:0;margin:12px 0;font-size:.88rem;font-weight:750}
+.gps-review-note textarea{display:block;min-width:0;max-width:100%;width:100%;box-sizing:border-box;border:1px solid #659eac;border-radius:10px;background:#082d3e;color:#f4ffff;font:inherit;font-size:16px;padding:12px;line-height:1.6}
+.gps-review .gps-live-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gps-review .gps-live-actions>*{text-align:center;min-width:0;display:flex;align-items:center;justify-content:center;white-space:normal;text-decoration:none;line-height:1.4}
+@media(max-width:450px){.gps-review-facts dl,.gps-review-rof-grid{grid-template-columns:minmax(0,1fr)}.gps-review .gps-live-actions{grid-template-columns:minmax(0,1fr)}}

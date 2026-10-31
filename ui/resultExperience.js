@@ -26,6 +26,7 @@ export function mountResult(host,inputDraft={},options={}){
  const gps=options.gpsSummary?.schema===2?options.gpsSummary:null;
  const gpsSeconds=gps?Math.round(gps.activeSeconds):0;
  const draft=gps?{date:gps.date,distance:gps.distanceKm,
+  rofBefore:gps.experience?.rofBefore??null,rofAfter:gps.experience?.rofAfter??null,memo:gps.experience?.memo||'',
   hours:Math.floor(gpsSeconds/3600),minutes:Math.floor(gpsSeconds%3600/60),seconds:gpsSeconds%60}:inputDraft;
  const fromGps=!!gps,fromSaved=options.saved===true&&typeof options.recordId==="string"&&options.recordId.length>0;
  const root=host.shadowRoot||host.attachShadow({mode:'open'});
