@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGpsSession} from '../ui/gpsMeasurementCore.js';
-import {measurementPage} from '../ui/measurementExperience.js';
+import {gpsReviewPage,measurementPage} from '../ui/measurementExperience.js';
 import {estimateGpsEnergy,gpsEnergyDisplay} from '../ui/gpsEnergyDisplay.js';
 import {estimateRunningEnergy,RUN_ENERGY_MODEL_ID} from '../ui/gpsMeasurementEnergy.js';
 import {prepareGpsV2Run} from '../ui/gpsReplayIndexedDbStore.js';
@@ -45,7 +45,7 @@ test('map flags are truthful accepted GPS points and finished notes are accessib
  assert.match(measurementPage(g.getSnapshot(),g.elapsed()),/フラッグ.*\(2\)/);
  assert.doesNotMatch(measurementPage(g.getSnapshot(),g.elapsed()),/軌跡プレビュー/);
  h.tick(2000);g.finish();
- const markup=measurementPage(g.getSnapshot(),g.elapsed());
+ const markup=gpsReviewPage(g.getSnapshot(),g.elapsed());
  assert.match(markup,/フラッグのメモ/);
  assert.match(markup,/data-gps-flag-note/);
  assert.match(markup,/textarea/);

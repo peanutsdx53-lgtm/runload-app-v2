@@ -874,7 +874,7 @@ function recordExtras(){
      const timeInput=app.querySelector('[data-rof-run-'+key+']');
      const dateInput=app.querySelector('[data-rof-run-'+key+'-date]');
      const time=timeInput?.value||'',date=dateInput?.value||'';
-     const local=/^\\d{4}-\\d{2}-\\d{2}$/.test(date)&&/^\\d{2}:\\d{2}$/.test(time)?date+'T'+time:'';
+     const local=/^\d{4}-\d{2}-\d{2}$/.test(date)&&/^\d{2}:\d{2}$/.test(time)?date+'T'+time:'';
      const parsed=local&&!Number.isNaN(Date.parse(local))?new Date(local).toISOString():null;
      const old=state.recordDraft.exerciseTimingDraft||{};
      state.recordDraft.exerciseTimingDraft={...old,[prefix+'At']:parsed,[prefix+'Local']:local};

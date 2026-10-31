@@ -64,14 +64,14 @@ test('S06: optional metadata collapses by default while phase switching remains 
  const ui=createRofUiState();
  const html=rofPage(d,ui);
  assert.match(html,/<details class="rv4-optional-meta" >/);
- assert.match(html,/data-rof-v4-next-phase="after"/);
+ assert.doesNotMatch(html,/data-rof-v4-next-phase/);
  assert.match(html,/data-rof-v4-phase="before"/);
  assert.match(html,/data-rof-v4-phase="after"/);
  assert.match(html,/value="0"/);
  ui.metaOpen=true;setRofPhase(ui,'after',d);
  const next=rofPage(d,ui);
  assert.match(next,/<details class="rv4-optional-meta" open>/);
- assert.match(next,/data-rof-v4-next-phase="before"/);
+ assert.doesNotMatch(next,/data-rof-v4-next-phase/);
  assert.match(next,/まだ選択されていません/);
 });
 

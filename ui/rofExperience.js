@@ -69,7 +69,7 @@ export function rofPage(d,ui){
  const n=d[rofPhaseKey[ui.phase]],hasScore=isValidRofJ(n),anchor=ROF_J_ANCHORS[ui.focusedAnchor];
  const chosen=d.rofTimingChoices?.[ui.phase]||{mode:'UNKNOWN',declaredAt:''};
  const runTimes=d.exerciseTimingDraft||{};
- const timeCard=(phase,label,local)=>{const date=/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/.test(local||'')?local.slice(0,10):'';
+ const timeCard=(phase,label,local)=>{const date=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local||'')?local.slice(0,10):'';
   const time=date?local.slice(11):'';
   return '<div class="rv4-run-time-card"><strong>'+label+'</strong><div class="rv4-run-time-picks"><label>日付<input type="date" data-rof-run-'+phase+'-date value="'+esc(date)+'" aria-label="'+label+'日付"></label><label>時刻<span class="rv4-native-time"><span data-rof-time-display="'+phase+'" aria-hidden="true">'+esc(time||'時刻を選択')+'</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><input type="time" data-rof-run-'+phase+' value="'+esc(time)+'" aria-label="'+label+'時刻"></span></label></div></div>';
  };
