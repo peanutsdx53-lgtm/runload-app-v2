@@ -32,8 +32,24 @@ try{
   assert.match(await rof.locator('[data-rof-v4-phase="after"]').innerText(),/8\/10/);
   await rof.locator('.rv4-optional-meta summary').click();
   assert.equal(await rof.locator('.rv4-optional-meta').getAttribute('open'),'');
+  assert.equal(await rof.locator('[data-rof-v4-next-phase]').count(),0,'one phase selector at top; no repeated bottom navigation');
+  await rof.locator('[data-rof-run-start-date]').fill('2026-10-30');
+  await rof.locator('[data-rof-run-start]').fill('09:40');
+  await rof.locator('[data-rof-run-end-date]').fill('2026-10-30');
+  await rof.locator('[data-rof-run-end]').fill('10:10');
+  const inputBounds=await rof.evaluate(el=>{
+   const card=el.querySelector('.rv4-run-times').getBoundingClientRect();
+   const values=[...el.querySelectorAll('.rv4-run-time-picks input')].map(input=>{
+    const r=input.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};
+   });
+   return {left:card.left,right:card.right,values};
+  });
+  assert.ok(inputBounds.values.every(b=>b.left>=inputBounds.left-3&&b.right<=inputBounds.right+3),
+   'native date and time never overflow card at '+width+': '+JSON.stringify(inputBounds));
   await rof.locator('[data-rof-v4-phase="after"]').click();
   assert.equal(await rof.locator('.rv4-optional-meta').getAttribute('open'),'','metadata retains open setting when changing phases');
+  assert.equal(await rof.locator('[data-rof-run-start]').inputValue(),'09:40');
+  assert.equal(await rof.locator('[data-rof-run-end]').inputValue(),'10:10');
   const measure=await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth}));
   assert.ok(measure.doc<=measure.width+3,'ROF phone reflow '+JSON.stringify(measure));
   await page.goto(host+'record',{waitUntil:'networkidle'});
