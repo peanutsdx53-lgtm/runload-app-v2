@@ -82,6 +82,11 @@ try{
   await page.locator('.ex-learning [data-ex-action="note"]').click();
   await page.locator('#ex-note').fill('次は走る前の気持ちを記録する');
   await page.locator('.ex-dialog [data-ex-action="save-note"]').click();
+  await page.waitForFunction(()=>{
+   const raw=localStorage.getItem('runload-v2-exploration-notes-v1');
+   if(!raw)return false;
+   try{return JSON.parse(raw)?.length===1}catch{return false}
+  },null,{timeout:15000});
   const record=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
   assert.equal(record.length,1);assert.equal(record[0].topicId,'practice-warmup');
   await page.locator('[data-ex-action="memories"]').click();
