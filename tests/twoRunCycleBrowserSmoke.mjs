@@ -1,12 +1,13 @@
 /** Stage 10: two actual browser-local saves, interpretation, opt-in note, revisit and comparison.
- * This is a local Chromium acceptance path, NOT a human efficacy study.
+ * This is an isolated browser-implementation acceptance path, NOT a human efficacy study.
  */
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,extname,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{
@@ -20,7 +21,9 @@ const server=createServer(async(req,res)=>{
  }catch{res.statusCode=404;res.end('Not found');}
 });
 await new Promise(done=>server.listen(4175,'127.0.0.1',done));
-const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+const browserType=engineName==='webkit'?webkit:chromium;
+const browser=await browserType.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+console.log('P0 continuity E2E engine:',engineName);
 try{
  const page=await browser.newPage({viewport:{width:390,height:844},acceptDownloads:true});
  await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
