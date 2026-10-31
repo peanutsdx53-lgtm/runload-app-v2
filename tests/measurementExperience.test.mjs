@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {measurementPage,activityDescription} from '../ui/measurementExperience.js';
+import {measurementPage,gpsReviewPage,activityDescription} from '../ui/measurementExperience.js';
 import {createGpsSession,GPS_ACTIVITY,snapshotPosition,checkGpsPoint,formatGpsClock,gpsPace} from '../ui/gpsMeasurementCore.js';
 import {prepareGpsRun,isValidGpsRecord,gpsRecordToFeature} from '../ui/gpsMeasurementStore.js';
 const sample=(latitude,longitude,t,accuracy=8)=>({timestamp:t,coords:{latitude,longitude,accuracy,altitude:115,altitudeAccuracy:10}});
@@ -74,4 +74,4 @@ test('GPS permission revocation stops watcher and pauses until fresh consent',()
  assert.equal(h.stats().clear,2);
 });
 
-test('GPS pre-run and saved-populated review expose two optional independent ROF scores',()=>{const before=measurementPage({...previewState,phase:'ready'},0,{rofBefore:0});assert.match(before,/data-gps-rof="before"/);assert.match(before,/<option value="0" selected>0 \/ 10/);const finished=gpsReviewPage({...previewState,phase:'finished',distanceM:100,accepted:3},30000,{rofBefore:0,rofAfter:null,memo:''});assert.match(finished,/data-gps-rof="after"/);assert.match(finished,/data-gps-action="save"/);assert.match(finished,/GPSで取得した記録（編集不可）/);assert.doesNotMatch(finished,/data-gps-rof="before"/);});
+test('GPS pre-run and saved-populated review expose two optional independent ROF scores',()=>{const before=measurementPage({...harness().gps.state,phase:'ready'},0,{rofBefore:0});assert.match(before,/data-gps-rof="before"/);assert.match(before,/<option value="0" selected>0 \/ 10/);const finished=gpsReviewPage({...harness().gps.state,phase:'finished',distanceM:100,accepted:3},30000,{rofBefore:0,rofAfter:null,memo:''});assert.match(finished,/data-gps-rof="after"/);assert.match(finished,/data-gps-action="save"/);assert.match(finished,/GPSで取得した記録（編集不可）/);assert.doesNotMatch(finished,/data-gps-rof="before"/);});
