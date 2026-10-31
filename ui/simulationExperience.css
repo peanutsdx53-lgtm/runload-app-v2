@@ -207,3 +207,11 @@
  .sm-page .sm-step-head,.sm-page .sm-scenario-title{flex-wrap:wrap}
  .sm-page .sm-number,.sm-page .sm-distance{min-width:0;max-width:100%;overflow-wrap:anywhere}
 }
+
+
+/* C09 WebKit: the intrinsic text width inside a closed native select must
+ * not enlarge the scenario forms beyond the available narrow viewport. */
+@media(max-width:650px){
+ .sm-page .sm-select-wrap{min-width:0;max-width:100%;overflow:hidden}
+ .sm-page .sm-select-wrap select{display:block;box-sizing:border-box;min-width:0;max-width:100%;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}

@@ -196,3 +196,12 @@
  .cp-app .cp-preview-actions{min-width:0;max-width:100%;flex-wrap:wrap}
  .cp-app .cp-paper-stack{max-width:100%;overflow-x:auto}
 }
+
+
+/* C09 WebKit: a native select can report the intrinsic width of a long
+ * saved-record option outside its visibly narrower control. Keep the label
+ * and option menu, while containing the closed control within its panel. */
+@media screen and (max-width:800px){
+ .cp-app .cp-panel div:has(> select#cp-target){min-width:0;max-width:100%;overflow-x:hidden}
+ .cp-app select#cp-target{display:block;box-sizing:border-box;min-width:0;max-width:100%;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
