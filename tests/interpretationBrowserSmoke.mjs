@@ -220,11 +220,18 @@ try{
    const confirm=page.locator('[data-condition-delete-confirm="2026-10-27"]');
    await confirm.waitFor();
    assert.match(await page.locator('.hx-delete-record').innerText(),/関連する気づきや問い/);
+   const independentBefore=await page.evaluate(()=>({
+     legal:localStorage.getItem('runload-v2-legal-consent-v1'),
+     notes:localStorage.getItem('runload-v2-exploration-notes-v1')
+   }));
    await confirm.click();
    await page.waitForFunction(()=>{
     try{return JSON.parse(localStorage.getItem('runload-v2-life-condition-v1')||'[]').every(x=>x.date!=='2026-10-27')}catch{return false}
    },null,{timeout:12000});
-   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-legal-consent-v1')!==null),true,'deleting a day never removes legal or other storage');
+   assert.deepEqual(await page.evaluate(()=>({
+     legal:localStorage.getItem('runload-v2-legal-consent-v1'),
+     notes:localStorage.getItem('runload-v2-exploration-notes-v1')
+   })),independentBefore,'deleting a single life record never changes other storage, even when consent is absent');
    assert.equal(await page.locator('[data-condition-form]').count(),0,'confirmed delete returns to the app');
   }
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
