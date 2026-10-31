@@ -270,7 +270,7 @@
  const names=dashboardPrefs.HOME_DASHBOARD_WIDGETS;
  const savedRunState=manualRunStore.readManualRuns(onboardStorage);
  const cards={
-  latest:homeExperience.latestCard(homeUi.preview,(()=>{const r=manualRunStore.readManualRuns(onboardStorage);return r.ok?r.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt))[0]||null:null})()),
+  latest:homeExperience.latestCard(homeUi.preview,savedRunState.ok?savedRunState.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''))[0]||null:null,savedRunState),
   condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
   topics:homeExperience.achievementCard(homeUi.preview,savedRunState),
   shortcuts:homeExperience.shortcutsCard(),

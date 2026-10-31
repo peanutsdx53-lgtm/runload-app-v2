@@ -182,7 +182,7 @@ function sevenBars(entries){
  }
  return '<div class="hx-bars" role="img" aria-label="直近7日間の睡眠・就床の記録時間。未入力日は棒を表示しません">'+pieces.join("")+'</div>';
 }
-export function latestCard(preview,record=null){
+export function latestCard(preview,record=null,savedRuns=null){
  const recent=!preview&&record?.source==='manual'&&record?.type==='run'&&typeof record?.id==='string'&&Number.isFinite(record.distanceKm)&&Number.isInteger(record.durationSeconds)?record:null;
  const secs=recent?Math.round(recent.durationSeconds/recent.distanceKm):0;
  const pace=secs?Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0'):'—';
@@ -191,6 +191,8 @@ export function latestCard(preview,record=null){
  const time=recent?String(Number((recent.durationSeconds/60).toFixed(2)))+'分':'—';
  const body=preview ? '<div class="hx-latest-fig"><div><small>距離</small><strong>7.20 <em>km</em></strong></div><div><small>時間</small><strong>42 <em>分</em></strong></div><div><small>平均ペース</small><strong>5:50 <em>/km</em></strong></div></div>'
   :recent?'<div class="hx-latest-fig"><div><small>距離</small><strong>'+escape(recent.distanceKm.toFixed(2))+' <em>km</em></strong></div><div><small>時間</small><strong>'+escape(time)+'</strong></div><div><small>平均ペース</small><strong>'+escape(pace)+' <em>/km</em></strong></div></div><a class="hx-condition-explore" href="#/result?record='+encodeURIComponent(recent.id)+'">保存した走行の結果を見る <span aria-hidden="true">›</span></a>'
+  :!preview&&savedRuns&&(!savedRuns.ok||!Array.isArray(savedRuns.records))?
+   '<div class="hx-latest-empty" role="alert"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録を確認できません</strong><p>'+escape(savedRuns.reason||'保存済みの記録を読み取れません。端末の保存領域を確認してください。')+'</p><p>記録が0件という意味ではありません。元の記録は変更していません。</p></div></div>'
   : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>手入力した走行を保存すると、ここに表示されます。</p></div></div>';
  return '<section class="hx-card hx-latest">'+head("最新の走行","run",preview?sample():recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+'<div class="hx-orbit" aria-hidden="true"></div></section>';
 }
