@@ -62,7 +62,8 @@ try{
   await page.goto(host+'record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="date"]').fill('2026-10-30');
   await page.goto(host+'record-rof',{waitUntil:'networkidle'});
-  await panel.locator('.rv4-optional-meta > summary').click();
+  if(await panel.locator('.rv4-optional-meta').getAttribute('open')===null)
+    await panel.locator('.rv4-optional-meta > summary').click();
   assert.match(await panel.locator('.rv4-inherited-date').innerText(),/2026\/10\/30/);
   assert.equal(await panel.locator('[data-rof-run-start]').inputValue(),'23:55');
   assert.equal(await panel.locator('[data-rof-run-end]').inputValue(),'00:15');
