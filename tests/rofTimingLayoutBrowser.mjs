@@ -54,6 +54,7 @@ try{
   await page.screenshot({path:resolve(dest,engine+'-'+width+'-expanded.png'),animations:'disabled'});
   await panel.locator('[data-rof-run-start]').fill('23:55');
   await panel.locator('[data-rof-run-end]').fill('00:15');
+  await panel.locator('.rv4-end-day > summary').click();
   await panel.locator('[data-rof-end-day-rule][value="next"]').check();
   const updated=await panel.locator('.rv4-inherited-date').innerText();
   assert.match(updated,/2026\/10\/29/);
