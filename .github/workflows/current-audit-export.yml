@@ -18,6 +18,7 @@ jobs:
         run: |
           echo "BASE_MAIN_SHA=22ca778531eae25464c67d01099f74be5dd63920" > SOURCE_PROVENANCE.txt
           echo "AUDIT_BRANCH_SHA=$(git rev-parse HEAD)" >> SOURCE_PROVENANCE.txt
+          git fetch --no-tags --depth=2 origin 22ca778531eae25464c67d01099f74be5dd63920
           git diff --exit-code 22ca778531eae25464c67d01099f74be5dd63920 -- app.js index.html styles.css pwa.js sw.js core ui assets tests
       - uses: actions/upload-artifact@v4
         with:
