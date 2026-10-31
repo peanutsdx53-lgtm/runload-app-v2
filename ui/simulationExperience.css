@@ -164,3 +164,17 @@
 .sm-gps-evidence-card strong{font-size:1.16rem;color:#efffff}
 .sm-gps-evidence-card span{font-size:.73rem;color:#b6e2e8;line-height:1.5}
 @media(max-width:500px){.sm-gps-evidence-grid{grid-template-columns:1fr}}
+
+/* C09: retain the four-stage flow and side-by-side scenario comparison while
+ * allowing 200% text scaling to wrap rather than overrun small result cards. */
+@media(max-width:650px){
+ .sm-page .sm-steps span{min-width:0;white-space:normal;overflow-wrap:anywhere}
+ .sm-page .sm-distance{
+  min-width:0;
+  max-width:100%;
+  font-size:clamp(1.25rem,7vw,1.7rem);
+  overflow-wrap:anywhere;
+ }
+ .sm-page .sm-result{min-width:0}
+ .sm-page .sm-number{font-size:clamp(.68rem,3.2vw,.81rem);overflow-wrap:anywhere}
+}
