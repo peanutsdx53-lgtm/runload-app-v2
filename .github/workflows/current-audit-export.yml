@@ -64,6 +64,9 @@ jobs:
             echo "${test},${status}" | tee -a audit-output/e2e-exit-status.csv
             tail -4 "audit-output/${test}.log"
           done
+      - name: Diagnose current horizontal overflow DOM sources
+        if: always()
+        run: node tests/currentBatch18OverflowDiagnosis.mjs
       - name: Upload new independent audit observations and test logs
         if: always()
         uses: actions/upload-artifact@v4
