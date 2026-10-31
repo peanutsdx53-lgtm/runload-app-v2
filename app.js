@@ -1,3 +1,4 @@
+import * as restDayStore from './ui/restDayStore.js';
 (async function appMain(){
   "use strict";
   const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
@@ -579,6 +580,8 @@ function recordExtras(){
  }
  if(page==="history"){
    const saved=manualRunStore.readManualRuns(onboardStorage);
+   const restDays=restDayStore.readRestDays(onboardStorage);
+   if(!restDays.ok){const alert=document.createElement('p');alert.setAttribute('role','alert');alert.className='toast-notice';alert.textContent=restDays.reason;app.querySelector('#runload-history-v2')?.before(alert);}
    if(!saved.ok){
      const alert=document.createElement("p");
      alert.setAttribute("role","alert");alert.className="toast-notice";
@@ -598,8 +601,8 @@ function recordExtras(){
    gpsPanel.insertAdjacentHTML('beforeend',`<div class="gps-history-capacity"><h3>端末の保存状況</h3><p>このサイト全体（GPS以外の記録・キャッシュを含む）のブラウザーによる概算です。保存容量に余裕があっても消去される場合があります。</p><div data-gps-capacity-status role="status">${gpsCapacity?(gpsCapacity.ok?(gpsCapacity.percent===null?'容量の割合は取得できません':`サイト全体の使用率 ${gpsCapacity.percent}%／使用 ${gpsCapacity.usageMiB} MiB・上限目安 ${gpsCapacity.quotaMiB} MiB`)+`。永続化：${gpsCapacity.persistent===true?'許可済み':gpsCapacity.persistent===false?'未許可':'確認できません'}。`+(gpsCapacity.warning?'容量不足に注意してください。バックアップを推奨します。':''):esc(gpsCapacity.reason)):'容量は未確認です'}</div><div class="gps-history-backup-actions"><button type="button" data-gps-capacity-check>容量を確認</button><button type="button" data-gps-persist-request>保存領域の永続化を依頼</button></div>${gpsCapacityNotice?`<p role="status" class="gps-history-capacity-notice">${esc(gpsCapacityNotice)}</p>`:''}<p>永続化はブラウザーが拒否する場合があり、端末故障・手動削除からは保護されません。</p>${gpsStorageHealth.sharedGithubPagesOrigin(location.href)?'<p class="gps-history-origin-warning">注意：GitHub Pagesのプロジェクトは同じオリジンの他アプリと保存領域を共有します。GPSデータを分離するには専用ドメイン等で独立したオリジンが必要です。</p>':''}</div>`);
    app.querySelector('#runload-history-v2')?.after(gpsPanel);
    historyExperience.mountHistory(app.querySelector("#runload-history-v2"),{
-    records:manualRunStore.toHistoryRows(saved),connected:saved.ok,ui:historyUi,
-    onOpen:id=>{selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);}
+    records:[...manualRunStore.toHistoryRows(saved),...(restDays.ok?restDays.records:[])],connected:saved.ok&&restDays.ok,ui:historyUi,
+    onOpen:id=>{if(id.startsWith('rest-v1-'))return;selectedRunId=id;location.hash="#/result?record="+encodeURIComponent(id);}
    });
    const historyHeading=app.querySelector('#runload-history-v2')?.shadowRoot?.querySelector('.topline');
    if(historyHeading){
@@ -956,6 +959,18 @@ function recordExtras(){
       const y=window.scrollY;render();window.scrollTo(0,y);
      }
      return;
+    }
+    if(event.target.closest("[data-rest-day-save]")){
+      if(state.recordReviewSource!=='manual'||state.recordType!=='rest'){
+        manualSaveNotice='休養日以外の保存はこの操作ではできません';render();return;
+      }
+      const saved=await manualRunLock.withManualRunWriteLock(()=>restDayStore.saveRestDay(onboardStorage,state.recordDraft));
+      if(!saved.ok){manualSaveNotice=saved.reason;render();return;}
+      manualSaveNotice='';state.recordReviewReturn=false;
+      historyUi.month=saved.record.date.slice(0,7);historyUi.day=Number(saved.record.date.slice(-2));
+      historyUi.type='rest';historyUi.query='';historyUi.selectedId=saved.record.id;
+      state.toast='休養日を保存しました。距離や部位別参考値は算出しません。';
+      location.hash='#/history';return;
     }
     if(event.target.closest("[data-manual-run-save]")){
       if(state.recordReviewSource!=="manual"||state.recordType!=="run"){

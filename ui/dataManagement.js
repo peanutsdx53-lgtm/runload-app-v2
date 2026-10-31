@@ -1,5 +1,6 @@
 /* Portable on-device data: no network requests, no legal consent or first-use completion in backups. */
 import {MANUAL_RUN_KEY,readManualRuns} from "./manualRunStore.js";
+import {REST_DAY_KEY,readRestDays} from "./restDayStore.js";
 import {CONDITION_KEY,readConditions} from "./homeExperience.js";
 import {COURSE_PRESET_KEY,readCoursePresets} from "./coursePresetStore.js";
 import {CONDITION_INSIGHTS_KEY,loadConditionInsights} from "./conditionInsights.js";
@@ -14,20 +15,20 @@ import * as gpsV2 from "./gpsReplayIndexedDbStore.js?v=20261027-measurement-poli
 export const PORTABLE_FORMAT="running-data-portable-backup";
 export const PORTABLE_VERSION=1;
 export const PORTABLE_MAX_BYTES=80_000_000;
-export const RECORD_KEYS=Object.freeze([MANUAL_RUN_KEY,CONDITION_KEY,COURSE_PRESET_KEY,CONDITION_INSIGHTS_KEY,EXPLORATION_NOTE_KEY]);
+export const RECORD_KEYS=Object.freeze([MANUAL_RUN_KEY,REST_DAY_KEY,CONDITION_KEY,COURSE_PRESET_KEY,CONDITION_INSIGHTS_KEY,EXPLORATION_NOTE_KEY]);
 export const OPTION_KEYS=Object.freeze([ACTION_INTENT_KEY,HOME_DASHBOARD_KEY,PROFILE_KEY,DISPLAY_KEY]);
 export const DATA_KEYS=Object.freeze([...RECORD_KEYS,...OPTION_KEYS]);
 export const RESET_KEYS=Object.freeze([...DATA_KEYS,LEGAL_CONSENT_KEY,"runload-v2-introduction-preview-v1"]);
 const countKey=Object.freeze({
- [MANUAL_RUN_KEY]:"records",[CONDITION_KEY]:null,[COURSE_PRESET_KEY]:"records",
+ [MANUAL_RUN_KEY]:"records",[REST_DAY_KEY]:"records",[CONDITION_KEY]:null,[COURSE_PRESET_KEY]:"records",
  [CONDITION_INSIGHTS_KEY]:"entries",[EXPLORATION_NOTE_KEY]:null
 });
 const uidKey=Object.freeze({
- [MANUAL_RUN_KEY]:"id",[CONDITION_KEY]:"date",[COURSE_PRESET_KEY]:"id",
+ [MANUAL_RUN_KEY]:"id",[REST_DAY_KEY]:"date",[CONDITION_KEY]:"date",[COURSE_PRESET_KEY]:"id",
  [CONDITION_INSIGHTS_KEY]:"id",[EXPLORATION_NOTE_KEY]:"id"
 });
 const limits=Object.freeze({
- [MANUAL_RUN_KEY]:500,[CONDITION_KEY]:366,[COURSE_PRESET_KEY]:50,
+ [MANUAL_RUN_KEY]:500,[REST_DAY_KEY]:500,[CONDITION_KEY]:366,[COURSE_PRESET_KEY]:50,
  [CONDITION_INSIGHTS_KEY]:80,[EXPLORATION_NOTE_KEY]:50
 });
 const strictObject=x=>x!==null&&typeof x==="object"&&!Array.isArray(x);
@@ -42,6 +43,7 @@ function checkLocal(key,raw){
  let data;try{data=JSON.parse(raw);}catch{return {ok:false,reason:"保存データを読み取れません"};}
  const storage=storeFor(key,raw);
  if(key===MANUAL_RUN_KEY){if(!readManualRuns(storage).ok)return {ok:false,reason:"手入力の記録形式が正しくありません"};}
+ else if(key===REST_DAY_KEY){if(!readRestDays(storage).ok)return {ok:false,reason:"休養日の記録形式が正しくありません"};}
  else if(key===CONDITION_KEY){if(!readConditions(storage).canSave)return {ok:false,reason:"体調記録の形式が正しくありません"};}
  else if(key===COURSE_PRESET_KEY){if(!readCoursePresets(storage).ok)return {ok:false,reason:"保存コースの形式が正しくありません"};}
  else if(key===CONDITION_INSIGHTS_KEY){if(!loadConditionInsights(storage).ok)return {ok:false,reason:"振り返りの記録形式が正しくありません"};}
@@ -85,13 +87,14 @@ function validateEnvelope(o){
  if(!strictObject(o)||o.format!==PORTABLE_FORMAT||o.version!==PORTABLE_VERSION||
   !strictObject(o.local)||typeof o.exportedAt!=="string"||!Number.isFinite(Date.parse(o.exportedAt))||
   Object.keys(o).some(k=>!["format","version","exportedAt","local","gpsLegacy","gpsCurrent"].includes(k))||
-  Object.keys(o.local).length!==DATA_KEYS.length||DATA_KEYS.some(k=>!Object.hasOwn(o.local,k))||
+  ![DATA_KEYS.length,DATA_KEYS.length-1].includes(Object.keys(o.local).length)||
+  DATA_KEYS.filter(k=>k!==REST_DAY_KEY).some(k=>!Object.hasOwn(o.local,k))||
   Object.keys(o.local).some(k=>!DATA_KEYS.includes(k))||
   (o.gpsLegacy!==null&&!strictObject(o.gpsLegacy))||
   (o.gpsCurrent!==null&&!strictObject(o.gpsCurrent)))return {ok:false,reason:"バックアップの形式・バージョンが正しくありません"};
  const counts={};
  for(const key of DATA_KEYS){
-  const checked=checkLocal(key,o.local[key]);
+  const checked=checkLocal(key,o.local[key]===undefined&&key===REST_DAY_KEY?null:o.local[key]);
   if(!checked.ok)return checked;
   counts[key]=checked.count;
  }
@@ -103,7 +106,7 @@ function validateEnvelope(o){
   const valid=gpsV2.inspectGpsV2Backup(encoded(o.gpsCurrent));
   if(!valid.ok)return {ok:false,reason:"GPS結果の検証に失敗しました："+valid.reason};
  }
- return {ok:true,data:o,counts,gpsCount:(o.gpsLegacy?.records?.length||0)+(o.gpsCurrent?.summaries?.length||0)};
+ return {ok:true,data:{...o,local:{...o.local,[REST_DAY_KEY]:o.local[REST_DAY_KEY]??null}},counts,gpsCount:(o.gpsLegacy?.records?.length||0)+(o.gpsCurrent?.summaries?.length||0)};
 }
 export function inspectPortableBackup(text){
  if(typeof text!=="string"||new Blob([text]).size>PORTABLE_MAX_BYTES)return {ok:false,reason:"80MB以内のJSONファイルを選択してください"};
