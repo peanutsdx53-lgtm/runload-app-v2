@@ -26,7 +26,7 @@ try{
  for(const mode of [{name:"narrow",width:320,height:740},{name:"mobile",width:390,height:844},{name:"desktop",width:1440,height:900}]){
   const ctx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>errors.push(x.message));
-  const firstResponse=await page.goto("http://127.0.0.1:4190/#/settings",{waitUntil:"networkidle"});
+  const firstResponse=await page.goto("http://127.0.0.1:4190/index.html",{waitUntil:"load"});
   console.log('P0 NAV',engineName,mode.name,JSON.stringify({response:firstResponse?.status(),requested:firstResponse?.url(),playwrightPageUrl:page.url()}));
   const localEnv=await page.evaluate(()=>({origin:location.origin,href:location.href,ready:document.readyState,localStorage:(()=>{try{return !!localStorage}catch(e){return e.name}})()}));
   console.log('P0 BACKUP ORIGIN',engineName,mode.name,JSON.stringify(localEnv));
