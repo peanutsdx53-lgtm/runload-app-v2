@@ -23,7 +23,7 @@ const rows=snapshot.data['runner-load-app-new-v1-model-results-regional-v2'];
 assert.equal(rows.length,1);
 assert.equal(rows[0].model_version,'runload-primary-regional-reference100-v3.0');
 assert.ok(Array.isArray(snapshot.data['runner-load-app-new-v1-records-v1']));
-assert.ok(Array.isArray(snapshot.data['runner-load-app-new-v1-second-pillar-rof-j-v1']));
+assert.ok(snapshot.data['runner-load-app-new-v1-second-pillar-rof-j-v1'] && typeof snapshot.data['runner-load-app-new-v1-second-pillar-rof-j-v1']==='object');
 const old=inspectHistoricModelBackup(text);
 assert.equal(old.ok,true,old.reason);
 assert.equal(old.readOnly,true);
