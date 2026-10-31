@@ -182,3 +182,17 @@
  .cp-paper-stack{max-width:100%;overflow-x:auto}
  .cp-head h1{font-size:1.1rem;overflow-wrap:anywhere}
 }
+
+
+/* C09 cross-engine intrinsic sizing; preserves two mode columns where space
+ * permits, but moves to one on unusually narrow effective layout widths. */
+@media screen and (max-width:800px){
+ .cp-app .cp-mode-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}
+ .cp-app .cp-item-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr))}
+ .cp-app .cp-panel,.cp-app .cp-edit,.cp-app .cp-workspace{min-width:0;max-width:100%}
+ .cp-app .cp-panel-head,.cp-app .cp-head,.cp-app .cp-preview-top{flex-wrap:wrap}
+ .cp-app .cp-mode-button,.cp-app .cp-button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .cp-app .cp-select,.cp-app .cp-field{min-width:0;max-width:100%;box-sizing:border-box}
+ .cp-app .cp-preview-actions{min-width:0;max-width:100%;flex-wrap:wrap}
+ .cp-app .cp-paper-stack{max-width:100%;overflow-x:auto}
+}

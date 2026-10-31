@@ -291,3 +291,15 @@
  .gps-live-actions button,.gps-live-prep-grid select{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
  .gps-v35-metrics span,.gps-v35-metrics strong{overflow-wrap:anywhere}
 }
+
+
+/* C09 cross-engine fallback: intrinsic minmax tracks and the container
+ * relative clock size cope with zoom without changing the GPS data model. */
+@media(max-width:800px){
+ .gps-v35 .gps-live-steps{grid-template-columns:repeat(auto-fit,minmax(min(100%,105px),1fr))}
+ .gps-v35 .gps-live-prep-grid,.gps-v35 .gps-live-actions{grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr))}
+ .gps-v35 .gps-v35-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr))}
+ .gps-v35 .gps-live-time strong{font-size:clamp(1.15rem,15cqi,3rem);max-width:100%;overflow-wrap:anywhere}
+ .gps-v35 .gps-live-status,.gps-v35 .gps-live-section-head{flex-wrap:wrap}
+ .gps-v35 .gps-live-actions button,.gps-v35 .gps-live-prep-grid select{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+}
