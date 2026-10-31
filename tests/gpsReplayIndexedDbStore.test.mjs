@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
- prepareGpsV2Run,validGpsV2Summary,validGpsV2Detail,
+ prepareGpsV2Run,prepareGpsExperience,validGpsExperience,validGpsV2Summary,validGpsV2Detail,
  inspectGpsV2Backup,readGpsV2Summaries,saveGpsV2Run,
  GPS_V2_DB,GPS_V2_BACKUP_FORMAT
 } from '../ui/gpsReplayIndexedDbStore.js';
@@ -71,4 +71,24 @@ test('v2 IndexedDB unavailable fails closed without touching old v1 database',as
   assert.equal(r.ok,false);
   assert.notEqual(GPS_V2_DB,'runload-v2-gps-measurements-v1');
  }finally{if(prev)Object.defineProperty(globalThis,'indexedDB',prev);else delete globalThis.indexedDB;}
+});
+
+test('GPS ROF responses remain user reports on same GPS identity, 0 differs from missing, old summaries still valid',()=>{
+ const at='2026-10-31T11:40:00.000Z';
+ const experience={source:'USER_REPORTED',rofBefore:0,rofAfter:null,beforeCapturedAt:at,afterCapturedAt:null,memo:'前は疲れていなかった'};
+ const saved=prepareGpsV2Run(session(),{saveDetails:false,experience});
+ assert.equal(saved.ok,true,saved.reason);
+ assert.deepEqual(saved.summary.experience,experience);
+ assert.equal(validGpsV2Summary(saved.summary),true);
+ assert.equal(validGpsExperience(saved.summary.experience),true);
+ const old=prepareGpsV2Run(session(),{saveDetails:false});
+ assert.equal(old.ok,true,old.reason);
+ assert.equal('experience' in old.summary,false,'older records remain readable without invented self-report');
+ assert.equal(validGpsV2Summary(old.summary),true);
+ const notAnswered=prepareGpsV2Run(session(),{saveDetails:false,experience:{source:'USER_REPORTED',rofBefore:null,rofAfter:null,beforeCapturedAt:null,afterCapturedAt:null,memo:''}});
+ assert.equal(notAnswered.ok,true);
+ assert.equal(notAnswered.summary.experience.rofBefore,null);
+ assert.equal(notAnswered.summary.experience.rofAfter,null);
+ for(const invalid of [{...experience,rofBefore:11},{...experience,rofAfter:2.5},{...experience,memo:'x'.repeat(501)},{...experience,beforeCapturedAt:'invalid'},{...experience,rofBefore:null}])
+  assert.equal(prepareGpsV2Run(session(),{experience:invalid}).ok,false,JSON.stringify(invalid));
 });
