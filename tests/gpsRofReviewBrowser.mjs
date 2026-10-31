@@ -70,7 +70,8 @@ try{
   assert.equal(saved.detailSaved,false);
   await page.reload({waitUntil:'networkidle'});
   const result=page.locator('#runload-result-v4');
-  await result.locator('[data-pane="fatigue"]').waitFor();
+  await result.locator('[data-tab="fatigue"]').click();
+  await result.locator('[data-pane="fatigue"]').waitFor({state:'visible'});
   const fatigue=await result.locator('[data-pane="fatigue"]').innerText();
   assert.match(fatigue,/運動前/);assert.match(fatigue,/運動後/);
   assert.match(fatigue,/(^|\D)0(\D|$)/);assert.match(fatigue,/(^|\D)7(\D|$)/);
