@@ -178,3 +178,18 @@
  .sm-page .sm-result{min-width:0}
  .sm-page .sm-number{font-size:clamp(.68rem,3.2vw,.81rem);overflow-wrap:anywhere}
 }
+
+
+/* C09 / layer-2 reflow: keep the information content and approved colors
+ * intact when 200% CSS zoom reduces effective content width below 250px. */
+.sm-page{container-name:runload-sm-narrow;container-type:inline-size}
+@container runload-sm-narrow (max-width:250px){
+ .sm-panel,.sm-inner,.sm-gps-evidence{padding:8px;min-width:0}
+ .sm-steps,.sm-form-grid,.sm-two,.sm-results-grid,.sm-gps-evidence-grid{grid-template-columns:minmax(0,1fr)}
+ .sm-step-head,.sm-scenario-title,.sm-inner-heading{flex-wrap:wrap}
+ .sm-result,.sm-result-bottom,.sm-field,.sm-full-label,.sm-select-wrap,.sm-input-wrap{min-width:0;max-width:100%}
+ .sm-page .sm-select-wrap select,.sm-page .sm-input-wrap input{max-width:100%;min-width:0;padding:8px}
+ .sm-distance{font-size:1.1rem;overflow-wrap:anywhere}
+ .sm-result-heading,.sm-number{min-width:0;overflow-wrap:anywhere}
+ .sm-steps span{white-space:normal;overflow-wrap:anywhere}
+}

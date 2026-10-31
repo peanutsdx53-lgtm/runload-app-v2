@@ -57,3 +57,28 @@ button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button:f
 .rr-page .rr-save-required-warning{margin:10px 0 0;color:#ffdfb6;font-size:12px;line-height:1.65}
 .rr-page .rr-gait-warning strong{font-size:15px}
 @media(max-width:600px){.rr-page .rr-required-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.rr-page .rr-required-status>span{justify-content:center;text-align:center;font-size:10px;padding:7px 3px}.rr-page .rr-save-required-warning{font-size:11px}}
+
+
+/* C09 / layer-2 reflow: a CSS-zoomed 390px viewport has ~195 CSS px
+ * of usable layout width. Preserve standard mobile cards and colors. */
+.rr-page{container-name:runload-rr-narrow;container-type:inline-size}
+@container runload-rr-narrow (max-width:250px){
+ .rr-heading-left,.rr-panel,.rr-date-line,.rr-foot,.rr-row{min-width:0}
+ .rr-heading{align-items:flex-start}
+ .rr-heading h1{font-size:1.05rem;overflow-wrap:anywhere}
+ .rr-date-line{flex-direction:column;align-items:stretch;gap:8px;padding:8px}
+ .rr-date-main{font-size:1rem;overflow-wrap:anywhere}
+ .rr-date-edit,.rr-origin{white-space:normal;overflow-wrap:anywhere}
+ .rr-panel-label,.rr-summary-head{flex-wrap:wrap}
+ .rr-hero,.rr-summary,.rr-alert{padding:9px}
+ .rr-metrics{grid-template-columns:minmax(0,1fr)}
+ .rr-metric,.rr-metric.pace{grid-column:auto;display:block;min-width:0;padding:9px}
+ .rr-metric strong,.rr-metric.pace strong{font-size:1.25rem}
+ .rr-gait-options,.rr-required-status{grid-template-columns:minmax(0,1fr)}
+ .rr-gait-options button,.rr-row{overflow-wrap:anywhere}
+ .rr-row-desc{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+ .rr-row-state{white-space:normal;overflow-wrap:anywhere}
+ .rr-foot{flex-direction:column;align-items:stretch;padding:9px}
+ .rr-foot-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%;min-width:0}
+ .rr-page .rr-foot-actions .rr-save,.rr-foot-actions .rr-return{min-width:0;width:100%;white-space:normal;overflow-wrap:anywhere}
+}

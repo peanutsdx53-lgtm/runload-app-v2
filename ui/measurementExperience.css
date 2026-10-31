@@ -275,3 +275,19 @@
   overflow-wrap:anywhere;
  }
 }
+
+
+/* C09: container-width guard for CSS zoom:2. Ordinary mobile layouts
+ * remain unchanged; the research measurement and save contracts remain intact. */
+.gps-v35{container-name:runload-gps-narrow;container-type:inline-size}
+@container runload-gps-narrow (max-width:250px){
+ .gps-v35-panel{padding:10px;min-width:0}
+ .gps-live-steps,.gps-live-prep-grid,.gps-v35-metrics,.gps-live-actions{grid-template-columns:minmax(0,1fr)}
+ .gps-v35-metrics>div:first-child,.gps-live-actions--measuring .gps-action-finish{grid-column:auto}
+ .gps-live-steps span{white-space:normal;overflow-wrap:anywhere;padding:7px}
+ .gps-live-time strong{font-size:1.35rem;letter-spacing:-.06em;overflow-wrap:anywhere}
+ .gps-v35 .gps-live-time strong{font-size:1.35rem}
+ .gps-live-status,.gps-live-section-head,.gps-v2-header{min-width:0;flex-wrap:wrap}
+ .gps-live-actions button,.gps-live-prep-grid select{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .gps-v35-metrics span,.gps-v35-metrics strong{overflow-wrap:anywhere}
+}

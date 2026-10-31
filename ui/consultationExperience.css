@@ -166,3 +166,19 @@
 @media screen and (max-width:800px){
  .cp-app .cp-select,.cp-app .cp-field{font-size:16px!important;line-height:1.5}
 }
+
+
+/* C09 / layer-2 reflow: source-preserving report controls on a very
+ * narrow effective CSS viewport under 200% CSS zoom. */
+.cp-app .main-content{container-name:runload-cp-narrow;container-type:inline-size}
+@container runload-cp-narrow (max-width:250px){
+ .cp-workspace,.cp-edit{display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
+ .cp-panel,.cp-preview-panel{min-width:0;width:100%;padding:8px}
+ .cp-mode-grid,.cp-item-grid{grid-template-columns:minmax(0,1fr)}
+ .cp-mode-button,.cp-select,.cp-field{box-sizing:border-box;min-width:0;max-width:100%}
+ .cp-panel-head,.cp-preview-top,.cp-head{flex-wrap:wrap;min-width:0}
+ .cp-preview-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%}
+ .cp-button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .cp-paper-stack{max-width:100%;overflow-x:auto}
+ .cp-head h1{font-size:1.1rem;overflow-wrap:anywhere}
+}
