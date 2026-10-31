@@ -1189,6 +1189,15 @@ function recordExtras(){
         return;
       }
     }
+    const e4Commit=event.target.closest("[data-e4-commit]");
+    if(e4Commit){
+      const result=environmentExperience.applyEnvironmentSelections(d,environmentUi);
+      if(!result.ok)environmentUi.notice=result.reason;
+      const note=app.querySelector('[data-e4-page] [data-draft="environmentNote"]');
+      if(note&&result.ok)note.value=d.environmentNote;
+      environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d,environmentUi);
+      return;
+    }
     const weather=event.target.closest("[data-e4-weather]");
     if(weather){environmentExperience.toggleWeather(environmentUi,weather.dataset.e4Weather);environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),d,environmentUi);return;}
     const flag=event.target.closest("[data-e4-flag]");
