@@ -45,12 +45,32 @@ function database(){
  opening=guarded;return guarded;
 }
 const allowedActivity=a=>['RUNNING','JOGGING','WALK','MIXED'].includes(a);
+/** Optional self-report saved with GPS identity; not GPS-measured evidence.
+ * Older v2 summaries without this field remain valid and unchanged. */
+const validGpsRof=x=>x===null||(Number.isInteger(x)&&x>=0&&x<=10);
+const validCaptured=x=>x===null||(typeof x==='string'&&x.length<=40&&Number.isFinite(Date.parse(x))&&new Date(x).toISOString()===x);
+export function validGpsExperience(e){
+ return !!e&&e.source==='USER_REPORTED'&&validGpsRof(e.rofBefore)&&validGpsRof(e.rofAfter)&&
+ validCaptured(e.beforeCapturedAt)&&validCaptured(e.afterCapturedAt)&&
+ (e.rofBefore!==null||e.beforeCapturedAt===null)&&
+ (e.rofAfter!==null||e.afterCapturedAt===null)&&
+ typeof e.memo==='string'&&e.memo.length<=500&&
+ Object.keys(e).sort().join(',')==='afterCapturedAt,beforeCapturedAt,memo,rofAfter,rofBefore,source';
+}
+export function prepareGpsExperience(x){
+ if(x===undefined||x===null)return {ok:true,experience:null};
+ const e={source:'USER_REPORTED',rofBefore:x.rofBefore??null,rofAfter:x.rofAfter??null,
+  beforeCapturedAt:x.beforeCapturedAt??null,afterCapturedAt:x.afterCapturedAt??null,
+  memo:x.memo??''};
+ return validGpsExperience(e)?{ok:true,experience:e}:{ok:false,reason:'GPSの疲労感・本人メモの内容を確認してください'};
+}
 export function validGpsV2Summary(s){
  return !!s&&s.schema===2&&/^gps-v2-[0-9a-z-]{8,64}$/.test(s.id)
   &&/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&allowedActivity(s.activity)
   &&finite(s.distanceKm,.01,1000)&&finite(s.activeSeconds,1,1e6)
   &&finite(s.accepted,2,1e7)&&finite(s.rejected,0,1e7)
   &&typeof s.createdAt==='string'&&typeof s.detailSaved==='boolean'
+  &&(s.experience===undefined||validGpsExperience(s.experience))
   &&s.finalReference&&typeof s.finalReference==='object'
   &&Array.isArray(s.finalReference.regions)&&s.finalReference.regions.length===12;
 }
@@ -74,7 +94,9 @@ const shortRows=rows=>rows.map(r=>({
  regionId:r.regionId,value:r.calculationState==='CALCULATED'&&good(r.value)?r.value:null,
  calculationState:r.calculationState,reasonCode:r.reasonCode||null
 }));
-export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISOString().slice(0,10)}={}){
+export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISOString().slice(0,10),experience=null}={}){
+ const subjective=prepareGpsExperience(experience);
+ if(!subjective.ok)return subjective;
  const checked=prepareGpsRun(session,{saveRoute:saveDetails,date});
  if(!checked.ok)return checked;
  const old=checked.record;
@@ -83,6 +105,7 @@ export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISO
  const ref=evaluateGpsReplayReference({activity:old.activity,speedMps:avg});
  const energy=estimateGpsEnergy(session);
  const summary={schema:2,id,activity:old.activity,date:old.date,createdAt:old.createdAt,
+  ...(subjective.experience?{experience:subjective.experience}:{}),
   distanceKm:old.distanceKm,activeSeconds:old.activeSeconds,accepted:old.accepted,
   rejected:old.rejected,detailSaved:saveDetails,
   energyEstimate:energy.ok?energy:null,
