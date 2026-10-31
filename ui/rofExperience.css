@@ -147,3 +147,15 @@
 @media(max-width:380px){
  #app .rv4-page .rv4-run-times-grid{grid-template-columns:minmax(0,1fr)}
 }
+
+/* The response-time descriptor must not float on or intersect an inner fieldset
+   border at 320px: a standard contained section with heading replaces legend. */
+#app .rv4-page .rv4-timing{
+ box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+ width:100%;max-width:100%;min-width:0;margin:0;padding:12px 0 2px;
+ background:transparent;border:0;min-inline-size:0
+}
+#app .rv4-page .rv4-timing h3{margin:0;color:#e7f9fa;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#app .rv4-page .rv4-timing label{min-width:0;max-width:100%}
+#app .rv4-page .rv4-timing select,#app .rv4-page .rv4-timing input{box-sizing:border-box;min-width:0;max-width:100%;width:100%;font-size:16px}
+#app .rv4-page .rv4-end-day-caption[hidden]{display:none}

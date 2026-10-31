@@ -883,8 +883,13 @@ function recordExtras(){
       if(output)output.textContent=value||'時刻を選択';
       const day=app.querySelector('.rv4-end-day-caption');
       const computed=state.recordDraft.exerciseTimingDraft;
-      if(day&&computed?.endedLocal)day.textContent='終了日：'+computed.endedLocal.slice(0,10).replaceAll('-','/')+
+      if(day){
+        const show=!!computed?.endedLocal;
+        day.hidden=!show;
+        if(show)day.textContent='終了日：'+computed.endedLocal.slice(0,10).replaceAll('-','/')+
           (computed.endDayOffset?'（翌日）':'（当日）');
+        else day.textContent='';
+      }
       return;
     }
     if(event.target.matches("[data-rof-v4-timing]")){
