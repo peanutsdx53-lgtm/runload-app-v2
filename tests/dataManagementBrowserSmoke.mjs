@@ -27,7 +27,9 @@ try{
   const ctx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>errors.push(x.message));
   await page.goto("http://127.0.0.1:4190/#/settings",{waitUntil:"networkidle"});
-  await page.waitForFunction(()=>location.origin==="http://127.0.0.1:4190"&&document.readyState==="complete");
+  const localEnv=await page.evaluate(()=>({origin:location.origin,href:location.href,ready:document.readyState,localStorage:(()=>{try{return !!localStorage}catch(e){return e.name}})()}));
+  console.log('P0 BACKUP ORIGIN',engineName,mode.name,JSON.stringify(localEnv));
+  assert.equal(localEnv.origin,'http://127.0.0.1:4190','test must be on an actual trusted local server before seeding the backup');
   await page.evaluate(()=>{
    localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));
    localStorage.setItem("runload-v2-user-profile-v1",JSON.stringify({nickname:"テスト",purpose:"health",heightCm:172,weightKg:65,ageBand:"18-29"}));
