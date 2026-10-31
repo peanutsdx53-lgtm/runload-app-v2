@@ -52,6 +52,7 @@ try{
    assert.ok(rect.top>=geometry.panel.top-1&&rect.bottom<=geometry.panel.bottom+1,selector+' vertical boundary');
   }
   await page.screenshot({path:resolve(dest,engine+'-'+width+'-expanded.png'),animations:'disabled'});
+  await page.screenshot({path:resolve(dest,engine+'-'+width+'-full.png'),animations:'disabled',fullPage:true});
   await panel.locator('[data-rof-run-start]').fill('23:55');
   await panel.locator('[data-rof-run-end]').fill('00:15');
   await panel.locator('.rv4-end-day > summary').click();
