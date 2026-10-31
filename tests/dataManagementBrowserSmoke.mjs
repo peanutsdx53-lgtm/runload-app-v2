@@ -3,7 +3,8 @@ import {createServer} from "node:http";
 import {mkdir,readFile} from "node:fs/promises";
 import {resolve,dirname,extname,sep} from "node:path";
 import {fileURLToPath} from "node:url";
-import {chromium} from "playwright";
+import {chromium,webkit} from "playwright";
+const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
 const server=createServer(async(req,res)=>{
@@ -17,7 +18,8 @@ const server=createServer(async(req,res)=>{
  }catch{res.statusCode=404;res.end("Not found");}
 });
 await new Promise(ok=>server.listen(4190,"127.0.0.1",ok));
-const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+const browserType=engineName==='webkit'?webkit:chromium;
+const browser=await browserType.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 const url="http://127.0.0.1:4190/#/settings";
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
