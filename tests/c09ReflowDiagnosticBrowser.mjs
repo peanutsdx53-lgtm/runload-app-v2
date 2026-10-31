@@ -42,10 +42,11 @@ try{
   const layout=await page.evaluate(()=>{
    const width=innerWidth;
    const all=[...document.querySelectorAll('body *')];
-   const offenders=all.filter(e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.right>width+3&&!e.closest('.mobile-nav')})
+   const offenders=all.filter(e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.right>width+3})
     .sort((a,b)=>b.getBoundingClientRect().right-a.getBoundingClientRect().right).slice(0,15)
     .map(e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,cls:typeof e.className==='string'?e.className.slice(0,120):'',text:(e.innerText||'').trim().slice(0,45),right:Math.round(r.right),width:Math.round(r.width),scroll:e.scrollWidth,client:e.clientWidth}});
-   return {innerWidth:width,scrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,offenders};
+   const overflowing=all.filter(e=>{const st=getComputedStyle(e);return e.clientWidth>0&&e.scrollWidth>e.clientWidth+3&&st.overflowX!=='auto'&&st.overflowX!=='scroll'}).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,12).map(e=>({tag:e.tagName,cls:typeof e.className==='string'?e.className.slice(0,100):'',scroll:e.scrollWidth,client:e.clientWidth,overflow:getComputedStyle(e).overflowX}));
+   return {innerWidth:width,scrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,offenders,overflowing};
   });
   const result={engine:engineName,screen,route,present,layout,errors};
   reports.push(result);
