@@ -19,6 +19,7 @@ on:
       - 'tests/gpsDynamicBrowserSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
+      - 'tests/c09ReflowDiagnosticBrowser.mjs'
       - '.github/workflows/ui-browser.yml'
   push:
     branches: [main]
@@ -40,6 +41,7 @@ on:
       - 'tests/livePagesSmoke.mjs'
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
+      - 'tests/c09ReflowDiagnosticBrowser.mjs'
       - 'ui/resultExperience.js'
       - 'ui/resultExperience.css'
       - '.github/workflows/ui-browser.yml'
