@@ -215,3 +215,14 @@
  .sm-page .sm-select-wrap{min-width:0;max-width:100%;overflow:hidden}
  .sm-page .sm-select-wrap select{display:block;box-sizing:border-box;min-width:0;max-width:100%;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* Current S18: when CSS zoom effectively leaves only ~200 CSS px, the
+   optional source chooser must not conceal choices in a 126px-wide sideways
+   rail. Keep the ordinary handheld horizontal chooser unchanged. */
+@container runload-sm-narrow (max-width:250px){
+ .sm-page .sm-source-selector{overflow:visible;max-width:100%;min-width:0}
+ .sm-page .sm-source-selector .sm-source-row{display:grid;grid-template-columns:minmax(0,1fr);overflow:visible;scroll-snap-type:none;gap:6px;min-width:0}
+ .sm-page .sm-source-selector .sm-source-option,
+ .sm-page .sm-source-selector .sm-source-option:disabled{width:100%;min-width:0;max-width:100%;flex-basis:auto;white-space:normal;overflow-wrap:anywhere;scroll-snap-align:none;min-height:48px}
+ .sm-page .sm-source-selector .sm-source-text{min-width:0;white-space:normal;overflow-wrap:anywhere}
+}

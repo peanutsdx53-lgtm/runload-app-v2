@@ -77,6 +77,20 @@ try{
   reports.push(result);
   assert.equal(errors.length,0,engineName+' '+screen+' no uncaught browser errors');
   assert.ok(present>0,engineName+' '+screen+' target screen must exist');
+  if(screen==='S18'){
+   const sourceOptions=layout.offenders.filter(x=>x.cls?.includes('sm-source-option'));
+   assert.equal(sourceOptions.length,0,engineName+' S18: optional source buttons are cropped outside the 200% viewport');
+   const sourceLayout=await page.locator('.sm-source-row').evaluate(el=>({
+    display:getComputedStyle(el).display,columns:getComputedStyle(el).gridTemplateColumns,
+    clipped:el.scrollWidth>el.clientWidth+3,buttons:[...el.querySelectorAll('button')].map(b=>{
+     const r=b.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};
+    })
+   }));
+   assert.equal(sourceLayout.display,'grid',engineName+' S18 must show source choices vertically at 200%');
+   assert.equal(sourceLayout.clipped,false,engineName+' S18 all source choices remain operable');
+   assert.ok(sourceLayout.buttons.every(b=>b.left>=-3&&b.right<=layout.innerWidth+3),
+     engineName+' S18 source choices must stay in the visible viewport: '+JSON.stringify(sourceLayout));
+  }
   // This first source-matched CSS zoom check is diagnostic until all recorded regressions are resolved.
   console.log('C09_200_DIAGNOSTIC',JSON.stringify(result));
   if(!present)console.log('::warning::C09 '+engineName+' '+screen+' selector not present: '+selector);
