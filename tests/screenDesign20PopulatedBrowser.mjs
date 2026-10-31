@@ -34,7 +34,7 @@ try{
   const first=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});
   const fresh=await first.newPage();
   const errs=[];fresh.on('pageerror',e=>errs.push(e.message));
-  await fresh.goto(host+'home',{waitUntil:'domcontentloaded'});
+  await fresh.goto(host+'home',{waitUntil:'networkidle'});
   await fresh.locator('.fu-shell').waitFor();
   assert.equal(await fresh.locator('.fu-shell').count(),1,'S01 real onboarding modal');
   assert.match(await fresh.locator('#onboard-title').innerText(),/表示言語/);
@@ -51,7 +51,7 @@ try{
   });
   const page=await ctx.newPage();
   const jsErrors=[];page.on('pageerror',e=>jsErrors.push(e.message));
-  await page.goto(host+'home',{waitUntil:'domcontentloaded'});
+  await page.goto(host+'home',{waitUntil:'networkidle'});
   const run=await page.evaluate(async()=>{
    const [canonical,manual]=await Promise.all([import('./ui/manualRunCanonical.js'),import('./ui/manualRunStore.js')]);
    const init=await canonical.refresh();if(!init.ok)throw Error(init.reason);
@@ -65,7 +65,7 @@ try{
   });
   // Each case first asserts actual state/content and then viewport consistency.
   const verify=async(screen,route,selector,assertContent=async()=>{})=>{
-   if(route)await page.goto(host+route,{waitUntil:'domcontentloaded'});
+   if(route)await page.goto(host+route,{waitUntil:'networkidle'});
    const target=page.locator(selector).first();
    await target.waitFor({timeout:12000});
    await assertContent(target);
@@ -81,7 +81,7 @@ try{
   await verify('S05','record-course','main',async t=>{assert.match(await t.innerText(),/コース|路面|坂/);});
   await verify('S06','record-rof','main',async t=>{assert.match(await t.innerText(),/ROF-J|疲労感/);});
   await verify('S07','record-more','main',async t=>{assert.match(await t.innerText(),/追加情報|身体|メモ|環境/);});
-  await page.goto(host+'record',{waitUntil:'domcontentloaded'});
+  await page.goto(host+'record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="distance"]').fill('5');
   await page.locator('[data-draft="minutes"]').fill('30');
   await page.locator('[data-manual-gait="RUNNING"]').click();
