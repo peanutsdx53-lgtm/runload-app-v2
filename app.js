@@ -1170,7 +1170,13 @@ function recordExtras(){
       else if(action==='resume'){
         if(gps.state.phase==='paused'){gpsConsentAction='resume';render();app.querySelector('[data-gps-consent-confirm]')?.focus();return;}
       }
-      else if(action==='finish'){if(gps.finish()){releaseGpsWakeLock();location.hash='#/gps-review';return;}releaseGpsWakeLock();}
+      else if(action==='finish'){
+        if(gps.finish()){
+          releaseGpsWakeLock();
+          if(gps.state.distanceM>=10&&gps.state.accepted>=2){location.hash='#/gps-review';return;}
+        }
+        releaseGpsWakeLock();
+      }
       else if(action==='discard'){gps.discard();releaseGpsWakeLock();gpsController=null;gpsSelfReport=emptyGpsReport();location.hash='#/record-start';return;}
       else if(action==='review'){if(gps.state.phase==='finished'){location.hash='#/gps-review';return;}}
       else if(action==='save'){

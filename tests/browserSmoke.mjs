@@ -1268,7 +1268,8 @@ try{
   await page.waitForTimeout(300);
   await page.locator('[data-gps-action="finish"]').click();
   if(mode.name==='desktop')await page.waitForFunction(()=>window.__gpsWakeReleases===3,null,{timeout:8000});
-  assert.equal(await page.locator('[data-gps-live-page]').getAttribute('data-phase'),'finished');
+  await page.locator('[data-gps-review]').waitFor();
+  assert.match(await page.locator('.gps-review-facts').innerText(),/GPSで取得した記録/);
   assert.equal(await page.locator('[data-gps-save-route]').isChecked(),false,'precise position track must be opt-in');
   assert.equal(await page.locator('.gps-flag-note-card').count(),1);
   await page.locator('[data-gps-flag-note]').fill('折り返し地点');
