@@ -167,6 +167,23 @@ try{
    await page.goto(base+'#/home',{waitUntil:'domcontentloaded'});
    assert.match(await page.locator('.hx-discovery-note').innerText(),/通信なしで次回の確認事項を追記/);
   }
+  // F02: an explicit user action records transient weather selections in
+  // the existing textual self-report, with no undocumented science conversion.
+  await page.goto(base+'#/record-environment',{waitUntil:'domcontentloaded'});
+  await page.locator('[data-e4-page]').waitFor();
+  await page.locator('[data-e4-weather="SUN"]').click();
+  await page.locator('[data-e4-flag="WIND"]').click();
+  const beforeWeather=await page.locator('[data-draft="environmentNote"]').inputValue();
+  assert.equal(beforeWeather,'','weather selection alone must not record a fact');
+  await page.locator('[data-e4-commit]').click();
+  const noteAfter=await page.locator('[data-draft="environmentNote"]').inputValue();
+  assert.match(noteAfter,/【本人申告の環境選択】天候：晴れ、風が強い/);
+  await page.locator('[data-e4-commit]').click();
+  assert.equal(await page.locator('[data-draft="environmentNote"]').inputValue(),noteAfter,'repeated explicit action does not duplicate text');
+  await page.locator('[data-e4-done]').click();
+  await page.locator('[data-draft="date"]').waitFor();
+  await page.locator('a[href="#/record-environment"]').click();
+  assert.equal(await page.locator('[data-draft="environmentNote"]').inputValue(),noteAfter,'reported context survives screen navigation before save');
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
   await context.close();
  }
