@@ -199,7 +199,7 @@
  * handheld widths and reflow only where effective space cannot fit them. */
 @media(max-width:650px){
  .sm-page .sm-steps{grid-template-columns:repeat(auto-fit,minmax(min(100%,75px),1fr))}
- .sm-page .sm-form-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
+ .sm-page .sm-form-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,105px),1fr))}
  .sm-page .sm-results-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
  .sm-page .sm-gps-evidence-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
  .sm-page .sm-select-wrap,.sm-page .sm-input-wrap,.sm-page .sm-full-label{min-width:0;max-width:100%;box-sizing:border-box}
