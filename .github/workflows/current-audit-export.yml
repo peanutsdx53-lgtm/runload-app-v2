@@ -1,5 +1,5 @@
 name: Current audit source export (temporary review branch)
-# batch18 stable-render observational recheck
+# batch18 independent correction for CSS zoom inheritance and E2E repeatability
 on:
   push:
     branches:
@@ -60,10 +60,13 @@ jobs:
         run: |
           set +e
           for test in twoRunCycleBrowserSmoke manualRunLockBrowserSmoke offlineShellBrowserSmoke interpretationBrowserSmoke dataManagementBrowserSmoke; do
-            node "tests/${test}.mjs" > "audit-output/${test}.log" 2>&1
-            status=$?
-            echo "${test},${status}" | tee -a audit-output/e2e-exit-status.csv
-            tail -4 "audit-output/${test}.log"
+            for attempt in 1 2; do
+              node "tests/${test}.mjs" > "audit-output/${test}-attempt${attempt}.log" 2>&1
+              status=$?
+              echo "${test},${attempt},${status}" | tee -a audit-output/e2e-exit-status.csv
+              tail -4 "audit-output/${test}-attempt${attempt}.log"
+              [ "$status" -eq 0 ] && break
+            done
           done
       - name: Diagnose current horizontal overflow DOM sources
         if: always()
