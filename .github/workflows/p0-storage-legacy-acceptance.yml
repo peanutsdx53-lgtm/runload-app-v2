@@ -1,0 +1,68 @@
+name: P0 storage and legacy non-destruction
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/manualRunCanonical.js'
+      - 'ui/manualRunStore.js'
+      - 'ui/dataManagement.js'
+      - 'ui/historicModelReadOnlyAudit.js'
+      - 'tests/manualRunLockBrowserSmoke.mjs'
+      - 'tests/dataManagementBrowserSmoke.mjs'
+      - 'tests/p0FrozenLegacyFixtureReplay.mjs'
+      - '.github/workflows/p0-storage-legacy-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  storage-unit-and-archived-fixture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin old app source for read-only generated fixture
+        uses: actions/checkout@v4
+        with:
+          repository: peanutsdx53-lgtm/runload-app
+          ref: 23ca1f87a62f4d6356337a18e2738fadd034968a
+          path: archived-readonly
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test independent save, corruption, quota, rollback, ROF and historic read-only contracts
+        run: |
+          node --test tests/dataManagement.test.mjs tests/manualRunStore.test.mjs tests/manualRunLock.test.mjs tests/storageRaceAudit.test.mjs tests/historicModelReadOnlyAudit.test.mjs tests/rofExperience.test.mjs
+      - name: Replay source-generated historical v3.0 bytes with SHA and read-only rejection
+        run: node tests/p0FrozenLegacyFixtureReplay.mjs archived-readonly/tests/fixtures/a03ActualHistoricV30Backup.json
+  storage-browser-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser for race and recovery
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Run two-tab concurrent saves, IDB fault injection, rollback and legacy isolation
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/manualRunLockBrowserSmoke.mjs
+      - name: Run actual browser backup, non-destructive restore and deletion controls
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/dataManagementBrowserSmoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-storage-${{ matrix.engine }}-screens
+          path: screenshots/data-management-*.png
+          if-no-files-found: ignore
+          retention-days: 14
