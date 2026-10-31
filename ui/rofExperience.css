@@ -97,3 +97,28 @@
  .rv4-page .rv4-next-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%}
  .rv4-page .rv4-next-actions button,.rv4-page .rv4-next-actions .rv4-done{width:100%;justify-self:stretch;max-width:100%;text-align:center}
 }
+
+/* S06 condition-style native time pickers. Native tap handling on iOS/Android,
+   editable controls on desktop, strict containment at 320/390 CSS pixels. */
+#app .rv4-page .rv4-run-times-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+#app .rv4-page .rv4-run-time-card{min-width:0;max-width:100%;display:grid;gap:8px}
+#app .rv4-page .rv4-run-time-card>strong{font-size:13px}
+#app .rv4-page .rv4-run-time-picks{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+#app .rv4-page .rv4-run-time-picks label{min-width:0;max-width:100%;display:grid;gap:5px;font-size:12px}
+#app .rv4-page .rv4-run-time-picks input[type=date]{display:block;box-sizing:border-box;max-width:100%;min-width:0;width:100%;height:46px;padding:5px;border-radius:9px;border:1px solid #6699a6;background:#092b3a;color:#f4ffff;color-scheme:dark;font-size:16px}
+#app .rv4-page .rv4-native-time{display:flex;position:relative;align-items:center;justify-content:space-between;gap:5px;box-sizing:border-box;width:100%;max-width:100%;min-width:0;height:48px;padding:0 10px;border:1px solid #6699a6;border-radius:9px;background:#092b3a;color:#f4ffff}
+#app .rv4-page .rv4-native-time>span{min-width:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
+#app .rv4-page .rv4-native-time svg{width:19px;min-width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;pointer-events:none}
+#app .rv4-page .rv4-native-time input[type=time]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;min-width:0;max-width:100%;padding:0;border:0;font-size:16px;color-scheme:dark}
+#app .rv4-page .rv4-native-time:focus-within{outline:2px solid #7aedeb;outline-offset:2px}
+@media (min-width:801px) and (hover:hover) and (pointer:fine){
+ #app .rv4-page .rv4-native-time>span,#app .rv4-page .rv4-native-time svg{display:none}
+ #app .rv4-page .rv4-native-time input[type=time]{position:relative;opacity:1;inset:auto;padding:0 5px;background:transparent;color:#f4ffff}
+}
+@media(max-width:600px){
+ #app .rv4-page .rv4-run-times-grid{grid-template-columns:minmax(0,1fr)}
+ #app .rv4-page .rv4-run-time-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+ #app .rv4-page .rv4-run-time-picks{grid-template-columns:minmax(0,1fr)}
+}

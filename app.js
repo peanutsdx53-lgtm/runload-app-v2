@@ -848,13 +848,18 @@ function recordExtras(){
       homeExperience.updateSleepForm(event.target.closest("[data-condition-form]"));
       return;
     }
-    if(event.target.matches("[data-rof-run-start],[data-rof-run-end]")){
-     const start=event.target.matches("[data-rof-run-start]");
-     const old=state.recordDraft.exerciseTimingDraft||{};
-     const local=event.target.value;
+    if(event.target.matches("[data-rof-run-start],[data-rof-run-end],[data-rof-run-start-date],[data-rof-run-end-date]")){
+     const start=event.target.hasAttribute('data-rof-run-start')||event.target.hasAttribute('data-rof-run-start-date');
+     const key=start?'start':'end',prefix=start?'started':'ended';
+     const timeInput=app.querySelector('[data-rof-run-'+key+']');
+     const dateInput=app.querySelector('[data-rof-run-'+key+'-date]');
+     const time=timeInput?.value||'',date=dateInput?.value||'';
+     const local=/^\\d{4}-\\d{2}-\\d{2}$/.test(date)&&/^\\d{2}:\\d{2}$/.test(time)?date+'T'+time:'';
      const parsed=local&&!Number.isNaN(Date.parse(local))?new Date(local).toISOString():null;
-     state.recordDraft.exerciseTimingDraft={...old,[start?'startedAt':'endedAt']:parsed,
-      [start?'startedLocal':'endedLocal']:local};
+     const old=state.recordDraft.exerciseTimingDraft||{};
+     state.recordDraft.exerciseTimingDraft={...old,[prefix+'At']:parsed,[prefix+'Local']:local};
+     const output=app.querySelector('[data-rof-time-display="'+key+'"]');
+     if(output)output.textContent=time||'時刻を選択';
      return;
     }
     if(event.target.matches("[data-rof-v4-timing]")){
@@ -1406,14 +1411,6 @@ function recordExtras(){
     if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
     if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){explorationUi.selected=cat;explorationUi.topic=topic;explorationUi.tab="field";explorationUi.modal="";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
-    const rofNext=event.target.closest("[data-rof-v4-next-phase]");
-    if(rofNext){
-      rofUi.metaOpen=!!app.querySelector('.rv4-optional-meta')?.open;
-      rofExperience.setRofPhase(rofUi,rofNext.dataset.rofV4NextPhase,state.recordDraft);
-      render();app.querySelector('[data-rof-v4-phase="'+rofUi.phase+'"]')?.focus();
-      app.querySelector('.rv4-tabs')?.scrollIntoView({block:'start',behavior:'instant'});
-      return;
-    }
     const rofTab=event.target.closest("[data-rof-v4-phase]");
     if(rofTab){
       rofUi.metaOpen=!!app.querySelector('.rv4-optional-meta')?.open;

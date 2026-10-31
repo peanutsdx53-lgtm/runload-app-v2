@@ -74,3 +74,5 @@ test('S06: optional metadata collapses by default while phase switching remains 
  assert.match(next,/data-rof-v4-next-phase="before"/);
  assert.match(next,/まだ選択されていません/);
 });
+
+test('S06 native condition-style time inputs use date+time separately, no overflowing datetime-local',()=>{const v=rofPage({rofBefore:null,rofAfter:null,exerciseTimingDraft:{startedLocal:'2026-10-30T10:20',endedLocal:''}},createRofUiState());assert.match(v,/data-rof-run-start-date/);assert.match(v,/data-rof-run-end-date/);assert.match(v,/type="time" data-rof-run-start/);assert.match(v,/value="10:20"/);assert.doesNotMatch(v,/type="datetime-local" data-rof-run-start/);assert.doesNotMatch(v,/data-rof-v4-next-phase/);});
