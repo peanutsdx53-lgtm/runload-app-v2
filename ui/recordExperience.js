@@ -54,7 +54,7 @@ export function manualPage(state){
  '<p class="rv-muted">休養日は距離・時間を入力しません。必要に応じてメモを追加できます。</p>'}
  </section><section class="rv-panel rv-secondary"><h2 class="rv-section-title">追加情報 <small>任意</small></h2>
  <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${icon}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
- <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">手入力した走行は確認後に端末へ保存できます。身体の部位別の文献参考値は、保存後に活動種別と速度の適用範囲が確認できる場合に表示します。</p></div></div>`;
+ <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">${run?'手入力した走行は確認後に端末へ保存できます。身体の部位別の文献参考値は、保存後に活動種別と速度の適用範囲が確認できる場合に表示します。':'休養日は日付と任意の本人メモを保存し、履歴から見返せます。休養日の走行結果や身体部位別文献参考値は表示しません。'}</p></div></div>`;
 }
 export function recordMethodPage(){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
