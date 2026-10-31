@@ -236,7 +236,7 @@ export function trendCard(preview,savedRuns={ok:true,records:[]}){
   return '<section class="hx-card hx-optional">'+shell+
    '<p role="alert">走行履歴を確認できません。記録が0件という意味ではありません。'+escape(savedRuns?.reason||'保存領域を確認してください。')+'</p></section>';
  const actual=savedRuns.records.filter(r=>r?.source==='manual'&&r?.type==='run'&&typeof r.id==='string'&&
-  /^\\d{4}-\\d{2}-\\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
+  /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Number.isFinite(r.distanceKm)&&r.distanceKm>0&&
   Number.isInteger(r.durationSeconds)&&r.durationSeconds>0)
   .slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,7).reverse();
  if(!actual.length)return '<section class="hx-card hx-optional">'+shell+
