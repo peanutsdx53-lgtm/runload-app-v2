@@ -32,7 +32,7 @@ try{
   const panel=page.locator('.rv4-page');await panel.waitFor({state:'visible'});
   const opt=panel.locator('.rv4-optional-meta');
   await page.screenshot({path:resolve(dest,engine+'-'+width+'-collapsed.png'),animations:'disabled'});
-  await opt.locator('summary').click();
+  await opt.locator(':scope > summary').click();
   assert.equal(await opt.getAttribute('open'),'');
   assert.match(await panel.locator('.rv4-inherited-date').innerText(),/2026\/10\/29/);
   assert.equal(await opt.locator('input[type=date]').count(),0,'no duplicate running date input');
@@ -60,7 +60,7 @@ try{
   await page.goto(host+'record',{waitUntil:'networkidle'});
   await page.locator('[data-draft="date"]').fill('2026-10-30');
   await page.goto(host+'record-rof',{waitUntil:'networkidle'});
-  await panel.locator('.rv4-optional-meta summary').click();
+  await panel.locator('.rv4-optional-meta > summary').click();
   assert.match(await panel.locator('.rv4-inherited-date').innerText(),/2026\/10\/30/);
   assert.equal(await panel.locator('[data-rof-run-start]').inputValue(),'23:55');
   assert.equal(await panel.locator('[data-rof-run-end]').inputValue(),'00:15');
