@@ -39,6 +39,8 @@ for(const [engine,browserType] of [['chromium',chromium],['webkit',webkit]]){
  const observe=async(id,kind,width,height,path,needData)=>{
   const t0=Date.now(),start=js.length;
   await page.setViewportSize({width,height});
+  // Reset prior 200% CSS zoom before every SPA hash-navigation: no state leakage.
+  try{await page.evaluate(()=>{document.documentElement.style.zoom='';});}catch{}
   let loadErr='';
   try{
    await page.goto(base+path,{waitUntil:'networkidle',timeout:20000});
@@ -68,6 +70,7 @@ for(const [engine,browserType] of [['chromium',chromium],['webkit',webkit]]){
   if((rec.width_overflow||loadErr||rec.js_errors.length)&&entries.filter(x=>x.engine===engine&&(x.width_overflow||x.loading_error)).length<8)
    {try{await page.screenshot({path:resolve(out,engine+'-'+id.replace(/[^a-zA-Z0-9_-]/g,'_')+'.png'),fullPage:true,timeout:7000});}catch{}}
   entries.push(rec);
+  try{await page.evaluate(()=>{document.documentElement.style.zoom='';});}catch{}
  };
  for(const [screen,path,needData] of screens){
   for(const [suffix,w,h] of widths)await observe(screen+'-'+suffix,'viewport',w,h,path,needData);
