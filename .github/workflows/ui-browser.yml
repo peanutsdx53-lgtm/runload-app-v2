@@ -20,6 +20,7 @@ on:
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
       - 'tests/c09ReflowDiagnosticBrowser.mjs'
+      - 'tests/currentMainWidthObservation.mjs'
       - '.github/workflows/ui-browser.yml'
   push:
     branches: [main]
@@ -42,6 +43,7 @@ on:
       - 'tests/explorationWebkitSmoke.mjs'
       - 'tests/consultationBrowserSmoke.mjs'
       - 'tests/c09ReflowDiagnosticBrowser.mjs'
+      - 'tests/currentMainWidthObservation.mjs'
       - 'ui/resultExperience.js'
       - 'ui/resultExperience.css'
       - '.github/workflows/ui-browser.yml'
@@ -258,4 +260,29 @@ jobs:
           name: data-management-review-screenshots
           path: screenshots/data-management-*.png
           if-no-files-found: ignore
+          retention-days: 14
+
+  layout-matrix-observation:
+    # Evidence collection across all 20 screen contracts; not a formal C09
+    # acceptance and not a substitute for populated/error-state browser tests.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install supported Chromium and WebKit test engines
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Observe 20 screens times seven view and interaction conditions in two engines
+        run: node tests/currentMainWidthObservation.mjs
+      - name: Archive 280 observations and repro screenshots, including unresolved conditions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-main-280-layout-observations
+          path: audit-output/
+          if-no-files-found: warn
           retention-days: 14
