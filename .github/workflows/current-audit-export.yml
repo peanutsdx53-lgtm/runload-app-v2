@@ -1,0 +1,39 @@
+name: Current audit source export (temporary review branch)
+on:
+  push:
+    branches:
+      - audit/current-batch18-20261031
+    paths:
+      - .github/workflows/current-audit-export.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix provenance to original approved main
+        run: |
+          echo "BASE_MAIN_SHA=22ca778531eae25464c67d01099f74be5dd63920" > SOURCE_PROVENANCE.txt
+          echo "AUDIT_BRANCH_SHA=$(git rev-parse HEAD)" >> SOURCE_PROVENANCE.txt
+          git diff --exit-code 22ca778531eae25464c67d01099f74be5dd63920 -- app.js index.html styles.css pwa.js sw.js core ui assets tests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runload-complete-audit-source
+          path: |
+            SOURCE_PROVENANCE.txt
+            index.html
+            app.js
+            styles.css
+            pwa.js
+            sw.js
+            manifest.webmanifest
+            core/
+            ui/
+            assets/
+            icons/
+            tests/
+            docs/
+          retention-days: 1
