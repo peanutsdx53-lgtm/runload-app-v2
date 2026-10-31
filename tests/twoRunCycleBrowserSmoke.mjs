@@ -97,6 +97,7 @@ try{
  assert.equal((await readRuns()).records.length,2,'both records survive reload');
  assert.ok(await table.isVisible(),'comparison survives interruption/reload');
  await page.goto(host+'#/result?record='+encodeURIComponent(secondId)+'&compare=not-a-record&view=compare',{waitUntil:'networkidle'});
+ await page.locator('.rv4-comparison-empty').filter({hasText:'指定された比較相手は保存記録にありません'}).waitFor({timeout:15000});
  assert.equal(await page.locator('.rv4-comparison-table').count(),0,'invalid compare ID never substitutes an arbitrary record');
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(secondId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  await page.locator('[data-ex-action="memories"]').click();
@@ -145,10 +146,14 @@ try{
    });db.close();
   },firstId);
  await page.goto(host+'#/result?record='+encodeURIComponent(firstId),{waitUntil:'networkidle'});
- assert.match(await page.locator('[role="status"]').last().innerText(),/指定された保存済み走行記録が見つかりません/);
+ const missingRunNotice=page.locator('[role="status"]').filter({hasText:'指定された保存済み走行記録が見つかりません'});
+ await missingRunNotice.waitFor({timeout:15000});
+ assert.match(await missingRunNotice.innerText(),/指定された保存済み走行記録が見つかりません/);
  assert.equal(await page.locator('.rv4-distance').count(),0,'no other run substituted for deleted ID');
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
- assert.match(await page.locator('.ex-notice').first().innerText(),/指定された走行記録が見つかりません/);
+ const absentExploreNotice=page.locator('.ex-notice').filter({hasText:'指定された走行記録が見つかりません'});
+ await absentExploreNotice.waitFor({timeout:15000});
+ assert.match(await absentExploreNotice.innerText(),/指定された走行記録が見つかりません/);
  await page.locator('[data-ex-action="memories"]').click();
  assert.match(await page.locator('[data-ex-overlay]').innerText(),/次回は距離と平均ペース/);
  assert.match(await page.locator('[data-ex-overlay]').innerText(),/元の走行記録が見つからないためリンクを表示しません/);
