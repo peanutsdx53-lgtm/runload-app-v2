@@ -18,6 +18,8 @@ try{
   await ctx.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
   const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   const host='http://127.0.0.1:4299/#/';
+  await page.goto(host+'record',{waitUntil:'networkidle'});
+  await page.locator('[data-draft="date"]').fill('2026-10-30');
   await page.goto(host+'record-rof',{waitUntil:'networkidle'});
   const rof=page.locator('[data-rof-v4-root]');await rof.waitFor();
   assert.equal(await rof.locator('.rv4-optional-meta').getAttribute('open'),null,'timing metadata collapsed by default');
@@ -33,13 +35,11 @@ try{
   await rof.locator('.rv4-optional-meta > summary').click();
   assert.equal(await rof.locator('.rv4-optional-meta').getAttribute('open'),'');
   assert.equal(await rof.locator('[data-rof-v4-next-phase]').count(),0,'one phase selector at top; no repeated bottom navigation');
-  await rof.locator('[data-rof-run-start-date]').fill('2026-10-30');
   await rof.locator('[data-rof-run-start]').fill('09:40');
-  await rof.locator('[data-rof-run-end-date]').fill('2026-10-30');
   await rof.locator('[data-rof-run-end]').fill('10:10');
   const inputBounds=await rof.evaluate(el=>{
    const card=el.querySelector('.rv4-run-times').getBoundingClientRect();
-   const values=[...el.querySelectorAll('.rv4-run-time-picks input')].map(input=>{
+   const values=[...el.querySelectorAll('.rv4-run-time-card input')].map(input=>{
     const r=input.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};
    });
    return {left:card.left,right:card.right,values};
