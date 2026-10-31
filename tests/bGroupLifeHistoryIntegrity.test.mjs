@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {saveCondition,readConditions,validEntry,CONDITION_KEY} from '../ui/homeExperience.js';
+import {saveCondition,deleteCondition,readConditions,validEntry,conditionPanel,CONDITION_KEY} from '../ui/homeExperience.js';
 const storage=()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),m}};
 const entry=date=>({date,sleepMinutes:420,sleepSource:'duration',feeling:'良い',memo:'本人の記録 '+date});
 const allDates=()=>{
@@ -41,4 +41,26 @@ test('B F09: transition 365→366 succeeds, 366→367 rejects; failed storage mu
  const original=f.getItem(CONDITION_KEY);f.setItem=()=>{throw Error('quota')};
  assert.equal(saveCondition(f,entry(dates[365])).ok,false);
  assert.equal(f.getItem(CONDITION_KEY),original);
+});
+
+test('B F09: deliberate single-day deletion re-enables recording and preserves other dates',()=>{
+ const s=storage(),days=allDates();
+ s.setItem(CONDITION_KEY,JSON.stringify(days.map(entry)));
+ const before=readConditions(s).entries;
+ const day=days[200];
+ const screen=conditionPanel(s,false,day);
+ assert.match(screen,/data-condition-delete-start/);
+ assert.doesNotMatch(screen,/data-condition-delete-confirm/);
+ const confirm=conditionPanel(s,false,day,day);
+ assert.match(confirm,/data-condition-delete-confirm/);
+ assert.match(confirm,/その他|関連する気づき/);
+ assert.equal(deleteCondition(s,'2027-01-01').ok,false);
+ assert.equal(s.getItem(CONDITION_KEY)===null,false);
+ const result=deleteCondition(s,day);
+ assert.equal(result.ok,true);
+ assert.equal(readConditions(s).entries.length,365);
+ assert.equal(readConditions(s).entries.some(x=>x.date===day),false);
+ assert.deepEqual(readConditions(s).entries.filter(x=>x.date!==day),before.filter(x=>x.date!==day));
+ assert.equal(saveCondition(s,entry('2026-10-31')).ok,true);
+ assert.equal(readConditions(s).entries.length,366);
 });

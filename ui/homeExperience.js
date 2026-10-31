@@ -130,6 +130,24 @@ export function saveCondition(storage, entry) {
   return {ok:true,reason:""};
  }catch{return {ok:false,reason:"保存できませんでした"};}
 }
+/** Delete only a consciously selected date; byte-identical storage on errors,
+ * and no mutation of independent reflection or next-check records. */
+export function deleteCondition(storage,date){
+ if(typeof date!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return {ok:false,reason:"削除対象の日付が不正です"};
+ const state=readConditions(storage);
+ if(!state.canSave)return {ok:false,reason:state.reason};
+ if(!state.entries.some(e=>e.date===date))return {ok:false,reason:"指定した日の生活記録がありません"};
+ const next=JSON.stringify(state.entries.filter(e=>e.date!==date));
+ try{
+  const old=storage.getItem(KEY);
+  if(old===null||JSON.stringify(JSON.parse(old).slice().sort((a,b)=>a.date.localeCompare(b.date)))!==JSON.stringify(state.entries))
+   return {ok:false,reason:"保存済み記録の照合に失敗しました。元の記録は変更しません"};
+  if(storage.getItem(KEY)!==old)return {ok:false,reason:"別の画面で生活記録が変更されています。再読込してください"};
+  storage.setItem(KEY,next);
+  if(storage.getItem(KEY)!==next)return {ok:false,reason:"削除後の保存を確認できませんでした"};
+  return {ok:true};
+ }catch{return {ok:false,reason:"削除できませんでした。保存領域を確認してください"}}
+}
 function demoEntries(){
  const sleeps=[320,410,null,460,345,null,400],out=[];
  for(let offset=6;offset>=0;offset--){const n=sleeps[6-offset];if(n!==null)out.push({date:pastDay(offset),sleepMinutes:n,feeling:offset===0?"ふつう":"良い",memo:""});}
@@ -216,8 +234,9 @@ export function discoveryCard(notes=[]){
   +(latest?'<p class="hx-discovery-note">'+escape(latest.text.slice(0,140))+'</p><p class="hx-discovery-date">'+escape(latest.createdAt.slice(0,10))+'に自分で残した気づき</p>':'<p>気になるテーマを自由に調べられます。メモは任意です。</p>')
   +'<a class="hx-condition-explore" href="#/exploration-tree">探究を開く ›</a></section>';
 }
-export function conditionPanel(storage,preview,selectedDate=todayLocal()){
+export function conditionPanel(storage,preview,selectedDate=todayLocal(),deletePendingDate=null){
  const state=readConditions(storage),chartEntries=preview?demoEntries():state.entries;
+ state.deletePendingDate=deletePendingDate;
  const existing=state.entries.find(x=>x.date===selectedDate);
  const mode=existing?.sleepSource==="clock"||!existing?"clock":"duration";
  const feeling=existing?.feeling||"";
@@ -256,6 +275,10 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal()){
  '<label>メモ（任意）<textarea name="memo" maxlength="160" rows="2">'+escape(existing?.memo||"")+'</textarea></label>'+
  '<p class="hx-form-error" data-sleep-error role="alert" hidden></p>'+
  '<div class="hx-dialog-foot"><button type="button" data-home-close>キャンセル</button><button type="submit" class="hx-save" '+(!state.canSave?'disabled':'')+'>保存</button></div></form>'+
+ (existing?'<div class="hx-delete-record">'+
+ (state.deletePendingDate===selectedDate?'<p>選択した'+escape(selectedDate)+'の生活記録だけを削除します。関連する気づきや問いは他の保存先に残りますが、元の記録がない旨を表示します。</p><button type="button" data-condition-delete-confirm="'+escape(selectedDate)+'">この日の記録を削除する</button><button type="button" data-condition-delete-cancel>削除しない</button>':
+ '<button type="button" data-condition-delete-start="'+escape(selectedDate)+'">この日の生活記録を削除…</button>')+
+ '</div>':'')+
  '<div class="hx-dialog-trend"><h3>睡眠・就床の記録推移</h3>'+bars+'</div>'+
  (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':'')+'</section></div>';
 }

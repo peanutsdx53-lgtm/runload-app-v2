@@ -70,7 +70,7 @@
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
-  const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal()};
+  const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal(),deletePendingDate:null};
   let gpsController=null;
   let dynamicPlayback=null;
   let gpsTicker=null;
@@ -303,7 +303,7 @@
  ${controls}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="ホームの表示">${widgets}</div>
   ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
- ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate):""}
+ ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate,homeUi.deletePendingDate):""}
  ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview,savedRunState):""}
  </div>`;
 }
@@ -837,7 +837,7 @@ function recordExtras(){
     }
     if(event.target.matches('[data-condition-form] [name="date"]')){
       if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(event.target.value)){
-        homeUi.conditionDate=event.target.value;render();
+        homeUi.conditionDate=event.target.value;homeUi.deletePendingDate=null;render();
       }
       return;
     }
@@ -896,7 +896,7 @@ function recordExtras(){
       if(msg){msg.hidden=false;msg.textContent=saved.reason;}return;
     }
     homeEditState.notice="生活記録を保存しました";
-    homeUi.preview=false;homeUi.conditionOpen=false;
+    homeUi.preview=false;homeUi.conditionOpen=false;homeUi.deletePendingDate=null;
     render();
   });
   app.addEventListener("click",async(event)=>{
@@ -1259,10 +1259,23 @@ function recordExtras(){
       homeExperience.updateSleepForm(form);
       return;
     }
+    const deleteLifeStart=event.target.closest("[data-condition-delete-start]");
+    if(deleteLifeStart){homeUi.deletePendingDate=deleteLifeStart.dataset.conditionDeleteStart;render();return;}
+    if(event.target.closest("[data-condition-delete-cancel]")){homeUi.deletePendingDate=null;render();return;}
+    const deleteLifeConfirm=event.target.closest("[data-condition-delete-confirm]");
+    if(deleteLifeConfirm){
+      const requested=deleteLifeConfirm.dataset.conditionDeleteConfirm;
+      const eligible=homeUi.deletePendingDate===requested&&homeUi.conditionDate===requested;
+      const outcome=eligible?homeExperience.deleteCondition(homePreferenceStorage,requested):{ok:false,reason:"削除対象の日付を再確認してください"};
+      homeUi.deletePendingDate=null;
+      if(outcome.ok){homeUi.conditionOpen=false;homeEditState.notice="選択した日の生活記録を削除しました。その他の記録と本人の気づきは変更していません";}
+      else{homeEditState.notice=outcome.reason;}
+      render();return;
+    }
     if(event.target.closest("[data-home-preview]")){homeUi.preview=!homeUi.preview;render();return;}
-    if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
+    if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.deletePendingDate=null;homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
-    if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
+    if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;homeUi.deletePendingDate=null;render();return;}
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.replay=true;onboardingState.step=2;onboardingState.error="";render();return;}
     if(event.target.closest("[data-onboard-close]")){if(onboardingState.replay){onboardingState.open=false;onboardingState.replay=false;render();}return;}
     if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(onboardingState.replay?2:0,onboardingState.step-1);onboardingState.error="";render();return;}
