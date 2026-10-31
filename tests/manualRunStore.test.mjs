@@ -60,7 +60,8 @@ test('record confirmation saves only eligible manual runs',()=>{
  const input=draft();
  assert.match(reviewView(input,{source:'manual',recordType:'run'}),/data-manual-run-save(?! disabled)/);
  assert.match(reviewView(input,{source:'gps',recordType:'run'}),/data-manual-run-save[^>]* disabled/);
- assert.match(reviewView(input,{source:'manual',recordType:'rest'}),/data-manual-run-save[^>]* disabled/);
+ assert.match(reviewView(input,{source:'manual',recordType:'rest'}),/data-rest-day-save(?![^>]*disabled)/);
+ assert.doesNotMatch(reviewView(input,{source:'manual',recordType:'rest'}),/data-manual-run-save/);
 });
 
 test('new manual save requires three inputs independently and does not alter storage on failure',()=>{

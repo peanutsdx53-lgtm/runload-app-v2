@@ -18,7 +18,7 @@ test('no synthetic records or saved results in the production history view',()=>
  assert.equal((html.match(/data-select-id=/g)||[]).length,0);
  assert.ok(!html.includes('data-open-record'));
  assert.ok(read('app.js').includes('historyExperience.mountHistory'));
- assert.ok(read('app.js').includes('records:manualRunStore.toHistoryRows(saved),connected:saved.ok'), 'history uses only validated saved manual records');
+ assert.ok(read('app.js').includes('...manualRunStore.toHistoryRows(saved)')&&read('app.js').includes('restDayStore.readRestDays(onboardStorage)'), 'history uses separately validated saved runs and rest days, never unsaved drafts');
 });
 test('explicit saved record ID controls display and no fallback from unknown IDs',()=>{
  const ui=createHistoryUi();ui.month='2026-10';

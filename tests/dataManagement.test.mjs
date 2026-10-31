@@ -17,7 +17,7 @@ function file(storage,gpsLegacy=null,gpsCurrent=null){
 }
 const day=(date,feeling="良い")=>({date,sleepMinutes:420,feeling,memo:""});
 test("export allowlist protects consent and onboarding keys",()=>{
- assert.equal(DATA_KEYS.length,9);
+ assert.equal(DATA_KEYS.length,10);
  assert.equal(DATA_KEYS.includes(LEGAL_CONSENT_KEY),false);
  assert.ok(RESET_KEYS.includes(LEGAL_CONSENT_KEY));
  assert.equal(DATA_KEYS.some(k=>/introduction-preview|consent/.test(k)),false);
