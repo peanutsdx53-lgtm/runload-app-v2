@@ -133,7 +133,7 @@ export function saveCondition(storage, entry) {
 /** Delete only a consciously selected date; byte-identical storage on errors,
  * and no mutation of independent reflection or next-check records. */
 export function deleteCondition(storage,date){
- if(typeof date!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return {ok:false,reason:"削除対象の日付が不正です"};
+ if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date))return {ok:false,reason:"削除対象の日付が不正です"};
  const state=readConditions(storage);
  if(!state.canSave)return {ok:false,reason:state.reason};
  if(!state.entries.some(e=>e.date===date))return {ok:false,reason:"指定した日の生活記録がありません"};
