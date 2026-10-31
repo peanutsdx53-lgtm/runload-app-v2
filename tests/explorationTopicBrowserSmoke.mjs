@@ -84,9 +84,18 @@ try{
   await page.locator('.ex-dialog [data-ex-action="save-note"]').click();
   const record=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')));
   assert.equal(record.length,1);assert.equal(record[0].topicId,'practice-warmup');
+  await page.locator('[data-ex-action="memories"]').click();
+  await page.locator('[data-ex-edit]').click();
+  await page.locator('#ex-note-edit').fill('以前の問いを見直し、次は走り始める前の気持ちも記録する');
+  await page.locator('[data-ex-action="save-edited-note"]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]')[0]?.revisions?.length===1);
+  const edited=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1'))[0]);
+  assert.equal(edited.id,record[0].id);
+  assert.equal(edited.revisions[0].text,'次は走る前の気持ちを記録する');
+  await page.locator('[data-ex-action="close"]').click();
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('.ex-note-preview').waitFor();
-  assert.match(await page.locator('.ex-note-preview').innerText(),/次は走る前の気持ちを記録する/);
+  assert.match(await page.locator('.ex-note-preview').innerText(),/以前の問いを見直し、次は走り始める前の気持ちも記録する/);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-saved-guide.png'),fullPage:true});
   if(engine===chromium&&width===390){
    // HTTP loopback QA registers the worker explicitly (the live app uses HTTPS).
@@ -99,7 +108,7 @@ try{
    await page.reload({waitUntil:'domcontentloaded'});
    await page.locator('.ex-observation-guide').waitFor();
    assert.match(await page.locator('.ex-observation-guide').innerText(),/観察ガイド/);
-   assert.match(await page.locator('.ex-note-preview').innerText(),/次は走る前の気持ちを記録する/);
+   assert.match(await page.locator('.ex-note-preview').innerText(),/以前の問いを見直し、次は走り始める前の気持ちも記録する/);
    await page.screenshot({path:resolve(root,'screenshots',prefix+'-offline-guide.png'),fullPage:true});
   }
   assert.deepEqual(errors,[],prefix+' browser errors');

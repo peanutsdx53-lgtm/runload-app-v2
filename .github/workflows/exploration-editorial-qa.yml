@@ -2,7 +2,7 @@ name: Exploration editorial QA
 on:
   push:
     branches:
-      - research/exploration-editorial-20261028
+      - main
   pull_request:
     paths:
       - 'ui/explorationExperience.js'
