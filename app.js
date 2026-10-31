@@ -1323,9 +1323,16 @@ function recordExtras(){
     const exploreAction=event.target.closest("[data-ex-action]");
     if(exploreAction){
       const action=exploreAction.dataset.exAction;
-      if(action==="close"){explorationUi.modal="";render();restoreExplorationFocus();return;}
+      if(action==="close"){explorationUi.modal="";explorationUi.editingNoteId=null;render();restoreExplorationFocus();return;}
       if(action==="catalog"){explorationUi.tab="catalog";render();return;}
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
+      if(action==="save-edited-note"){
+        const revised=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.editNote(
+          explorationUi,explorationUi.editingNoteId,app.querySelector("#ex-note-edit")?.value));
+        explorationUi.notice=revised.ok?"文章を修正しました。以前の文章は履歴に保持しています":revised.reason;
+        if(revised.ok){explorationUi.modal="memories";explorationUi.editingNoteId=null;}
+        render();return;
+      }
       if(action==="save-note"){
         const noteParams=new URLSearchParams(location.hash.split('?')[1]||'');
         const focusId=location.hash.startsWith('#/exploration-tree')&&noteParams.has('record')?noteParams.get('record'):null;
@@ -1344,6 +1351,12 @@ function recordExtras(){
       }
       explorationReturnAction=action;
       explorationUi.modal=action;explorationUi.notice="";render();app.querySelector(".ex-dialog-head button")?.focus();return;
+    }
+    const exploreEdit=event.target.closest("[data-ex-edit]");
+    if(exploreEdit){
+      explorationUi.editingNoteId=exploreEdit.dataset.exEdit;
+      explorationUi.modal="edit-note";explorationUi.notice="";
+      render();app.querySelector("#ex-note-edit")?.focus();return;
     }
     const exploreDelete=event.target.closest("[data-ex-delete]");
     if(exploreDelete){const deleteResult=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete));const success=deleteResult===true;explorationUi.notice=success?"削除しました":"削除できませんでした。保存データは保護しています。";render();return;}

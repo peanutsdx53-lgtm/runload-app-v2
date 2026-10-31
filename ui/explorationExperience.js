@@ -19,13 +19,13 @@ const meta={
 };
 const isProvided=x=>x!==null&&x!==undefined&&String(x).trim()!=="";
 export function makeUi(storage){
- const ui={selected:"03",topic:"",search:"",tab:"field",sample:false,notes:[],storage,canSave:true,notice:"",modal:"",trialDistance:5,trialMinutes:30,toolChoice:"up",bodyChoice:"hip",lifeA:"",lifeB:"",followup:""};
+ const ui={selected:"03",topic:"",search:"",tab:"field",sample:false,notes:[],storage,canSave:true,notice:"",modal:"",trialDistance:5,trialMinutes:30,toolChoice:"up",bodyChoice:"hip",lifeA:"",lifeB:"",followup:"",editingNoteId:null};
  if(!storage){ui.canSave=false;return ui;}
  try{
   const raw=storage.getItem(EXPLORATION_NOTE_KEY);
   if(raw===null)return ui;
   const list=JSON.parse(raw);
-  if(!Array.isArray(list)||list.length>LIMIT||list.some(n=>!n||typeof n!=="object"||typeof n.id!=="string"||typeof n.category!=="string"||typeof n.text!=="string"||!n.text.trim()||n.text.length>500||!/^[A-Za-z0-9_-]{1,32}$/.test(n.category)||n.id.length>80||typeof n.createdAt!=="string"||(n.topicId!==undefined&&typeof n.topicId!=="string")||(n.recordId!==undefined&&!isRunId(n.recordId))||(n.continuedFromNoteId!==undefined&&(typeof n.continuedFromNoteId!=='string'||!n.continuedFromNoteId||n.continuedFromNoteId.length>80))))throw Error("invalid notes");
+  if(!Array.isArray(list)||list.length>LIMIT||list.some(n=>!n||typeof n!=="object"||typeof n.id!=="string"||typeof n.category!=="string"||typeof n.text!=="string"||!n.text.trim()||n.text.length>500||!/^[A-Za-z0-9_-]{1,32}$/.test(n.category)||n.id.length>80||typeof n.createdAt!=="string"||(n.topicId!==undefined&&typeof n.topicId!=="string")||(n.recordId!==undefined&&!isRunId(n.recordId))||(n.continuedFromNoteId!==undefined&&(typeof n.continuedFromNoteId!=='string'||!n.continuedFromNoteId||n.continuedFromNoteId.length>80))||(n.updatedAt!==undefined&&(typeof n.updatedAt!=='string'||Number.isNaN(Date.parse(n.updatedAt))))||(n.revisions!==undefined&&(!Array.isArray(n.revisions)||n.revisions.length>50||n.revisions.some(v=>!v||typeof v.text!=='string'||!v.text.trim()||v.text.length>500||typeof v.editedAt!=='string'||Number.isNaN(Date.parse(v.editedAt)))))))throw Error("invalid notes");
   ui.notes=list;
  }catch{ui.canSave=false;ui.notice="メモを読み取れません。保存済みのデータは変更していません。";}
  return ui;
@@ -283,9 +283,19 @@ function modal(ui,ctx){if(!ui.modal)return "";const category=ctx.categories.find
  if(ui.modal==="know")body=`<p>「${esc(title)}」に関連する知識を確認する場所です。</p><div class="ex-dialog-block"><strong>自分の情報との接点</strong><p>${esc(links.linked.get(category.id)||"このテーマを調べるのに記録は必要ありません。")}</p></div><div class="ex-dialog-block"><strong>読み取るときの注意</strong><p>記録や感覚の違いだけでは、原因や身体の状態を判断できません。</p></div><p class="ex-muted">根拠審査済みのコラム本文は今後接続します。未確認の医学的な説明は表示しません。</p>`;
  if(ui.modal==="try")body=`<p>距離と時間を動かして、平均ペースと平均速度の関係を確かめられます。</p><div class="ex-range-label"><label for="ex-distance">距離</label><output data-ex-distance-value>${ui.trialDistance.toFixed(1)} km</output></div><input id="ex-distance" type="range" min="1" max="15" step=".5" value="${ui.trialDistance}" data-ex-distance/><div class="ex-range-label"><label for="ex-minutes">時間</label><output data-ex-minutes-value>${ui.trialMinutes} 分</output></div><input id="ex-minutes" type="range" min="10" max="100" step="1" value="${ui.trialMinutes}" data-ex-minutes/><div class="ex-metric-grid"><div><small>平均ペース</small><strong data-ex-pace>—</strong><em>分/km</em></div><div><small>平均速度</small><strong data-ex-speed>—</strong><em>km/h</em></div></div><p class="ex-muted">算術計算のみ。個人の将来の走りや身体への負荷・ケガを予測するものではありません。</p>`;
  if(ui.modal==="note")body=`<p>「${esc(title)}」について、感じたことや次に試したいことを自由に書けます。あとから画面上部の「ふり返り」で読み返せます。</p>${ctx.focusRunId?(ctx.focusRun?"<p>この走行に関連づけて記録します。</p>":"<p>指定した走行が見つからず、関連づけた保存はできません。</p>"):"<p>走行記録には自動で関連づけません。</p>"}<label class="ex-form-label" for="ex-note">書き残す内容（500文字まで）</label><textarea id="ex-note" maxlength="500" rows="4" placeholder="例：上り坂は思っていたより息が上がった。次回はペースを意識してみたい。">${esc(ui.followup||"")}</textarea>${followups[LEARNING_TOPICS[category.id+"|"+title]]?.length?'<div class="ex-note-prompts"><small>書く内容に迷ったら</small>'+followups[LEARNING_TOPICS[category.id+"|"+title]].map((t,i)=>'<button type="button" data-ex-next="'+i+'">'+esc(t)+'</button>').join('')+'</div>':''}<div class="ex-dialog-actions"><button type="button" data-ex-action="save-note" ${!ui.canSave?"disabled":""}>保存する</button></div>${!ui.canSave?'<p class="ex-muted">保存されたメモを安全に読み取れないため、上書き防止のため保存を停止しています。</p>':""}`;
- if(ui.modal==="memories")body=ui.notes.length?`<div class="ex-saved-list">${ui.notes.map(n=>`<div class="ex-saved"><div><small>${esc(ctx.categories.find(c=>c.id===n.category)?.name||"探究")} · ${esc(n.createdAt.slice(0,10))} · ${n.recordId?'走行に関連づけたメモ':'単独メモ'}</small><p>${esc(n.text)}</p>${n.continuedFromNoteId?(ui.notes.find(source=>source.id===n.continuedFromNoteId&&source.id!==n.id&&noteRunBackLink(source,ctx.manualRuns))?'<small>元の問いから本人が明示的に続けたメモ</small>':'<small>元の問いの出所を確認できません。別の記録に付け替えません。</small>'):''}${n.recordId?(noteRunBackLink(n,ctx.manualRuns)?'<a href="#/result?record='+encodeURIComponent(n.recordId)+'">元の走行結果に戻る ›</a>':'<small>元の走行記録が見つからないためリンクを表示しません</small>'):''}</div><button type="button" data-ex-delete="${esc(n.id)}" ${!ui.canSave?"disabled":""} aria-label="この記録を削除">削除</button></div>`).join("")}</div>`:"<p>まだ書いたことはありません。テーマを読んで、気になったことがあれば残せます。</p>";
+ if(ui.modal==="edit-note"){
+  const current=ui.notes.find(n=>n.id===ui.editingNoteId);
+  body=current?'<p>以前の文章を保持し、本人の言葉だけを修正します。元の走行との関連・メモIDは変更しません。</p>'+
+   '<p class="ex-muted">記録への関連：'+(current.recordId?'元の走行ID '+esc(current.recordId):'単独メモ')+'</p>'+
+   '<label class="ex-form-label" for="ex-note-edit">修正後の文章（1〜500文字）</label>'+
+   '<textarea id="ex-note-edit" maxlength="500" rows="5">'+esc(current.text)+'</textarea>'+
+   '<div class="ex-dialog-actions"><button type="button" data-ex-action="save-edited-note" '+(!ui.canSave?'disabled':'')+'>修正を保存する</button></div>'+
+   (current.revisions?.length?'<details><summary>以前の文章（'+current.revisions.length+'件）</summary>'+current.revisions.map(v=>'<p>'+esc(v.text)+'</p>').join('')+'</details>':''):
+   '<p role="alert">修正対象のメモが見つかりません。ほかの記録へ変更しません。</p>';
+ }
+ if(ui.modal==="memories")body=ui.notes.length?`<div class="ex-saved-list">${ui.notes.map(n=>`<div class="ex-saved"><div><small>${esc(ctx.categories.find(c=>c.id===n.category)?.name||"探究")} · ${esc(n.createdAt.slice(0,10))} · ${n.recordId?'走行に関連づけたメモ':'単独メモ'}</small><p>${esc(n.text)}</p>${n.continuedFromNoteId?(ui.notes.find(source=>source.id===n.continuedFromNoteId&&source.id!==n.id&&noteRunBackLink(source,ctx.manualRuns))?'<small>元の問いから本人が明示的に続けたメモ</small>':'<small>元の問いの出所を確認できません。別の記録に付け替えません。</small>'):''}${n.recordId?(noteRunBackLink(n,ctx.manualRuns)?'<a href="#/result?record='+encodeURIComponent(n.recordId)+'">元の走行結果に戻る ›</a>':'<small>元の走行記録が見つからないためリンクを表示しません</small>'):''}</div><div class="ex-saved-actions"><button type="button" data-ex-edit="${esc(n.id)}" ${!ui.canSave?"disabled":""} aria-label="この記録の文章を修正">修正</button><button type="button" data-ex-delete="${esc(n.id)}" ${!ui.canSave?"disabled":""} aria-label="この記録を削除">削除</button></div></div>`).join("")}</div>`:"<p>まだ書いたことはありません。テーマを読んで、気になったことがあれば残せます。</p>";
  if(ui.modal==="share")body=`<p>相談したいことを整理するための下書きです。自動で送信されません。</p><div class="ex-dialog-block" data-ex-draft-text><strong>話したいテーマ：${esc(title)}</strong><p>参考にした分野：${esc(category.name)}</p><p>記録との接点：${esc(links.linked.get(category.id)||"記録との直接的な接点はありません")}</p><p>相談したいこと：</p></div><div class="ex-dialog-actions"><button type="button" data-ex-action="copy">文章をコピー</button></div><p class="ex-muted">個人の走行データやメモを自動で共有しません。</p>`;
- return `<div class="ex-backdrop" data-ex-overlay><section class="ex-dialog" role="dialog" aria-modal="true" aria-labelledby="ex-dialog-title"><div class="ex-dialog-head"><div><small>${esc(category.name)}</small><h2 id="ex-dialog-title">${esc({know:"知る",try:"試す",note:"気づきを書く",share:"相談用にまとめる","learn-help":"研究の出典と注意点","field-help":"分野の印について",memories:"ふり返りノート"}[ui.modal]||ui.modal)}</h2></div><button type="button" data-ex-action="close" aria-label="閉じる">×</button></div>${body}</section></div>`;
+ return `<div class="ex-backdrop" data-ex-overlay><section class="ex-dialog" role="dialog" aria-modal="true" aria-labelledby="ex-dialog-title"><div class="ex-dialog-head"><div><small>${esc(category.name)}</small><h2 id="ex-dialog-title">${esc({know:"知る",try:"試す",note:"気づきを書く",share:"相談用にまとめる","learn-help":"研究の出典と注意点","field-help":"分野の印について",memories:"ふり返りノート","edit-note":"メモを修正"}[ui.modal]||ui.modal)}</h2></div><button type="button" data-ex-action="close" aria-label="閉じる">×</button></div>${body}</section></div>`;
 }
 export function updatePace(root){const d=root.querySelector("[data-ex-distance]"),m=root.querySelector("[data-ex-minutes]");if(!d||!m)return;const distance=Number(d.value),minutes=Number(m.value);root.querySelector("[data-ex-distance-value]").textContent=`${distance.toFixed(1)} km`;root.querySelector("[data-ex-minutes-value]").textContent=`${minutes} 分`;const seconds=Math.round(minutes/distance*60),mm=Math.floor(seconds/60),ss=seconds%60;root.querySelector("[data-ex-pace]").textContent=`${mm}:${String(ss).padStart(2,"0")}`;root.querySelector("[data-ex-speed]").textContent=(distance/(minutes/60)).toFixed(1);}
 export function saveNote(ui,text,{focusRunId=null,manualRuns=null}={}){
@@ -294,3 +304,33 @@ export function saveNote(ui,text,{focusRunId=null,manualRuns=null}={}){
  if(ui.sample&&link.recordId)return {ok:false,reason:'説明用の表示例では、実際の走行記録にメモを関連づけられません'};if(!ui.canSave||!ui.storage)return {ok:false,reason:"保存領域が利用できません"};const value=String(text??"").trim();if(!value||value.length>500)return {ok:false,reason:"1〜500文字で入力してください"};const time=new Date().toISOString();const id=`${time}-${Math.random().toString(36).slice(2,12)}`;const key=LEARNING_TOPICS[ui.selected+"|"+ui.topic]||EXPLORATION_DRAFT_GUIDES[ui.selected+"|"+ui.topic]?.id;if(ui.notes.length>=LIMIT)return {ok:false,reason:"保存上限の50件に達しています。既存メモを自動削除しません。必要なら本人が選んで削除してください"};
  const next=[{id,category:ui.selected,text:value,createdAt:time,...(key?{topicId:key}:{}),...(link.recordId?{recordId:link.recordId}:{})},...ui.notes];try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);const expected=JSON.stringify(next);if(old!==(ui.notes.length?JSON.stringify(ui.notes):null)){ui.canSave=false;return {ok:false,reason:"他の画面で変更されています。元のデータを保護しました"};}ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)return {ok:false,reason:"保存を確認できませんでした"};ui.notes=next;return {ok:true};}catch{return {ok:false,reason:"保存できませんでした"}}}
 export function deleteNote(ui,id){if(!ui.canSave||!ui.storage)return false;const oldList=ui.notes;const next=oldList.filter(n=>n.id!==id);if(next.length===oldList.length)return false;try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);if(old!==JSON.stringify(oldList)){ui.canSave=false;return false;}ui.storage.setItem(EXPLORATION_NOTE_KEY,JSON.stringify(next));if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==JSON.stringify(next))return false;ui.notes=next;return true}catch{return false}}
+
+/** Explicit revision: old text and identity are retained, including the
+ * original record link and any continuation chain. No silent migration. */
+export function editNote(ui,id,text){
+ if(!ui?.canSave||!ui.storage)return {ok:false,reason:"保存領域が利用できません"};
+ const index=ui.notes.findIndex(n=>n?.id===id);
+ if(index<0)return {ok:false,reason:"修正対象のメモが見つかりません。別の記録を変更しません"};
+ const nextText=String(text??"").trim();
+ if(!nextText||nextText.length>500)return {ok:false,reason:"1〜500文字で入力してください"};
+ const current=ui.notes[index];
+ if(nextText===current.text)return {ok:false,reason:"文章が変更されていません"};
+ const revisions=Array.isArray(current.revisions)?current.revisions:[];
+ if(revisions.length>=50)return {ok:false,reason:"修正履歴が上限です。古い文章を自動削除しません"};
+ const now=new Date().toISOString();
+ const revised={...current,text:nextText,updatedAt:now,
+  revisions:[...revisions,{text:current.text,editedAt:current.updatedAt||current.createdAt}]};
+ const next=ui.notes.map((note,i)=>i===index?revised:note);
+ const original=JSON.stringify(ui.notes),expected=JSON.stringify(next);
+ try{
+  if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==original){
+   ui.canSave=false;
+   return {ok:false,reason:"ほかの画面でメモが変更されています。以前の内容は保護しました"};
+  }
+  ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);
+  if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)
+   return {ok:false,reason:"修正内容の保存を確認できませんでした"};
+  ui.notes=next;
+  return {ok:true,note:revised};
+ }catch{return {ok:false,reason:"修正内容を保存できませんでした。以前の内容は変更していません"}}
+}
