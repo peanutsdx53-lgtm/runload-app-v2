@@ -41,10 +41,10 @@ for(const [engine,browserType] of [['chromium',chromium],['webkit',webkit]]){
   await page.setViewportSize({width,height});
   let loadErr='';
   try{
-   await page.goto(base+path,{waitUntil:'domcontentloaded',timeout:14000});
+   await page.goto(base+path,{waitUntil:'networkidle',timeout:20000});
    await page.locator('main.main-content').waitFor({timeout:6000});
    if(kind==='zoom_and_reflow') await page.evaluate(()=>document.documentElement.style.zoom='2');
-   await page.waitForTimeout(100);
+   await page.waitForTimeout(250);
   }catch(e){loadErr=String(e).slice(0,260);}
   let metrics={};
   try{metrics=await page.evaluate(()=>({
@@ -84,6 +84,6 @@ const summary={source_sha:'22ca778531eae25464c67d01099f74be5dd63920',
  expected_total:280,observed:entries.length,by_engine:Object.fromEntries(['chromium','webkit'].map(e=>[e,entries.filter(x=>x.engine===e).length])),
  overflow_count:entries.filter(x=>x.width_overflow).length,
  error_count:entries.filter(x=>x.loading_error||x.js_errors.length).length,
- limitations:['Navigation/viewports and keyboard focus are preliminary observations, not full 20-screen state contract verification','S09/S13/S14/S18/S19 require saved test records for meaningful content; this batch observes initial state only','200% test is CSS zoom approximation, not native browser 200% text-only zoom','S19 and S20 are cross-cutting features, not independent screen URLs'],errors};
+ limitations:['Measurements taken after networkidle and 250ms stability; navigation/viewports and keyboard focus remain preliminary observations, not full 20-screen state contract verification','S09/S13/S14/S18/S19 require saved test records for meaningful content; this batch observes initial state only','200% test is CSS zoom approximation, not native browser 200% text-only zoom','S19 and S20 are cross-cutting features, not independent screen URLs'],errors};
 await writeFile(resolve(out,'140-case-browser-observation.json'),JSON.stringify({summary,entries},null,2));
 console.log('AUDIT_SUMMARY',JSON.stringify(summary));
