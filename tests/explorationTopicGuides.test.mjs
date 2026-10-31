@@ -37,10 +37,12 @@ test('observation guide note has stable topic ID and survives reload; focused ro
  assert.equal(ui.notes[0].topicId,'practice-warmup');
  const after=makeUi(storage);after.selected='06';after.topic='ウォームアップ';
  const run={id:'run-v1-test-1',date:'2026-10-20'};
+ const general=render(after,{categories,draft:null,conditions:{entries:[]}});
+ assert.match(general,/以前に書いたこと/);
+ assert.match(general,/走る前の気持ちを次に確かめる/);
  const html=render(after,{categories,draft:null,conditions:{entries:[]},focusRunId:run.id,focusRun:run});
- assert.match(html,/以前に書いたこと/);
- assert.match(html,/走る前の気持ちを次に確かめる/);
- assert.match(html,/href="#\/result\?record=run-v1-test-1"/);
+ assert.doesNotMatch(html,/走る前の気持ちを次に確かめる/,'unlinked note is not a property of the selected run');
+ assert.match(html,/この走行の結果へ戻る/);
 });
 test('cached assets include new offline editorial guide and UX version for updated copies',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
