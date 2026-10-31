@@ -89,7 +89,7 @@ export function todayLocal(){return dayText(new Date());}
 function pastDay(offset) {const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);return dayText(d);}
 export function validEntry(v) {
  return !!v && typeof v==="object" && !Array.isArray(v) &&
- /^\d{4}-\d{2}-\d{2}$/.test(v.date) && !Number.isNaN(new Date(v.date+"T12:00:00").getTime()) &&
+ /^\d{4}-\d{2}-\d{2}$/.test(v.date) && !Number.isNaN(new Date(v.date+"T12:00:00Z").getTime()) && new Date(v.date+"T12:00:00Z").toISOString().slice(0,10)===v.date &&
  Number.isInteger(v.sleepMinutes) && v.sleepMinutes>=0 && v.sleepMinutes<=1440 &&
  FEELINGS.includes(v.feeling) && typeof v.memo==="string" && v.memo.length<=160 &&
  (v.sleepSource===undefined ||
@@ -119,7 +119,10 @@ export function saveCondition(storage, entry) {
  if(!before.canSave)return {ok:false,reason:before.reason};
  try {
   const old=storage.getItem(KEY);
-  const entries=before.entries.filter(v=>v.date!==entry.date).concat([{...entry}]).sort((a,b)=>a.date.localeCompare(b.date)).slice(-366);
+  const entries=before.entries.filter(v=>v.date!==entry.date).concat([{...entry}]).sort((a,b)=>a.date.localeCompare(b.date));
+  // A new date must never silently evict an older self-report.
+  // The user can explicitly manage old data before another save.
+  if(entries.length>366)return {ok:false,reason:"生活記録が保存上限の366日分に達しました。以前の記録を自動削除せず保存を中止しました"};
   const next=JSON.stringify(entries);
   if(storage.getItem(KEY)!==old)return {ok:false,reason:"別の画面で内容が変更されました"};
   storage.setItem(KEY,next);
