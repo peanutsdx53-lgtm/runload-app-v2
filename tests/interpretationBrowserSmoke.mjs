@@ -209,6 +209,24 @@ try{
    });
    assert.equal(persisted,noteAfter,'the optional context survives reload');
   }
+  // B F09: deletion is one explicitly confirmed date only; another saved
+  // condition and the independent next-check store are never auto-erased.
+  if(mode.name==='390'){
+   await page.goto(base+'#/home',{waitUntil:'domcontentloaded'});
+   await page.locator('[data-condition-open]').click();
+   await page.locator('[data-condition-form] [name="date"]').fill('2026-10-27');
+   await page.locator('[data-condition-delete-start]').waitFor();
+   await page.locator('[data-condition-delete-start]').click();
+   const confirm=page.locator('[data-condition-delete-confirm="2026-10-27"]');
+   await confirm.waitFor();
+   assert.match(await page.locator('.hx-delete-record').innerText(),/関連する気づきや問い/);
+   await confirm.click();
+   await page.waitForFunction(()=>{
+    try{return JSON.parse(localStorage.getItem('runload-v2-life-condition-v1')||'[]').every(x=>x.date!=='2026-10-27')}catch{return false}
+   },null,{timeout:12000});
+   assert.equal(await page.evaluate(()=>localStorage.getItem('runload-v2-legal-consent-v1')!==null),true,'deleting a day never removes legal or other storage');
+   assert.equal(await page.locator('[data-condition-form]').count(),0,'confirmed delete returns to the app');
+  }
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
   await context.close();
  }

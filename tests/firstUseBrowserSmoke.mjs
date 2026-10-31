@@ -3,7 +3,8 @@ import {readFile,mkdir} from "node:fs/promises";
 import {resolve,extname,dirname,sep} from "node:path";
 import {fileURLToPath} from "node:url";
 import assert from "node:assert/strict";
-import {chromium} from "playwright";
+import {chromium,webkit} from "playwright";
+const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const mime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json",".webmanifest":"application/manifest+json",".svg":"image/svg+xml",".png":"image/png"};
@@ -18,7 +19,7 @@ const server=createServer(async(req,res)=>{
  }catch{res.statusCode=404;res.end("Not found");}
 });
 await new Promise(ok=>server.listen(4186,"127.0.0.1",ok));
-const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+const browser=await (engineName==='webkit'?webkit:chromium).launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  for(const mode of [{name:"mobile",width:390,height:844},{name:"narrow",width:320,height:740},{name:"desktop",width:1440,height:900}]){
@@ -37,6 +38,13 @@ try{
    assert.ok(overflow.scroll<=overflow.viewport+3,mode.name+" horizontal overflow "+JSON.stringify(overflow));
    assert.equal((await shell.innerText()).includes("RunLoad"),false,"development name must not appear");
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-first-use-"+String(step+1).padStart(2,"0")+".png")});
+   if(step===2){
+    const cards=page.locator('.fu-intro-cards .fu-number-card');
+    assert.equal(await cards.count(),4,'approved poster has four distinct operations');
+    const text=await cards.allInnerTexts();
+    for(const word of ['手入力で記録する','結果を確認する','過去と比較する','任意で気づきを書く'])
+     assert.ok(text.some(v=>v.includes(word)),word);
+   }
    if(step===1){
     const next=page.locator("[data-onboard-next]");
     assert.equal(await next.isDisabled(),true);
