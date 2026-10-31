@@ -1,0 +1,75 @@
+name: B group support functions acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/firstUseExperience.js'
+      - 'ui/firstUseExperience.css'
+      - 'ui/homeExperience.js'
+      - 'ui/homeExperience.css'
+      - 'ui/conditionJourney.js'
+      - 'ui/consultationExperience.js'
+      - 'ui/dataManagement.js'
+      - 'ui/interpretationView.js'
+      - 'ui/settingsExperience.js'
+      - 'ui/resultExperience.js'
+      - 'sw.js'
+      - 'app.js'
+      - 'tests/bGroupFirstUseResearchFlow.test.mjs'
+      - 'tests/bGroupLifeHistoryIntegrity.test.mjs'
+      - 'tests/firstUseBrowserSmoke.mjs'
+      - 'tests/interpretationBrowserSmoke.mjs'
+      - '.github/workflows/b-group-support-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  nine-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run B F01 F09 F10 F16 F22 F23 F24 F25 F26 supporting contracts and regressions
+        run: |
+          node --test \
+            tests/bGroupFirstUseResearchFlow.test.mjs \
+            tests/bGroupLifeHistoryIntegrity.test.mjs \
+            tests/firstUseExperience.test.mjs \
+            tests/homeExperience.test.mjs \
+            tests/conditionJourney.test.mjs \
+            tests/interpretationExperience.test.mjs \
+            tests/homeDashboardLayout.test.mjs \
+            tests/consultationExperience.test.mjs \
+            tests/dataManagement.test.mjs \
+            tests/uiContracts.test.mjs \
+            tests/mobileInputFocus.test.mjs
+  first-use-two-engines:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Exercise optional four-step guidance, consent, revisits and 3 viewport reflow
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/firstUseBrowserSmoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b-first-use-${{ matrix.engine }}-screens
+          path: screenshots/*-first-use-*.png
+          if-no-files-found: ignore
+          retention-days: 14
