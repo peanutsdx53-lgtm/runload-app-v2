@@ -255,9 +255,7 @@ try{
  await page.locator('[data-manual-gait="RUNNING"]').click();
  await page.goto(host+'#/record-rof',{waitUntil:'networkidle'});
  await page.locator('.rv4-optional-meta > summary').click();
- await page.locator('[data-rof-run-start-date]').fill('2026-10-26');
  await page.locator('[data-rof-run-start]').fill('09:00');
- await page.locator('[data-rof-run-end-date]').fill('2026-10-26');
  await page.locator('[data-rof-run-end]').fill('09:30');
  await page.locator('[data-rof-v4-timing]').selectOption('AT_ENTRY');
  await page.locator('[data-rof-v4-range]').evaluate(el=>{
