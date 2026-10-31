@@ -8,6 +8,7 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium,webkit} from 'playwright';
+import assert from 'node:assert/strict';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 const browserType=engineName==='webkit'?webkit:chromium;
@@ -69,6 +70,10 @@ try{
   });
   const result={engine:engineName,screen,route,present,layout,errors};
   reports.push(result);
+  assert.equal(errors.length,0,engineName+' '+screen+' no uncaught browser errors');
+  assert.ok(present>0,engineName+' '+screen+' target screen must exist');
+  assert.ok(layout.scrollWidth<=layout.innerWidth+3,engineName+' '+screen+' unexpected whole-page horizontal scroll '+JSON.stringify(layout));
+  if(screen==='S17'||screen==='S18')assert.deepEqual(layout.overflowing,[],engineName+' '+screen+' no clipped non-scrollable content');
   console.log('C09_200_DIAGNOSTIC',JSON.stringify(result));
   if(!present)console.log('::warning::C09 '+engineName+' '+screen+' selector not present: '+selector);
   if(layout.scrollWidth>layout.innerWidth+3)console.log('::warning::C09 '+engineName+' '+screen+' horizontal overflow '+(layout.scrollWidth-layout.innerWidth)+'px');
