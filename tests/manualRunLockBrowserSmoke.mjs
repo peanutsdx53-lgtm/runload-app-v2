@@ -6,7 +6,8 @@ import {readFile} from 'node:fs/promises';
 import {resolve,extname,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+const engineName=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{
@@ -20,7 +21,8 @@ const server=createServer(async(req,res)=>{
  }catch{res.statusCode=404;res.end('not found');}
 });
 await new Promise(done=>server.listen(4176,'127.0.0.1',done));
-const browser=await chromium.launch({headless:true,...(process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
+const browserType=engineName==='webkit'?webkit:chromium;
+const browser=await browserType.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 try{
  const context=await browser.newContext();
  const a=await context.newPage(),b=await context.newPage();
