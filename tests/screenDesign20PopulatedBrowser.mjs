@@ -63,6 +63,10 @@ try{
    if(!saved.ok)throw Error(saved.reason);
    return saved.record.id;
   });
+  // The record was saved through canonical IndexedDB after the SPA already
+  // mounted Home. Reload explicitly; navigating to the same hash is a no-op
+  // in some browsers and must not be mistaken for failed persistence.
+  await page.reload({waitUntil:'networkidle'});
   // Each case first asserts actual state/content and then viewport consistency.
   const verify=async(screen,route,selector,assertContent=async()=>{})=>{
    if(route)await page.goto(host+route,{waitUntil:'networkidle'});
