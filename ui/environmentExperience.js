@@ -46,7 +46,7 @@ export function environmentPage(d={},ui=newEnvironmentUi()){
  <p class="e4-draft-note">天候・風・湿度の選択はこの画面だけの一時表示です。環境メモに明示的に反映しない場合、移動や再読み込みで消えます。</p></section>
  <section class="rv-panel e4-panel"><div class="e4-top"><h2>環境メモ</h2><small>任意</small></div>
  <label class="e4-label">気づいたこと<textarea data-draft="environmentNote" rows="5" maxlength="500" placeholder="例：向かい風が強かった。日陰は涼しかった。">${safe(d.environmentNote)}</textarea></label>
- <p class="e4-help">入力した内容を天候の選択で自動的に書き換えることはありません。保存したい場合は下の操作で本人の申告として環境メモに追記できます。</p><button type="button" data-e4-commit>選択した天候などを環境メモに反映</button><p data-e4-notice role="status">${safe(ui.notice||'')}</p>
+ <p class="e4-help">入力した内容を天候の選択で自動的に書き換えることはありません。保存したい場合は下の操作で本人の申告として環境メモに追記できます。</p><button type="button" class="e4-commit" data-e4-commit>選択した天候などを環境メモに反映</button><p data-e4-notice role="status">${safe(ui.notice||'')}</p>
  <div class="e4-summary"><strong>入力内容の確認</strong><p data-e4-summary>${safe(environmentSummary(d,ui))}</p></div>
  <p class="e4-error" data-e4-error role="alert" ${temperatureError(d.temperatureC)?'':'hidden'}>${safe(temperatureError(d.temperatureC))}</p>
  </section></div><div class="e4-bottom"><p>気温と環境メモは記録の確認画面に引き継がれます。天候・風・湿度は「環境メモに反映」を押したものだけ文章として保存できます。</p><a class="e4-done" data-e4-done href="#/record">入力を確認</a></div></div>`;

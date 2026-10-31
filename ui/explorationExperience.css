@@ -489,3 +489,10 @@
 .ex-observation-guide .ex-guide-grid h4{font-size:.86rem;color:#80e5dd;margin:0 0 6px;font-weight:680}
 .ex-observation-guide .ex-guide-grid p{font-size:.85rem;line-height:1.64;overflow-wrap:anywhere;margin:0;color:#d2e3e8}
 @media(max-width:520px){.ex-observation-guide .ex-guide-grid{grid-template-columns:1fr;gap:8px}.ex-observation-guide .ex-guide-grid section{padding:10px 12px}}
+
+/* Explicit reflection revision stays legible in compact memories. */
+.ex-page .ex-saved>div:first-child{flex:1;min-width:0}
+.ex-page .ex-saved-actions{display:flex;gap:7px;align-items:start;flex-wrap:wrap;justify-content:flex-end}
+.ex-page .ex-saved-actions button{min-height:37px;color:#e3f9fc}
+.ex-page .ex-saved-actions button:focus-visible{outline:3px solid #8de5e8;outline-offset:3px}
+@media(max-width:420px){.ex-page .ex-saved{flex-wrap:wrap}.ex-page .ex-saved-actions{width:100%;justify-content:flex-start}}
