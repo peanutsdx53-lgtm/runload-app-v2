@@ -1329,6 +1329,9 @@ try{
     assert.ok(await page.locator('[data-gps-map-overlay] .gps-map-track-line path').count()>0,'offline map still draws recorded track');
     assert.equal(await page.locator('[data-gps-route]').count(),0,'redundant route preview is removed');
     await page.locator('[data-gps-action="finish"]').click();
+    await page.locator('[data-gps-review]').waitFor();
+    assert.match(new URL(page.url()).hash,/gps-review/,'GPS stop leads to review before saving');
+    await page.locator('.gps-review a[href="#/measurement"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     failTiles=false;
     // Finish with zero movement: never leave the user stuck on a disabled save path.
@@ -1336,8 +1339,10 @@ try{
     await page.locator('[data-gps-action="start"]').click();
     await page.locator('[data-gps-consent-confirm]').click();
     await page.locator('[data-gps-action="finish"]').click();
-    assert.match(await page.locator('.gps-finish-unavailable').innerText(),/保存できません/);
-    assert.equal(await page.locator('[data-gps-action="save"]').count(),0);
+    await page.locator('[data-gps-review]').waitFor();
+    assert.match(await page.locator('.gps-review [role="alert"]').innerText(),/保存できません/);
+    assert.equal(await page.locator('[data-gps-action="save"]').isEnabled(),false);
+    await page.locator('.gps-review a[href="#/measurement"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     assert.match(new URL(page.url()).hash,/record-start/);
   }
