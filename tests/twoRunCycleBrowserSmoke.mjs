@@ -107,6 +107,9 @@ try{
  assert.ok(await page.locator('.ex-saved a[href="#/result?record='+firstId+'"]').count(),
   'the note can return to its original, still-saved run');
  await page.locator('[data-ex-action="close"]').click();
+ // The record-aware exploration view may render asynchronously after navigation.
+ // Compare only after its second-run context is visible; never accept stale notes.
+ await page.waitForFunction(()=>document.querySelector('.ex-record-return')?.textContent?.includes('2026-10-21'));
  assert.equal(await page.locator('.ex-note-preview').count(),0,
   'a different selected run must not display the prior run as its own topic note');
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
@@ -154,7 +157,7 @@ try{
  await page.locator('[data-ex-action="save-note"]').click();
  await page.waitForFunction(()=>[...document.querySelectorAll('.ex-notice')]
   .some(el=>el.textContent.includes('指定された保存済み走行が見つからない')));
- assert.match(await page.locator('.ex-notice').last().innerText(),/指定された保存済み走行が見つからない/);
+ assert.match(await page.locator('.ex-notice').filter({hasText:'指定された保存済み走行が見つからない'}).last().innerText(),/指定された保存済み走行が見つからない/);
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2);
  // Two new records deliberately share a date, distance, duration and an empty note.
  // The comparison must identify each saved run by ID, never by date alone.
