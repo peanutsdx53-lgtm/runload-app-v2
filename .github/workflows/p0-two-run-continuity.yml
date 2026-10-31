@@ -1,0 +1,61 @@
+name: P0 two-run continuity acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'ui/manualRunCanonical.js'
+      - 'ui/manualRunStore.js'
+      - 'ui/runReflection.js'
+      - 'ui/explorationExperience.js'
+      - 'ui/runQuestionContinuation.js'
+      - 'ui/resultExperience.js'
+      - 'ui/regionReferenceComparison.js'
+      - 'tests/twoRunCycleBrowserSmoke.mjs'
+      - '.github/workflows/p0-two-run-continuity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay-continuity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Re-run separate full P0 browser profiles twice with no retries
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-output/p0-continuity
+          for attempt in 1 2; do
+            echo "P0: engine=${RUNLOAD_BROWSER_ENGINE} independent attempt=${attempt}"
+            if node tests/twoRunCycleBrowserSmoke.mjs >"audit-output/p0-continuity/${RUNLOAD_BROWSER_ENGINE}-attempt${attempt}.log" 2>&1; then
+              tail -12 "audit-output/p0-continuity/${RUNLOAD_BROWSER_ENGINE}-attempt${attempt}.log"
+              echo "PASS,${RUNLOAD_BROWSER_ENGINE},${attempt}" >> audit-output/p0-continuity/replay-status.csv
+            else
+              tail -80 "audit-output/p0-continuity/${RUNLOAD_BROWSER_ENGINE}-attempt${attempt}.log"
+              echo "FAIL,${RUNLOAD_BROWSER_ENGINE},${attempt}" >> audit-output/p0-continuity/replay-status.csv
+              exit 1
+            fi
+          done
+      - name: Save per-attempt acceptance evidence, even if a replay fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-two-run-${{ matrix.engine }}-replays
+          path: audit-output/p0-continuity/
+          if-no-files-found: warn
+          retention-days: 30
