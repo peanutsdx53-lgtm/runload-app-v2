@@ -6,6 +6,8 @@ on:
   pull_request:
     paths:
       - 'ui/resultExperience.js'
+      - 'styles.css'
+      - 'tests/contrastAccessibilityRegression.test.mjs'
       - 'ui/runReflection.js'
       - 'ui/explorationExperience.js'
       - 'ui/resultInlineStyles.js'
