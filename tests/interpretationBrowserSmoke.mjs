@@ -184,6 +184,31 @@ try{
   await page.locator('[data-draft="date"]').waitFor();
   await page.locator('a[href="#/record-environment"]').click();
   assert.equal(await page.locator('[data-draft="environmentNote"]').inputValue(),noteAfter,'reported context survives screen navigation before save');
+  if(mode.name==='390'){
+   await page.goto(base+'#/record',{waitUntil:'domcontentloaded'});
+   await page.locator('[data-draft="date"]').fill('2026-10-29');
+   await page.locator('[data-draft="distance"]').fill('6');
+   await page.locator('[data-draft="minutes"]').fill('36');
+   await page.locator('[data-manual-gait="RUNNING"]').click();
+   await page.locator('[data-demo-save]').click();
+   await page.locator('[data-record-review]').waitFor();
+   await page.locator('[data-manual-run-save]').click();
+   await page.waitForFunction(()=>location.hash.startsWith('#/result?record='),null,{timeout:15000});
+   const run=await page.evaluate(async()=>{
+    const m=await import('./ui/manualRunCanonical.js'),r=await m.readCanonical();
+    if(!r.ok)throw Error('manual run inaccessible');
+    return r.read.records.find(x=>x.date==='2026-10-29');
+   });
+   assert.ok(run,'environment selection save creates an actual canonical run');
+   assert.equal(run.draft.environmentNote,noteAfter,'the explicit context survives saved-run serialization');
+   assert.notEqual(run.draft.environmentNote,'','missing must not be coerced to a measurement');
+   await page.reload({waitUntil:'domcontentloaded'});
+   const persisted=await page.evaluate(async()=>{
+    const m=await import('./ui/manualRunCanonical.js'),r=await m.readCanonical();
+    return r.read.records.find(x=>x.date==='2026-10-29')?.draft.environmentNote;
+   });
+   assert.equal(persisted,noteAfter,'the optional context survives reload');
+  }
   assert.deepEqual(errors,[],`browser errors ${mode.name}`);
   await context.close();
  }
