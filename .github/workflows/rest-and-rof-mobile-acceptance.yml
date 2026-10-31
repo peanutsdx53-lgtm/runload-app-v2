@@ -1,0 +1,50 @@
+name: Rest and ROF mobile acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'ui/restDayStore.js'
+      - 'ui/rofExperience.js'
+      - 'ui/rofExperience.css'
+      - 'ui/recordReviewExperience.js'
+      - 'ui/historyExperience.js'
+      - 'ui/dataManagement.js'
+      - 'tests/restDayScreenContract.test.mjs'
+      - 'tests/restAndRofMobileBrowser.mjs'
+      - '.github/workflows/rest-and-rof-mobile-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rest-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify rest independent storage, history, safe backup and ROF-J
+        run: |
+          node --test tests/restDayScreenContract.test.mjs tests/rofExperience.test.mjs tests/recordReviewExperience.test.mjs tests/dataManagement.test.mjs
+  screen-journey:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Check first-run and repeated mobile rest + ROF changes
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/restAndRofMobileBrowser.mjs
