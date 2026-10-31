@@ -66,7 +66,12 @@ try{
     .sort((a,b)=>b.getBoundingClientRect().right-a.getBoundingClientRect().right).slice(0,15)
     .map(e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,cls:typeof e.className==='string'?e.className.slice(0,120):'',text:(e.innerText||'').trim().slice(0,45),right:Math.round(r.right),width:Math.round(r.width),scroll:e.scrollWidth,client:e.clientWidth}});
    const overflowing=all.filter(e=>{const st=getComputedStyle(e);return e.clientWidth>0&&e.scrollWidth>e.clientWidth+3&&st.overflowX!=='auto'&&st.overflowX!=='scroll'}).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,12).map(e=>({tag:e.tagName,cls:typeof e.className==='string'?e.className.slice(0,100):'',scroll:e.scrollWidth,client:e.clientWidth,overflow:getComputedStyle(e).overflowX}));
-   return {innerWidth:width,scrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,offenders,overflowing};
+   const inspect=(selector)=>{const e=document.querySelector(selector);if(!e)return null;const cs=getComputedStyle(e);return {selector,client:e.clientWidth,rect:e.getBoundingClientRect().width,container:cs.containerName,containerType:cs.containerType,display:cs.display,grid:cs.gridTemplateColumns,flexDirection:cs.flexDirection,zoom:cs.zoom};};
+   const cssTrace=[
+    '.rr-page','.rr-date-line','.rr-metrics','.cp-app .main-content','.cp-workspace','.cp-mode-grid',
+    '.gps-v35','.gps-live-steps','.gps-live-time strong','.sm-page','.sm-form-grid','.sm-results-grid'
+   ].map(inspect).filter(Boolean);
+   return {innerWidth:width,scrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,offenders,overflowing,cssTrace};
   });
   const result={engine:engineName,screen,route,present,layout,errors};
   reports.push(result);
