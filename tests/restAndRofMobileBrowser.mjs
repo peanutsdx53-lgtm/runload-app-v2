@@ -30,7 +30,7 @@ try{
   await rof.locator('[data-rof-v4-range]').evaluate(el=>{el.value='8';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await rof.locator('[data-rof-v4-phase="before"]').click();
   assert.match(await rof.locator('[data-rof-v4-phase="after"]').innerText(),/8\/10/);
-  await rof.locator('.rv4-optional-meta summary').click();
+  await rof.locator('.rv4-optional-meta > summary').click();
   assert.equal(await rof.locator('.rv4-optional-meta').getAttribute('open'),'');
   assert.equal(await rof.locator('[data-rof-v4-next-phase]').count(),0,'one phase selector at top; no repeated bottom navigation');
   await rof.locator('[data-rof-run-start-date]').fill('2026-10-30');
