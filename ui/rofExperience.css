@@ -73,3 +73,27 @@
 .rv4-run-times input,.rv4-timing input,.rv4-timing select{min-width:0;max-width:100%;width:100%;min-height:44px;padding:9px;background:#102f40;color:#f5ffff;border:1px solid #5797a1;border-radius:9px;color-scheme:dark}
 .rv4-run-times p,.rv4-timing small{grid-column:1/-1;margin:0;font-size:12px;line-height:1.6;color:#bdd7df}
 .rv4-run-times input:focus-visible,.rv4-timing input:focus-visible,.rv4-timing select:focus-visible{outline:2px solid #f4cc75;outline-offset:2px}
+
+/* S06 phone feedback: score before metadata, no accidental iOS date overflow. */
+.rv4-page .rv4-optional-meta{margin:10px 0 14px;border:1px solid #508697;border-radius:12px;background:#0b3342;min-width:0}
+.rv4-page .rv4-optional-meta>summary{padding:12px 14px;min-height:44px;cursor:pointer;font-size:13px;font-weight:750;line-height:1.5;color:#e4f7fb;overflow-wrap:anywhere}
+.rv4-page .rv4-meta-body{display:grid;gap:10px;padding:0 10px 10px;min-width:0}
+.rv4-page .rv4-run-times,.rv4-page .rv4-timing{margin:0;min-width:0;width:100%;max-width:100%;padding:10px;grid-template-columns:minmax(0,1fr)}
+.rv4-page .rv4-run-times legend,.rv4-page .rv4-timing legend{max-width:100%;font-size:12px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.rv4-page .rv4-run-times label,.rv4-page .rv4-timing label{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.rv4-page .rv4-run-times input,.rv4-page .rv4-timing input,.rv4-page .rv4-timing select{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;font-size:16px}
+.rv4-page .rv4-next-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
+.rv4-page .rv4-next-actions button{min-height:46px;border:1px solid #79cbd4;border-radius:11px;background:#1b5465;color:#f3ffff;padding:9px 13px;font-weight:750;cursor:pointer;overflow-wrap:anywhere}
+.rv4-page .rv4-next-actions button:focus-visible{outline:3px solid #f4cc75;outline-offset:3px}
+@media(max-width:800px){
+ .rv4-page .rv4-tabs{position:sticky;top:0;z-index:8;background:#123e4dcc;border:1px solid #447e8c;border-radius:12px;padding:6px;margin:10px 0;backdrop-filter:blur(8px)}
+ .rv4-page .rv4-current{min-height:70px;padding:10px;gap:10px}
+ .rv4-page .rv4-current>output{font-size:40px;flex-basis:47px}
+ .rv4-page .rv4-rail{padding:10px 7px}
+ .rv4-page .rv4-picture{height:64px}
+ .rv4-page .rv4-anchor-row{height:115px}
+ .rv4-page .rv4-axis{margin-top:9px}
+ .rv4-page .rv4-description{padding:11px}
+ .rv4-page .rv4-next-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%}
+ .rv4-page .rv4-next-actions button,.rv4-page .rv4-next-actions .rv4-done{width:100%;justify-self:stretch;max-width:100%;text-align:center}
+}

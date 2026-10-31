@@ -58,3 +58,19 @@ test('stage 8 explicit contemporary and retrospective ROF-J entries have separat
  assert.equal(recordRofInput(d,'after',null,'2026-10-30T03:00:00.000Z'),true);
  assert.equal(d.rofAfter,null);
 });
+
+test('S06: optional metadata collapses by default while phase switching remains available',()=>{
+ const d={rofBefore:0,rofAfter:null};
+ const ui=createRofUiState();
+ const html=rofPage(d,ui);
+ assert.match(html,/<details class="rv4-optional-meta" >/);
+ assert.match(html,/data-rof-v4-next-phase="after"/);
+ assert.match(html,/data-rof-v4-phase="before"/);
+ assert.match(html,/data-rof-v4-phase="after"/);
+ assert.match(html,/value="0"/);
+ ui.metaOpen=true;setRofPhase(ui,'after',d);
+ const next=rofPage(d,ui);
+ assert.match(next,/<details class="rv4-optional-meta" open>/);
+ assert.match(next,/data-rof-v4-next-phase="before"/);
+ assert.match(next,/まだ選択されていません/);
+});

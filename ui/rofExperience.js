@@ -17,7 +17,7 @@ export const nearestAnchorIndex=v=>{
  return 4;
 };
 export const isAnchorIndex=i=>Number.isInteger(i)&&i>=0&&i<ROF_J_ANCHORS.length;
-export function createRofUiState(){return {phase:'before',focusedAnchor:2,readingAnchor:false}}
+export function createRofUiState(){return {phase:'before',focusedAnchor:2,readingAnchor:false,metaOpen:false}}
 const fromLocal=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(x)&&!Number.isNaN(Date.parse(x))?new Date(x).toISOString():null;
 export function setRofTiming(d,phase,mode,declaredAt=''){
  if(!Object.hasOwn(rofPhaseKey,phase)||!['UNKNOWN','AT_ENTRY','RECALLED'].includes(mode))return false;
@@ -78,14 +78,14 @@ export function rofPage(d,ui){
  return `<div class="record-v3 rv4-page" data-rof-v4-root><header class="rv-head rv4-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><div><h1>運動前後の疲労感</h1><p>ROF-J｜0〜10の整数11段階</p></div></header>
  <section class="rv4-card" aria-labelledby="rv4-title"><div class="rv4-title"><h2 id="rv4-title">疲労感の記録</h2><span>任意</span></div>
  <div class="rv4-tabs" role="tablist" aria-label="疲労感の入力タイミング">${tabs}</div>
- ${exerciseTiming}${provenance}<div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
+ <details class="rv4-optional-meta" ${ui.metaOpen?'open':''}><summary>任意：運動時刻・回答時点を記録する</summary><div class="rv4-meta-body">${exerciseTiming}${provenance}</div></details><div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
  <div class="rv4-current${hasScore?'':' is-empty'}" aria-live="polite"><output data-rof-v4-number>${hasScore?n:'—'}</output><div><small data-rof-v4-scoreline>${ui.phase==='before'?'運動前':'運動後'} / 10</small><strong data-rof-v4-meaning>${hasScore?esc(guidanceForRofJ(n)):'まだ選択されていません'}</strong><p data-rof-v4-caption>${hasScore?'選択値：'+n+' / 10':'横軸で数値を選択してください'}</p></div></div>
  <div class="rv4-rail" aria-label="評価軸と対応する代表イラスト"><div class="rv4-rail-top"><strong>代表イラスト</strong><small>タップで説明を確認</small></div>
  <div class="rv4-anchor-row" aria-label="原版の5つの代表位置">${anchors}</div>
  <div class="rv4-axis" aria-label="0から10の一直線の評価軸"><div class="rv4-ticks">${ticks}</div><div class="rv4-track"><input type="range" data-rof-v4-range aria-label="${ui.phase==='before'?'運動前':'運動後'}のROF-J疲労感、0から10まで1ずつ" min="0" max="10" step="1" value="${hasScore?n:5}"></div></div>
  <div class="rv4-axis-ends"><span>0：まったく疲れていない</span><span>10：完全な疲労困憊</span></div>
  <div class="rv4-tools"><div class="rv4-adjust"><button type="button" data-rof-v4-step="-1" aria-label="疲労感を1下げる">−</button><span>1ずつ調整</span><button type="button" data-rof-v4-step="1" aria-label="疲労感を1上げる">＋</button></div><button type="button" data-rof-v4-clear ${hasScore?'':'disabled'}>選択を消す</button></div></div>
- <aside class="rv4-aside"><div class="rv4-description"><small>代表位置：<span data-rof-v4-position>${esc(anchor.positionLabel)}</span></small><strong data-rof-v4-anchor-meaning>${esc(anchor.descriptor)}</strong><p data-rof-v4-anchor-note>${ui.readingAnchor?'選択したイラストの説明です。点数は変更されません。':hasScore?'選択値に近い代表イラストです。':'代表位置の説明です。数値は未入力です。'}</p><p>「2と3の間」「7と8の間」は目安の位置であり、入力できる中間値ではありません。</p></div><details class="rv4-rights"><summary>尺度・イラストの出典</summary><p>尺度：${esc(ROF_J_RIGHTS.scale)}。図：${esc(ROF_J_RIGHTS.images)}。</p><a href="${esc(ROF_J_RIGHTS.scaleUrl)}" target="_blank" rel="noopener">尺度の出典</a><a href="${esc(ROF_J_RIGHTS.imagesUrl)}" target="_blank" rel="noopener">図の出典</a></details><p class="rv4-help">自分が感じる疲労感の記録です。身体部位別の計算値ではありません。入力した疲労感は、手入力した走行と一緒に保存できます。</p><a class="rv4-done" href="#/record">手入力へ戻る</a></aside></div></section></div>`;
+ <aside class="rv4-aside"><div class="rv4-description"><small>代表位置：<span data-rof-v4-position>${esc(anchor.positionLabel)}</span></small><strong data-rof-v4-anchor-meaning>${esc(anchor.descriptor)}</strong><p data-rof-v4-anchor-note>${ui.readingAnchor?'選択したイラストの説明です。点数は変更されません。':hasScore?'選択値に近い代表イラストです。':'代表位置の説明です。数値は未入力です。'}</p><p>「2と3の間」「7と8の間」は目安の位置であり、入力できる中間値ではありません。</p></div><details class="rv4-rights"><summary>尺度・イラストの出典</summary><p>尺度：${esc(ROF_J_RIGHTS.scale)}。図：${esc(ROF_J_RIGHTS.images)}。</p><a href="${esc(ROF_J_RIGHTS.scaleUrl)}" target="_blank" rel="noopener">尺度の出典</a><a href="${esc(ROF_J_RIGHTS.imagesUrl)}" target="_blank" rel="noopener">図の出典</a></details><p class="rv4-help">自分が感じる疲労感の記録です。身体部位別の計算値ではありません。入力した疲労感は、手入力した走行と一緒に保存できます。</p><div class="rv4-next-actions">${ui.phase==='before'?'<button type="button" data-rof-v4-next-phase="after">運動後の疲労感を入力する →</button>':'<button type="button" data-rof-v4-next-phase="before">運動前の疲労感に戻る</button>'}<a class="rv4-done" href="#/record">記録へ戻る</a></div></aside></div></section></div>`;
 }
 export function reflectRofPage(root,d,ui){
  const page=root?.querySelector('[data-rof-v4-root]');if(!page)return;
