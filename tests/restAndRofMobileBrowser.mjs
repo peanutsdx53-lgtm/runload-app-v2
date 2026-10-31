@@ -24,7 +24,7 @@ try{
   assert.equal(await rof.locator('[data-rof-v4-anchor]').count(),5);
   assert.equal(await rof.locator('[data-rof-v4-tick]').count(),11);
   await rof.locator('[data-rof-v4-range]').evaluate(el=>{el.value='0';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await rof.locator('[data-rof-v4-next-phase="after"]').click();
+  await rof.locator('[data-rof-v4-phase="after"]').click();
   assert.match(await rof.locator('[data-rof-v4-phase="before"]').innerText(),/0\/10/);
   assert.match(await rof.locator('[data-rof-v4-phase="after"]').innerText(),/未入力/);
   await rof.locator('[data-rof-v4-range]').evaluate(el=>{el.value='8';el.dispatchEvent(new Event('input',{bubbles:true}));});
