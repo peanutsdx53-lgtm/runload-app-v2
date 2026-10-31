@@ -134,6 +134,7 @@ try{
  assert.equal(notesBefore.filter(n=>n.recordId===firstId).length,1);
  assert.equal(notesBefore.filter(n=>!Object.hasOwn(n,'recordId')).length,1);
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(secondId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ await page.waitForFunction(()=>document.querySelector('.ex-record-return')?.textContent?.includes('2026-10-21'),null,{timeout:15000});
  assert.equal(await page.locator('.ex-note-preview').count(),0,'unlinked and old notes must not move to another run');
  // Simulate deletion inside the existing V1 format. Do not alter schema.
  await page.evaluate(async id=>{
