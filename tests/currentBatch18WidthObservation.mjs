@@ -43,6 +43,7 @@ for(const [engine,browserType] of [['chromium',chromium],['webkit',webkit]]){
   try{
    await page.goto(base+path,{waitUntil:'domcontentloaded',timeout:14000});
    await page.locator('main.main-content').waitFor({timeout:6000});
+   if(kind==='zoom_and_reflow') await page.evaluate(()=>document.documentElement.style.zoom='2');
    await page.waitForTimeout(100);
   }catch(e){loadErr=String(e).slice(0,260);}
   let metrics={};
@@ -72,9 +73,7 @@ for(const [engine,browserType] of [['chromium',chromium],['webkit',webkit]]){
   for(const [suffix,w,h] of widths)await observe(screen+'-'+suffix,'viewport',w,h,path,needData);
   await observe(screen+'-keyboard','keyboard_focus',390,844,path,needData);
   // 200% CSS zoom approximates effective CSS layout width; NOT native browser zoom certification.
-  try{await page.evaluate(()=>document.documentElement.style.zoom='2');}catch{}
   await observe(screen+'-zoom_200','zoom_and_reflow',390,844,path,needData);
-  try{await page.evaluate(()=>document.documentElement.style.zoom='');}catch{}
  }
  await context.close();
  }catch(e){errors.push({engine,error:String(e),stack:String(e?.stack).slice(0,500)});}
