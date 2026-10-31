@@ -35,7 +35,26 @@ try{
   const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
-  await page.goto('http://127.0.0.1:4196/#/'+route,{waitUntil:'networkidle'});
+  if(screen==='S08'){
+   // Populate the real review form; the old C09 failure occurred in a populated state.
+   await page.goto('http://127.0.0.1:4196/#/record',{waitUntil:'networkidle'});
+   await page.locator('[data-draft="distance"]').fill('5.00');
+   await page.locator('[data-draft="minutes"]').fill('30');
+   await page.locator('[data-demo-save]').click();
+   await page.locator('.rr-page').waitFor();
+  }else{
+   if(screen==='S15'){
+    // Real saved record exposes the report's information-heavy states.
+    await page.goto('http://127.0.0.1:4196/#/home',{waitUntil:'networkidle'});
+    const result=await page.evaluate(async()=>{
+     const [canonical,manual]=await Promise.all([import('/ui/manualRunCanonical.js'),import('/ui/manualRunStore.js')]);
+     const init=await canonical.refresh();if(!init.ok)return init;
+     return canonical.mutate(s=>manual.saveManualRun(s,{date:'2026-10-30',distance:'5',hours:'',minutes:'30',seconds:'',activityGait:'RUNNING',runningFormat:'UNKNOWN',rofBefore:0,rofAfter:null,steps:'',courseName:'',shoeName:'',memo:''}));
+    });
+    if(!result.ok)throw Error('C09 fixture save: '+result.reason);
+   }
+   await page.goto('http://127.0.0.1:4196/#/'+route,{waitUntil:'networkidle'});
+  }
   const present=await page.locator(selector).count();
   await page.evaluate(()=>{document.documentElement.style.fontSize='200%'});
   await page.waitForTimeout(150);
