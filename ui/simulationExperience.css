@@ -226,3 +226,21 @@
  .sm-page .sm-source-selector .sm-source-option:disabled{width:100%;min-width:0;max-width:100%;flex-basis:auto;white-space:normal;overflow-wrap:anywhere;scroll-snap-align:none;min-height:48px}
  .sm-page .sm-source-selector .sm-source-text{min-width:0;white-space:normal;overflow-wrap:anywhere}
 }
+
+/* WebKit's container reflow can preserve the former flex rail under CSS
+   zoom despite a narrow visible card. Under handset widths use a responsive
+   two-up/one-up grid instead, keeping all four user choices directly visible.
+   The desktop four-column chooser and underlying simulation stay unchanged. */
+@media(max-width:650px){
+ .sm-page .sm-source-selector{overflow:visible;min-width:0;max-width:100%}
+ .sm-page .sm-source-selector .sm-source-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));
+  overflow:visible;scroll-snap-type:none;gap:7px;min-width:0;max-width:100%
+ }
+ .sm-page .sm-source-selector .sm-source-option,
+ .sm-page .sm-source-selector .sm-source-option:disabled{
+  width:100%;min-width:0;max-width:100%;flex-basis:auto;
+  scroll-snap-align:none;white-space:normal;overflow-wrap:anywhere
+ }
+ .sm-page .sm-source-selector .sm-source-text{min-width:0;overflow-wrap:anywhere;white-space:normal}
+}
