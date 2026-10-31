@@ -19,7 +19,7 @@ jobs:
           echo "BASE_MAIN_SHA=22ca778531eae25464c67d01099f74be5dd63920" > SOURCE_PROVENANCE.txt
           echo "AUDIT_BRANCH_SHA=$(git rev-parse HEAD)" >> SOURCE_PROVENANCE.txt
           git fetch --no-tags --depth=2 origin 22ca778531eae25464c67d01099f74be5dd63920
-          git diff --exit-code 22ca778531eae25464c67d01099f74be5dd63920 -- app.js index.html styles.css pwa.js sw.js core ui assets tests
+          git diff --exit-code 22ca778531eae25464c67d01099f74be5dd63920 -- app.js index.html styles.css pwa.js sw.js core ui assets
       - uses: actions/upload-artifact@v4
         with:
           name: runload-complete-audit-source
@@ -38,3 +38,37 @@ jobs:
             tests/
             docs/
           retention-days: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install independent audit browser dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Fresh Node contract regression at frozen main contents
+        run: |
+          mkdir -p audit-output
+          node --test tests/*.test.mjs > audit-output/371-node-regression.log 2>&1
+          tail -15 audit-output/371-node-regression.log
+      - name: New 140-case-per-engine width, focus and reflow observations
+        if: always()
+        run: |
+          node tests/currentBatch18WidthObservation.mjs | tee audit-output/140-case-process.log
+      - name: Independent normal and counterexample E2E replay
+        if: always()
+        run: |
+          set +e
+          for test in twoRunCycleBrowserSmoke manualRunLockBrowserSmoke offlineShellBrowserSmoke interpretationBrowserSmoke dataManagementBrowserSmoke; do
+            node "tests/${test}.mjs" > "audit-output/${test}.log" 2>&1
+            status=$?
+            echo "${test},${status}" | tee -a audit-output/e2e-exit-status.csv
+            tail -4 "audit-output/${test}.log"
+          done
+      - name: Upload new independent audit observations and test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-current-batch18-independent-test-evidence
+          path: audit-output/
+          if-no-files-found: warn
+          retention-days: 7
