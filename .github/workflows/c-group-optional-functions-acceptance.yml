@@ -1,0 +1,60 @@
+name: C group optional functions acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/homeExperience.js'
+      - 'ui/homeExperience.css'
+      - 'ui/homeDashboardLayout.js'
+      - 'ui/homeDashboardDrag.js'
+      - 'ui/measurementExperience.js'
+      - 'ui/coursePresetStore.js'
+      - 'ui/simulationExperience.js'
+      - 'app.js'
+      - 'tests/cGroupTrendIntegrity.test.mjs'
+      - 'tests/cGroupTrendBrowserSmoke.mjs'
+      - '.github/workflows/c-group-optional-functions-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  five-optional-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Optional C F17 F18 F19 F20 F21 source contracts and negative cases
+        run: |
+          node --test \
+            tests/cGroupTrendIntegrity.test.mjs \
+            tests/homeExperience.test.mjs \
+            tests/homeDashboardLayout.test.mjs \
+            tests/gpsDesignAssurance.test.mjs \
+            tests/gpsSoftwareCloseout.test.mjs \
+            tests/measurementExperience.test.mjs \
+            tests/gpsIndexedDbStore.test.mjs \
+            tests/coursePresetStore.test.mjs \
+            tests/simulationExperience.test.mjs
+  optional-home-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Compare actual saved-run optional widget with empty, preview and reload states
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/cGroupTrendBrowserSmoke.mjs
