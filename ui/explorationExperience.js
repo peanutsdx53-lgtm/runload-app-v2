@@ -319,7 +319,7 @@ export function editNote(ui,id,text){
  if(revisions.length>=50)return {ok:false,reason:"修正履歴が上限です。古い文章を自動削除しません"};
  const now=new Date().toISOString();
  const revised={...current,text:nextText,updatedAt:now,
-  revisions:[...revisions,{text:current.text,editedAt:current.updatedAt||current.createdAt}]};
+  revisions:[...revisions,{text:current.text,editedAt:now}]};
  const next=ui.notes.map((note,i)=>i===index?revised:note);
  const original=JSON.stringify(ui.notes),expected=JSON.stringify(next);
  try{
