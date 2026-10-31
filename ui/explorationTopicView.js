@@ -4,7 +4,11 @@ export function renderObservationGuide(ui,ctx,cat,topic,starter){
   const guide=EXPLORATION_DRAFT_GUIDES[cat.id+'|'+topic];
   const text=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const run=ctx.focusRunId&&ctx.focusRun?ctx.focusRun:null;
-  const saved=ui.notes.filter(n=>n.topicId===guide?.id).slice(0,2);
+  // Each preview has one explicit scope: selected valid run, or unlinked general notes.
+  // Run-linked notes remain reachable in the labelled "ふり返り" list.
+  const saved=(Array.isArray(ui.notes)?ui.notes:[]).filter(n=>n.topicId===guide?.id&&(
+    ctx.focusRunId ? ctx.focusRun?.id===ctx.focusRunId&&n.recordId===ctx.focusRunId : !n.recordId
+  )).slice(0,2);
   const link=run?'<a class="ex-learning-link" href="#/result?record='+encodeURIComponent(run.id)+'">この走行の結果へ戻る ›</a>':'';
   return '<div class="ex-learning ex-learning-empty ex-observation-guide"><div class="ex-learning-head"><span>自分の記録から考える</span><button type="button" class="ex-help" data-ex-action="learn-help" aria-label="内容の根拠と注意点">？</button></div><h3>'+text(topic)+'</h3>'
    +'<p class="ex-learning-lead">'+text(starter||guide?.question||'気になったことを、自分の経験や記録から考えてみましょう。')+'</p>'
