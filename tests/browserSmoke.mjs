@@ -573,6 +573,9 @@ try{
   assert.equal(await page.locator(".install-dialog").count(),0);
   // Both Home and Record use one course editor and one opt-in preset collection.
   await page.goto(host+"#/course",{waitUntil:"networkidle"});
+  // Rendering waits for IndexedDB-backed startup after navigation; do not
+  // equate networkidle with the application route being mounted.
+  await page.locator('.rv-course').waitFor({state:'visible',timeout:10000});
   assert.equal(await page.locator('.rv-course').count(),1);
   assert.equal(await page.locator('.rv-course-flow > .rv-panel').count(),3,'approved top-to-bottom course steps');
   assert.equal(await page.locator('.rv-condition-pair > .rv-panel').count(),2,'same card contains slope and surface');
