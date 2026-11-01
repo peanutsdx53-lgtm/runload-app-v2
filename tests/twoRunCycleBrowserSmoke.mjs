@@ -353,7 +353,7 @@ try{
  assert.equal(actualRuns.records.find(r=>r.id===eligibleA).distanceKm,5.4);
  assert.equal(actualRuns.records.find(r=>r.id===eligibleB).distanceKm,6);
  await page.reload({waitUntil:'networkidle'});
- assert.match(await eligiblePanel.innerText(),/差 [+-]?[0-9]/,'same-method scientific comparison survives reload');
+ assert.match(await eligiblePanel.locator('.rv4-region-compare-change strong').innerText(),/^[+-]?[0-9]/,'same-method scientific comparison survives reload in the structured value card');
  const outside=await saveRun('2026-10-29',0.5,30,'','RUNNING');
  await page.goto(host+'#/result?record='+encodeURIComponent(outside)+'&compare='+encodeURIComponent(eligibleA)+'&view=compare',{waitUntil:'networkidle'});
  assert.match(await page.locator('.rv4-region-compare').innerText(),/この部位は比較できません/,'ineligible speed must not invent a comparative reference');
