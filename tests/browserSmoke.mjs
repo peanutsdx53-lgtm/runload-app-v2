@@ -1669,6 +1669,10 @@ try{
    assert.match(paceLesson,/30分00秒/);
    assert.match(paceLesson,/6:00 分\/km/);
    assert.match(paceLesson,/10.0 km\/h/);
+   const relatedCopy=await savedExplore.locator('[data-ex-learning="distance-time-pace"] .ex-context').innerText();
+   assert.match(relatedCopy,/保存した走行距離と時間に関連/,'saved learning card must identify the real saved data');
+   assert.match(relatedCopy,/保存した手入力の情報との対応です/);
+   assert.doesNotMatch(relatedCopy,/関連する入力がなくても/,'saved data must not be described as unconnected');
    await assertPaceColumnLayout(savedExplore,mode,'saved');
    await savedExplore.locator('[data-ex-learning="distance-time-pace"]').screenshot({path:resolve(root,'screenshots',mode.name+'-pace-card-saved-v28.png')});
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-saved-v27.png'),fullPage:false});
