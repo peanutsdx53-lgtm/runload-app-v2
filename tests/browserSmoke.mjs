@@ -996,7 +996,14 @@ try{
   assert.equal(await page.locator('[data-rv-section-progress]').evaluate(el=>el.classList.contains('is-complete')),false);
   assert.ok(await page.locator('.rv-section-row-head button').first().evaluate(el=>el.getBoundingClientRect().height>=44),'each section delete control has a 44px hit target');
   assert.ok(await page.locator('[data-rv-add]').isDisabled());
+  // Keep two distinct pieces of evidence: the real viewport with fixed nav,
+  // and a complete form without a fixed nav artificially printed halfway down.
+  if(mode.name!=="desktop"){
+    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-viewport.png"),fullPage:false});
+    await page.locator(".mobile-nav").evaluate(el=>{el.style.position="static";el.style.width="100%";el.style.bottom="auto"});
+  }
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-v2.png"),fullPage:true});
+  if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width="";el.style.bottom=""});
   const layout=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
   assert.ok(layout.bodyWidth-layout.viewport<=3,"record UI horizontal overflow");
   // Navigate through the actual UI, rather than navigating the whole document.
