@@ -64,3 +64,23 @@
 .rv4-question-continuation select,.rv4-question-continuation textarea{width:100%;min-width:0;max-width:100%;padding:10px;min-height:44px;border:1px solid #60949f;background:#123a4d;color:#fff;border-radius:9px;font:inherit}
 .rv4-question-continuation button{min-height:44px;border-radius:9px;border:1px solid #79dade;background:#117c8b;color:white;font-weight:800;padding:10px}
 .rv4-question-continuation :is(button,select,textarea):focus-visible{outline:2px solid #ffda76;outline-offset:2px}
+
+
+/* S09: the user's ROF-J response is a self-report, not a verified time-series change. */
+.rv4-fatigue-note{display:grid;gap:7px;margin:12px 0 8px;padding:12px 13px;border:1px solid #4b929f;border-left:3px solid #80d8d2;border-radius:10px;background:#103847;color:#d9f3f5;font-size:13px;line-height:1.72;min-width:0}
+.rv4-fatigue-note strong{font-size:14px;color:#fff6df;font-weight:800}
+.rv4-fatigue-note span{display:block}
+.rv4-fatigue-method{min-width:0;margin:10px 0;border:1px solid #356b7c;border-radius:10px;background:#092d3e;color:#cfe5eb}
+.rv4-fatigue-method summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:11px 12px;font-size:13px;font-weight:720;line-height:1.6}
+.rv4-fatigue-method p{padding:0 12px 13px;font-size:12px;line-height:1.75;color:#bcd8e1;overflow-wrap:anywhere}
+.rv4-fatigue-method summary:focus-visible{outline:2px solid #f4cc75;outline-offset:2px}
+@media(max-width:620px){
+ .rv4-fatigue-numbers{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr);gap:7px;padding:13px 4px}
+ .rv4-fatigue-numbers>div:not(.rv4-change){min-width:0;gap:6px}
+ .rv4-fatigue-numbers strong{font-size:clamp(26px,8vw,34px)}
+ .rv4-fatigue-numbers small{font-size:12px}
+ .rv4-fatigue-numbers .rv4-arrow{font-size:17px;justify-self:center}
+ .rv4-fatigue-numbers .rv4-change{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;border-left:0;border-top:1px solid #326174;padding:12px 6px 0}
+ .rv4-fatigue-numbers .rv4-change strong{font-size:23px}
+ .rv4-fatigue-note{padding:12px;font-size:13px}
+}
