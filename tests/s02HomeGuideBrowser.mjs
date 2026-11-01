@@ -37,6 +37,24 @@ try{
   assert.equal(await toggle.getAttribute('aria-expanded'),'false');
   assert.equal(await guide.isHidden(),true);
   assert.equal(await page.locator('[data-home-preview]').count(),0);
+  // Header is one visual group: same height/type scale, no clipping even at 320px.
+  const headerMetrics=await page.evaluate(()=>{
+   const h=document.querySelector('.home-v3 .home-head'),help=h.querySelector('[data-home-guide-toggle]'),edit=h.querySelector('[data-home-edit]'),actions=h.querySelector('.home-heading-actions');
+   const box=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,font:parseFloat(getComputedStyle(e).fontSize)}};
+   return {viewport:innerWidth,document:document.documentElement.scrollWidth,header:box(h),actions:box(actions),help:box(help),edit:box(edit)};
+  });
+  assert.ok(headerMetrics.help.height>=43.5&&headerMetrics.edit.height>=43.5,'both 44px touch targets '+JSON.stringify(headerMetrics));
+  assert.ok(Math.abs(headerMetrics.help.height-headerMetrics.edit.height)<=1,'header button heights align '+JSON.stringify(headerMetrics));
+  assert.ok(Math.abs(headerMetrics.help.font-headerMetrics.edit.font)<0.5,'header button text sizes align '+JSON.stringify(headerMetrics));
+  assert.ok(headerMetrics.help.right<=headerMetrics.edit.left+1,'header controls do not overlap '+JSON.stringify(headerMetrics));
+  assert.ok(headerMetrics.actions.right<=headerMetrics.viewport+1&&headerMetrics.header.left>=-1,'header contained in viewport '+JSON.stringify(headerMetrics));
+  assert.ok(headerMetrics.document<=headerMetrics.viewport+2,'document not horizontally overflowing '+JSON.stringify(headerMetrics));
+  await page.locator('[data-home-edit]').click();
+  const editHeader=await page.evaluate(()=>{const h=document.querySelector('.home-v3 .home-head'),e=h.querySelector('[data-home-edit]'),help=h.querySelector('[data-home-guide-toggle]');return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,editRight:e.getBoundingClientRect().right,helpRight:help.getBoundingClientRect().right,editLeft:e.getBoundingClientRect().left};});
+  assert.ok(editHeader.scroll<=editHeader.viewport+2&&editHeader.editRight<=editHeader.viewport+1,'editing state stays inside viewport '+JSON.stringify(editHeader));
+  assert.ok(editHeader.helpRight<=editHeader.editLeft+1,'editing state controls do not overlap '+JSON.stringify(editHeader));
+  await page.screenshot({path:resolve(output,engine+'-'+width+'-editing.png'),fullPage:true,animations:'disabled'});
+  await page.locator('[data-home-edit]').click();
   const before=await page.evaluate(()=>localStorage.getItem('runload-v2-home-dashboard-layout-v1'));
   await page.screenshot({path:resolve(output,engine+'-'+width+'-closed.png'),fullPage:true,animations:'disabled'});
   await toggle.click();
