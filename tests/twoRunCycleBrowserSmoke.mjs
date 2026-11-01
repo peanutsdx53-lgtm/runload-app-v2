@@ -86,8 +86,11 @@ try{
  const regionPanel=page.locator('.rv4-region-compare');
  await regionPanel.waitFor();
  assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
- const labels=await page.locator('.rv4-compare-provenance').innerText();
- assert.ok(labels.includes(firstId)&&labels.includes(secondId),'two saved IDs remain independently visible');
+ const provenance=page.locator('.rv4-compare-provenance');
+ assert.equal(await provenance.getAttribute('open'),null,'full record IDs remain collapsed until requested');
+ await provenance.locator('summary').click();
+ const labels=await provenance.innerText();
+ assert.ok(labels.includes(firstId)&&labels.includes(secondId),'two saved IDs remain independently accessible when expanded');
  assert.match(labels,/比較相手/);assert.match(labels,/選択中/);
  assert.match(await regionPanel.innerText(),/現在の同一モデルでそれぞれ再計算/);
  assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
