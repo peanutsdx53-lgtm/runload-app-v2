@@ -43,3 +43,9 @@
 .environment-v4 .e4-commit{display:block;max-width:100%;min-height:44px;padding:10px 15px;margin:14px 0 6px;border:1px solid #73dfe5;border-radius:11px;background:#118b9c;color:#fff;font-weight:800;white-space:normal;cursor:pointer}
 .environment-v4 .e4-commit:focus-visible{outline:3px solid #a3f4e9;outline-offset:3px}
 .environment-v4 [data-e4-notice]{color:#ccebed;font-size:.78rem;line-height:1.6;overflow-wrap:anywhere}
+
+/* UX-008: an explicit self-report transfer has three visibly different states. */
+.environment-v4 .e4-selection-status{margin:10px 0 0;border:1px solid #527e89;border-radius:11px;padding:11px 13px;color:#cce3e8;background:#0d3040;font-size:.86rem;line-height:1.65;font-weight:650}
+.environment-v4 .e4-selection-status[data-state="pending"]{border-color:#e0ac71;background:#3a3029;color:#ffe2b8}
+.environment-v4 .e4-selection-status[data-state="applied"]{border-color:#58bbba;background:#123c43;color:#dcffff}
+.environment-v4 .e4-commit:disabled{opacity:.58;cursor:not-allowed;border-color:#537983;background:#1b4b59}
