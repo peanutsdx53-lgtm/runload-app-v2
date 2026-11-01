@@ -181,9 +181,12 @@ try{
  assert.equal(state.records.find(r=>r.id===sameDayA).memo,'','note remains truly optional');
  assert.equal(state.records.find(r=>r.id===sameDayB).memo,'');
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
- await page.locator('.rv4-compare-provenance').waitFor();
- const sources=await page.locator('.rv4-compare-provenance').innerText();
- assert.ok(sources.includes(sameDayA)&&sources.includes(sameDayB),'same-day comparison keeps both IDs visible');
+ const sameDayDetail=page.locator('.rv4-compare-provenance');
+ await sameDayDetail.waitFor();
+ assert.equal(await sameDayDetail.getAttribute('open'),null,'provenance IDs are initially collapsed');
+ await sameDayDetail.locator('summary').click();
+ const sources=await sameDayDetail.innerText();
+ assert.ok(sources.includes(sameDayA)&&sources.includes(sameDayB),'same-day IDs remain independently accessible after expansion');
  assert.match(sources,/比較相手/);assert.match(sources,/選択中/);
  const selector=page.locator('[data-compare-select]');
  assert.ok(await selector.locator('option[value="'+sameDayA+'"]').count());
@@ -192,7 +195,9 @@ try{
  const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().innerText();
  assert.match(zeroDistance,/0(\\.00)?/,'same-day zero change is a descriptive value, not missing');
  await page.reload({waitUntil:'networkidle'});
- assert.ok(await page.locator('.rv4-compare-provenance').innerText().then(x=>x.includes(sameDayA)&&x.includes(sameDayB)));
+ const restoredProvenance=page.locator('.rv4-compare-provenance');
+ await restoredProvenance.locator('summary').click();
+ assert.ok(await restoredProvenance.innerText().then(x=>x.includes(sameDayA)&&x.includes(sameDayB)),'reloading retains both independently accessible record IDs');
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(sameDayB)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  assert.equal(await page.locator('.ex-note-preview').count(),0,'no-note run never inherits older free/linked notes');
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2,
