@@ -19,6 +19,16 @@ export function focusRegion(ui,id){if(!region(id))return false;const view=VIEWS.
 export function toggleRegion(ui,id){if(!region(id))return false;ui.selected=ui.selected.includes(id)?ui.selected.filter(x=>x!==id):[...ui.selected,id];ui.notice='';return true;}
 export function clearSelected(ui){ui.selected=[];ui.focusId=null;ui.selectedExpanded=false;ui.notice='';}
 export function addRegionNamesToNote(d,ui){const names=REGIONS.filter(r=>ui.selected.includes(r.id)).map(r=>r.name);if(!names.length){ui.notice='先に部位を選択してください。';return false;}const line='気になった部位：'+names.join('、');const old=String(d.bodyObservation??'').trim();if(old.includes(line)){ui.notice='選択した部位名はすでに文章に含まれています。';return false;}if(old.split('\n').some(text=>text.startsWith('気になった部位：'))){ui.notice='以前に追加した部位名があります。重複を避けるため、更新する場合は自覚情報の文章を直接編集してください。';return false;}const candidate=[old,line].filter(Boolean).join('\n');if(candidate.length>500){ui.notice='500文字を超えるため追加できません。';return false;}d.bodyObservation=candidate;ui.notice='部位名を身体の自覚情報に追加しました。';return true;}
+export function transferStatus(d,ui){
+ const selected=REGIONS.filter(r=>ui.selected.includes(r.id));
+ const line='気になった部位：'+selected.map(r=>r.name).join('、');
+ const body=String(d.bodyObservation??'');
+ const already=selected.length>0&&body.includes(line);
+ const existing=body.split('\n').some(text=>text.trimStart().startsWith('気になった部位：'));
+ const disabled=!selected.length||already||existing;
+ const message=!selected.length?'選択した部位名を文章に追加できます。':already?'選択した部位名は自覚情報の文章に追加されています。':existing?'以前に追加した部位名があります。変更する場合は自覚情報の文章を直接編集してください。':'部位を選んだだけでは記録に残りません。残す場合は下のボタンで自覚情報の文章に追加してください。';
+ return {disabled,message};
+}
 export function checkDefinitions(){const ids=VIEWS.flatMap(v=>v.paths.map(p=>p[0]));return VIEWS.length===3&&ids.length===12&&new Set(ids).size===12&&REGIONS.length===12&&REGIONS.every(r=>ids.includes(r.id));}
 
 function mapSvg(v,ui){const sid=`cx-${v.key}`;return `<svg class="cx-map-svg" viewBox="70 10 160 430" preserveAspectRatio="xMidYMid meet" role="group" aria-label="${v.title}の人体図">
@@ -34,8 +44,7 @@ export function renderScreen(d={},ui=makeUi()){
  const current=VIEWS.find(v=>v.key===ui.view)||VIEWS[0];
  const focus=region(ui.focusId),picked=focus&&ui.selected.includes(focus.id);
  const selected=REGIONS.filter(r=>ui.selected.includes(r.id));
- const transferLine='気になった部位：'+selected.map(r=>r.name).join('、');
- const isTransferred=selected.length>0&&String(d.bodyObservation??'').includes(transferLine);
+ const transfer=transferStatus(d,ui);
  const tabs=VIEWS.map(v=>`<button type="button" data-map-view="${v.key}" aria-pressed="${v.key===ui.view}" class="cx-tab">${v.title}</button>`).join('');
  const namedPicker=current.paths.map(([id])=>{const r=region(id),on=ui.selected.includes(id);return `<button type="button" data-picker-id="${id}" class="cx-picker-option${on?' is-on':''}" aria-pressed="${on}">${safe(r.name)}<span>${on?'✓':'＋'}</span></button>`;}).join('');
  const shown=ui.selectedExpanded?selected:selected.slice(0,3);
@@ -53,7 +62,7 @@ ${ui.pickerOpen?`<div class="cx-picker" role="group" aria-label="${current.title
 <p class="cx-science-note">部位の選択だけでは保存されません。診断や文献参考値の判定ではありません。</p>
 </section>
 <section class="cx-notes-column" aria-label="自覚情報と使用品の入力"><div class="cx-notes-heading"><h2>感じたこと・使用品</h2></div>${fields.map(f=>fieldCard(d,f)).join('')}
-<div class="cx-transfer"><p class="cx-transfer-status" role="status">${!selected.length?'選択した部位名を文章に追加できます。':isTransferred?'選択した部位名は自覚情報の文章に追加されています。':'部位を選んだだけでは記録に残りません。残す場合は下のボタンで自覚情報の文章に追加してください。'}</p><button type="button" data-append-name ${selected.length&&!isTransferred?'':'disabled'}>選択部位名を自覚情報に追加 <span aria-hidden="true">↗</span></button></div>
+<div class="cx-transfer"><p class="cx-transfer-status" role="status">${safe(transfer.message)}</p><button type="button" data-append-name ${transfer.disabled?'disabled':''}>選択部位名を自覚情報に追加 <span aria-hidden="true">↗</span></button></div>
 </section></div>
 <footer class="cx-footer"><button class="cx-apply" type="button" data-apply>入力を反映する <span aria-hidden="true">→</span></button></footer>
 <div class="cx-status" data-status role="status" aria-live="polite">${safe(ui.notice)}</div>
