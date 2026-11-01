@@ -12,10 +12,10 @@ import * as restDayStore from './ui/restDayStore.js';
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
   const canonical=await import("./ui/manualRunCanonical.js");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261027-manual-gait-v5");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261101-manual-dedup-v1");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
-  const gaitExperience=await import("./ui/gaitExperience.js?v=20261027-scope-close-v46");
+  const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-measurement-polish-v2");
@@ -1292,8 +1292,6 @@ function recordExtras(){
     if(event.target.closest("[data-e4-done]")&&environmentExperience.temperatureError(d.temperatureC)){event.preventDefault();return;}
     const gaitSource=event.target.closest("[data-g4-source]");
     if(gaitSource){d.stepsProvenance=gaitSource.dataset.g4Source;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
-    const gaitKind=event.target.closest("[data-g4-gait]");
-    if(gaitKind){d.activityGait=gaitKind.dataset.g4Gait;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
     const gaitFormat=event.target.closest("[data-g4-format]");
     if(gaitFormat){d.runningFormat=gaitFormat.dataset.g4Format;gaitExperience.paintGait(app.querySelector("[data-g4-page]"),d);return;}
     if(event.target.closest("[data-g4-apply]")){

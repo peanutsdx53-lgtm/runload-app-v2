@@ -1,10 +1,13 @@
-name: S03 S04 record manual visual acceptance
+name: S03 S04 S05 record manual visual acceptance
 on:
   push:
     branches: [main]
     paths:
       - 'ui/recordExperience.js'
       - 'ui/recordExperience.css'
+      - 'ui/gaitExperience.js'
+      - 'app.js'
+      - 'tests/gaitExperience.test.mjs'
       - 'tests/recordExperience.test.mjs'
       - 'tests/s03s04RecordManualBrowser.mjs'
       - '.github/workflows/s03s04-record-manual-visual.yml'
@@ -28,7 +31,7 @@ jobs:
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps ${{ matrix.engine }}
       - name: Confirm explicit required contract
-        run: node --test tests/recordExperience.test.mjs tests/recordDraftReview.test.mjs
+        run: node --test tests/recordExperience.test.mjs tests/recordDraftReview.test.mjs tests/gaitExperience.test.mjs
       - name: Inspect real selection and manual pages
         env:
           RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}

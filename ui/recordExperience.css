@@ -487,12 +487,10 @@
 .record-v3 .rv-gait-options button{min-width:0;min-height:45px;padding:7px 3px;background:#082535;border:1px solid #457589;border-radius:9px;color:#d3edf3;font-size:clamp(11px,1.65vw,13px);font-weight:750}
 .record-v3 .rv-gait-options button[aria-pressed="true"]{color:#fff;border-color:#43e4d8;background:linear-gradient(110deg,#14829a,#129eaa)}
 .record-v3 .rv-gait-options button:focus-visible{outline:2px solid #a9f9ed;outline-offset:3px}
-.record-v3 .rv-gait-hint{margin:9px 0 0;color:#b6d6df;font-size:11px;line-height:1.6}
 @media(max-width:375px){.record-v3 .rv-gait-entry{padding:10px 8px}.record-v3 .rv-gait-options{gap:4px}.record-v3 .rv-gait-options button{font-size:11px}}
 
 /* Show required status beside Basic information, parallel to Optional on Added information. */
 .record-v3 .rv-section-title .rv-required-heading{color:#ffdfae;font-weight:750}
-.record-v3 .rv-required-mark{font-style:normal;background:#6b472d;border:1px solid #c29a6a;border-radius:5px;color:#ffebc9;padding:2px 5px;font-size:10px;white-space:nowrap}
 .record-v3 .rv-required-progress{font-size:12px;line-height:1.5;margin:8px 0 15px}
 .record-v3 .rv-required-pending{color:#ffe0aa}
 .record-v3 .rv-required-all-done{color:#86f0e2}

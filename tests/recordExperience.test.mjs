@@ -61,7 +61,7 @@ test('manual basic page gives user an explicit choice of three independently mod
  assert.match(html,/data-manual-gait="RUNNING"/);
  assert.match(html,/data-manual-gait="JOGGING"/);
  assert.match(html,/data-manual-gait="WALK"/);
- assert.match(html,/活動種目が未選択のため保存できません/);
+ assert.doesNotMatch(html,/活動種目が未選択のため保存できません/);
  assert.match(html,/距離・時間・活動種目/);
  assert.match(html,/data-required-field="distance" data-required-ok="false"/);
  assert.match(html,/data-required-field="time" data-required-ok="false"/);
@@ -92,7 +92,9 @@ test('S04 basic information displays a compact Required label where Added inform
  assert.doesNotMatch(html,/走行の保存には/);
  assert.doesNotMatch(html,/※ 必須|rv-required-overview/);
  assert.equal((html.match(/rv-required-heading/g)||[]).length,1);
- assert.equal((html.match(/rv-required-mark/g)||[]).length,3,'distance, duration and activity still explicitly required');
+ assert.equal((html.match(/rv-required-mark/g)||[]).length,0,'individual required badges removed at user request');
+ assert.doesNotMatch(html,/rv-gait-hint|活動種目が未選択のため保存できません|単一活動として数値化しません/,'long activity explanation removed');
+ assert.match(html,/aria-required="true"/,'actual required input validation retained');
  assert.match(html,/未入力・要確認：距離・時間・活動種目/,'contextual validation is preserved');
  const complete={...d,distance:'5',minutes:'30',activityGait:'RUNNING'};
  const ready=manualPage({...state,recordDraft:complete});
@@ -101,4 +103,15 @@ test('S04 basic information displays a compact Required label where Added inform
  const rest=manualPage({...state,recordType:'rest'});
  assert.match(rest,/<h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須<\/small>/);
  assert.doesNotMatch(rest,/rv-required-progress|必須3項目が入力済みです/,'rest has a date, not three run-only requirements');
+});
+
+test('S04 shows required status only at Basic heading in all activity states',()=>{
+ const d=draft(),state={recordType:'run',recordDraft:d,recordCourseUi:initialCourseUi(d)};
+ for(const activityGait of ['UNKNOWN','RUNNING','JOGGING','WALK']){
+  const html=manualPage({...state,recordDraft:{...d,activityGait}});
+  assert.equal((html.match(/rv-required-heading/g)||[]).length,1);
+  assert.equal((html.match(/rv-required-mark/g)||[]).length,0);
+  assert.doesNotMatch(html,/rv-gait-hint/);
+  assert.equal((html.match(/data-manual-gait=/g)||[]).length,3);
+ }
 });

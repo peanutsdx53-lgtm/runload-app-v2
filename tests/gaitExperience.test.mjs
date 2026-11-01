@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {gaitKeys,gaitValidation,gaitPage} from '../ui/gaitExperience.js';
-test('gait maps to six explicit record-draft fields including selected activity',()=>{
+test('gait preserves six shared record-draft fields including activity selected in Basic information',()=>{
  assert.deepEqual(gaitKeys,['steps','stepsProvenance','activityGait','runningFormat','runWalkRunningDistanceKm','runWalkRunningDurationMinutes']);
  const html=gaitPage({steps:'0',stepsProvenance:'UNKNOWN',runningFormat:'UNKNOWN',distance:'',minutes:''});
  assert.match(html,/data-draft="steps"/);
@@ -37,4 +37,15 @@ test('escapes entered value and does not add data storage API',()=>{
  assert.match(html,/&quot; autofocus/);
  assert.doesNotMatch(html,/value="" autofocus/);
  assert.doesNotMatch(html,/localStorage|saveRecord\(/);
+});
+test('S05 removes duplicate activity editor but keeps steps, run pattern, provenance and validation',()=>{
+ const d={activityGait:'JOGGING',runningFormat:'CONTINUOUS_RUN',steps:'1200',stepsProvenance:'DEVICE_MEASURED'};
+ const before=JSON.stringify(d),html=gaitPage(d);
+ assert.doesNotMatch(html,/data-g4-gait|活動種別（12部位|aria-label="活動種別"/);
+ assert.match(html,/当日の走行パターン/);
+ assert.equal((html.match(/data-g4-format=/g)||[]).length,3);
+ assert.equal((html.match(/data-g4-source=/g)||[]).length,3);
+ assert.equal(JSON.stringify(d),before,'render does not mutate Basic activityGait');
+ assert.equal(gaitValidation(d).valid,true);
+ assert.match(gaitValidation({...d,activityGait:'BOGUS'}).errors.join(' '),/活動種別を選び直してください/);
 });
