@@ -201,11 +201,19 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-real-empty.png"),fullPage:true});
   await page.locator("[data-achievement-open]").click();
   assert.ok(await page.locator(".hx-ach-dialog").isVisible(),"achievement detail remains accessible");
-  const achievementType=await page.evaluate(()=>({
-    text:parseFloat(getComputedStyle(document.querySelector('.hx-ach-dialog p')).fontSize),
-    tile:parseFloat(getComputedStyle(document.querySelector('.hx-ach-grid span')).fontSize),
-    scroll:document.documentElement.scrollWidth-innerWidth
-  }));
+  const achievementType=await page.evaluate(()=>{
+    // The real saved-run milestone layout uses div/strong, not preview-only spans.
+    // Verify both required nodes before reading style, so missing content fails
+    // with an actionable regression message rather than a DOM TypeError.
+    const explanation=document.querySelector('.hx-ach-dialog .hx-ach-limit');
+    const milestone=document.querySelector('.hx-ach-dialog .hx-ach-milestone-label');
+    if(!explanation||!milestone)throw new Error('achievement detail missing explanation or saved-run milestone');
+    return {
+      text:parseFloat(getComputedStyle(explanation).fontSize),
+      tile:parseFloat(getComputedStyle(milestone).fontSize),
+      scroll:document.documentElement.scrollWidth-innerWidth
+    };
+  });
   assert.ok(achievementType.text>=14 && achievementType.tile>=14,"achievement detail text legible: "+JSON.stringify(achievementType));
   assert.ok(achievementType.scroll<=1,"no horizontal overflow in achievements");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-achievement-detail-v2.png"),fullPage:false});
