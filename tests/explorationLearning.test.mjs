@@ -138,6 +138,11 @@ test('UX-023 learning context states actual related-input provenance rather than
  assert.match(saved,/保存した手入力の情報との対応です/);
  assert.doesNotMatch(saved,/関連する入力がなくても、内容を自由に学べます/);
  assert.doesNotMatch(saved,/入力途中の内容であり/);
+ const savedWithUnsavedEditor=render(u,{...ctx({distance:'4.2',minutes:'28'}),manualRuns:{ok:true,records:[first,second]}});
+ assert.match(savedWithUnsavedEditor,/最新の保存済み走行（手入力）/);
+ assert.match(savedWithUnsavedEditor,/2026-10-26 に保存した走行距離と時間に関連/);
+ assert.match(savedWithUnsavedEditor,/入力途中の値はこの学習カードの計算に用いていません/);
+ assert.doesNotMatch(savedWithUnsavedEditor,/入力途中の内容であり、保存済み記録ではありません/);
  const focused=render(u,{...ctx(),manualRuns:{ok:true,records:[first,second]},focusRunId:first.id,focusRun:first});
  assert.match(focused,/選択した保存済み走行（手入力）/);
  assert.match(focused,/2026-10-18 に保存した走行距離と時間に関連/);
