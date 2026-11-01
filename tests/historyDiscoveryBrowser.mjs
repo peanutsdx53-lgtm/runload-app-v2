@@ -22,8 +22,18 @@ await mkdir(out,{recursive:true});
 const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
 const host='http://127.0.0.1:4316/#/',results=[];
 async function capture(page,width,label){
- const metrics=await page.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,hasFocus:!!document.activeElement}));
+ const metrics=await page.evaluate(()=>{
+ const root=document.querySelector('#runload-history-v2')?.shadowRoot;
+ const controls=[...(root?.querySelectorAll('.hx-scope button')||[])];
+ const bounds=[...(root?.querySelectorAll('.hx-scope,.list-panel,.timeline,.selected-footer')||[])].map(el=>{
+  const r=el.getBoundingClientRect();return {className:el.className,left:r.left,right:r.right};
+ });
+ return {viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,
+  scopeTouchHeights:controls.map(el=>el.getBoundingClientRect().height),bounds};
+});
  assert.ok(metrics.document<=width+3&&metrics.body<=width+3,'no horizontal overflow '+label+': '+JSON.stringify(metrics));
+ assert.ok(metrics.scopeTouchHeights.length===2&&metrics.scopeTouchHeights.every(h=>h>=43.5),'44px scope targets '+JSON.stringify(metrics.scopeTouchHeights));
+ assert.ok(metrics.bounds.every(b=>b.left>=-3&&b.right<=width+3),'history panels inside viewport '+label+': '+JSON.stringify(metrics.bounds));
  const filename=engine+'-'+width+'-'+label+'.png';
  await page.screenshot({path:resolve(out,filename),fullPage:true,animations:'disabled'});
  results.push({width,label,filename,...metrics});
