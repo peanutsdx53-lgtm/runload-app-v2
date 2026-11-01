@@ -39,3 +39,26 @@ test('unsafe HTML input is escaped and full screen retains correct labels',()=>{
 });
 
 test("body and result keep old-app formal anatomical terminology",()=>{const expected=[["BA-DISP-014","股関節部"],["BA-DISP-015","殿部"],["BA-DISP-016","大腿前面"],["BA-DISP-018","大腿後面"],["BA-DISP-019","膝蓋大腿関節部"],["BA-DISP-021","脛骨部"],["BA-DISP-023","下腿後面"],["BA-DISP-024","足関節部"],["BA-DISP-025","アキレス腱部"],["BA-DISP-027","後足部"],["BA-DISP-028","足底中部・内側縦足弓"],["BA-DISP-029","前足部"]];assert.deepEqual(REGIONS.map(x=>[x.id,x.name]),expected);for(const [id,name] of expected)assert.ok(appSource.includes('id:"'+id+'",name:"'+name+'",friendly:"'+name+'"'),id);});
+
+test('12 selected body regions are summarized with a reversible show-all control, not dropped',()=>{
+ const ui=makeUi();for(const r of REGIONS)toggleRegion(ui,r.id);
+ const collapsed=renderScreen({},ui);
+ assert.match(collapsed,/ほか 9 部位を表示/);
+ assert.equal((collapsed.match(/class="cx-selected-chip"/g)||[]).length,3);
+ assert.match(collapsed,/選択中の部位/);
+ ui.selectedExpanded=true;
+ const expanded=renderScreen({},ui);
+ assert.equal((expanded.match(/class="cx-selected-chip"/g)||[]).length,12);
+ assert.match(expanded,/折りたたむ/);
+ assert.equal(ui.selected.length,12);
+ clearSelected(ui);assert.equal(ui.selectedExpanded,false);
+});
+test('single optional header and aligned shoe-length counter do not change the record contract',()=>{
+ const d={shoeName:'シューズ名',bodyObservation:'違和感',memo:'自由記述'};
+ const html=renderScreen(d,makeUi());
+ assert.match(html,/maxlength="100" data-draft="shoeName"/);
+ assert.match(html,/data-counter="shoeName">6\/100/);
+ assert.doesNotMatch(html,/必要な項目だけ入力してください|身体で感じたことと、使ったもの/);
+ assert.equal((html.match(/cx-optional/g)||[]).length,0);
+ assert.deepEqual(DRAFT_KEYS,['bodyObservation','shoeName','memo']);
+});

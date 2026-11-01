@@ -52,3 +52,21 @@
   .cx-stage{height:420px}
   .cx-person{left:42%}
 }
+
+/* Density polish: one shared optional marker, collapsible selected regions,
+   and readable long-form subjective input across mobile and desktop. */
+.cx-selected-more{min-height:38px;padding:7px 12px;border-radius:20px;background:#185165;border:1px solid #75c2ca;color:#def8ff;font-size:12px;font-weight:750}
+.cx-selected-more:focus-visible{outline:3px solid #b4fff1;outline-offset:2px}
+.cx-chosen-row{align-content:start}
+.cx-selected-chip{height:auto;min-height:38px;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
+.cx-field-card textarea{min-height:96px;max-height:240px;resize:vertical}
+.cx-notes-heading{margin-bottom:0}
+.cx-transfer{padding:9px 12px}
+.cx-transfer button{margin-top:0;min-height:44px}
+.cx-footer{justify-content:flex-end}
+@media(max-width:800px){
+ .cx-field-card textarea{min-height:96px;max-height:210px}
+ .cx-selected-more{min-height:44px}
+ .cx-selected-chip{min-height:40px}
+ .cx-chosen-row{gap:6px}
+}

@@ -17,7 +17,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
-  const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261026-user-copy-v21");
+  const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261101-body-density-v1");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-measurement-polish-v2");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-measurement-polish-v2");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
@@ -641,6 +641,7 @@ function recordExtras(){
  if(page==="home"&&homeUi.conditionOpen)homeExperience.updateSleepForm(app.querySelector("[data-condition-form]"));
  if(page==="record-compare")gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
  if(page==="record-environment")environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),state.recordDraft,environmentUi);
+  if(page==="record-reflection")bodyExperience.fitTextareas(app);
  if(["record-rof","record-more"].includes(page)){
   const rofEditor=app.querySelector(".rof-editor-details");if(rofEditor)rofEditor.open=state.rofEditorOpen;
   for(const id of state.recordOpenSections){const el=app.querySelector('.record-extra-section[data-record-section="'+id+'"]');if(el)el.open=true}
@@ -830,7 +831,8 @@ function recordExtras(){
       if(event.target.closest("[data-cx-page]")){
         const k=event.target.dataset.draft;
         const count=app.querySelector(`[data-counter="${k}"]`);
-        if(count)count.textContent=`${event.target.value.length}/${k==="shoeName"?120:500}`;
+        if(count)count.textContent=`${event.target.value.length}/${event.target.maxLength}`;
+        bodyExperience.fitTextareas(app);
       }
     }
     if(event.target.matches("[data-onboard-nickname]"))onboardingState.nickname=event.target.value;
@@ -1256,7 +1258,7 @@ function recordExtras(){
     }
     const bodyRoot=event.target.closest('[data-cx-page]');
     if(bodyRoot){
-      const obj=event.target.closest('[data-map-view],[data-region-focus],[data-confirm-id],[data-picker-id],[data-unselect],[data-picker-toggle],[data-clear-all],[data-append-name],[data-apply]');
+      const obj=event.target.closest('[data-map-view],[data-region-focus],[data-confirm-id],[data-picker-id],[data-unselect],[data-picker-toggle],[data-selected-expand],[data-clear-all],[data-append-name],[data-apply]');
       if(obj){
         if(obj.matches('[data-map-view]')) bodyExperience.setView(bodyUi,obj.dataset.mapView);
         else if(obj.matches('[data-region-focus]'))bodyExperience.focusRegion(bodyUi,obj.dataset.regionFocus);
@@ -1268,10 +1270,12 @@ function recordExtras(){
         }
         else if(obj.matches('[data-unselect]'))bodyExperience.toggleRegion(bodyUi,obj.dataset.unselect);
         else if(obj.matches('[data-picker-toggle]'))bodyUi.pickerOpen=!bodyUi.pickerOpen;
+        else if(obj.matches('[data-selected-expand]'))bodyUi.selectedExpanded=!bodyUi.selectedExpanded;
         else if(obj.matches('[data-clear-all]'))bodyExperience.clearSelected(bodyUi);
         else if(obj.matches('[data-append-name]'))bodyExperience.addRegionNamesToNote(d,bodyUi);
         else if(obj.matches('[data-apply]')){location.hash=state.recordReviewReturn?'#/record-review':'#/record';return;}
         const y=window.scrollY;render();window.scrollTo(0,y);
+        if(obj.matches('[data-selected-expand]'))app.querySelector('[data-selected-expand]')?.focus({preventScroll:true});
         if(obj.matches('[data-region-focus]'))app.querySelector(`[data-region-focus="${obj.dataset.regionFocus}"]`)?.focus({preventScroll:true});
         return;
       }
