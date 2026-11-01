@@ -52,6 +52,11 @@ try{
   const dialog=page.locator('.hx-condition-dialog');
   await dialog.waitFor();
   assert.equal(await dialog.count(),1,'condition-only themed dialog');
+  assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog receives focus');
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await dialog.locator('.hx-save').evaluate(el=>document.activeElement===el),true,'condition dialog Shift+Tab wraps to last enabled action');
+  await page.keyboard.press('Tab');
+  assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog Tab wraps to close');
   await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
   const modalGeometry=await dialog.evaluate(el=>{
    const d=el.getBoundingClientRect(),f=el.querySelector('[data-condition-form]'),button=f.querySelector('.hx-save'),save=button.getBoundingClientRect();
@@ -76,6 +81,7 @@ try{
   await dialog.locator('[name="feeling"]').selectOption({label:'良い'});
   await save.click();
   await dialog.waitFor({state:'detached'});
+  assert.equal(await page.locator('[data-condition-open]').evaluate(el=>document.activeElement===el),true,'condition Save returns keyboard focus to the invoking card');
   const savedCondition=await page.evaluate(async()=>{
    const h=await import('./ui/homeExperience.js');const current=h.readConditions(localStorage);return current.entries.find(x=>x.date===h.todayLocal());
   });
@@ -83,8 +89,26 @@ try{
   assert.equal(savedCondition?.sleepMinutes,450);
   assert.equal(savedCondition?.feeling,'良い');
   await page.locator('[data-achievement-open]').click();
-  await page.locator('.hx-ach-dialog').waitFor();await page.screenshot({path:resolve(out,name+'-'+width+'-achievement-dialog.png'),animations:'disabled'});
-  await page.locator('.hx-ach-dialog [data-home-close]').first().click();
+  const achDialog=page.locator('.hx-ach-dialog');
+  await achDialog.waitFor();
+  assert.equal(await achDialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'achievement dialog receives keyboard focus');
+  assert.equal(await achDialog.locator('.hx-ach-milestone').count(),4,'four visible and explicitly named milestones');
+  const geometry=await achDialog.evaluate(el=>{
+    const modal=el.getBoundingClientRect(),entries=[...el.querySelectorAll('.hx-ach-summary>div,.hx-ach-milestone,.hx-ach-milestone-label,.hx-ach-milestone-status,.hx-ach-limit')];
+    return {width:innerWidth,modal:{left:modal.left,right:modal.right},scroll:document.documentElement.scrollWidth,
+      entries:entries.map(e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect();return {className:e.className,left:r.left,right:r.right,top:r.top,bottom:r.bottom,parentLeft:p.left,parentRight:p.right,visible:e.getClientRects().length>0}})};
+  });
+  assert.ok(geometry.scroll<=geometry.width+2,'detail does not overflow viewport '+JSON.stringify(geometry));
+  for(const box of geometry.entries){
+    assert.ok(box.left>=geometry.modal.left-1&&box.right<=geometry.modal.right+1,'achievement content within modal '+JSON.stringify(box));
+    assert.ok(box.left>=box.parentLeft-2&&box.right<=box.parentRight+2,'achievement content within parent '+JSON.stringify(box));
+  }
+  await page.screenshot({path:resolve(out,name+'-'+width+'-achievement-dialog.png'),animations:'disabled'});
+  await page.keyboard.press('Tab');
+  assert.equal(await achDialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'achievement Tab stays in single-control modal');
+  await page.keyboard.press('Escape');
+  await achDialog.waitFor({state:'detached'});
+  assert.equal(await page.locator('[data-achievement-open]').evaluate(el=>document.activeElement===el),true,'achievement Escape restores focus');
   const data=await page.evaluate(async()=>{
     const [m,c,h]=await Promise.all([import('./ui/manualRunStore.js'),import('./ui/manualRunCanonical.js'),import('./ui/homeExperience.js')]);
     const date=h.todayLocal();localStorage.setItem(h.CONDITION_KEY,JSON.stringify([{date,sleepMinutes:420,feeling:'良い',memo:'本人が記録'}]));
