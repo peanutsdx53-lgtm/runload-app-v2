@@ -157,7 +157,10 @@ try{
   // Persist the user's original text plus the explicitly transferred choice.
   await page.locator('[data-demo-save]').click();
   await page.locator('[data-record-review]').waitFor();
-  assert.match(await page.locator('[data-record-review]').innerText(),/環境/);
+  const reviewText=await page.locator('[data-record-review]').innerText();
+  assert.match(reviewText,/本人申告：天候：くもり、風が強い/,'pre-save summary exposes the explicit self-report');
+  assert.match(reviewText,/全文は編集画面で確認/,'long original notes are summarized, not truncated in storage');
+  assert.ok(reviewText.length<3400,'review remains reachable even with long optional notes: '+reviewText.length);
   await take(page,w,'REVIEW-environment-saved-draft');
   const button=page.locator('[data-manual-run-save]');
   assert.equal(await button.isEnabled(),true,'complete optional context must not block valid run save');
