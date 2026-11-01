@@ -109,7 +109,7 @@ test('S09: optional section icon paths have the same shared SVG source',()=>{
 test('long personal notes stay intact in the draft but are concise on the save review',()=>{
  const long='走行後の本人の気づき'.repeat(48);
  const note='自由記述'+long;
- const d={...base,bodyObservation:long,shoeName:'使用したシューズ名'.repeat(12),memo:note,temperatureC:'18.5',environmentNote:'気づいた環境のメモ\\n【本人申告の環境選択】天候：くもり、風が強い'};
+ const d={...base,bodyObservation:long,shoeName:'使用したシューズ名'.repeat(12),memo:note,temperatureC:'18.5',environmentNote:'気づいた環境のメモ\n【本人申告の環境選択】天候：くもり、風が強い'};
  const html=reviewView(d,{});
  assert.match(html,/本人申告：天候：くもり、風が強い/);
  assert.match(html,/全文は編集画面で確認/);
