@@ -30,8 +30,12 @@ await mkdir(resolve(root,'audit-output'),{recursive:true});
 try{
  for(const width of [320,390,1440]){
   const height=width===1440?900:850;
+  const smartphone=width<801;
+  const userAgent=smartphone?(engine==='webkit'?
+   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1':
+   'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36'):undefined;
   // S01 is a real first-visit consent and four-operation guide, not /home.
-  const first=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});
+  const first=await browser.newContext({viewport:{width,height},reducedMotion:'reduce',...(userAgent?{userAgent}:{})});
   const fresh=await first.newPage();
   const errs=[];fresh.on('pageerror',e=>errs.push(e.message));
   await fresh.goto(host+'home',{waitUntil:'networkidle'});
@@ -41,7 +45,7 @@ try{
   assert.equal(await fresh.locator('[data-onboard-next]').count(),1);
   reports.push({screen:'S01',width,engine,state:'first-visit',ok:true});
   await first.close();
-  const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'reduce',acceptDownloads:true});
+  const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'reduce',acceptDownloads:true,...(userAgent?{userAgent}:{})});
   await ctx.addInitScript(()=>{
    localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'}));
    localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify([
@@ -77,7 +81,7 @@ try{
    assert.ok(measure.document<=measure.viewport+3,screen+' '+width+' document overflow '+JSON.stringify(measure));
    assert.deepEqual(jsErrors,[],screen+' '+width+' page script failures');
    reports.push({screen,engine,width,route,state:'realized',ok:true,measurement:measure});
-   if(width!==390)await page.screenshot({path:resolve(root,'audit-output',engine+'-'+screen+'-'+width+'.png'),animations:'disabled'});
+   await page.screenshot({path:resolve(root,'audit-output',engine+'-'+screen+'-'+width+'.png'),animations:'disabled',fullPage:true});
   };
   await verify('S02','home','.home-v3',async()=>{assert.match(await page.locator('.hx-latest').innerText(),/6.00/);});
   await verify('S03','record-start','main',async t=>{assert.match(await t.innerText(),/手入力/);});
@@ -126,8 +130,9 @@ try{
   await verify('S16','settings','[data-settings-v2]',async t=>{
    assert.match(await t.innerText(),/データとプライバシー/);
   });
-  await verify('S17','measurement','[data-measurement-v2]',async t=>{
-   assert.match(await t.innerText(),/GPS|測定/);
+  await verify('S17','measurement',smartphone?'[data-measurement-v2]':'.gps-platform-unavailable',async t=>{
+   assert.match(await t.innerText(),smartphone?/GPS|測定/:/GPS測定はスマートフォン専用/);
+   if(!smartphone)assert.equal(await page.locator('[data-gps-action="start"]').count(),0,'PC must not offer GPS start');
   });
   await verify('S18','simulation','.sm-page',async t=>{
    assert.match(await t.innerText(),/仮定|シミュレーション/);
