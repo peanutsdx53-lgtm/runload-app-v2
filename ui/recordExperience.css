@@ -595,3 +595,7 @@
  display:block;width:23px;height:23px;max-width:100%;max-height:100%;
  color:inherit;stroke:currentColor;fill:none;
 }
+
+/* PC sees GPS as informational and nonclickable at method selection. */
+.record-v3 .rv-method-card.is-unavailable{opacity:.76;cursor:default;border-style:dashed;box-shadow:none}
+.record-v3 .rv-method-unavailable{flex:none;color:#a9c4d2;border:1px solid #587483;border-radius:8px;padding:6px 8px;font-size:.76rem;font-weight:780}
