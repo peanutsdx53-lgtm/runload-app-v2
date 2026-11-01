@@ -83,3 +83,22 @@ test('required statuses work in both mobile and desktop templates without automa
  assert.match(complete,/data-required-field="activity" data-required-ok="true"/);
  assert.doesNotMatch(complete,/未入力・要確認/);
 });
+
+test('S04 basic information displays a compact Required label where Added information shows Optional',()=>{
+ const d=draft(),state={recordType:'run',recordDraft:d,recordCourseUi:initialCourseUi(d)};
+ const html=manualPage(state);
+ assert.match(html,/<h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須<\/small><\/h2>/);
+ assert.match(html,/<h2 class="rv-section-title">追加情報 <small>任意<\/small><\/h2>/);
+ assert.doesNotMatch(html,/走行の保存には/);
+ assert.doesNotMatch(html,/※ 必須|rv-required-overview/);
+ assert.equal((html.match(/rv-required-heading/g)||[]).length,1);
+ assert.equal((html.match(/rv-required-mark/g)||[]).length,3,'distance, duration and activity still explicitly required');
+ assert.match(html,/未入力・要確認：距離・時間・活動種目/,'contextual validation is preserved');
+ const complete={...d,distance:'5',minutes:'30',activityGait:'RUNNING'};
+ const ready=manualPage({...state,recordDraft:complete});
+ assert.match(ready,/必須3項目が入力済みです/);
+ assert.doesNotMatch(ready,/走行の保存には|rv-required-overview/);
+ const rest=manualPage({...state,recordType:'rest'});
+ assert.match(rest,/<h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須<\/small>/);
+ assert.doesNotMatch(rest,/rv-required-progress|必須3項目が入力済みです/,'rest has a date, not three run-only requirements');
+});
