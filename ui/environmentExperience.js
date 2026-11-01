@@ -21,7 +21,7 @@ export function environmentSelectionState(d={},ui=newEnvironmentUi()){
  const selected=[...(weather?['天候：'+weather]:[]),...flags];
  if(!selected.length)return {status:'none',text:'天候などは未選択です。気温や自由記述だけでも記録できます。'};
  const segment='【本人申告の環境選択】'+selected.join('、');
- const applied=String(d.environmentNote??'').split('\\n').includes(segment);
+ const applied=String(d.environmentNote??'').split('\n').includes(segment);
  return applied?
   {status:'applied',text:'選択した内容は環境メモに反映済みです。保存前の確認画面でも確認できます。'}:
   {status:'pending',text:'選択した内容はまだ環境メモに反映されていません。下のボタンで確定できます。'};
