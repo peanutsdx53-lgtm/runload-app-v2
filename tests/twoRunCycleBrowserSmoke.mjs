@@ -2,7 +2,7 @@
  * This is an isolated browser-implementation acceptance path, NOT a human efficacy study.
  */
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,extname,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
@@ -86,6 +86,13 @@ try{
  const regionPanel=page.locator('.rv4-region-compare');
  await regionPanel.waitFor();
  assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
+ // Preserve actual browser-rendered evidence for a human visual acceptance review.
+ // The capture is taken from TWO genuinely saved runs, not synthetic fixture values.
+ await mkdir('audit-output/p0-continuity',{recursive:true});
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-compare-390.png',fullPage:true});
+ await page.setViewportSize({width:1440,height:900});
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-compare-1440.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
  const provenance=page.locator('.rv4-compare-provenance');
  assert.equal(await provenance.getAttribute('open'),null,'full record IDs remain collapsed until requested');
  assert.equal(await provenance.evaluate(el=>getComputedStyle(el).display),'block','record-ID disclosure must not inherit stale grid layout');
