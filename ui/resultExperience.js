@@ -173,7 +173,7 @@ export function mountResult(host,inputDraft={},options={}){
   const notes=applicable&&Array.isArray(options.questionNotes)?
    options.questionNotes.filter(n=>n.recordId===other.id&&typeof n.text==='string'&&n.text.trim()&&typeof n.id==='string'):[];
   const questionPanel=notes.length?'<section class="rv4-question-continuation" aria-label="元の問いを今回の記録で振り返る">'+
-   '<h3>元の問いを今回の記録で振り返る（任意）</h3><p>比較相手 '+clean(other.date)+' ／ ID '+clean(other.id)+' の本人の問いです。自動では転記しません。</p>'+
+   '<h3>元の問いを今回の記録で振り返る（任意）</h3><p>比較相手 '+clean(other.date)+' ／ 記録ID末尾 '+clean(other.id.slice(-8))+' の本人の問いです。自動では転記しません。完全な記録IDは上の「比較する2件の記録情報」で確認できます。</p>'+
    '<label>元の問いを選ぶ<select data-run-question-source><option value="">選択してください</option>'+
    notes.map(n=>'<option value="'+clean(n.id)+'">'+clean(n.text.slice(0,90))+'</option>').join('')+'</select></label>'+
    '<label>今回考えたこと（1〜500文字）<textarea data-run-question-text maxlength="500" rows="3" placeholder="前回の問いを見て、今回どう感じたかを書きます"></textarea></label>'+
