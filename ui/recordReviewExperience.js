@@ -56,7 +56,10 @@ export function reviewView(d={},opts={}){
  const src=isGps?'GPSでの記録はまだ利用できません':'手入力';
  const unknownActivity=!isGps&&!isRest&&!['RUNNING','JOGGING','WALK'].includes(values.activityGait);
  const activityPrompt=unknownActivity?`<section class="rr-gait-warning" role="group" aria-label="保存前に活動種別を設定"><strong>活動種目の選択が必要です</strong><p>活動種目は保存の必須項目です。選択すると、保存後に文献の適用速度範囲内で参考値を確認できます。</p><div class="rr-gait-options">${[['RUNNING','ランニング'],['JOGGING','ジョギング'],['WALK','ウォーキング']].map(([k,name])=>`<button type="button" data-review-gait="${k}">${name}</button>`).join('')}</div><small>活動種目を選択するまで記録は保存できません。走歩混在や文献の適用速度範囲外では12部位の数値を算出しません。</small></section>`:'';
- const status=errors.length?`<div class="rr-alert-header">${icon('alert')}<h2>保存前に入力が必要な項目があります</h2></div><ul class="rr-notes">${[...new Set(errors)].map(x=>`<li>${escape(x)}</li>`).join('')}</ul>${warnings.length?`<div class="rr-secondary-notes">${warnings.map(x=>`<p>${escape(x)}</p>`).join('')}</div>`:''}`:warnings.length?`<div class="rr-alert-header">${icon('alert')}<h2>確認事項</h2></div><div class="rr-secondary-notes">${warnings.map(x=>`<p>${escape(x)}</p>`).join('')}</div>`:'';
+ const displayErrors=[...new Set(errors)].filter(message=>
+  !(message==='距離が未取得です'&&errors.includes('距離を入力してください（必須）'))&&
+  !(message==='時間が未取得です'&&errors.includes('時間を入力してください（必須）')));
+ const status=errors.length?`<div class="rr-alert-header">${icon('alert')}<h2>保存前に入力が必要な項目があります</h2></div><ul class="rr-notes">${displayErrors.map(x=>`<li>${escape(x)}</li>`).join('')}</ul>${warnings.length?`<div class="rr-secondary-notes">${warnings.map(x=>`<p>${escape(x)}</p>`).join('')}</div>`:''}`:warnings.length?`<div class="rr-alert-header">${icon('alert')}<h2>確認事項</h2></div><div class="rr-secondary-notes">${warnings.map(x=>`<p>${escape(x)}</p>`).join('')}</div>`:'';
  return `<div class="rr-page" data-record-review data-review-source="${isGps?'gps':'manual'}">
  <div class="rr-main-wrap"><div class="rr-content">
   <header class="rr-heading"><div class="rr-heading-left"><a href="${isGps?'#/measurement':'#/record'}" class="rr-back" aria-label="元の記録画面へ戻る">‹</a><div><h1>記録内容の確認</h1><p>今回の内容を確かめ、必要な項目を編集</p></div></div><span class="rr-top-tag"><b></b>保存前の下書き</span></header>
