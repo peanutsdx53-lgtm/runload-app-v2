@@ -28,7 +28,8 @@ export function environmentSelectionState(d={},ui=newEnvironmentUi()){
 }
 export function environmentSummary(d,ui){
  const t=String(d.temperatureC??'').trim(),weather=weatherOptions.find(x=>x[0]===ui.weather),flags=conditionOptions.filter(x=>ui.flags.includes(x[0])).map(x=>x[1]);
- return [temperatureError(t)?'気温を確認':t===''?'気温未入力':t+'℃',weather?.[1]||'天候未入力',...flags].join(' · ');
+ const summary=[temperatureError(t)?'気温を確認':t===''?'気温未入力':t+'℃',weather?.[1]||'天候未入力',...flags].join(' · ');
+ return environmentSelectionState(d,ui).status==='pending'?summary+' · 選択は未反映':summary;
 }
 /** Explicitly copy self-reported selectors into the existing optional note.
  * Do not silently persist an unapproved structured weather schema. */
