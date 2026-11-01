@@ -74,4 +74,4 @@
 }
 
 /* UX-045: keep the no-reference explanation visible on mobile rest days. */
-@media(max-width:540px){.selected-footer .pill{display:block;min-width:0;max-width:56%;line-height:1.55;white-space:normal;text-align:center;overflow-wrap:anywhere}}
+@media(max-width:540px){.selected-footer:has(> .pill){flex-direction:column;align-items:stretch;gap:10px}.selected-footer .pill{display:block;min-width:0;max-width:100%;width:100%;line-height:1.6;white-space:normal;text-align:left;overflow-wrap:normal}}
