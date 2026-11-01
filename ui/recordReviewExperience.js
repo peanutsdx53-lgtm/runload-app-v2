@@ -37,7 +37,7 @@ export function reviewView(d={},opts={}){
   const letters=Array.from(String(v??'').trim());
   return letters.length>max?letters.slice(0,max).join('')+'…（全文は編集画面で確認）':letters.join('');
  };
- const environmentReported=String(values.environmentNote??'').split(/\\r?\\n/).find(line=>line.startsWith('【本人申告の環境選択】'))||'';
+ const environmentReported=String(values.environmentNote??'').split(/\r?\n/).find(line=>line.startsWith('【本人申告の環境選択】'))||'';
  const environmentPreview=[
   present(values.temperatureC)?'気温 '+values.temperatureC+'℃':'',
   environmentReported?'本人申告：'+compactReviewText(environmentReported.replace('【本人申告の環境選択】',''),45):present(values.environmentNote)?'環境メモあり':''
