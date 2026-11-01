@@ -530,3 +530,23 @@
  .record-v3.rv-proposed-desk .rv-inline-preset-tools{padding:11px}
  .record-v3.rv-proposed-desk .rv-inline-preset-tools .rv-course-save-actions{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Course S08: the two explicit delete decisions stay side-by-side inside the parent. */
+.record-v3.rv-course .rv-course-confirm{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;min-width:0;max-width:100%;padding:10px;
+}
+.record-v3.rv-course .rv-course-confirm p{grid-column:1/-1;min-width:0;flex:none}
+.record-v3.rv-course .rv-course-confirm button{
+ display:block;min-width:0;max-width:100%;width:100%;min-height:44px;
+ padding:8px 4px;font-size:clamp(11px,1.5vw,14px);
+ white-space:normal;overflow-wrap:anywhere;
+}
+.record-v3.rv-proposed-desk .rv-summary-actions--single{grid-template-columns:minmax(0,1fr)}
+@media(max-width:800px){
+ .record-v3.rv-course .rv-course-confirm{gap:7px;padding:8px}
+ .record-v3.rv-course .rv-course-confirm button{font-size:clamp(11px,3.2vw,14px)}
+}
+@media(max-width:355px){
+ .record-v3.rv-course .rv-course-confirm button{padding:7px 2px;font-size:11px}
+}
