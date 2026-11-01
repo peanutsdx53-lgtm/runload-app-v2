@@ -34,6 +34,30 @@ export const RESULT_REFLECTION_STYLES=`
 .rv4-back-link{background:transparent;color:#b0d6de}
 .rv4-compare-label{display:block;font-size:11px;color:#bad9e0;margin:3px 0 8px}
 .rv4-history select[data-compare-select]{appearance:none;-webkit-appearance:none;color-scheme:dark;display:block;width:100%;min-height:44px;border-radius:10px;border:1px solid #468798;background-color:#0c3344;background-image:linear-gradient(45deg,transparent 50%,#9ee7e2 50%),linear-gradient(135deg,#9ee7e2 50%,transparent 50%);background-position:calc(100% - 17px) 54%,calc(100% - 11px) 54%;background-size:6px 6px;background-repeat:no-repeat;color:#e4fafa;font-size:13px;padding:9px 30px 9px 10px;max-width:100%;margin-bottom:14px}
+
+/* UX-043/044: visually separate model-matched reference data from its limits. */
+.rv4-region-compare{min-width:0;margin:14px 0;padding:15px;border:1px solid #377e92;border-radius:15px;background:linear-gradient(135deg,#0b3548,#092738)}
+.rv4-region-compare-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:13px}
+.rv4-region-compare-heading h3{font-size:clamp(15px,1.6vw,19px);line-height:1.45;color:#eafcfc}
+.rv4-region-compare-heading span{font-size:11px;color:#bee6e6;border:1px solid #387c88;border-radius:99px;padding:5px 8px}
+.rv4-region-compare-picker{display:grid;gap:8px;color:#c5e5e9;font-size:13px;font-weight:740;margin-bottom:13px}
+.rv4-region-compare-picker select{color-scheme:dark;min-width:0;width:100%;min-height:46px;border:1px solid #65a4b0;border-radius:10px;background:#092b3b;color:#f0ffff;font:inherit;font-size:14px;padding:10px 12px}
+.rv4-region-compare-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 12px}
+.rv4-region-compare-stats>div{min-width:0;padding:13px;background:#103d50;border:1px solid #396c7e;border-radius:11px}
+.rv4-region-compare-stats small{display:block;line-height:1.5;font-size:11px;color:#b2d7e0;margin-bottom:9px;overflow-wrap:anywhere}
+.rv4-region-compare-stats strong{font-size:clamp(20px,2.4vw,31px);color:#f4feff;font-variant-numeric:tabular-nums;line-height:1.25}
+.rv4-region-compare-stats .rv4-region-compare-change{border-color:#55c5c6;background:#12464f}
+.rv4-region-compare-change strong{color:#8bf5ec}
+.rv4-region-compare-change em{font-size:11px;font-weight:500;font-style:normal;white-space:nowrap}
+.rv4-region-compare-limit{font-size:12px;line-height:1.75;color:#e1eaf0;border-left:3px solid #86caca;padding:5px 0 5px 11px;margin:8px 0}
+.rv4-region-compare-method{font-size:11px;line-height:1.7;color:#afcbd5;margin-top:11px}
+.rv4-region-compare-unavailable{font-size:13px;line-height:1.7;color:#ffddba;padding:11px;border:1px solid #976c52;border-radius:10px}
+.rv4-compare-provenance{display:block;min-width:0;margin:10px 0 12px;border:1px solid #345e71;border-radius:10px;background:#092b3a;padding:0}
+.rv4-compare-provenance summary{cursor:pointer;min-height:44px;padding:12px;font-size:12px;font-weight:750;color:#cce8ee;list-style-position:inside}
+.rv4-compare-provenance-ids{display:grid;gap:7px;padding:2px 12px 13px;border-top:1px solid #345e71}
+.rv4-compare-provenance-ids span{font-size:11px;line-height:1.65;overflow-wrap:anywhere}
+@media(max-width:620px){.rv4-region-compare{padding:12px}.rv4-region-compare-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.rv4-region-compare-stats .rv4-region-compare-change{grid-column:1/-1}.rv4-region-compare-stats strong{font-size:25px}}
+
 .rv4-compare-provenance{display:grid;gap:5px;margin:8px 0 12px;font-size:10px;line-height:1.6;color:#b8d9de;overflow-wrap:anywhere}.rv4-compare-provenance span{min-width:0}
  .rv4-comparison-scroller{max-width:100%;overflow-x:auto;scrollbar-color:#357587 #0b293a}
 .rv4-comparison-table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.55;min-width:275px;table-layout:auto}
