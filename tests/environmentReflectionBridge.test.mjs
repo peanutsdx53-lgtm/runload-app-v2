@@ -23,3 +23,24 @@ test('F02: missing choices and 500-char full memo never silently truncate or era
  assert.match(x.reason,/500文字/);
  assert.equal(d.environmentNote,raw);
 });
+
+test('S07 UX-008: pending is not saved and applied state is derived from the actual memo',()=>{
+ const draft={temperatureC:'0',environmentNote:'本人の記録'},ui=newEnvironmentUi();
+ const initial=environmentPage(draft,ui);
+ assert.match(initial,/data-state="none"/);
+ assert.match(initial,/data-e4-commit disabled/);
+ toggleWeather(ui,'RAIN');
+ toggleFlag(ui,'WIND');
+ const pending=environmentPage(draft,ui);
+ assert.match(pending,/data-state="pending"/);
+ assert.match(pending,/まだ環境メモに反映されていません/);
+ assert.doesNotMatch(pending,/data-e4-commit disabled/);
+ assert.equal(draft.environmentNote,'本人の記録','selecting never writes observations');
+ assert.equal(applyEnvironmentSelections(draft,ui).ok,true);
+ const committed=environmentPage(draft,ui);
+ assert.match(committed,/data-state="applied"/);
+ assert.match(committed,/data-e4-commit disabled/);
+ assert.match(draft.environmentNote,/【本人申告の環境選択】天候：雨、風が強い/);
+ toggleWeather(ui,'SUN');
+ assert.match(environmentPage(draft,ui),/data-state="pending"/,'changed choices require a new explicit transfer');
+});
