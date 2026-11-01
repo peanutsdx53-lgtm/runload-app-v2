@@ -47,7 +47,7 @@ test('observation guide note has stable topic ID and survives reload; focused ro
 test('cached assets include new offline editorial guide and UX version for updated copies',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.match(sw,/explorationTopicGuides\.js/);
- assert.match(sw,/const CACHE="runload-ui-next-shell-2026103[0-9]-[a-z0-9-]+"/);
+ assert.match(sw,/const CACHE="runload-ui-next-shell-20\\d{6}-[a-z0-9-]+"/);
  assert.match(sw,/"\.\/ui\/manualRunLock\.js"/);
  assert.match(sw,/"\.\/ui\/regionReferenceComparison\.js"/);
  assert.match(sw,/"\.\/ui\/noteRunLink\.js"/);
