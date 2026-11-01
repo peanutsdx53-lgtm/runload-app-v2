@@ -58,6 +58,50 @@ try{
   await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
   await page.locator('.rv4-body .rv4-reading').waitFor();
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-body.png'),fullPage:true});
+
+  // S09: the user's ROF-J values are kept distinct from a clinically unverified time change.
+  for(const [id,state] of [[saved.current,'answers-two-five'],[saved.earlier,'answers-zero-six'],[saved.otherGait,'answer-zero-unanswered']]){
+   if(id!==saved.current){
+    await page.goto(base+'#/result?record='+encodeURIComponent(id),{waitUntil:'domcontentloaded'});
+    await page.locator('.rv4-fatigue').waitFor();
+   }
+   if(mode.width<=800)await page.locator('[data-tab="fatigue"]').click();
+   const panel=page.locator('.rv4-fatigue');
+   await panel.waitFor({state:'visible'});
+   assert.equal(await panel.getAttribute('data-rof-time-status'),'unverified');
+   const note=panel.locator('.rv4-fatigue-note');
+   assert.match(await note.innerText(),/前後差は判定できません/);
+   assert.match(await note.innerText(),/未回答は「—」で、0と区別/);
+   const size=await note.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+   assert.ok(size>=12.5,'readable ROF-J explanation font: '+size);
+   const method=panel.locator('.rv4-fatigue-method');
+   assert.equal(await method.getAttribute('open'),null,'detail is optional; essential caution remains visible');
+   const vals=await panel.locator('.rv4-fatigue-numbers strong').allInnerTexts();
+   assert.equal(vals[2],'—','never imply calculated before/after difference');
+   if(state==='answers-zero-six')assert.deepEqual(vals.slice(0,2),['0','6']);
+   if(state==='answer-zero-unanswered')assert.deepEqual(vals.slice(0,2),['0','—']);
+   const shape=await panel.evaluate(el=>{const rect=el.getBoundingClientRect();return{left:rect.left,right:rect.right,viewport:innerWidth,document:document.documentElement.scrollWidth}});
+   assert.ok(shape.left>=-3&&shape.right<=shape.viewport+3&&shape.document<=shape.viewport+3,'ROF-J reflows '+JSON.stringify(shape));
+   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-fatigue-'+state+'.png'),fullPage:true,animations:'disabled'});
+   await method.locator('summary').click();
+   assert.match(await method.innerText(),/時間的な前後差は判定しません/);
+   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-fatigue-method-'+state+'.png'),fullPage:true,animations:'disabled'});
+  }
+  // Isolated unsaved *display preview*, not evidence or a persisted run: unanswered-before and valid-zero-after.
+  await page.evaluate(async()=>{
+   const host=document.createElement('div');host.id='runload-fatigue-display-check';
+   document.body.appendChild(host);
+   const {mountResult}=await import('./ui/resultExperience.js');
+   mountResult(host,{date:'2026-10-25',distance:'5',minutes:'30',rofBefore:null,rofAfter:0},{});
+  });
+  const preview=page.locator('#runload-fatigue-display-check');
+  if(mode.width<=800)await preview.locator('[data-tab="fatigue"]').click();
+  const pvals=await preview.locator('.rv4-fatigue-numbers strong').allInnerTexts();
+  assert.deepEqual(pvals,['—','0','—'],'unanswered-before is not zero');
+  await preview.screenshot({path:resolve(root,'screenshots',prefix+'-result-fatigue-preview-missing-zero.png'),animations:'disabled'});
+  await page.evaluate(()=>document.querySelector('#runload-fatigue-display-check')?.remove());
+  await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
+  await page.locator('.rv4-body .rv4-reading').waitFor();
   const resultText=await page.locator('.rv4-app').innerText();
   assert.match(resultText,/本人の身体を測定した数値ではありません/);
   assert.match(resultText,/記録を理解する順番/);
