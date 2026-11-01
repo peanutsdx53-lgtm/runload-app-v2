@@ -73,3 +73,33 @@ test('saved activity identity is visible in history row, focus and selected foot
  assert.match(html,/運動回数/);
  assert.doesNotMatch(html,/走行回数/);
 });
+
+test('UX-013: real empty account differs from empty selected month',()=>{
+ const ui=createHistoryUi();ui.month='2026-11';
+ const noRuns=renderHistory(ui,[],{connected:true});
+ assert.match(noRuns,/保存した記録はまだありません/);
+ assert.doesNotMatch(noRuns,/data-jump-month=/);
+ const previous=renderHistory(ui,fixtures,{connected:true});
+ assert.match(previous,/この月の記録はありません/);
+ assert.match(previous,/別の月に保存済みの記録/);
+ assert.match(previous,/data-history-scope="all"/);
+ assert.match(previous,/data-jump-month="2026-10"/);
+ assert.equal((previous.match(/data-select-id=/g)||[]).length,0);
+});
+test('UX-013: explicit all-period mode searches across saved months without fabricating run values',()=>{
+ const ui=createHistoryUi();ui.month='2026-11';
+ const records=normalizeRecords([...fixtures,{id:'saved-future',type:'rest',date:'2026-12-01',memo:'休養'}]);
+ assert.equal(filterRecords(records,ui).length,0,'month filtering remains default');
+ ui.allMonths=true;
+ assert.equal(filterRecords(records,ui).length,4);
+ ui.query='公園';assert.deepEqual(filterRecords(records,ui).map(r=>r.id),['saved-B']);
+ const text=renderHistory(ui,records,{connected:true,onOpen(){}});
+ assert.match(text,/全期間の記録/);assert.match(text,/2026年10月18日/);
+ assert.match(text,/全期間を検索しています/);
+ assert.match(text,/aria-pressed="true" class="active">全期間/);
+ assert.doesNotMatch(text,/data-open-record/,'no implicit record selection');
+ ui.query='';ui.type='rest';
+ assert.deepEqual(filterRecords(records,ui).map(r=>r.id),['saved-future','saved-C']);
+ ui.allMonths=false;ui.month='2026-10';
+ assert.equal(filterRecords(records,ui).length,1,'switching back restores month-bound filtering');
+});
