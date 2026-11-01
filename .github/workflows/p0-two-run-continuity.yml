@@ -12,6 +12,14 @@ on:
       - 'ui/resultExperience.js'
       - 'ui/regionReferenceComparison.js'
       - 'tests/twoRunCycleBrowserSmoke.mjs'
+      - 'tests/screenDesign20PopulatedBrowser.mjs'
+      - 'tests/simulationExperience.test.mjs'
+      - 'ui/historyExperience.css'
+      - 'ui/historyInlineStyles.js'
+      - 'ui/conditionJourney.css'
+      - 'ui/consultationExperience.css'
+      - 'ui/measurementExperience.js'
+      - 'ui/simulationExperience.js'
       - '.github/workflows/p0-two-run-continuity.yml'
   workflow_dispatch:
 permissions:
