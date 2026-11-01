@@ -83,7 +83,8 @@ test('reference RUN pace uses only confirmed running-only records and handoff do
  const html=renderSimulation(newSimulationUi(),{presets:{ok:true,records:[]},manualRuns:{ok:true,records}});
  assert.match(html,/value="run" data-distance-km=/);
  for(const v of records.slice(1))assert.doesNotMatch(html,new RegExp('value="'+v.id+'" data-distance-km='));
- assert.match(html,/GPSで実際に測定する/);
+ assert.doesNotMatch(html,/<a href="#\/measurement"/);
+ assert.match(html,/GPS測定はスマートフォン専用/);
  assert.match(html,/仮のペース・走歩比率を実績へ自動転記しません/);
 });
 test('short measured GPS course (10–100 m) is still a valid what-if route',()=>{
