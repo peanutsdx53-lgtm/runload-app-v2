@@ -693,3 +693,37 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
  #app .hx-ach-dialog .hx-ach-milestone-status{font-size:.69rem}
  #app .hx-ach-dialog .hx-ach-limit{font-size:.78rem}
 }
+
+/* S02 consistency correction: keep native date-picker behavior; recolor only
+   the Condition's custom date surface to match its approved indigo theme. */
+#app .hx-dialog.hx-condition-dialog .rl-date-control{
+ background:#202440;border-color:#a99be0;color:#faf6ff;
+}
+#app .hx-dialog.hx-condition-dialog .rl-date-value{color:#faf6ff}
+#app .hx-dialog.hx-condition-dialog .rl-date-icon{color:#d2c1ff}
+#app .hx-dialog.hx-condition-dialog .rl-date-control:focus-within{
+ outline:2px solid #e1c9ff;outline-offset:2px;border-color:#e1c9ff;
+}
+/* Achievement details: visually connect the orange/gold dashboard card with
+   its detail dialog, preserving achievement meaning and readable status text. */
+#app .hx-dialog.hx-ach-dialog{
+ background:radial-gradient(circle at 94% 3%,#c8823833,transparent 42%),linear-gradient(150deg,#3b2d27 0%,#2b2529 54%,#1b202b 100%);
+ border:1px solid #c7945b;color:#fff2de;
+}
+#app .hx-dialog.hx-ach-dialog .hx-dialog-head h2{color:#fff1da}
+#app .hx-dialog.hx-ach-dialog .hx-dialog-head button{
+ background:#5b4335;border-color:#d2a773;color:#fff4e6;
+}
+#app .hx-dialog.hx-ach-dialog .hx-dialog-head button:focus-visible{
+ outline:3px solid #ffe0a1;outline-offset:2px;
+}
+#app .hx-dialog.hx-ach-dialog .hx-ach-summary>div{border-color:#c6a277a1;background:#e6a64e1b}
+#app .hx-dialog.hx-ach-dialog .hx-ach-summary small{color:#f0d1ad}
+#app .hx-dialog.hx-ach-dialog .hx-ach-summary strong{color:#fff0d8}
+#app .hx-dialog.hx-ach-dialog .hx-ach-section-title{color:#ffd797}
+#app .hx-dialog.hx-ach-dialog .hx-ach-milestone{border-color:#c5a0777a;background:#f0ae4b15}
+#app .hx-dialog.hx-ach-dialog .hx-ach-milestone.is-earned{border-color:#edc27da6;background:#ffbd4a2d}
+#app .hx-dialog.hx-ach-dialog .hx-ach-milestone.is-unearned{border-color:#bda68d68;background:#95836d18}
+#app .hx-dialog.hx-ach-dialog .hx-ach-milestone-status{color:#ffdf9e}
+#app .hx-dialog.hx-ach-dialog .hx-ach-milestone.is-unearned .hx-ach-milestone-status{color:#ddcebc}
+#app .hx-dialog.hx-ach-dialog .hx-ach-limit{color:#e0d2c2}
