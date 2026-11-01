@@ -170,9 +170,11 @@ function experience(ui,ctx,cat,topic){
  const related=relevance(ui,ctx);
  const specific=related.linked.get(cat.id);
  const relatedSource=related.sources.get(cat.id);
- // UX-023: a verified saved run or an unsaved draft must not be described
- // as "no relevant input"; keep their provenance and interpretation distinct.
- const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?
+ // UX-023: a genuine saved-run calculation takes precedence over a stale
+ // unsaved editor draft in *this lesson card*, but does not change either.
+ const lessonRun=key==='distance-time-pace'&&!ui.sample?latestSavedManualRun(ctx.manualRuns,ctx.focusRunId||null):null;
+ const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":lessonRun?
+  `${lessonRun.date} に保存した走行距離と時間に関連。保存した手入力の情報との対応です。${relatedSource==="draft"?"入力途中の値はこの学習カードの計算に用いていません。":""}この関連だけから原因や身体の状態は判断できません。`:reason?
   `${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:specific?
   `${specific}。${relatedSource==="saved-run"?"保存した手入力の情報との対応です。":relatedSource==="draft"?"入力途中の内容であり、保存済み記録ではありません。":relatedSource==="saved-life"?"保存済みの生活記録から確認できます。":"表示例は本人の記録ではありません。"}この関連だけから原因や身体の状態は判断できません。`:
   "関連する入力がなくても、内容を自由に学べます";
