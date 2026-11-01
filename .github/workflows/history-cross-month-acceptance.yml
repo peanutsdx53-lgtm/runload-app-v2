@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run history invariants
-        run: node --test tests/historyExperience.test.mjs tests/historyStyle.test.mjs
+        run: node --test tests/historyExperience.test.mjs tests/historyInputFocus.test.mjs tests/historyPerformance.test.mjs
       - name: Install Playwright
         run: |
           npm install --no-save playwright@1.56.1
