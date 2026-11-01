@@ -47,7 +47,7 @@ test('Result v4 view is isolated and precached',()=>{
  assert.ok(app.includes('resultExperience.mountResult'));
  assert.ok(sw.includes('./ui/resultExperience.js'));
  assert.ok(sw.includes('./ui/resultExperience.css'));
- assert.ok(html.includes('app.js?v=20261101-s02-guide-v1'));
+ const currentAsset=html.match(/\.\/app\.js\?v=([a-z0-9-]+)/);assert.ok(currentAsset,'HTML cache-busted application entry');assert.ok(sw.includes('./app.js?v='+currentAsset[1]),'matching offline precache asset');
  assert.ok(sw.includes('./ui/gpsDynamicResult.js'));
  assert.ok(sw.includes('./ui/gpsDynamicResult.css'));
 });
