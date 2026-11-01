@@ -22,3 +22,13 @@
 
 ## スクリーンショットからの追補判断
 初回ブラウザ撮影では、イラスト直下の説明は一行内で主句と補足を分離できたが、PC右列の「選択値」側には全文テキストによる不自然な改行が残っていた。両方の表示で同じ安全な原文HTMLフォーマットを使用するよう追補修正。実値10のスコア及び画面内の代表位置は独立の値として残す。
+
+## 実画面の検証結果（2026-11-01）
+- 実装HEAD `23dbedf3f2af5e616295c8bd26c171e82f0a90dc`。ROF date and mobile layout visual acceptance GitHub Actions run `41279130108` はChromium・WebKitともSUCCESS。
+- PC 1440px、スマホ320／390／430px、未入力・10入力・中間代表イラストの確認・運動前10／運動後8をそれぞれキャプチャ。ページ全体のPNGをGitHub Actionsアーティファクト `rof-mobile-layout-chromium`・`rof-mobile-layout-webkit` に保管。
+- イラスト直下の説明パネルはイラスト列と0〜10スライダーの間に位置。10では「完全な疲労困憊」と「（何も残っていない状態）」のDOM要素を別々に置き、両者が表示枠内に収まると確認。原著のdescriptor文字列そのものは不変更。PC右の選択値サマリーでも同じ区切りを適用。
+- イラストを位置「2と3の間」に変更した際、疲労感の数値10が維持されたことをブラウザで確認。前後切り替え後は運動前10・運動後8が独立に残る。
+- 元の科学出典リンク・0〜10整数のみ・追加運動時刻の折り畳みと日付共有は維持。
+- 同HEADの `UI Next smoke`、`Exploration editorial QA`、`Research interpretation audit`、`pages build and deployment` がSUCCESS。
+- 別系統 `Rest and ROF mobile acceptance` の履歴休養記録クリック待機（`#runload-history-v2 [data-select-id="rest-v1-2026-10-29"]`）はChromium・WebKit両方で既存のタイムアウトが残る。今回の専用画面テストの成功で解消済みとみなさない。
+- フルページスクリーンショット中の固定ナビの重なりは画像の撮影手法に依存し、実際のスクロール・タップ動作の実機検証を代替しない。iOS/Androidの標準アクセシビリティ等は引き続き未評価。
