@@ -349,6 +349,8 @@
 }
 .gps-v2 .gps-rof-link span:first-child{display:grid;gap:5px;min-width:0;flex:1}
 .gps-v2 .gps-rof-link strong{font-weight:810;font-size:.89rem}
+/* UX-048: the ROF-J abbreviation and its parentheses stay on one line. */
+.gps-v2 .gps-rof-link .gps-rof-term{white-space:nowrap;font:inherit}
 .gps-v2 .gps-rof-link small{font-size:.73rem;color:#abd4df}
 .gps-v2 .gps-rof-link output{
  flex:none;color:#8bece7;font-size:.88rem;font-weight:800;
