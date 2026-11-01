@@ -921,6 +921,8 @@ try{
   assert.equal(await page.locator('[data-picker-id]').count(),4);
   await page.locator('[data-picker-id="BA-DISP-023"]').click();
   assert.equal(await page.locator('.cx-selected-chip').count(),2);
+  assert.match(await page.locator('.cx-transfer-status').innerText(),/部位を選んだだけでは記録に残りません/,'selected body parts must not imply a saved observation');
+  assert.ok(await page.locator('.cx-science-note').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=13),'body evidence limitation must remain readable');
   await page.locator('[data-map-view="sole"]').click();
   assert.equal(await page.locator('[data-region-focus]').count(),3,"three sole-map targets");
   await page.locator('[data-map-view="front"]').click();
@@ -963,6 +965,8 @@ try{
   await page.locator('[data-rv-grade="SECTIONS"]').click();
   for(let i=0;i<5;i++)await page.locator('[data-rv-add]').click();
   assert.equal(await page.locator('.rv-section-row').count(),5,"five sections maximum");
+  assert.match(await page.locator('[data-rv-section-progress]').innerText(),/0 \/ 5 件入力/, 'five blank sections are not silently recorded as 0%');
+  assert.ok(await page.locator('.rv-section-row-head button').first().evaluate(el=>el.getBoundingClientRect().height>=44),'each section delete control has a 44px hit target');
   assert.ok(await page.locator('[data-rv-add]').isDisabled());
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-v2.png"),fullPage:true});
   const layout=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
