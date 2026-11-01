@@ -8,6 +8,9 @@ on:
       - 'ui/bodyContextExperience.css'
       - 'app.js'
       - 'tests/bodyContextExperience.test.mjs'
+      - 'tests/recordExperience.test.mjs'
+      - 'ui/recordExperience.js'
+      - 'ui/recordExperience.css'
       - '.github/workflows/record-optional-density-audit.yml'
   workflow_dispatch:
 permissions:
