@@ -42,6 +42,7 @@ try{
   await page.goto(host+'history',{waitUntil:'networkidle'});
   const rootSel=page.locator('#runload-history-v2');
   await rootSel.waitFor();
+  await rootSel.locator('.empty[data-history-unconnected="false"]').waitFor({state:'visible',timeout:12000});
   assert.match(await rootSel.locator('.empty').innerText(),/保存した記録はまだありません/);
   assert.equal(await rootSel.locator('[data-select-id]').count(),0,'never synthesize history');
   await capture(page,width,'01-no-saved-records');
@@ -64,6 +65,7 @@ try{
   assert.ok(runId?.startsWith('run-v1-'));
   await page.goto(host+'history',{waitUntil:'networkidle'});
   await rootSel.waitFor();
+  await rootSel.locator('.empty[data-history-unconnected="false"]').waitFor({state:'visible',timeout:12000});
   assert.match(await rootSel.locator('.empty').innerText(),/この月の記録はありません/);
   assert.match(await rootSel.locator('.empty').innerText(),/別の月に保存済み/);
   await capture(page,width,'02-other-month-exists');
@@ -73,7 +75,7 @@ try{
   await capture(page,width,'03-all-months');
   const input=rootSel.locator('#hx-search');
   await input.fill('月をまたぐ検索用');
-  assert.equal(await input.evaluate(el=>el===document.activeElement),true,'search input should retain keyboard focus');
+  assert.equal(await input.evaluate(el=>el===el.getRootNode().activeElement),true,'search input should retain keyboard focus');
   assert.equal(await rootSel.locator('[data-select-id]').count(),1);
   await capture(page,width,'04-search-match');
   await input.fill('存在しない文字列');
