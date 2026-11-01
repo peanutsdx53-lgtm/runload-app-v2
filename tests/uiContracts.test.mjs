@@ -83,8 +83,12 @@ test("local ROF-J illustrations match the approved five-figure asset register",(
 test("v8 release uses cache-busted body resources and a user-controlled update prompt",()=>{
  const html=read("index.html"),app=read("app.js"),pwa=read("pwa.js"),sw=read("sw.js");
  const currentAsset=html.match(/app\.js\?v=([a-z0-9-]+)/);assert.ok(currentAsset,'versioned app entry');assert.ok(sw.includes('./app.js?v='+currentAsset[1]),'service worker caches the active app entry');
- assert.match(html,/bodyContextExperience\.css\?v=20261025-terminology-v1/);
- assert.match(app,/bodyContextExperience\.js\?v=20261026-user-copy-v21/);
+ const cssRevision=html.match(/bodyContextExperience\\.css\\?v=([a-z0-9-]+)/);
+ assert.ok(cssRevision,'body stylesheet carries cache-busting revision');
+ assert.ok(sw.includes('./ui/bodyContextExperience.css?v='+cssRevision[1]),'offline shell caches active body stylesheet');
+ const jsRevision=app.match(/bodyContextExperience\\.js\\?v=([a-z0-9-]+)/);
+ assert.ok(jsRevision,'body module carries cache-busting revision');
+ assert.ok(sw.includes('./ui/bodyContextExperience.js?v='+jsRevision[1]),'offline shell caches active body module');
  assert.match(pwa,/updateViaCache:\"none\"/);
  assert.match(pwa,/更新する/);
  assert.match(sw,/back-symmetry-v2/);
