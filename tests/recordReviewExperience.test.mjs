@@ -117,3 +117,18 @@ test('long personal notes stay intact in the draft but are concise on the save r
  assert.match(html,/気になった部位|身体・使用品・メモ/);
  assert.match(html,/data-manual-run-save/);
 });
+
+test('S08 repeated warnings are merged without losing any validation or disabling',()=>{
+ const html=reviewView({...base,date:'',distance:'',minutes:'',activityGait:''},{});
+ assert.match(html,/id="rr-review-validation"/);
+ assert.match(html,/aria-describedby="rr-review-validation"/);
+ assert.match(html,/role="alert"/);
+ assert.match(html,/data-manual-run-save[^>]+disabled/);
+ assert.doesNotMatch(html,/id="rr-save-validation"/);
+ assert.doesNotMatch(html,/class="rr-save-required-warning"/);
+ assert.equal((html.match(/data-required-status=/g)||[]).length,3);
+ assert.match(html,/data-required-status="distance".*?<b>距離<\/b><em>要入力<\/em>/);
+ const good=reviewView(base,{});
+ assert.match(good,/data-required-status="distance".*?<b>距離<\/b><em>入力済み<\/em>/);
+ assert.doesNotMatch(good,/id="rr-review-validation"/);
+});
