@@ -1608,7 +1608,7 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-achievement-saved-v29.png'),fullPage:true});
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.width='';});
   await page.locator('[data-achievement-open]').click();
-  assert.match(await page.locator('.hx-ach-dialog').innerText(),/30分以上の走行記録を保存（達成）/);
+  assert.match(await page.locator('.hx-ach-dialog').innerText(),/30分以上の走行\s+達成/,'real milestone shows the saved 30-minute run as achieved');
   await page.locator('.hx-ach-dialog').screenshot({path:resolve(root,'screenshots',mode.name+'-achievement-dialog-v29.png')});
   await page.locator('.hx-ach-dialog [data-home-close]').click();
    await page.reload({waitUntil:'networkidle'}); // fresh editor state: prove saved-run provenance, not residual unsaved draft
