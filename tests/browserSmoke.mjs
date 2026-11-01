@@ -1231,7 +1231,7 @@ try{
     await page.locator('[data-gps-keep-awake]').check();
   }
   await page.locator('[data-gps-activity]').selectOption('MIXED');
-  assert.match(await page.locator('[data-gps-activity-description]').innerText(),/区間を自分で切り替え/);
+  assert.equal(await page.locator('[data-gps-activity]').inputValue(),'MIXED','GPS activity selection is retained without adding a long explanatory paragraph');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-v35-ready.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>window.__gpsWatchCount),0,'no GPS watcher without explicit consent');
   await page.locator('[data-gps-action="start"]').click();
