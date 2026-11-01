@@ -1,0 +1,42 @@
+name: S03 S04 record manual visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/recordExperience.js'
+      - 'ui/recordExperience.css'
+      - 'tests/recordExperience.test.mjs'
+      - 'tests/s03s04RecordManualBrowser.mjs'
+      - '.github/workflows/s03s04-record-manual-visual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  record-visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium,webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Confirm explicit required contract
+        run: node --test tests/recordExperience.test.mjs tests/recordDraftReview.test.mjs
+      - name: Inspect real selection and manual pages
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/s03s04RecordManualBrowser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: s03s04-record-${{ matrix.engine }}
+          path: audit-output/s03s04-record/
+          if-no-files-found: warn
+          retention-days: 14
