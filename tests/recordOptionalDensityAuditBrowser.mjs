@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {resolve,dirname,extname,sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {chromium,webkit} from 'playwright';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const mime={'.html':'text/html;charset=utf-8','.js':'text/javascript;charset=utf-8','.css':'text/css;charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json','.webmanifest':'application/manifest+json'};
+const server=createServer(async(req,res)=>{try{
+ const name=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname),p=resolve(root,'.'+name);
+ if(p!==root&&!p.startsWith(root+sep))throw Error('traversal');
+ const f=p===root?resolve(root,'index.html'):p;res.setHeader('Content-Type',mime[extname(f)]||'application/octet-stream');res.end(await readFile(f));
+}catch{res.statusCode=404;res.end('not found');}});
+await new Promise(ok=>server.listen(4362,'127.0.0.1',ok));
+const engine=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
+const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
+const out=resolve(root,'audit-output','record-optional-density');await mkdir(out,{recursive:true});
+const host='http://127.0.0.1:4362/#/',report=[];
+async function take(page,w,id){
+ const m=await page.evaluate(()=>{
+  const els=[...document.querySelectorAll('.rv-panel,.cx-main-card,.cx-field-card,.cx-transfer,.cx-toolbar,.cx-selected-chip,.rv-section-row,.e4-panel,.g4-panel,.rv4-card')];
+  const fields=[...document.querySelectorAll('textarea,input[maxlength]')].map(e=>({name:e.id||e.dataset.draft,limit:e.maxLength,length:e.value.length,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight}));
+  return {viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,
+   selectedRegions:document.querySelectorAll('.cx-selected-chip').length,
+   nodes:els.map(e=>{const r=e.getBoundingClientRect();return {className:String(e.className),left:r.left,right:r.right,width:r.width,scrollWidth:e.scrollWidth,clientWidth:e.clientWidth}}),
+   counters:[...document.querySelectorAll('.cx-counter')].map(e=>e.textContent),fields};
+ });
+ report.push({engine,width:w,state:id,...m});
+ await page.screenshot({path:resolve(out,engine+'-'+w+'-'+id+'.png'),fullPage:w!==1440,animations:'disabled',timeout:12000});
+ if(m.document>m.viewport+2||m.body>m.viewport+2)console.warn('OVERFLOW '+engine+' '+w+' '+id+': '+m.document);
+}
+async function enter(page,route,selector,w,id){
+ await page.goto(host+route,{waitUntil:'networkidle'});await page.locator(selector).waitFor({timeout:12000});await take(page,w,id+'-empty');
+}
+try{
+ for(const w of [320,390,1440]){
+  const ctx=await browser.newContext({viewport:{width:w,height:w===1440?900:844},locale:'ja-JP',reducedMotion:'reduce'});
+  await ctx.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
+  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await enter(page,'record','.rv-manual',w,'MANUAL');
+  await page.locator('[data-draft="distance"]').fill('8.25');
+  await page.locator('[data-draft="minutes"]').fill('54');
+  await page.locator('[data-manual-gait="RUNNING"]').click();
+  await enter(page,'record-course','.rv-course',w,'COURSE');
+  await page.locator('[data-draft="courseName"]').fill('川沿い周回・橋を渡るコース');
+  await page.locator('[data-rv-grade="SECTIONS"]').click();
+  for(let k=0;k<5;k++){
+    await page.locator('[data-rv-add]').click();
+    await page.locator('[data-draft="sectionShare'+k+'"]').fill('20');
+    await page.locator('[data-draft="sectionGrade'+k+'"]').fill(String(k+1));
+  }
+  await page.locator('[data-rv-surface-mode="MIXED"]').click();
+  const surfaces=await page.locator('[data-rv-surface]').evaluateAll(e=>e.map(x=>x.dataset.rvSurface).slice(0,2));
+  for(const id of surfaces)await page.locator('[data-rv-surface="'+id+'"]').click();
+  await page.locator('[data-rv-surface-value="'+surfaces[0]+'"]').fill('60');
+  await page.locator('[data-rv-surface-value="'+surfaces[1]+'"]').fill('40');
+  await take(page,w,'COURSE-dense');
+  await enter(page,'record-rof','[data-rof-v4-root]',w,'ROF');
+  const range=page.locator('[data-rof-v4-range]');
+  await range.evaluate(e=>{e.value='4';e.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.locator('[data-rof-v4-phase="after"]').click();
+  await range.evaluate(e=>{e.value='8';e.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.locator('.rv4-optional-meta > summary').click();
+  await page.locator('[data-rof-run-start]').fill('08:45');
+  await page.locator('[data-rof-run-end]').fill('09:39');
+  await take(page,w,'ROF-populated');
+  await enter(page,'record-compare','[data-g4-page]',w,'GAIT');
+  await page.locator('[data-draft="steps"]').fill('12457');
+  await page.locator('[data-g4-source="ESTIMATED"]').click();
+  await page.locator('[data-g4-format="RUN_WALK"]').click();
+  await page.locator('[data-draft="runWalkRunningDistanceKm"]').fill('6.12');
+  await page.locator('[data-draft="runWalkRunningDurationMinutes"]').fill('38');
+  await take(page,w,'GAIT-populated');
+  await enter(page,'record-environment','[data-e4-page]',w,'ENV');
+  await page.locator('[data-draft="temperatureC"]').fill('18.5');
+  await page.locator('[data-draft="environmentNote"]').fill('向かい風の体感があった。'.repeat(26));
+  await page.locator('[data-e4-weather="CLOUD"]').click();
+  await page.locator('[data-e4-flag="WIND"]').click();
+  await take(page,w,'ENV-selected');
+  await page.locator('[data-e4-commit]').click();
+  await take(page,w,'ENV-committed');
+  await enter(page,'record-reflection','[data-cx-page]',w,'BODY');
+  await page.locator('#cx-bodyObservation').fill('走行後の感覚を本人の言葉で記録。'.repeat(15));
+  await page.locator('#cx-shoeName').fill('使用したシューズ名・'.repeat(9).slice(0,100));
+  await page.locator('#cx-memo').fill('その日の走行と生活で感じたこと。'.repeat(28).slice(0,490));
+  for(const view of ['front','back','sole']){
+    await page.locator('[data-map-view="'+view+'"]').click();
+    await page.locator('[data-picker-toggle]').click();
+    const ids=await page.locator('[data-picker-id]').evaluateAll(xs=>xs.map(x=>x.dataset.pickerId));
+    for(const id of ids)await page.locator('[data-picker-id="'+id+'"]').click();
+  }
+  assert.equal(await page.locator('.cx-selected-chip').count(),12);
+  await take(page,w,'BODY-12-regions-long-fields');
+  await page.locator('[data-append-name]').click();
+  await take(page,w,'BODY-appended');
+  const max=await page.locator('#cx-shoeName').evaluate(e=>e.maxLength);
+  const count=await page.locator('[data-counter="shoeName"]').innerText();
+  report.push({engine,width:w,state:'shoe-counter-mismatch-check',max,count});
+  await page.locator('[data-apply]').click();await page.locator('.rv-manual').waitFor();
+  await take(page,w,'MANUAL-populated-summary');
+  assert.deepEqual(errors,[],'JS page errors');
+  await ctx.close();
+ }
+ console.log('AUDIT COMPLETE '+engine+' '+report.length+' states');
+}finally{
+ await writeFile(resolve(out,engine+'-report.json'),JSON.stringify(report,null,2));
+ await browser.close();await new Promise(ok=>server.close(ok));
+}
