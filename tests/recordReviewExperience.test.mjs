@@ -76,11 +76,11 @@ test('distance time activity are all required on review and save stays disabled 
 test('S08/S20: accessible save control references a real error message only when errors exist',()=>{
  const good=reviewView(base,{source:'manual',recordType:'run'});
  assert.match(good,/data-manual-run-save/);
- assert.doesNotMatch(good,/aria-describedby="rr-save-validation"/);
- assert.doesNotMatch(good,/id="rr-save-validation"/);
+ assert.doesNotMatch(good,/aria-describedby="rr-review-validation"/);
+ assert.doesNotMatch(good,/id="rr-review-validation"/);
  const bad=reviewView({...base,distance:''},{source:'manual',recordType:'run'});
- assert.match(bad,/data-manual-run-save aria-describedby="rr-save-validation"/);
- assert.match(bad,/id="rr-save-validation"[^>]*role="alert"/);
+ assert.match(bad,/data-manual-run-save aria-describedby="rr-review-validation"/);
+ assert.match(bad,/id="rr-review-validation"[^>]*role="alert"/);
  assert.match(bad,/data-manual-run-save[^>]*disabled/);
 });
 
