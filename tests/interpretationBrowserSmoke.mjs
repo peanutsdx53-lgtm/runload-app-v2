@@ -189,8 +189,8 @@ try{
   await page.locator('[data-e4-commit]').click();
   const noteAfter=await page.locator('[data-draft="environmentNote"]').inputValue();
   assert.match(noteAfter,/【本人申告の環境選択】天候：晴れ、風が強い/);
-  await page.locator('[data-e4-commit]').click();
-  assert.equal(await page.locator('[data-draft="environmentNote"]').inputValue(),noteAfter,'repeated explicit action does not duplicate text');
+  assert.equal(await page.locator('[data-e4-commit]').isEnabled(),false,'applied choice cannot be copied twice');
+  assert.equal(await page.locator('[data-draft="environmentNote"]').inputValue(),noteAfter,'applied content is recorded only once');
   await page.locator('[data-e4-done]').click();
   await page.locator('[data-draft="date"]').waitFor();
   await page.locator('a[href="#/record-environment"]').click();
