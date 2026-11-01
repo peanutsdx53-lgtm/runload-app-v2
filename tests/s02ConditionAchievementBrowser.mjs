@@ -50,10 +50,10 @@ try{
   await page.screenshot({path:resolve(out,name+'-'+width+'-empty.png'),fullPage:true,animations:'disabled'});
   await page.locator('[data-condition-open]').click();
   await page.locator('.hx-dialog').waitFor();await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
-  await page.locator('.hx-dialog [data-home-close]').click();
+  await page.locator('.hx-dialog [data-home-close]').first().click();
   await page.locator('[data-achievement-open]').click();
   await page.locator('.hx-ach-dialog').waitFor();await page.screenshot({path:resolve(out,name+'-'+width+'-achievement-dialog.png'),animations:'disabled'});
-  await page.locator('.hx-ach-dialog [data-home-close]').click();
+  await page.locator('.hx-ach-dialog [data-home-close]').first().click();
   const data=await page.evaluate(async()=>{
     const [m,c,h]=await Promise.all([import('./ui/manualRunStore.js'),import('./ui/manualRunCanonical.js'),import('./ui/homeExperience.js')]);
     const date=h.todayLocal();localStorage.setItem(h.CONDITION_KEY,JSON.stringify([{date,sleepMinutes:420,feeling:'良い',memo:'本人が記録'}]));
