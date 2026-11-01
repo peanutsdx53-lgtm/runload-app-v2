@@ -972,6 +972,12 @@ try{
   await page.locator('[data-rv-grade="SECTIONS"]').click();
   for(let i=0;i<5;i++)await page.locator('[data-rv-add]').click();
   assert.equal(await page.locator('.rv-section-row').count(),5,"five sections maximum");
+  if(mode.width<=800){
+    const sizes=await page.locator('.rv-flow-rail > span').evaluateAll(nodes=>nodes.map(el=>parseFloat(getComputedStyle(el).fontSize)));
+    assert.ok(sizes.length===3&&sizes.every(n=>n>=13),mode.name+' course step labels must be at least 13px: '+JSON.stringify(sizes));
+    const hintSize=await page.locator('.rv-step-slope .rv-section-rows .rv-hint').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+    assert.ok(hintSize>=13,mode.name+' segment input hints must be legible on narrow screens');
+  }
   if(mode.width>800)assert.equal(await page.locator('.rv-condition-pair').evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length),1,'five-section editor gets full width on desktop, not half-width');
   assert.match(await page.locator('[data-rv-section-progress]').innerText(),/0 \/ 5 件入力/, 'five blank sections are not silently recorded as 0%');
   await page.locator('[data-draft="sectionShare0"]').fill('40');
