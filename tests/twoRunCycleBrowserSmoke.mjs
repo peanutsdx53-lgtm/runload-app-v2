@@ -89,8 +89,12 @@ try{
  // Preserve actual browser-rendered evidence for a human visual acceptance review.
  // The capture is taken from TWO genuinely saved runs, not synthetic fixture values.
  await mkdir('audit-output/p0-continuity',{recursive:true});
+ assert.equal(await page.locator('.rv4-comparison-scroller').evaluate(el=>getComputedStyle(el).display),'none','390px comparison table must not force tiny four-column text');
+ assert.ok(await page.locator('.rv4-compare-cards').isVisible(),'390px factual comparison uses readable cards');
+ assert.ok(await page.locator('.rv4-compare-card small').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=12),'390px comparison labels are at least 12px');
  await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-compare-390.png',fullPage:true});
  await page.setViewportSize({width:1440,height:900});
+ assert.equal(await page.locator('.rv4-grid').evaluate(el=>getComputedStyle(el).alignItems),'start','desktop grid must not stretch the anatomy card to match long notes');
  await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-compare-1440.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
  const provenance=page.locator('.rv4-compare-provenance');
