@@ -26,7 +26,7 @@ async function take(page,w,id){
    counters:[...document.querySelectorAll('.cx-counter')].map(e=>e.textContent),fields};
  });
  report.push({engine,width:w,state:id,...m});
- await page.screenshot({path:resolve(out,engine+'-'+w+'-'+id+'.png'),fullPage:w!==1440,animations:'disabled',timeout:12000});
+ await page.screenshot({path:resolve(out,engine+'-'+w+'-'+id+'.png'),fullPage:true,animations:'disabled',timeout:12000});
  if(m.document>m.viewport+2||m.body>m.viewport+2)console.warn('OVERFLOW '+engine+' '+w+' '+id+': '+m.document);
 }
 async function enter(page,route,selector,w,id){
