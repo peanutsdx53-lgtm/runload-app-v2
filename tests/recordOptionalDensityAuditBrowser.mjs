@@ -154,6 +154,32 @@ try{
   report.push({engine,width:w,state:'shoe-counter-mismatch-check',max,count});
   await page.locator('[data-apply]').click();await page.locator('.rv-manual').waitFor();
   await take(page,w,'MANUAL-populated-summary');
+  // Persist the user's original text plus the explicitly transferred choice.
+  await page.locator('[data-demo-save]').click();
+  await page.locator('[data-record-review]').waitFor();
+  assert.match(await page.locator('[data-record-review]').innerText(),/環境/);
+  await take(page,w,'REVIEW-environment-saved-draft');
+  const button=page.locator('[data-manual-run-save]');
+  assert.equal(await button.isEnabled(),true,'complete optional context must not block valid run save');
+  await button.click();
+  await page.waitForFunction(()=>location.hash.startsWith('#/result?record='),null,{timeout:12000});
+  const getSaved=()=>page.evaluate(async()=>{
+   const {readCanonical}=await import('/ui/manualRunCanonical.js');
+   const result=await readCanonical();
+   return result.ok?result.read.records.at(-1):null;
+  });
+  const saved=await getSaved();
+  assert.ok(saved,'saved run exists in IndexedDB');
+  assert.match(saved.draft.environmentNote,/向かい風の体感があった/);
+  assert.match(saved.draft.environmentNote,/【本人申告の環境選択】天候：くもり、風が強い/);
+  assert.equal(saved.draft.temperatureC,'18.5');
+  assert.ok(saved.id.startsWith('run-v1-'));
+  await take(page,w,'RESULT-environment-saved');
+  await page.reload({waitUntil:'networkidle'});
+  await page.locator('#runload-result-v4').waitFor();
+  assert.equal((await getSaved())?.id,saved.id,'reloading retains the same record identity');
+  assert.equal((await getSaved())?.draft.environmentNote,saved.draft.environmentNote,'reloading retains the personally asserted context');
+  await take(page,w,'RESULT-environment-reloaded');
   assert.deepEqual(errors,[],'JS page errors');
   await ctx.close();
  }
