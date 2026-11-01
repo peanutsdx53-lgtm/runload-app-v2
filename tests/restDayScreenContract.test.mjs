@@ -18,7 +18,7 @@ test('rest day is saved with only selected subjective context; no run, ROF or GP
  for(const k of ['durationSeconds','rofBefore','rofAfter','gps','reference'])assert.equal(Object.hasOwn(row,k),false,k);
  const html=renderHistory({month:'2026-10',day:null,type:'rest',query:'',selectedId:row.id},read.records,{connected:true,onOpen:()=>{}});
  assert.match(html,/休養日の記録/);
- assert.match(html,/休養日の記録：走行結果・参考値なし/);
+ assert.match(html,/休養日：走行結果・参考値なし/);
  assert.doesNotMatch(html,/結果を開く/);
 });
 test('rest day review offers a real save path and explicitly excludes results',()=>{
