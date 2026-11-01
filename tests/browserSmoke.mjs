@@ -802,7 +802,9 @@ try{
   await page.locator('[data-rof-v4-root]').waitFor();
   assert.equal(await page.locator('.rv4-anchor').count(),5,"preserve original five anchors");
   assert.equal(await page.locator('[data-rof-v4-tick]').count(),11,"0 to 10 integer values shown in a straight line");
-  assert.match(await page.locator(".rv4-description").innerText(),/2と3の間/);
+  // The initial explanatory illustration is the central reference at 5;
+  // the score remains explicitly unanswered until the user selects a value.
+  assert.match(await page.locator(".rv4-description").innerText(),/目安：5/);
   await page.waitForFunction(()=>[...document.querySelectorAll('.rv4-picture img')].length===5 &&
     [...document.querySelectorAll('.rv4-picture img')].every(img=>img.complete&&img.naturalWidth>0),{timeout:12000});
   const illustrationGeometry=await page.locator('.rv4-picture').evaluateAll(nodes=>nodes.map(el=>{
