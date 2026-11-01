@@ -68,9 +68,10 @@ try{
   assert.equal(await dialog.locator('.hx-save').evaluate(el=>document.activeElement===el),true,'condition dialog Shift+Tab wraps to last enabled action');
   await page.keyboard.press('Tab');
   assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog Tab wraps to close');
-  const keyboardFocus=await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>({visible:el.matches(':focus-visible'),color:getComputedStyle(el).outlineColor}));
-  assert.equal(keyboardFocus.visible,true,'keyboard Tab makes the focus ring visible');
-  assert.equal(keyboardFocus.color,'rgb(225, 201, 255)','visible keyboard focus ring uses lavender, not teal');
+  const keyboardFocus=await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>({focused:document.activeElement===el,color:getComputedStyle(el).outlineColor,style:getComputedStyle(el).outlineStyle}));
+  assert.equal(keyboardFocus.focused,true,'Tab focus remains on Condition close button');
+  assert.notEqual(keyboardFocus.style,'none','visible focus outline remains on WebKit and Chromium');
+  assert.equal(keyboardFocus.color,'rgb(225, 201, 255)','focused Condition close button uses lavender, not teal');
   await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
   const modalGeometry=await dialog.evaluate(el=>{
    const d=el.getBoundingClientRect(),f=el.querySelector('[data-condition-form]'),button=f.querySelector('.hx-save'),save=button.getBoundingClientRect();
