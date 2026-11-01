@@ -1,3 +1,4 @@
+import {currentGpsSmartphone} from './gpsPlatform.js';
 /* RunLoad What-if V32: descriptive, client-only arithmetic. No V4/ROF or predictive training model. */
 import {courseSummary,initialCourseUi} from './recordExperience.js';
 import {readGpxFile,renderGpxVisual,projectToRoute} from './gpxImport.js';
@@ -112,7 +113,7 @@ export function renderSimulation(ui,{presets,manualRuns,gpsRuns}={}){
  <article class="sm-scenario sm-b"><div class="sm-scenario-title"><span class="sm-scenario-identity">B</span><div><strong>走る＋歩く</strong><small>走る区間と歩く区間を繰り返す</small></div></div><div class="sm-form-grid sm-scenario-inputs">${field('走る時間','runMin',ui.runMin,'分',{min:'1',max:'60',step:'1'})}${field('歩く時間','walkMin',ui.walkMin,'分',{min:'1',max:'60',step:'1'})}${field('歩くペース','walkPace',ui.walkPace,'分/km',{min:'2',max:'40',step:'0.1',wide:true})}</div><div class="sm-cycle"><div class="sm-cycle-track" data-sm-cycle-track style="--sm-run-share:${scenarioSummary(ui).pct}"></div><p data-sm-summary-b>${scenarioSummary(ui).b}</p></div></article></div></div>
  </section>
  <section class="sm-panel">${row('03','もしもの結果を見比べる','保存済みの実記録とは異なる、仮の計算結果です。')}<div data-sm-results aria-live="polite">${renderSimulationResults(ui)}</div></section>
- <section class="sm-panel">${row('04','次につなぐ','仮の計算を実際の走行結果と混同しません。')}<div class="sm-actions"><a href="#/record" class="sm-action-primary">実績を手入力する ›</a><a href="#/measurement" class="sm-action-secondary">GPSで実際に測定する ›</a><a href="#/history" class="sm-action-secondary">保存済みの履歴を見る ›</a></div><p class="sm-note">仮のペース・走歩比率を実績へ自動転記しません。実際の距離・時間・活動種別を入力・保存し、単独活動で適格なら結果画面に文献参考値を表示します。混合運動の12部位統合値は算出しません。計画と実績の自動照合は未実装です。</p></section>
+ <section class="sm-panel">${row('04','次につなぐ','仮の計算を実際の走行結果と混同しません。')}<div class="sm-actions"><a href="#/record" class="sm-action-primary">実績を手入力する ›</a>${currentGpsSmartphone()?'<a href="#/measurement" class="sm-action-secondary">GPSで実際に測定する ›</a>':'<span class="sm-action-secondary" role="note" aria-label="GPS測定はスマートフォン専用">GPS測定はスマートフォン専用</span>'}<a href="#/history" class="sm-action-secondary">保存済みの履歴を見る ›</a></div><p class="sm-note">仮のペース・走歩比率を実績へ自動転記しません。実際の距離・時間・活動種別を入力・保存し、単独活動で適格なら結果画面に文献参考値を表示します。混合運動の12部位統合値は算出しません。計画と実績の自動照合は未実装です。</p></section>
  </div>`;
 }
 export function bindSimulation(root,ui){
