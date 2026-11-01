@@ -85,17 +85,30 @@ function segmentSection(d,ui){
  <label>路面<select data-draft="sectionSurface${i}">${choose([['UNKNOWN','不明'],...SURFACES],d['sectionSurface'+i])}</select></label></div></div>`).join('')}
  <button type="button" class="rv-add" data-rv-add ${count>=5?'disabled':''}>＋ 区間を追加（${count} / 5）</button><p class="rv-hint">区間割合は合計100%で確定します。空欄を0とみなしません。</p></div>`;
 }
+
+export function surfaceShareState(d,ui){
+ const selected=ui.surfaceSelected||[];
+ const active=selected.includes(ui.surfaceFocus)?ui.surfaceFocus:selected[0]||null;
+ const share=k=>{const v=d['surface'+k];return filled(v)&&Number.isFinite(Number(v))?Number(v):null;};
+ const total=selected.reduce((n,k)=>n+(share(k)??0),0);
+ const others=selected.filter(k=>k!==active).reduce((n,k)=>n+(share(k)??0),0);
+ const max=Math.max(0,Math.min(100,100-others));
+ const valid=selected.length>=2&&selected.every(k=>share(k)!==null&&share(k)>0&&share(k)<=100)&&Math.abs(total-100)<.001;
+ return {selected,active,share,total,max,valid};
+}
 function surfaceSection(d,ui){
  const mode=d.surfaceMode||'UNKNOWN';
  const selected=mode==='SINGLE'?(d.primarySurface?[d.primarySurface]:[]):ui.surfaceSelected;
- const total=ui.surfaceSelected.reduce((sum,k)=>sum+(filled(d['surface'+k])?Number(d['surface'+k]):0),0);
- const valid=ui.surfaceSelected.length>=2&&ui.surfaceSelected.every(k=>filled(d['surface'+k])&&Number(d['surface'+k])>0)&&Math.abs(total-100)<.001;
- return `<section class="rv-panel"><h2 class="rv-section-title">路面の種類</h2>${optionGroup('data-rv-surface-mode',[['UNKNOWN','不明'],['SINGLE','1種類'],['MIXED','複数・割合']],mode)}
- ${mode!=='UNKNOWN'?`<div class="rv-surfaces">${SURFACES.map(([k,name])=>`<button type="button" data-rv-surface="${k}" aria-pressed="${selected.includes(k)}" class="rv-surface-tile ${selected.includes(k)?'is-selected':''}"><span>${name}</span><span aria-hidden="true">${selected.includes(k)?'●':'○'}</span></button>`).join('')}</div>`:'<p class="rv-hint">不明のままにしても問題ありません。</p>'}
- ${mode==='MIXED'&&ui.surfaceSelected.length?`<div class="rv-surface-head"><h3>路面の割合</h3><strong class="${valid?'rv-ok':'rv-invalid'}" data-rv-surface-total>合計 ${total}% / 100%</strong></div>
- <div class="rv-surface-percents">${ui.surfaceSelected.map(k=>`<div class="rv-surface-percent"><strong>${names[k]}</strong><label><input type="number" min="0" max="100" step="1" inputmode="numeric" data-rv-surface-value="${k}" value="${courseValue(d,'surface'+k)}" placeholder="—"> %</label><input type="range" data-rv-surface-range="${k}" min="0" max="100" step="1" value="${filled(d['surface'+k])?courseValue(d,'surface'+k):0}"></div>`).join('')}</div>
- <p class="rv-hint ${valid?'rv-ok':'rv-invalid'}" data-rv-surface-warning>${valid?'割合の合計は100%です。':'選択した路面に割合を入力し、合計100%にしてください。'}</p>`:''}
- </section>`;
+ const state=surfaceShareState(d,ui),active=state.active,chosen=active?state.share(active):null;
+ const tiles=mode==='UNKNOWN'?'<p class="rv-hint">不明のままにしても問題ありません。</p>':
+ `<div class="rv-surfaces">${SURFACES.map(([k,label])=>`<button type="button" data-rv-surface="${k}" aria-pressed="${selected.includes(k)}" class="rv-surface-tile ${selected.includes(k)?'is-selected':''}"><span>${label}</span>${mode==='MIXED'&&selected.includes(k)?`<b data-rv-surface-tile-value="${k}">${state.share(k)===null?'—':escape(state.share(k))+'%'}</b>`:`<span aria-hidden="true">${selected.includes(k)?'●':'○'}</span>`}</button>`).join('')}</div>`;
+ const mix=mode==='MIXED'&&selected.length?`<div class="rv-surface-head"><h3>路面の割合</h3><strong class="${state.valid?'rv-ok':'rv-invalid'}" data-rv-surface-total>合計 ${state.total}% / 100%</strong></div>
+ <div class="rv-surface-mix" role="img" aria-label="入力済み路面割合">${state.selected.map((k,i)=>`<span class="rv-surface-mix-part" data-rv-surface-bar="${k}" style="width:${Math.max(0,Math.min(100,state.share(k)??0))}%;--surface-color:var(--surface-color-${i%4})"></span>`).join('')}</div>
+ <div class="rv-surface-pick" role="group" aria-label="割合を調整する路面を選択">${selected.map(k=>`<button type="button" data-rv-surface-focus="${k}" aria-pressed="${active===k}">${names[k]} <b data-rv-surface-pick-value="${k}">${state.share(k)===null?'—':escape(state.share(k))+'%'}</b></button>`).join('')}</div>
+ <div class="rv-fine rv-surface-fine"><div class="rv-fine-top"><strong>${names[active]}を調整</strong><label>割合 <input type="number" aria-label="${names[active]}の割合を直接入力" data-rv-surface-value="${active}" min="0" max="${state.max}" step="1" value="${chosen===null?'':escape(chosen)}" placeholder="未入力"> %</label></div>
+ <div class="rv-fine-control"><button type="button" data-rv-surface-step="-1" aria-label="割合を1%減らす">−</button><input data-rv-surface-range="${active}" type="range" min="0" max="${state.max}" step="1" value="${chosen===null?0:escape(chosen)}" aria-label="${names[active]}の割合をスライダーで調整"><button type="button" data-rv-surface-step="1" aria-label="割合を1%増やす">＋</button></div></div>
+ <p class="rv-hint ${state.valid?'rv-ok':'rv-invalid'}" data-rv-surface-warning>${state.valid?'割合の合計は100%です。':'選択した路面の割合を合計100%にしてください。'}</p>`:'';
+ return `<section class="rv-panel"><h2 class="rv-section-title">路面の種類</h2>${optionGroup('data-rv-surface-mode',[['UNKNOWN','不明'],['SINGLE','1種類'],['MIXED','複数・割合']],mode)}${tiles}${mix}</section>`;
 }
 export function coursePage(state,ui,library={ok:true,records:[]},fromHome=false){
  const d=state.recordDraft,s=courseSummary(d,ui),summary=state.recordCourseUi?.notice||'';
@@ -150,5 +163,5 @@ export function courseReadiness(d,ui){
 export function initialCourseUi(d){
  const selected=SURFACES.map(x=>x[0]).filter(k=>filled(d['surface'+k])&&Number(d['surface'+k])>0);
  const used=Array.from({length:5},(_,i)=>i).filter(i=>filled(d['sectionShare'+i])||filled(d['sectionGrade'+i])||d['sectionSurface'+i]!=='UNKNOWN'&&filled(d['sectionSurface'+i]));
- return {slope:'up',surfaceSelected:selected,sections:used.length?Math.max(...used)+1:0,notice:''};
+ return {slope:'up',surfaceSelected:selected,surfaceFocus:selected[0]||null,sections:used.length?Math.max(...used)+1:0,notice:''};
 }
