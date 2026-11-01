@@ -74,4 +74,22 @@ test('GPS permission revocation stops watcher and pauses until fresh consent',()
  assert.equal(h.stats().clear,2);
 });
 
-test('GPS pre-run and saved-populated review expose two optional independent ROF scores',()=>{const before=measurementPage({...harness().gps.state,phase:'ready'},0,{rofBefore:0});assert.match(before,/data-gps-rof="before"/);assert.match(before,/<option value="0" selected>0 \/ 10/);const finished=gpsReviewPage({...harness().gps.state,phase:'finished',distanceM:100,accepted:3},30000,{rofBefore:0,rofAfter:null,memo:''});assert.match(finished,/data-gps-rof="after"/);assert.match(finished,/data-gps-action="save"/);assert.match(finished,/GPSで取得した記録（編集不可）/);assert.doesNotMatch(finished,/data-gps-rof="before"/);});
+test('GPS pre/post ROF-J routes are separate and optional, never inline select',()=>{
+ const before=measurementPage({...harness().gps.state,phase:'ready'},0,{rofBefore:0});
+ assert.match(before,/data-gps-rof-entry="before"/);
+ assert.match(before,/0 \/ 10/);
+ assert.doesNotMatch(before,/data-gps-rof="before"/);
+ const finished=gpsReviewPage({...harness().gps.state,phase:'finished',distanceM:100,accepted:3},30000,{rofBefore:0,rofAfter:null,memo:''});
+ assert.match(finished,/data-gps-rof-entry="after"/);
+ assert.match(finished,/data-gps-action="save"/);
+ assert.match(finished,/GPSで取得した記録/);
+ assert.doesNotMatch(finished,/data-gps-rof="after"/);
+});
+
+test('GPS preflight shows current stage and does not show measurement before starting',()=>{
+ const h=harness(),screen=measurementPage(h.gps.state,0);
+ assert.match(screen,/01<\/b> 準備/);
+ assert.match(screen,/gps-live-prep/);
+ assert.match(screen,/data-gps-action="start"/);
+ assert.doesNotMatch(screen,/data-gps-activity-description/);
+});
