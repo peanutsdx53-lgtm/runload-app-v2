@@ -197,11 +197,8 @@ try{
   assert.equal(await page.locator(".home-welcome").count(),0,"no decorative greeting");
   assert.equal(await page.locator(".hx-latest").innerText().then(t=>t.includes("走行記録はまだありません")),true,"never invent recent-run data");
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-empty.png"),fullPage:true});
-  await page.locator("[data-home-preview]").click();
-  assert.match(await page.locator(".hx-preview-banner").innerText(),/説明用の数字/);
-  assert.match(await page.locator(".hx-achievement").innerText(),/42.0/);
-  assert.match(await page.locator(".hx-condition").innerText(),/5 \/ 7日|5\/7日/);
-  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-populated-sample.png"),fullPage:true});
+  assert.equal(await page.locator('[data-home-preview],.hx-preview-banner').count(),0,'deprecated sample-data switch is absent');
+  await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-real-empty.png"),fullPage:true});
   await page.locator("[data-achievement-open]").click();
   assert.ok(await page.locator(".hx-ach-dialog").isVisible(),"achievement detail remains accessible");
   const achievementType=await page.evaluate(()=>({
@@ -261,7 +258,7 @@ try{
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-home-sleep-clock-filled-v2.png"),fullPage:false});
   await page.locator("[data-home-close]").first().click();
   assert.equal(await page.evaluate(()=>document.body.classList.contains("runload-dialog-open")),false,"background unlocks");
-  await page.locator("[data-home-preview]").click();
+  assert.equal(await page.locator("[data-home-preview]").count(),0,"sample-data switch remains absent");
   await page.locator("[data-condition-open]").click();
   await page.locator('[name="bedTime"]').fill("23:20");
   await page.locator('[name="wakeTime"]').fill("06:00");
