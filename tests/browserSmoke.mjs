@@ -1013,7 +1013,7 @@ try{
   assert.ok(totalDays>=28&&totalDays<=31,"calendar shows actual number of days");
   assert.equal(await historyRoot.locator('.day-grid button.has-record').count(),0,"no invented saved dates");
   assert.equal(await historyRoot.locator('.entry').count(),0,"no invented saved-record links");
-  assert.match(await historyRoot.locator('[data-history-unconnected]').innerText(),/この条件の記録はありません/);
+  assert.match(await historyRoot.locator('[data-history-unconnected]').innerText(),/保存した記録はまだありません/,'no saved records differs from filtered-empty history');
   await historyRoot.locator('[data-day="12"]').click();
   assert.match(await historyRoot.locator('.results-counter').innerText(),/12日の記録/);
   await historyRoot.locator('[data-clear-day]').click();
