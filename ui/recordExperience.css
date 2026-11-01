@@ -600,6 +600,13 @@
 .record-v3 .rv-method-card.is-unavailable{opacity:.76;cursor:default;border-style:dashed;box-shadow:none}
 .record-v3 .rv-method-unavailable{flex:none;color:#a9c4d2;border:1px solid #587483;border-radius:8px;padding:6px 8px;font-size:.76rem;font-weight:780}
 
+/* Section mode needs the entire editor width on desktop. Keep the compact dual-column editor for non-section slopes. */
+@media(min-width:801px){
+ .record-v3.rv-proposed-desk .rv-condition-pair:has(.rv-section-rows){grid-template-columns:minmax(0,1fr);gap:14px}
+ .record-v3.rv-proposed-desk .rv-condition-pair:has(.rv-section-rows)>.rv-step-slope{padding:0}
+ .record-v3.rv-proposed-desk .rv-condition-pair:has(.rv-section-rows)>.rv-step-surface{border-left:0;border-top:1px solid #366879;padding:14px 0 0}
+}
+
 /* S05: five variable-length segments stay scannable without altering input rules. */
 .record-v3.rv-course .rv-section-progress{border:1px solid #547f91;border-radius:10px;background:#0b3344;padding:10px 12px;color:#e6f7fa;font-size:.85rem;line-height:1.6;font-variant-numeric:tabular-nums;margin:3px 0 12px;overflow-wrap:anywhere}
 .record-v3.rv-course .rv-section-progress.is-complete{border-color:#67c5ba;color:#b9fff1}
