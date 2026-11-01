@@ -1369,7 +1369,7 @@ try{
     await page.locator('[data-gps-action="finish"]').click();
     await page.locator('[data-gps-review]').waitFor();
     assert.match(new URL(page.url()).hash,/gps-review/,'GPS stop leads to review before saving');
-    await page.locator('.gps-review a[href="#/measurement"]').click();
+    await page.locator('.gps-review .gps-v2-button[href="#/measurement"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     failTiles=false;
     // Finish with zero movement: never leave the user stuck on a disabled save path.
@@ -1380,7 +1380,7 @@ try{
     await page.locator('[data-gps-review]').waitFor();
     assert.match(await page.locator('.gps-review [role="alert"]').innerText(),/保存できません/);
     assert.equal(await page.locator('[data-gps-action="save"]').isEnabled(),false);
-    await page.locator('.gps-review a[href="#/measurement"]').click();
+    await page.locator('.gps-review .gps-v2-button[href="#/measurement"]').click();
     await page.locator('[data-gps-action="discard"]').click();
     assert.match(new URL(page.url()).hash,/record-start/);
   }
