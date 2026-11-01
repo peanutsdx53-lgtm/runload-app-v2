@@ -88,6 +88,8 @@ try{
  assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
  const provenance=page.locator('.rv4-compare-provenance');
  assert.equal(await provenance.getAttribute('open'),null,'full record IDs remain collapsed until requested');
+ assert.equal(await provenance.evaluate(el=>getComputedStyle(el).display),'block','record-ID disclosure must not inherit stale grid layout');
+ assert.ok(await provenance.locator('summary').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=14),'disclosure summary text is readable');
  await provenance.locator('summary').click();
  const labels=await provenance.innerText();
  assert.ok(labels.includes(firstId)&&labels.includes(secondId),'two saved IDs remain independently accessible when expanded');
@@ -345,6 +347,7 @@ try{
  const eligibleText=await eligiblePanel.innerText();
  assert.match(eligibleText,/選択した部位の文献参考値/);
  assert.match(eligibleText,/比較相手|選択中/);
+ assert.ok(await eligiblePanel.locator('.rv4-region-compare-method').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=13),'same-model scientific comparison limitation is readable');
  const eligibleDifference=await eligiblePanel.locator('.rv4-region-compare-change strong').innerText();
  assert.match(eligibleDifference,/^[+-]?[0-9]+(?:\.[0-9]+)?\s*ポイント$/,'two saved eligible runs show their descriptive reference difference in the value card');
  assert.doesNotMatch(eligibleText,/この部位は比較できません/);
