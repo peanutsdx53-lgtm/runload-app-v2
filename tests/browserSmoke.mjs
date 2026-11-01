@@ -929,6 +929,12 @@ try{
   await page.locator('[data-draft="shoeName"]').fill("検証用シューズ");
   await page.locator('[data-draft="memo"]').fill("自分のペースで走った");
   await page.locator('[data-draft="bodyObservation"]').fill("膝の前が気になった");
+  await page.locator('[data-append-name]').click();
+  assert.match(await page.locator('[data-draft="bodyObservation"]').inputValue(),/気になった部位：膝蓋大腿関節部、下腿後面/);
+  assert.ok(await page.locator('[data-append-name]').isDisabled(),'body-region line is transferred exactly once');
+  await page.locator('[data-draft="bodyObservation"]').fill("膝の前が気になった");
+  assert.ok(await page.locator('[data-append-name]').isEnabled(),'editing the observation updates transfer action immediately');
+  assert.match(await page.locator('.cx-transfer-status').innerText(),/選んだだけでは記録に残りません/);
   assert.equal(await page.locator('[data-counter="shoeName"]').innerText(),'7/100','shoe-name count matches the current 100-character field limit');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-body-v8-integrated.png'),fullPage:true});
