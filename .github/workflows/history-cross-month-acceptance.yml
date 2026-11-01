@@ -1,0 +1,45 @@
+name: History cross-month discovery acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/historyExperience.js'
+      - 'ui/historyExperience.css'
+      - 'ui/historyInlineStyles.js'
+      - 'tests/historyExperience.test.mjs'
+      - 'tests/historyDiscoveryBrowser.mjs'
+      - '.github/workflows/history-cross-month-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  history-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run history invariants
+        run: node --test tests/historyExperience.test.mjs tests/historyStyle.test.mjs
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Capture saved and empty states with actual app interactions
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/historyDiscoveryBrowser.mjs
+      - name: Retain desktop and smartphone evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: history-discovery-${{ matrix.engine }}
+          path: audit-output/history-discovery-${{ matrix.engine }}/
+          if-no-files-found: warn
+          retention-days: 14
