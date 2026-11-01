@@ -57,9 +57,9 @@ export function manualPage(state){
  <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${recordIcon(icon)}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
  <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">${run?'手入力した走行は確認後に端末へ保存できます。身体の部位別の文献参考値は、保存後に活動種別と速度の適用範囲が確認できる場合に表示します。':'休養日は日付と任意の本人メモを保存し、履歴から見返せます。休養日の走行結果や身体部位別文献参考値は表示しません。'}</p></div></div>`;
 }
-export function recordMethodPage(){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
+export function recordMethodPage(isGpsPhone=true){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
- <a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>位置情報を使って走行を記録</small><em>走った距離と軌跡を端末で測る</em></span><span class="rv-chevron">›</span></a>
+ ${isGpsPhone?`<a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマートフォンで位置情報を測定</small></span><span class="rv-chevron">›</span></a>`:`<div class="rv-method-card rv-method-gps is-unavailable" aria-disabled="true"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマートフォン専用・PCでは使用できません</small></span><span class="rv-method-unavailable">対象外</span></div>`}
  <a class="rv-method-card rv-method-manual" href="#/record"><span class="rv-method-mark">✎</span><span><strong>手入力で記録</strong><small>走行距離・時間などを入力</small></span><span class="rv-chevron">›</span></a>
  </div></div>`;}
 function courseValue(d,key){return escape(d[key]);}
