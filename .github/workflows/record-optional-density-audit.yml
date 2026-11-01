@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'tests/recordOptionalDensityAuditBrowser.mjs'
+      - 'ui/environmentExperience.js'
+      - 'ui/environmentExperience.css'
+      - 'tests/environmentExperience.test.mjs'
+      - 'tests/environmentReflectionBridge.test.mjs'
       - 'ui/bodyContextExperience.js'
       - 'ui/bodyContextExperience.css'
       - 'app.js'
@@ -33,7 +37,7 @@ jobs:
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps ${{ matrix.engine }}
       - name: Body regression tests
-        run: node --test tests/bodyContextExperience.test.mjs tests/recordExperience.test.mjs
+        run: node --test tests/bodyContextExperience.test.mjs tests/recordExperience.test.mjs tests/environmentExperience.test.mjs tests/environmentReflectionBridge.test.mjs
       - name: Capture empty and dense populated screens
         env:
           RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
