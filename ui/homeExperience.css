@@ -479,3 +479,30 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 .home-v3 .hx-run-trend-point strong{text-align:right;font-variant-numeric:tabular-nums}
 .home-v3 .hx-run-trend-source,.home-v3 .hx-run-trend-limit{font-size:.76rem;line-height:1.65;color:#bddee5;overflow-wrap:anywhere}
 @media(max-width:390px){.home-v3 .hx-run-trend-point{grid-template-columns:minmax(0,83px) minmax(24px,1fr) 65px;gap:6px;font-size:.69rem}}
+
+/* S02: contextual action appears only in a readable empty running-record state.
+   Home widget editing, ordering and global navigation are unchanged. */
+.home-v3 .hx-latest--start{min-height:218px}
+.home-v3 .hx-latest--start .hx-latest-empty{max-width:56%;margin-top:27px}
+.home-v3 .home-latest-action{position:absolute;z-index:4;right:24px;top:72px;width:38%;display:grid;gap:7px;padding:14px 15px;border-radius:14px;border:1px solid #5295a3;background:#0c3443dd}
+.home-v3 .home-latest-action p{margin:0;color:#c3e7ea;font-size:.79rem;line-height:1.45}
+.home-v3 .home-latest-action a{min-height:49px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;background:#168f99;border:1px solid #61cfd2;color:#fff;font-weight:850;font-size:.89rem;text-decoration:none}
+.home-v3 .home-latest-action small{font-size:.69rem;color:#b1d3db}
+@media(max-width:800px){
+ .home-v3 .hx-latest--start{min-height:0}
+ .home-v3 .hx-latest--start .hx-latest-empty{max-width:none;min-height:68px;margin-top:15px}
+ .home-v3 .home-latest-action{position:relative;inset:auto;width:100%;margin-top:13px;padding:11px 12px;gap:5px}
+ .home-v3 .home-latest-action a{min-height:49px}
+ .home-v3 .home-latest-action p{font-size:.73rem}
+}
+@media(max-width:360px){
+ .home-v3 .hx-latest--start .hx-latest-empty{gap:10px}
+ .home-v3 .hx-latest--start .hx-runmark{width:50px;height:50px;flex-basis:50px}
+ .home-v3 .hx-latest--start .hx-latest-empty strong{font-size:1rem;line-height:1.4}
+ .home-v3 .hx-latest--start .hx-latest-empty p{font-size:.69rem}
+ .home-v3 .hx-latest--start .hx-runmark .hx-icon{width:32px;height:32px}
+ .home-v3 .hx-shortcut-grid{grid-template-columns:1fr;gap:7px}
+ .home-v3 .hx-shortcut{display:flex;flex-direction:row;min-height:53px;text-align:left;justify-content:flex-start;padding:8px 12px}
+ .home-v3 .hx-shortcut strong{font-size:.76rem;white-space:nowrap}
+ .home-v3 .home-latest-action a{font-size:.82rem}
+}

@@ -297,7 +297,6 @@ import * as restDayStore from './ui/restDayStore.js';
  }).join("");
  const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="ホームの表示を編集"><div><strong>ホームの表示を編集</strong><p>ハンドルを長押しして移動できます。上下ボタン・表示・サイズ変更も使えます。変更の保存は手動です。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
  return `<div class="home-v3"><section class="home-head"><h1>ホーム</h1><div class="home-heading-actions">
- <button type="button" class="hx-preview-toggle" data-home-preview aria-pressed="${homeUi.preview}">${homeUi.preview?"表示例を終了":"表示例を見る"}</button>
  <button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を終了":"編集"}</button>
  </div></section>
  ${homeUi.preview?'<div class="hx-preview-banner" role="status">表示例：走行・実績・睡眠は説明用の数字です。あなたの記録には保存されません。</div>':""}
@@ -1342,7 +1341,6 @@ function recordExtras(){
       else{homeEditState.notice=outcome.reason;}
       render();return;
     }
-    if(event.target.closest("[data-home-preview]")){homeUi.preview=!homeUi.preview;render();return;}
     if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.deletePendingDate=null;homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
     if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
     if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;homeUi.deletePendingDate=null;render();return;}

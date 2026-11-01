@@ -194,7 +194,11 @@ export function latestCard(preview,record=null,savedRuns=null){
   :!preview&&savedRuns&&(!savedRuns.ok||!Array.isArray(savedRuns.records))?
    '<div class="hx-latest-empty" role="alert"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録を確認できません</strong><p>'+escape(savedRuns.reason||'保存済みの記録を読み取れません。端末の保存領域を確認してください。')+'</p><p>記録が0件という意味ではありません。元の記録は変更していません。</p></div></div>'
   : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>手入力した走行を保存すると、ここに表示されます。</p></div></div>';
- return '<section class="hx-card hx-latest">'+head("最新の走行","run",preview?sample():recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+'<div class="hx-orbit" aria-hidden="true"></div></section>';
+ // Offer an optional record entry only in a readable empty state.
+ // Do not override saved dashboard layout or show this when reads fail.
+ const emptyRecordAction=!preview&&!recent&&savedRuns?.ok===true&&Array.isArray(savedRuns.records)
+  ?'<div class="home-latest-action"><p>記録は自分のペースで始められます。</p><a href="#/record-start">走行を記録する <span aria-hidden="true">›</span></a><small>手入力またはGPSを選択</small></div>':'';
+ return '<section class="hx-card hx-latest'+(emptyRecordAction?' hx-latest--start':'')+'">'+head("最新の走行","run",preview?sample():recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+emptyRecordAction+'<div class="hx-orbit" aria-hidden="true"></div></section>';
 }
 export function conditionCard(storage,preview){
  const state=readConditions(storage),entries=preview?demoEntries():state.entries,map=new Map(entries.map(x=>[x.date,x])),today=map.get(todayLocal());
