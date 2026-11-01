@@ -167,8 +167,15 @@ function experience(ui,ctx,cat,topic){
  const strict=createExplorationContext({draft:ctx.draft,conditions:ctx.conditions});
  // A selected run must never inherit a link from separate life data.
  const reason=ctx.focusRunId?null:strict.highlights.find(h=>h.themeId===topic);
- const specific=relevance(ui,ctx).linked.get(cat.id);
- const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?`${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:"関連する入力がなくても、内容を自由に学べます";
+ const related=relevance(ui,ctx);
+ const specific=related.linked.get(cat.id);
+ const relatedSource=related.sources.get(cat.id);
+ // UX-023: a verified saved run or an unsaved draft must not be described
+ // as "no relevant input"; keep their provenance and interpretation distinct.
+ const who=ui.sample?"これは光の見え方の表示例です。保存した本人の記録ではありません。":reason?
+  `${reason.why}（${reason.source==="unsaved-draft"?"まだ保存していない入力":"保存済みの生活記録"}）`:specific?
+  `${specific}。${relatedSource==="saved-run"?"保存した手入力の情報との対応です。":relatedSource==="draft"?"入力途中の内容であり、保存済み記録ではありません。":relatedSource==="saved-life"?"保存済みの生活記録から確認できます。":"表示例は本人の記録ではありません。"}この関連だけから原因や身体の状態は判断できません。`:
+  "関連する入力がなくても、内容を自由に学べます";
  const h=(text)=>esc(text);
  let tool='';
  if(key==='distance-time-pace'){
