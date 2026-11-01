@@ -52,8 +52,14 @@ try{
   await page.locator('[data-rv-surface-mode="MIXED"]').click();
   const surfaces=await page.locator('[data-rv-surface]').evaluateAll(e=>e.map(x=>x.dataset.rvSurface).slice(0,2));
   for(const id of surfaces)await page.locator('[data-rv-surface="'+id+'"]').click();
+  await page.locator('[data-rv-surface-focus="'+surfaces[0]+'"]').click();
   await page.locator('[data-rv-surface-value="'+surfaces[0]+'"]').fill('60');
+  await page.locator('[data-rv-surface-focus="'+surfaces[1]+'"]').click();
   await page.locator('[data-rv-surface-value="'+surfaces[1]+'"]').fill('40');
+  assert.match(await page.locator('[data-rv-surface-total]').innerText(),/合計 100%/);
+  assert.equal(await page.locator('[data-rv-surface-pick-value="'+surfaces[0]+'"]').innerText(),'60%');
+  assert.equal(await page.locator('[data-rv-surface-pick-value="'+surfaces[1]+'"]').innerText(),'40%');
+  assert.equal(await page.locator('.rv-surface-fine [data-rv-surface-step]').count(),2,'step controls mirror slope');
   await take(page,w,'COURSE-dense');
   assert.equal(await page.locator('.rv-inline-preset-tools').count(),0,'new course has no edit/copy controls');
   await page.locator('.rv-course-summary [data-course-save]').click();
@@ -67,7 +73,24 @@ try{
     const n=document.querySelector('.rv-course-conditions').getBoundingClientRect();
     return a.top>=c.top&&a.bottom<=c.bottom+2&&a.bottom<n.top;
   }),'preset follow-up actions appear in the first card before conditions');
+  assert.equal(await page.locator('.rv-course-summary [data-course-save]').count(),0,'saved preset has no duplicate lower save');
+  assert.equal(await page.locator('.rv-course-setup [data-course-save]').count(),1,'one upper update');
   await take(page,w,'COURSE-saved-followup');
+  await page.locator('.rv-preset-list [data-course-delete]').first().click();
+  const confirm=page.locator('.rv-course-confirm');await confirm.waitFor({state:'visible'});
+  assert.equal(await confirm.locator('button').count(),2);
+  const metrics=await confirm.evaluate(el=>{
+    const p=el.getBoundingClientRect();
+    return {outer:{left:p.left,right:p.right,top:p.top,bottom:p.bottom},
+      buttons:[...el.querySelectorAll('button')].map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};})};
+  });
+  const [yes,no]=metrics.buttons;
+  assert.ok(yes.left>=metrics.outer.left&&no.right<=metrics.outer.right+1,'buttons inside confirmation card');
+  assert.ok(Math.abs(yes.top-no.top)<=2,'confirmation buttons are side-by-side');
+  assert.ok(yes.right<=no.left+1,'button rectangles do not overlap');
+  await take(page,w,'COURSE-delete-confirm');
+  await confirm.locator('[data-course-cancel-delete]').click();
+  assert.equal(await page.locator('.rv-course-confirm').count(),0,'cancel leaves saved course untouched');
   await enter(page,'record-rof','[data-rof-v4-root]',w,'ROF');
   const range=page.locator('[data-rof-v4-range]');
   await range.evaluate(e=>{e.value='4';e.dispatchEvent(new Event('input',{bubbles:true}));});
