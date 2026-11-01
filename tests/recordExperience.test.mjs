@@ -191,3 +191,25 @@ test('S09: manual optional destinations use the same SVG icon set as review',()=
  assert.equal((h.match(/class="rv-link"/g)||[]).length,5);
  assert.doesNotMatch(h,/class="rv-link-icon">[⌁◉◷☀✎]/);
 });
+
+
+test('S05 segment mode shows partial and complete shares without inventing missing values',()=>{
+ const d=draft();d.gradeMode='SECTIONS';const ui=initialCourseUi(d);ui.sections=2;
+ d.sectionShare0='0';
+ const state={recordDraft:d,recordCourseUi:ui};
+ const partial=coursePage(state,ui);
+ assert.match(partial,/区間割合 1 \/ 2 件入力・入力分の合計 0%/);
+ assert.match(partial,/割合 未入力/);
+ assert.equal((partial.match(/data-rv-remove=/g)||[]).length,2);
+ assert.ok(courseReadiness(d,ui).length>0,'0% is observed, but another share is still missing');
+ d.sectionShare0='40';d.sectionShare1='60';
+ const complete=coursePage(state,ui);
+ assert.match(complete,/区間割合 2 \/ 2 件入力・入力分の合計 100%（100%）/);
+ assert.deepEqual(courseReadiness(d,ui),[]);
+ d.sectionShare1='120';
+ assert.match(coursePage(state,ui),/区間割合に範囲外の値があります/);
+ assert.ok(courseReadiness(d,ui).length>0);
+ ui.sections=5;
+ assert.equal((coursePage(state,ui).match(/class="rv-section-row"/g)||[]).length,5);
+ assert.equal((coursePage(state,ui).match(/data-rv-remove=/g)||[]).length,5);
+});
