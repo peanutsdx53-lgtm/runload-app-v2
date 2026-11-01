@@ -873,6 +873,12 @@ function recordExtras(){
         const k=event.target.dataset.draft;
         const count=app.querySelector(`[data-counter="${k}"]`);
         if(count)count.textContent=`${event.target.value.length}/${event.target.maxLength}`;
+        if(k==='bodyObservation'){
+          const transfer=bodyExperience.transferStatus(state.recordDraft,bodyUi);
+          const button=app.querySelector('[data-append-name]'),status=app.querySelector('.cx-transfer-status');
+          if(button)button.disabled=transfer.disabled;
+          if(status)status.textContent=transfer.message;
+        }
         bodyExperience.fitTextareas(app);
       }
     }
