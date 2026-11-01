@@ -124,6 +124,26 @@ try{
   assert.equal(await page.locator('.hx-bars .hx-bar:not(.hx-missing)').count(),1,'only actual recorded day');
   assert.match(await page.locator('[data-home-dashboard-id="topics"]').innerText(),/5.0/);
   await page.screenshot({path:resolve(out,name+'-'+width+'-populated.png'),fullPage:true,animations:'disabled'});
+  if(width<=390){
+    // Browser text-resizing stress case, not a substitute for OS-level accessibility text sizing.
+    await page.evaluate(()=>document.documentElement.style.fontSize='200%');
+    await page.locator('[data-achievement-open]').click();
+    const enlarged=page.locator('.hx-ach-dialog');
+    await enlarged.waitFor();
+    const bounds=await enlarged.evaluate(el=>{
+      const parent=el.getBoundingClientRect();
+      return {outer:{left:parent.left,right:parent.right},clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,
+        parts:[...el.querySelectorAll('.hx-ach-milestone,.hx-ach-milestone-label,.hx-ach-milestone-status,.hx-ach-summary>div')].map(n=>{
+          const r=n.getBoundingClientRect(),p=n.parentElement.getBoundingClientRect();return {name:n.className,left:r.left,right:r.right,parentLeft:p.left,parentRight:p.right};
+        })};
+    });
+    assert.ok(bounds.scrollWidth<=bounds.clientWidth+2,'enlarged detail content not horizontally clipped '+JSON.stringify(bounds));
+    for(const b of bounds.parts)assert.ok(b.left>=b.parentLeft-2&&b.right<=b.parentRight+2,'enlarged milestone remains in parent '+JSON.stringify(b));
+    await page.screenshot({path:resolve(out,name+'-'+width+'-achievement-text-200pct.png'),animations:'disabled'});
+    await page.keyboard.press('Escape');
+    await enlarged.waitFor({state:'detached'});
+    await page.evaluate(()=>document.documentElement.style.removeProperty('font-size'));
+  }
   assert.deepEqual(errors,[],name+' '+width+' browser JS errors');
   await ctx.close();
  }
