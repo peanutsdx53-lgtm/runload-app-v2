@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRofUiState,rofPage,setExerciseClockTime,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput} from '../ui/rofExperience.js';
+import {createRofUiState,rofPage,setExerciseClockTime,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput,anchorDescriptionMarkup} from '../ui/rofExperience.js';
 const fresh=()=>({rofBefore:null,rofAfter:null});
 test('approved 11 integer inputs and five non-numeric representative anchors',()=>{
  assert.deepEqual(Array.from({length:11},(_,i)=>nearestAnchorIndex(i)),[0,1,1,1,2,2,2,3,3,4,4]);
@@ -98,4 +98,29 @@ test('S06 calendar auto resolution matches condition midnight principle and does
  assert.equal(setExerciseClockTime(d,'start',''),true);
  assert.equal(d.exerciseTimingDraft.startedAt,null);
  assert.equal(setExerciseClockTime(d,'end','99:99'),false);
+});
+
+test('S06: immediate illustration explanation with no repeated long notes',()=>{
+ const d={date:'2026-11-01',rofBefore:10,rofAfter:null};
+ const ui=createRofUiState();
+ const html=rofPage(d,ui);
+ assert.equal((html.match(/class="rv4-description"/g)||[]).length,1);
+ assert.ok(html.indexOf('class="rv4-anchor-row"')<html.indexOf('class="rv4-description"'));
+ assert.ok(html.indexOf('class="rv4-description"')<html.indexOf('class="rv4-axis"'));
+ assert.match(html,/選ぶと直下に説明を表示/);
+ for(const old of [
+ '選択したイラストの説明です。点数は変更されません。',
+ '「2と3の間」「7と8の間」は目安の位置',
+ '自分が感じる疲労感の記録です。身体部位別の計算値ではありません。'
+ ]) assert.ok(!html.includes(old),'repeated note removed: '+old);
+ assert.match(html,/class="rv4-description-main">完全な疲労困憊<\/span>/);
+ assert.match(html,/class="rv4-description-detail">（何も残っていない状態）<\/span>/);
+ assert.match(html,/尺度・イラストの出典/,'attribution still available');
+ assert.equal(d.rofBefore,10,'render never modifies recorded score');
+ assert.equal(d.rofAfter,null,'missing before/after preserved');
+});
+test('S06: exact anchor copy and escaped markup remain intact',()=>{
+ assert.equal(anchorDescriptionMarkup('少し疲れている'),'<span class="rv4-description-main">少し疲れている</span>');
+ assert.match(anchorDescriptionMarkup('完全な疲労困憊（何も残っていない状態）'),/完全な疲労困憊<\/span><span class="rv4-description-detail">（何も残っていない状態）/);
+ assert.doesNotMatch(anchorDescriptionMarkup('<b>'),/<b>/);
 });

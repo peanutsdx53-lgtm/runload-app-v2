@@ -159,3 +159,35 @@
 #app .rv4-page .rv4-timing label{min-width:0;max-width:100%}
 #app .rv4-page .rv4-timing select,#app .rv4-page .rv4-timing input{box-sizing:border-box;min-width:0;max-width:100%;width:100%;font-size:16px}
 #app .rv4-page .rv4-end-day-caption[hidden]{display:none}
+
+/* S06: selected illustration's explanation sits directly below its image row.
+   The exact attributed descriptor is retained, with controlled parenthetical wrap. */
+.rv4-page .rv4-rail .rv4-description{
+ display:grid;gap:5px;margin:9px 0 0;padding:11px 13px;
+ background:#154656;border:1px solid #3d8090;border-radius:11px;min-width:0;
+}
+.rv4-page .rv4-rail .rv4-description>small{
+ display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;
+ margin:0;color:#a8dee4;font-size:12px;line-height:1.5;
+}
+.rv4-page .rv4-rail .rv4-description>small span{font-size:11px;color:#c4dbe2}
+.rv4-page .rv4-rail .rv4-description>strong{
+ display:flex;flex-wrap:wrap;gap:3px 10px;align-items:baseline;
+ color:#f5fbff;font-size:clamp(13px,1.35vw,17px);font-weight:820;line-height:1.45;
+ overflow-wrap:normal;word-break:keep-all;
+}
+.rv4-page .rv4-description-main,.rv4-page .rv4-description-detail{
+ display:inline-block;white-space:normal;word-break:keep-all;
+}
+.rv4-page .rv4-description-detail{font-size:.79em;font-weight:680;color:#d3e7ed}
+.rv4-page .rv4-rail-top small{max-width:58%;line-height:1.5}
+.rv4-page .rv4-aside{align-content:start}
+@media(max-width:800px){
+ .rv4-page .rv4-rail .rv4-description{margin-top:5px;padding:10px 11px}
+ .rv4-page .rv4-rail .rv4-description>strong{font-size:clamp(13px,3.6vw,16px);gap:2px 7px}
+ .rv4-page .rv4-description-detail{font-size:.76em}
+}
+@media(max-width:355px){
+ .rv4-page .rv4-rail .rv4-description{padding:9px}
+ .rv4-page .rv4-rail .rv4-description>strong{font-size:13px;gap:2px 5px}
+}
