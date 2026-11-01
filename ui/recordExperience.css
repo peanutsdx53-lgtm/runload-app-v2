@@ -599,3 +599,16 @@
 /* PC sees GPS as informational and nonclickable at method selection. */
 .record-v3 .rv-method-card.is-unavailable{opacity:.76;cursor:default;border-style:dashed;box-shadow:none}
 .record-v3 .rv-method-unavailable{flex:none;color:#a9c4d2;border:1px solid #587483;border-radius:8px;padding:6px 8px;font-size:.76rem;font-weight:780}
+
+/* S05: five variable-length segments stay scannable without altering input rules. */
+.record-v3.rv-course .rv-section-progress{border:1px solid #547f91;border-radius:10px;background:#0b3344;padding:10px 12px;color:#e6f7fa;font-size:.85rem;line-height:1.6;font-variant-numeric:tabular-nums;margin:3px 0 12px;overflow-wrap:anywhere}
+.record-v3.rv-course .rv-section-progress.is-complete{border-color:#67c5ba;color:#b9fff1}
+.record-v3.rv-course .rv-section-row{min-width:0;padding:14px;background:#113849}
+.record-v3.rv-course .rv-section-row-head{gap:10px;align-items:center;margin-bottom:10px}
+.record-v3.rv-course .rv-section-row-head strong{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;font-size:.93rem;min-width:0}
+.record-v3.rv-course .rv-section-row-head small{color:#c2e1e9;font-size:.82rem;font-weight:550}
+.record-v3.rv-course .rv-section-row-head button{min-height:44px;min-width:66px;font-size:.85rem;flex:none}
+.record-v3.rv-course .rv-section-fields{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.record-v3.rv-course .rv-section-fields label{font-size:.85rem;line-height:1.45;min-width:0}
+@media(max-width:800px){.record-v3.rv-course .rv-section-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.record-v3.rv-course .rv-section-row{padding:11px}.record-v3.rv-course .rv-section-progress{font-size:.84rem}}
+@media(max-width:355px){.record-v3.rv-course .rv-section-fields{gap:8px}.record-v3.rv-course .rv-section-fields input,.record-v3.rv-course .rv-section-fields select{padding:9px 7px}}
