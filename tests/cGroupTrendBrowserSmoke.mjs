@@ -56,13 +56,13 @@ try{
   assert.match(observed,/2026-10-26/);
   assert.match(observed,/未記録日は0kmにせず/);
   assert.doesNotMatch(observed,/正式な走行記録と接続すると/);
-  await page.locator('[data-home-preview]').click();
-  assert.match(await card.innerText(),/表示例/);
-  assert.doesNotMatch(await card.innerText(),/5.00 km|6.00 km/,'preview must hide personal records');
-  await page.locator('[data-home-preview]').click();
-  assert.equal(await card.locator('.hx-run-trend-point').count(),2);
+  assert.equal(await page.locator('[data-home-preview]').count(),0,'deprecated design sample control is absent');
+  await page.reload({waitUntil:'domcontentloaded'});
+  await card.locator('.hx-run-trend-point').first().waitFor();
+  assert.equal(await card.locator('.hx-run-trend-point').count(),2,'saved data survives reload without a preview mode');
+  assert.match(await card.innerText(),/5.00 km|6.00 km/);
   const still=await page.evaluate(async()=>{const c=await import('./ui/manualRunCanonical.js');return (await c.readCanonical()).read.records.map(r=>r.id)});
-  assert.ok(ids.every(id=>still.includes(id)),'view and preview cannot mutate saved runs');
+  assert.ok(ids.every(id=>still.includes(id)),'display and reload cannot mutate saved runs');
   assert.deepEqual(errors,[],engineName+' width '+width);
   await context.close();
  }
