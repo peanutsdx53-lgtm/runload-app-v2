@@ -66,6 +66,9 @@
 @media(max-width:850px){.sm-source-row{grid-template-columns:repeat(2,minmax(0,1fr))}.sm-two{grid-template-columns:1fr}}
 @media(max-width:650px){.sm-page{gap:12px}.sm-panel{padding:16px 14px;border-radius:16px;gap:13px}.sm-steps{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.sm-steps span{font-size:.61rem;padding:8px 3px}.sm-heading{gap:10px}.sm-heading p{font-size:.7rem}.sm-source-row button{font-size:.73rem;min-height:64px}.sm-form-grid{gap:9px}.sm-inner{padding:13px}.sm-result{padding:12px}.sm-distance{font-size:1.7rem}.sm-result-heading{font-size:.74rem}.sm-circle{width:25px;height:25px}.sm-result-bottom{display:grid}.sm-step-head h2{font-size:.96rem}.sm-step-head p{font-size:.69rem}}
 @media(max-width:355px){.sm-results-grid{grid-template-columns:1fr}.sm-steps span{font-size:.56rem}.sm-result-bottom{display:flex}.sm-panel{padding:14px 11px}.sm-source-row button{font-size:.68rem}}
+/* UX-047: prevent one orphaned final character in the 320px heading;
+   preserve natural wrapping under 200% zoom instead of forcing nowrap. */
+@media(max-width:355px){.sm-heading h1{font-size:1.25rem;letter-spacing:-.018em;line-height:1.4}}
 @media(prefers-reduced-motion:reduce){.sm-page *, .sm-page *:before,.sm-page *:after{transition:none!important;animation:none!important}}
 @media(max-width:800px){.sm-page input,.sm-page select{font-size:16px}}
 /* GPX v33 — optional route source and truthful local preview. */
