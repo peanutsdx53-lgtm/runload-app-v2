@@ -12,7 +12,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
   const canonical=await import("./ui/manualRunCanonical.js");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261101-manual-dedup-v1");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261101-course-body-usability-v1");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");

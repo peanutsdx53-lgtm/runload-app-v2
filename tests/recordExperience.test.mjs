@@ -49,8 +49,8 @@ test("course layout presents approved three-step flow without changing the save/
  assert.match(html,/rv-commit-group--apply/);
  assert.match(html,/rv-commit-group--save/);
  assert.match(html,/この条件を記録に使う/);
- assert.match(html,/保存コースは更新されません/);
- assert.match(html,/次回の走行で再利用できます/);
+ assert.match(html,/この画面を閉じて、記録の入力画面に戻ります/);
+ assert.match(html,/保存すると、次回の入力で呼び出せます/);
  assert.equal((html.match(/data-course-save /g)||[]).length,1);
  assert.equal((html.match(/data-rv-apply/g)||[]).length,1);
 });
@@ -114,4 +114,32 @@ test('S04 shows required status only at Basic heading in all activity states',()
   assert.doesNotMatch(html,/rv-gait-hint/);
   assert.equal((html.match(/data-manual-gait=/g)||[]).length,3);
  }
+});
+
+test('S07: options at step 03 are independent actions, not sequential 1 then 2',()=>{
+ const d=draft(),ui=initialCourseUi(d);
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[]});
+ assert.doesNotMatch(h,/使わない場合は次へ進めます|この名前は保存コースの識別用です/);
+ assert.doesNotMatch(h,/rv-commit-label"><b>[12]<\/b>/);
+ assert.match(h,/使い方を選ぶ/);
+ assert.match(h,/今回の記録に使う/);
+ assert.match(h,/保存コースとして残す/);
+ assert.equal((h.match(/data-rv-apply/g)||[]).length,1);
+ assert.equal((h.match(/data-course-save /g)||[]).length,1);
+ assert.doesNotMatch(h,/rv-inline-preset-tools/,'unsaved course has no update/copy actions');
+});
+test('S07: selected course has immediately accessible edit and copy actions in step 01',()=>{
+ const d={...draft(),courseName:'川沿い走行'},selectedId='course-v1-11111111-1111-4111-8111-111111111111';
+ const ui={...initialCourseUi(d),selectedPresetId:selectedId};
+ const saved={ok:true,records:[{id:selectedId,data:{...d,courseName:'川沿い走行'}}]};
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,saved);
+ const first=h.indexOf('rv-course-setup'),quick=h.indexOf('rv-inline-preset-tools');
+ const second=h.indexOf('rv-course-conditions');
+ assert.ok(first<quick&&quick<second,'edit/copy controls are in step 01, not below step 03');
+ assert.match(h,/選択中の保存コース/);
+ assert.match(h,/保存コースを更新/);
+ assert.match(h,/別名で保存/);
+ assert.equal((h.match(/data-rv-apply/g)||[]).length,1);
+ assert.ok(h.includes('data-course-save-new'));
+ assert.equal(d.courseName,'川沿い走行','rendering did not mutate draft');
 });

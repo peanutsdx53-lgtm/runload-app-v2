@@ -70,3 +70,10 @@
  .cx-selected-chip{min-height:40px}
  .cx-chosen-row{gap:6px}
 }
+
+/* S07: body/equipment shares the dark recording navigation on mobile. */
+@media(max-width:800px){
+ .app-shell:has(.cx-page) .mobile-nav{background:#0c1d2bef;border-top-color:#2e5263}
+ .app-shell:has(.cx-page) .mobile-link{color:#c0cbd5}
+ .app-shell:has(.cx-page) .mobile-link.is-active{color:#55dce3;background:transparent}
+}
