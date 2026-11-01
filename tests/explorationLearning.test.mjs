@@ -122,6 +122,29 @@ test('focused distance-and-pace lesson returns to the selected saved run, not a 
  assert.match(general,/href="#\/history"/);
 });
 
+test('UX-023 learning context states actual related-input provenance rather than a generic no-input message',()=>{
+ const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
+ const first={id:'run-v1-12345678-1234-4123-8123-123456789012',date:'2026-10-18',createdAt:'2026-10-18T05:00:00Z',source:'manual',type:'run',schema:2,distanceKm:5,durationSeconds:2100};
+ const second={...first,id:'run-v1-99999999-9999-4999-8999-999999999999',date:'2026-10-26',createdAt:'2026-10-26T05:00:00Z',distanceKm:8,durationSeconds:2200};
+ const empty=render(u,{...ctx(),manualRuns:{ok:true,records:[]}});
+ assert.doesNotMatch(empty,/あなたの記録とのつながり/,'no saved data cannot be invented');
+ const draft=render(u,{...ctx({distance:'4.2',minutes:'28'}),manualRuns:{ok:true,records:[]}});
+ assert.match(draft,/入力中の走行距離・時間などに関連/);
+ assert.match(draft,/保存済み記録ではありません/);
+ assert.doesNotMatch(draft,/保存した手入力の情報との対応です/);
+ const saved=render(u,{...ctx(),manualRuns:{ok:true,records:[first,second]}});
+ assert.match(saved,/最新の保存済み走行（手入力）/);
+ assert.match(saved,/2026-10-26 に保存した走行距離と時間に関連/);
+ assert.match(saved,/保存した手入力の情報との対応です/);
+ assert.doesNotMatch(saved,/関連する入力がなくても、内容を自由に学べます/);
+ assert.doesNotMatch(saved,/入力途中の内容であり/);
+ const focused=render(u,{...ctx(),manualRuns:{ok:true,records:[first,second]},focusRunId:first.id,focusRun:first});
+ assert.match(focused,/選択した保存済み走行（手入力）/);
+ assert.match(focused,/2026-10-18 に保存した走行距離と時間に関連/);
+ assert.doesNotMatch(focused,/2026-10-26 に保存した走行距離と時間に関連/);
+ const missing=render(u,{...ctx(),manualRuns:{ok:true,records:[first,second]},focusRunId:'missing-record-id',focusRun:null});
+ assert.doesNotMatch(missing,/保存した手入力の情報との対応です/,'invalid selection cannot alias another saved run');
+});
 test('distance and pace column reads only confirmed manual runs, never an unsaved editor draft',()=>{
  const u=makeUi(memory());u.selected='01';u.topic='距離・時間・ペース';
  const draft={distance:'99',minutes:'9'};
