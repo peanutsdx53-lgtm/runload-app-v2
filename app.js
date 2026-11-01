@@ -860,6 +860,13 @@ function recordExtras(){
     }
     if(event.target.matches("[data-draft]")){
       state.recordDraft[event.target.dataset.draft]=event.target.value;
+      if(event.target.closest('.rv-course')&&/^sectionShare[0-4]$/.test(event.target.dataset.draft)){
+        const result=recordExperience.sectionShareProgress(state.recordDraft,ui);
+        const progress=app.querySelector('[data-rv-section-progress]');
+        if(progress){progress.textContent=result.text;progress.classList.toggle('is-complete',result.complete);}
+        const rowLabel=event.target.closest('.rv-section-row')?.querySelector('.rv-section-row-head small');
+        if(rowLabel)rowLabel.textContent=event.target.value.trim()?'割合 '+event.target.value+'%':'割合 未入力';
+      }
       if(event.target.closest("[data-g4-page]"))gaitExperience.paintGait(app.querySelector("[data-g4-page]"),state.recordDraft);
       if(event.target.closest("[data-e4-page]"))environmentExperience.paintEnvironment(app.querySelector("[data-e4-page]"),state.recordDraft,environmentUi);
       if(event.target.closest("[data-cx-page]")){
