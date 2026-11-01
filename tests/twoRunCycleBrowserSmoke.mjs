@@ -77,6 +77,26 @@ try{
  assert.equal(new Set(runs.records.map(r=>r.id)).size,2);
  assert.equal(runs.revision,2);
  assert.deepEqual(runs.records.map(r=>r.memo),['次回は同じコースでペースと疲れを確認する','前回の問い：距離とペースを再確認した']);
+ // UX-023: actual two-saved-run browser images, not only source-string checks.
+ await mkdir('audit-output/p0-continuity',{recursive:true});
+ await page.goto(host+'#/exploration-tree?category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ const ux23Latest=page.locator('[data-ex-learning="distance-time-pace"]');
+ await ux23Latest.waitFor();
+ assert.match(await ux23Latest.locator('.ex-tool-result').innerText(),/最新の保存済み走行（手入力）/);
+ assert.match(await ux23Latest.locator('.ex-tool-result').innerText(),/2026-10-21/);
+ assert.match(await ux23Latest.locator('.ex-context').innerText(),/2026-10-21 に保存した走行距離と時間に関連/);
+ assert.doesNotMatch(await ux23Latest.innerText(),/関連する入力がなくても/);
+ await ux23Latest.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-latest-390.png'});
+ await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
+ const ux23Selected=page.locator('[data-ex-learning="distance-time-pace"]');
+ await ux23Selected.waitFor();
+ assert.match(await ux23Selected.locator('.ex-tool-result').innerText(),/選択した保存済み走行（手入力）/);
+ assert.match(await ux23Selected.locator('.ex-context').innerText(),/2026-10-19 に保存した走行距離と時間に関連/);
+ assert.doesNotMatch(await ux23Selected.innerText(),/2026-10-21 に保存した走行距離と時間に関連/);
+ await ux23Selected.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-selected-390.png'});
+ await page.setViewportSize({width:1440,height:900});
+ await ux23Selected.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-selected-1440.png'});
+ await page.setViewportSize({width:390,height:844});
  await page.goto(host+'#/result?record='+encodeURIComponent(secondId)+'&compare='+encodeURIComponent(firstId)+'&view=compare',{waitUntil:'networkidle'});
  const table=page.locator('.rv4-comparison-table');
  await page.locator('.rv4-compare-cards').waitFor();
