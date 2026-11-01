@@ -1185,8 +1185,14 @@ try{
    await page.screenshot({path:resolve(root,"screenshots",mode.name+"-"+route+".png"),fullPage:true});
    if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
    const visibleArea=route==="history"?page.locator("#runload-history-v2").locator(".stage"):page.locator("main");
-   assert.ok((await visibleArea.innerText()).length>60,route);
    const textContent=await visibleArea.innerText();
+   if(route==='measurement'){
+     // Every viewport is desktop-UA until the explicit mobile-GPS scenario.
+     assert.match(textContent,/GPS測定はスマートフォン専用です/);
+     assert.match(textContent,/PCでは手入力/);
+   }else{
+     assert.ok(textContent.length>60,route);
+   }
    assert.ok(!/デモ専用|UI 試作版|仮データ|画面確認用|RUNLOAD|RunLoad|EXPLORE \/|マイダッシュボード|測定エンジン|科学計算|未接続|正式保存前/.test(textContent),route+" user-facing internal text found");
    const routeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
