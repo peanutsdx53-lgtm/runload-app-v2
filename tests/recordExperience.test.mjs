@@ -148,7 +148,7 @@ test('S08: selected preset removes the second save operation in 03, keeping appl
  const d={...draft(),courseName:'テスト'},id='course-v1-11111111-1111-4111-8111-111111111111';
  const ui={...initialCourseUi(d),selectedPresetId:id};
  const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[{id,data:d}]});
- assert.equal((h.match(/data-course-save(?: |=)/g)||[]).length,1);
+ assert.equal((h.match(/data-course-save(?:[ >])/g)||[]).length,1);
  assert.equal((h.match(/data-course-save-new/g)||[]).length,1);
  assert.doesNotMatch(h,/rv-commit-group--save/);
  assert.match(h,/rv-summary-actions--single/);
