@@ -62,3 +62,21 @@ test('single optional header and aligned shoe-length counter do not change the r
  assert.equal((html.match(/cx-optional/g)||[]).length,0);
  assert.deepEqual(DRAFT_KEYS,['bodyObservation','shoeName','memo']);
 });
+
+
+test('S07 transient selection is distinct from user-authored body observation and cannot duplicate a transferred line',()=>{
+ const ui=makeUi(),d={bodyObservation:'昨日は少し疲れた',shoeName:'',memo:''};
+ toggleRegion(ui,'BA-DISP-019');
+ let markup=renderScreen(d,ui);
+ assert.match(markup,/部位を選んだだけでは記録に残りません/);
+ assert.match(markup,/data-append-name >/);
+ assert.equal(d.bodyObservation,'昨日は少し疲れた','selecting a body map region never writes observations');
+ assert.equal(addRegionNamesToNote(d,ui),true);
+ markup=renderScreen(d,ui);
+ assert.match(markup,/部位名は自覚情報の文章に追加されています/);
+ assert.match(markup,/data-append-name disabled/);
+ toggleRegion(ui,'BA-DISP-023');
+ assert.equal(addRegionNamesToNote(d,ui),false,'a changed selection should not silently append another conflicting region line');
+ assert.match(ui.notice,/重複を避けるため/);
+ assert.equal((d.bodyObservation.match(/気になった部位：/g)||[]).length,1);
+});
