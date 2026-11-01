@@ -34,7 +34,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const firstUseExperience=await import("./ui/firstUseExperience.js?v=20261028-optional-guide-v2");
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261028-print-integrity-v1");
-  const explorationExperience=await import("./ui/explorationExperience.js?v=20261029-rof-source-v1");
+  const explorationExperience=await import("./ui/explorationExperience.js?v=20261102-ux023-visual-v1");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
