@@ -98,3 +98,19 @@ button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button:f
  .rr-page .rr-row-body,.rr-page .rr-row-state{min-width:0;overflow-wrap:anywhere}
  .rr-page .rr-row-desc{white-space:normal;text-overflow:clip}
 }
+
+/* S09: essential input status is useful, but distinct from the distance card.
+ * Only actual error/warning cards appear; successful review needs no repeated panel. */
+.rr-page .rr-required-status{
+ margin-top:12px;
+ margin-bottom:23px;
+}
+.rr-page .rr-required-status>span{min-width:0;line-height:1.4}
+.rr-page .rr-required-status+[class~="rr-metrics"]{margin-top:0}
+@media(max-width:800px){
+ .rr-page .rr-required-status{margin-bottom:24px;row-gap:7px}
+}
+@media(max-width:380px){
+ .rr-page .rr-required-status{margin-bottom:22px}
+ .rr-page .rr-required-status>span{padding:6px 2px;font-size:10px}
+}

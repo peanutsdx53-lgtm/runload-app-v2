@@ -83,3 +83,25 @@ test('S08/S20: accessible save control references a real error message only when
  assert.match(bad,/id="rr-save-validation"[^>]*role="alert"/);
  assert.match(bad,/data-manual-run-save[^>]*disabled/);
 });
+
+test('S09: valid review relies on status badges, without a redundant success card',()=>{
+ const html=reviewView(base,{source:'manual',recordType:'run'});
+ assert.equal((html.match(/data-required-status=/g)||[]).length,3);
+ assert.doesNotMatch(html,/入力内容を確認しました|入力内容の基本的な形式を確認しました/);
+ assert.doesNotMatch(html,/class="rr-panel rr-alert/);
+ assert.doesNotMatch(html,/入力した日付・距離・時間を確認/);
+ assert.match(html,/data-manual-run-save(?![^>]*disabled)/);
+ assert.match(html,/平均ペースは距離と時間から計算しています/);
+});
+test('S09: incomplete required input retains explicit errors and disabled save',()=>{
+ const missing={...base,distance:'',activityGait:'UNKNOWN'};
+ const h=reviewView(missing,{source:'manual',recordType:'run'});
+ assert.match(h,/保存前に入力が必要な項目があります/);
+ assert.match(h,/data-required-status="distance" data-required-ok="false"/);
+ assert.match(h,/data-manual-run-save[^>]*disabled/);
+ assert.match(h,/data-review-gait="RUNNING"/);
+});
+test('S09: optional section icon paths have the same shared SVG source',()=>{
+ const h=reviewView(base,{source:'manual',recordType:'run'});
+ assert.equal((h.match(/class="rr-row-icon"><svg/g)||[]).length,5);
+});

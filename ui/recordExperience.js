@@ -1,6 +1,7 @@
 // RunLoad v2: presentation/interaction helpers for approved record v2 screens.
 // Not a replacement for the authoritative v1 record/scientific storage contract.
 import {checkManualRequiredFields} from './recordDraftReview.js';
+import {recordIcon} from './recordIcons.js?v=20261101-review-density-v1';
 export const SURFACES = Object.freeze([
  ['paved','舗装路'],['track','陸上トラック'],['treadmill','トレッドミル'],
  ['soil','締まった土道'],['trail','不整地トレイル'],['naturalGrass','天然芝'],
@@ -34,11 +35,11 @@ export function manualPage(state){
  const pace=run&&filled(d.distance)&&Number(d.distance)>0&&Number.isFinite(time)&&time>0
  ? (()=>{const m=time/Number(d.distance);if(!Number.isFinite(m))return '—';const sec=Math.round(m*60);return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')} /km`;})():'';
  const access=[
-  ['#/record-course','⌁','コース・走行条件',`${s.courseName} ・ ${s.slope}`],
-  ['#/record-rof','◉','運動前後の疲労感',`${Number.isInteger(d.rofBefore)?'運動前 '+d.rofBefore:'運動前 未入力'} / ${Number.isInteger(d.rofAfter)?'運動後 '+d.rofAfter:'運動後 未入力'}`],
-  ['#/record-compare','◷','歩数・走り方',filled(d.steps)?`歩数 ${escape(d.steps)} ・ 詳細を確認`:'未入力'],
-  ['#/record-environment','☀','環境',filled(d.temperatureC)?`気温 ${escape(d.temperatureC)}℃`:filled(d.environmentNote)?'環境メモあり':'未入力'],
-  ['#/record-reflection','✎','身体・使用品・メモ',filled(d.bodyObservation)||filled(d.shoeName)||filled(d.memo)?'入力あり':'未入力']
+  ['#/record-course','course','コース・走行条件',`${s.courseName} ・ ${s.slope}`],
+  ['#/record-rof','rof','運動前後の疲労感',`${Number.isInteger(d.rofBefore)?'運動前 '+d.rofBefore:'運動前 未入力'} / ${Number.isInteger(d.rofAfter)?'運動後 '+d.rofAfter:'運動後 未入力'}`],
+  ['#/record-compare','gait','歩数・走り方',filled(d.steps)?`歩数 ${escape(d.steps)} ・ 詳細を確認`:'未入力'],
+  ['#/record-environment','environment','環境',filled(d.temperatureC)?`気温 ${escape(d.temperatureC)}℃`:filled(d.environmentNote)?'環境メモあり':'未入力'],
+  ['#/record-reflection','body','身体・使用品・メモ',filled(d.bodyObservation)||filled(d.shoeName)||filled(d.memo)?'入力あり':'未入力']
  ];
  return `<div class="record-v3 rv-manual"><header class="rv-head"><a href="#/record-start" class="rv-back rv-phone-only" aria-label="記録方法の選択へ戻る">‹</a><div><h1>手入力で記録</h1></div></header>
  <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須</small></h2>${run?`<p class="rv-required-progress" role="status">${requiredMessage}</p>`:''}
@@ -53,7 +54,7 @@ export function manualPage(state){
  </div>`:
  '<p class="rv-muted">休養日は距離・時間を入力しません。必要に応じてメモを追加できます。</p>'}
  </section><section class="rv-panel rv-secondary"><h2 class="rv-section-title">追加情報 <small>任意</small></h2>
- <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${icon}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
+ <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${recordIcon(icon)}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
  <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">${run?'手入力した走行は確認後に端末へ保存できます。身体の部位別の文献参考値は、保存後に活動種別と速度の適用範囲が確認できる場合に表示します。':'休養日は日付と任意の本人メモを保存し、履歴から見返せます。休養日の走行結果や身体部位別文献参考値は表示しません。'}</p></div></div>`;
 }
 export function recordMethodPage(){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>

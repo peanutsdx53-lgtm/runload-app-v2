@@ -184,3 +184,10 @@ test('S08: mixed surface shares use slope-like focus and no implicit remainder c
  assert.match(h,/data-rv-surface-step="1"/);
  assert.match(h,/data-rv-surface-mix|class="rv-surface-mix"/);
 });
+
+test('S09: manual optional destinations use the same SVG icon set as review',()=>{
+ const d=draft(),ui=initialCourseUi(d),h=manualPage({recordType:'run',recordDraft:d,recordCourseUi:ui});
+ assert.equal((h.match(/class="rv-link-icon"><svg/g)||[]).length,5);
+ assert.equal((h.match(/class="rv-link"/g)||[]).length,5);
+ assert.doesNotMatch(h,/class="rv-link-icon">[⌁◉◷☀✎]/);
+});
