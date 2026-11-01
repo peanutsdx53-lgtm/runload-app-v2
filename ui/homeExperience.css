@@ -673,15 +673,15 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 #app .hx-ach-dialog .hx-ach-milestone.is-unearned{border-color:#b7a18a6b;background:#a99a8510}
 #app .hx-ach-dialog .hx-ach-milestone-symbol{grid-column:1;grid-row:1/3;display:grid;place-items:center;width:27px;height:27px;border-radius:8px;color:#ffda96;background:#c58e4742;font-size:.95rem}
 #app .hx-ach-dialog .hx-ach-milestone.is-unearned .hx-ach-milestone-symbol{color:#cfbeaa;background:#a99a851a}
-#app .hx-ach-dialog .hx-ach-milestone-label{grid-column:2;grid-row:1;color:#f9efe3;font-size:.86rem;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+#app .hx-ach-dialog .hx-ach-milestone-label{grid-column:2;grid-row:1;color:#f9efe3;font-size:.875rem;line-height:1.4;min-width:0;overflow-wrap:anywhere}
 #app .hx-ach-dialog .hx-ach-milestone-status{grid-column:2;grid-row:2;justify-self:start;display:inline-flex;align-items:center;min-width:0;color:#ffe3ad;font-weight:800;font-size:.72rem;line-height:1.35}
 #app .hx-ach-dialog .hx-ach-milestone.is-unearned .hx-ach-milestone-status{color:#cfc3b5}
-#app .hx-ach-dialog .hx-ach-limit{color:#d8cfc4;font-size:.81rem;line-height:1.7;margin:13px 0 0;overflow-wrap:anywhere}
+#app .hx-ach-dialog .hx-ach-limit{color:#d8cfc4;font-size:.875rem;line-height:1.7;margin:13px 0 0;overflow-wrap:anywhere}
 @media(max-width:800px){
  #app .hx-ach-dialog .hx-ach-grid.hx-ach-milestones{grid-template-columns:minmax(0,1fr);gap:8px}
  #app .hx-ach-dialog .hx-ach-milestone{grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:auto;min-height:55px;padding:11px 12px}
  #app .hx-ach-dialog .hx-ach-milestone-symbol{grid-row:1;grid-column:1;width:32px;height:32px}
- #app .hx-ach-dialog .hx-ach-milestone-label{grid-row:1;grid-column:2;font-size:.86rem;overflow-wrap:anywhere}
+ #app .hx-ach-dialog .hx-ach-milestone-label{grid-row:1;grid-column:2;font-size:.875rem;overflow-wrap:anywhere}
  #app .hx-ach-dialog .hx-ach-milestone-status{grid-row:1;grid-column:3;justify-self:end;font-size:.74rem;white-space:nowrap}
 }
 @media(max-width:360px){
@@ -689,9 +689,9 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
  #app .hx-ach-dialog .hx-ach-summary strong{font-size:1.07rem}
  #app .hx-ach-dialog .hx-ach-milestone{grid-template-columns:28px minmax(0,1fr) auto;column-gap:6px;padding:9px 8px}
  #app .hx-ach-dialog .hx-ach-milestone-symbol{width:28px;height:28px}
- #app .hx-ach-dialog .hx-ach-milestone-label{font-size:.79rem}
+ #app .hx-ach-dialog .hx-ach-milestone-label{font-size:.875rem}
  #app .hx-ach-dialog .hx-ach-milestone-status{font-size:.69rem}
- #app .hx-ach-dialog .hx-ach-limit{font-size:.78rem}
+ #app .hx-ach-dialog .hx-ach-limit{font-size:.875rem}
 }
 
 /* S02 consistency correction: keep native date-picker behavior; recolor only
