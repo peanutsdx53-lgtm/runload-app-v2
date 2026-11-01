@@ -550,3 +550,42 @@
 @media(max-width:355px){
  .record-v3.rv-course .rv-course-confirm button{padding:7px 2px;font-size:11px}
 }
+
+/* S08 multi-surface view shares the slope editor's focused numeric/slider workflow. */
+.record-v3.rv-course .rv-surface-tile b{
+ color:#acf8ef;font-size:.76rem;font-weight:800;white-space:nowrap;
+}
+.record-v3.rv-course .rv-surface-mix{
+ display:flex;height:10px;gap:2px;border-radius:20px;overflow:hidden;
+ background:#0b2938;border:1px solid #417887;margin-top:9px;
+ --surface-color-0:#54e1cf;--surface-color-1:#85aaff;
+ --surface-color-2:#efbf8f;--surface-color-3:#c39fe6;
+}
+.record-v3.rv-course .rv-surface-mix-part{
+ display:block;flex:none;min-width:0;transition:width .15s;
+ background:var(--surface-color,#3eafb6);
+}
+.record-v3.rv-course .rv-surface-pick{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));
+ gap:7px;margin-top:11px;
+}
+.record-v3.rv-course .rv-surface-pick button{
+ min-height:42px;min-width:0;padding:8px 9px;border-radius:9px;
+ background:#10384b;border:1px solid #5a8799;color:#e5f7fb;
+ font-size:.73rem;font-weight:760;display:flex;align-items:center;
+ justify-content:space-between;gap:6px;overflow-wrap:anywhere;text-align:left;
+}
+.record-v3.rv-course .rv-surface-pick button[aria-pressed="true"]{
+ background:#186075;border-color:#5ce8de;color:#fff;
+}
+.record-v3.rv-course .rv-surface-pick button b{
+ white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.record-v3.rv-course .rv-surface-fine{margin-top:12px;min-width:0}
+.record-v3.rv-course .rv-surface-fine .rv-fine-top{flex-wrap:wrap}
+@media(max-width:800px){
+ .record-v3.rv-course .rv-surface-pick{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:355px){
+ .record-v3.rv-course .rv-surface-pick{grid-template-columns:minmax(0,1fr)}
+}
