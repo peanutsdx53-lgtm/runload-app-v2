@@ -619,3 +619,12 @@
 .record-v3.rv-course .rv-section-fields label{font-size:.85rem;line-height:1.45;min-width:0}
 @media(max-width:800px){.record-v3.rv-course .rv-section-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.record-v3.rv-course .rv-section-row{padding:11px}.record-v3.rv-course .rv-section-progress{font-size:.84rem}}
 @media(max-width:355px){.record-v3.rv-course .rv-section-fields{gap:8px}.record-v3.rv-course .rv-section-fields input,.record-v3.rv-course .rv-section-fields select{padding:9px 7px}}
+
+/* S05 screenshot audit: 320px labels were as small as 9.44px.
+   Enlarge navigation and explanatory copy without changing controls or values. */
+@media(max-width:800px){
+ .record-v3.rv-proposed-desk .rv-flow-rail>span{font-size:13px;line-height:1.45;min-height:44px}
+ .record-v3.rv-proposed-desk .rv-condition-pair .rv-hint{font-size:13px;line-height:1.65}
+ .record-v3.rv-proposed-desk .rv-save-caption{font-size:13px;line-height:1.6}
+ .record-v3.rv-proposed-desk .rv-block-heading small{font-size:12.5px;white-space:normal;text-align:right}
+}
