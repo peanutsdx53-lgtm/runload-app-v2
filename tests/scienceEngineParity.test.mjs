@@ -81,9 +81,11 @@ test('manual input -> validated saved record -> reload -> original model -> 12 r
   assert.equal(result.calculationInput.durationSeconds,1800);
  }
 });
-test('gait chooser exposes separate explicit choices and mixed context without inventing a result',()=>{
+test('activity choice is not duplicated on steps/pattern screen; mixed run remains constrained by science bridge',()=>{
  const html=gaitPage({activityGait:'JOGGING',runningFormat:'UNKNOWN',distance:'4',minutes:'30'});
- for(const gait of ['RUNNING','JOGGING','WALK'])assert.match(html,new RegExp('data-g4-gait="'+gait+'"'));
- assert.match(html,/未選択の場合は部位別値を算出しません/);
+ assert.doesNotMatch(html,/data-g4-gait|活動種別（12部位の文献参考値に使用）/);
+ assert.match(html,/当日の走行パターン/);
+ for(const k of ['UNKNOWN','CONTINUOUS_RUN','RUN_WALK'])assert.ok(html.includes('data-g4-format="'+k+'"'));
  assert.equal(gaitValidation({activityGait:'FAKE'}).valid,false);
+ assert.equal(calculateActivityReference(rawRecord('RUNNING',2.5,'RUN_WALK')).reason,'MIXED_GAIT_NOT_QUANTIFIED');
 });
