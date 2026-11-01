@@ -966,6 +966,12 @@ try{
   for(let i=0;i<5;i++)await page.locator('[data-rv-add]').click();
   assert.equal(await page.locator('.rv-section-row').count(),5,"five sections maximum");
   assert.match(await page.locator('[data-rv-section-progress]').innerText(),/0 \/ 5 件入力/, 'five blank sections are not silently recorded as 0%');
+  await page.locator('[data-draft="sectionShare0"]').fill('40');
+  assert.match(await page.locator('[data-rv-section-progress]').innerText(),/1 \/ 5 件入力・入力分の合計 40%/,'course progress updates while the first field keeps keyboard focus');
+  assert.equal(await page.locator('[data-draft="sectionShare0"]').evaluate(el=>document.activeElement===el),true,'live progress does not steal input focus');
+  await page.locator('[data-draft="sectionShare1"]').fill('60');
+  assert.match(await page.locator('[data-rv-section-progress]').innerText(),/2 \/ 5 件入力・入力分の合計 100%/,'100% partial share is not treated as five completed fields');
+  assert.equal(await page.locator('[data-rv-section-progress]').evaluate(el=>el.classList.contains('is-complete')),false);
   assert.ok(await page.locator('.rv-section-row-head button').first().evaluate(el=>el.getBoundingClientRect().height>=44),'each section delete control has a 44px hit target');
   assert.ok(await page.locator('[data-rv-add]').isDisabled());
   await page.screenshot({path:resolve(root,"screenshots",mode.name+"-record-sections-v2.png"),fullPage:true});
