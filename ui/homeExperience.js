@@ -319,8 +319,17 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal(),deleteP
 export function achievementPanel(preview,savedRuns={ok:true,records:[]}){
  const r=achievementSummary(savedRuns);
  const labels=['初回の走行記録を保存','30分以上の走行記録を保存','累計50 km','累計100 km'];
+ const shortLabels=['初回の走行','30分以上の走行','累計50 km','累計100 km'];
  const body=preview?'<p>表示例：獲得2件、累計42.0 / 50 km（84%）</p><div class="hx-ach-grid"><span>★ 走行を始めた</span><span>✦ 初めての30分</span><span>◇ 累計50 km（未達成）</span><span>◇ 累計100 km（未達成）</span></div><p>※ サンプル値です。正式な達成条件・実績判定とは連動していません。</p>'
  :!r.ok?'<p role="alert">'+escape(r.reason)+'。元のデータは変更しません。</p>'
- :'<p>この端末に保存された手入力の走行記録：'+r.runs+'件、累計'+r.distance.toFixed(1)+' km。以下の4つの節目を確認できます。</p><div class="hx-ach-grid">'+labels.map((label,i)=>'<span class="'+(r.achieved[i]?'is-earned':'is-unearned')+'">'+(r.achieved[i]?'★ ':'◇ ')+label+(r.achieved[i]?'（達成）':'（未達成）')+'</span>').join('')+'</div><p>GPSの未保存データや入力途中の内容は含みません。医学的な評価、走力の判定、達成を勧めるものではありません。</p>';
- return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog hx-ach-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-ach-label"><div class="hx-dialog-head"><h2 id="hx-ach-label">実績</h2><button type="button" data-home-close aria-label="閉じる">×</button></div>'+body+'</section></div>';
+ :'<div class="hx-ach-summary" aria-label="保存済み手入力走行の集計"><div><small>保存済み手入力走行</small><strong>'+r.runs+' 件</strong></div><div><small>累計走行距離</small><strong>'+r.distance.toFixed(1)+' km</strong></div></div>'+
+ '<h3 class="hx-ach-section-title">4つの節目</h3>'+
+ '<div class="hx-ach-grid hx-ach-milestones" role="list" aria-label="走行記録に基づく4つの節目">'+labels.map((label,i)=>
+ '<div class="hx-ach-milestone '+(r.achieved[i]?'is-earned':'is-unearned')+'" role="listitem" aria-label="'+label+'（'+(r.achieved[i]?'達成':'未達成')+'）">'+
+ '<div class="hx-ach-milestone-symbol" aria-hidden="true">'+(r.achieved[i]?'★':'◇')+'</div>'+
+ '<strong class="hx-ach-milestone-label">'+shortLabels[i]+'</strong>'+
+ '<small class="hx-ach-milestone-status">'+(r.achieved[i]?'達成':'未達成')+'</small></div>').join('')+'</div>'+
+ '<p class="hx-ach-limit">この端末に保存した手入力の走行記録だけが対象です。GPSの未保存データや入力途中の内容は含みません。</p>'+
+ '<p class="hx-ach-limit">節目は記録を振り返るための表示であり、健康状態・走力の判定や達成の推奨ではありません。</p>';
+ return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog hx-ach-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-ach-label"><div class="hx-dialog-head"><h2 id="hx-ach-label">実績</h2><button type="button" data-home-close aria-label="実績詳細を閉じる">×</button></div>'+body+'</section></div>';
 }

@@ -960,7 +960,7 @@ function recordExtras(){
     }
     homeEditState.notice="生活記録を保存しました";
     homeUi.preview=false;homeUi.conditionOpen=false;homeUi.deletePendingDate=null;
-    render();
+    render();app.querySelector("[data-condition-open]")?.focus({preventScroll:true});
   });
   app.addEventListener("click",async(event)=>{
     const dataAction=event.target.closest('[data-dm-export],[data-dm-restore],[data-dm-delete-confirm]');
@@ -1359,9 +1359,14 @@ function recordExtras(){
       else{homeEditState.notice=outcome.reason;}
       render();return;
     }
-    if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.deletePendingDate=null;homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();return;}
-    if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();return;}
-    if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){homeUi.conditionOpen=false;homeUi.achievementOpen=false;homeUi.deletePendingDate=null;render();return;}
+    if(event.target.closest("[data-condition-open]")){homeUi.conditionDate=homeExperience.todayLocal();homeUi.deletePendingDate=null;homeUi.conditionOpen=true;homeUi.achievementOpen=false;render();app.querySelector(".hx-condition-dialog .hx-dialog-head [data-home-close]")?.focus({preventScroll:true});return;}
+    if(event.target.closest("[data-achievement-open]")){homeUi.achievementOpen=true;homeUi.conditionOpen=false;render();app.querySelector(".hx-ach-dialog .hx-dialog-head [data-home-close]")?.focus({preventScroll:true});return;}
+    if(event.target.closest("[data-home-close]")||(event.target.matches("[data-home-overlay]"))){
+      const trigger=homeUi.conditionOpen?"[data-condition-open]":homeUi.achievementOpen?"[data-achievement-open]":null;
+      homeUi.conditionOpen=false;homeUi.achievementOpen=false;homeUi.deletePendingDate=null;render();
+      if(trigger)app.querySelector(trigger)?.focus({preventScroll:true});
+      return;
+    }
     if(event.target.closest("[data-onboard-open]")){onboardingState.open=true;onboardingState.replay=true;onboardingState.step=2;onboardingState.error="";render();return;}
     if(event.target.closest("[data-onboard-close]")){if(onboardingState.replay){onboardingState.open=false;onboardingState.replay=false;render();}return;}
     if(event.target.closest("[data-onboard-back]")){onboardingState.step=Math.max(onboardingState.replay?2:0,onboardingState.step-1);onboardingState.error="";render();return;}
@@ -1565,7 +1570,24 @@ function recordExtras(){
         }
       }
     }
-    if(event.key==="Escape"&&(homeUi.conditionOpen||homeUi.achievementOpen)){homeUi.conditionOpen=false;homeUi.achievementOpen=false;render();return;}
+    const homeDetail=app.querySelector(".hx-condition-dialog,.hx-ach-dialog");
+    if(homeDetail&&(homeUi.conditionOpen||homeUi.achievementOpen)){
+      if(event.key==="Escape"){
+        event.preventDefault();
+        const trigger=homeUi.conditionOpen?"[data-condition-open]":"[data-achievement-open]";
+        homeUi.conditionOpen=false;homeUi.achievementOpen=false;homeUi.deletePendingDate=null;
+        render();app.querySelector(trigger)?.focus({preventScroll:true});return;
+      }
+      if(event.key==="Tab"){
+        const controls=[...homeDetail.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')]
+          .filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=="hidden");
+        if(controls.length){
+          const first=controls[0],last=controls.at(-1),inside=homeDetail.contains(document.activeElement);
+          if(event.shiftKey&&(!inside||document.activeElement===first)){event.preventDefault();last.focus();return;}
+          if(!event.shiftKey&&(!inside||document.activeElement===last)){event.preventDefault();first.focus();return;}
+        }
+      }
+    }
     if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   const pauseGpsOnHidden=()=>{

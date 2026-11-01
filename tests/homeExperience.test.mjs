@@ -148,3 +148,19 @@ test("S02 contextual recording entry never invents records or conceals read fail
  const withRun=latestCard(false,{id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:3,durationSeconds:1000},{ok:true,records:[]});
  assert.ok(!withRun.includes('href="#/record-start"'));
 });
+
+test("S02 achievement detail groups counts and four labeled milestone states without fictitious success",()=>{
+ const rows=[{source:'manual',type:'run',id:'run-1',distanceKm:5,durationSeconds:2100}];
+ const html=achievementPanel(false,{ok:true,records:rows});
+ assert.match(html,/hx-ach-summary/);
+ assert.match(html,/hx-ach-milestones/);
+ assert.equal((html.match(/role="listitem"/g)||[]).length,4);
+ assert.equal((html.match(/class="hx-ach-milestone is-earned"/g)||[]).length,2);
+ assert.equal((html.match(/class="hx-ach-milestone is-unearned"/g)||[]).length,2);
+ assert.match(html,/30分以上の走行記録を保存（達成）/);
+ assert.match(html,/累計100 km（未達成）/);
+ assert.match(html,/健康状態・走力の判定や達成の推奨ではありません/);
+ const bad=achievementPanel(false,{ok:false,reason:'読み取り失敗'});
+ assert.match(bad,/読み取り失敗/);
+ assert.doesNotMatch(bad,/hx-ach-milestones/);
+});
