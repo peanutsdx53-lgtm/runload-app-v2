@@ -6,7 +6,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
   const rofScale=await import("./ui/rofJScale.js");
-  const rofExperience=await import("./ui/rofExperience.js?v=20261101-illustration-help-v1");
+  const rofExperience=await import("./ui/rofExperience.js?v=20261101-illustration-help-v2");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261027-manual-gait-v5");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");

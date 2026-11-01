@@ -191,3 +191,12 @@
  .rv4-page .rv4-rail .rv4-description{padding:9px}
  .rv4-page .rv4-rail .rv4-description>strong{font-size:13px;gap:2px 5px}
 }
+
+/* S06 score summary: the original descriptor is shown verbatim but grouped
+   at the natural Japanese parenthetical boundary at every viewport. */
+.rv4-page .rv4-current strong[data-rof-v4-meaning]{
+ display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;row-gap:1px;
+ line-height:1.5;overflow-wrap:normal;word-break:keep-all;
+}
+.rv4-page .rv4-current .rv4-description-main{font-size:1em}
+.rv4-page .rv4-current .rv4-description-detail{font-size:.83em;font-weight:680}

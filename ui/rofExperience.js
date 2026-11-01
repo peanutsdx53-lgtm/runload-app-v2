@@ -146,7 +146,7 @@ export function rofPage(d,ui){
  <section class="rv4-card" aria-labelledby="rv4-title"><div class="rv4-title"><h2 id="rv4-title">疲労感の記録</h2><span>任意</span></div>
  <div class="rv4-tabs" role="tablist" aria-label="疲労感の入力タイミング">${tabs}</div>
  <details class="rv4-optional-meta" ${ui.metaOpen?'open':''}><summary>任意：運動時刻・回答時点を記録する</summary><div class="rv4-meta-body">${exerciseTiming}${provenance}</div></details><div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
- <div class="rv4-current${hasScore?'':' is-empty'}" aria-live="polite"><output data-rof-v4-number>${hasScore?n:'—'}</output><div><small data-rof-v4-scoreline>${ui.phase==='before'?'運動前':'運動後'} / 10</small><strong data-rof-v4-meaning>${hasScore?esc(guidanceForRofJ(n)):'まだ選択されていません'}</strong><p data-rof-v4-caption>${hasScore?'選択値：'+n+' / 10':'横軸で数値を選択してください'}</p></div></div>
+ <div class="rv4-current${hasScore?'':' is-empty'}" aria-live="polite"><output data-rof-v4-number>${hasScore?n:'—'}</output><div><small data-rof-v4-scoreline>${ui.phase==='before'?'運動前':'運動後'} / 10</small><strong data-rof-v4-meaning>${hasScore?anchorDescriptionMarkup(guidanceForRofJ(n)):'まだ選択されていません'}</strong><p data-rof-v4-caption>${hasScore?'選択値：'+n+' / 10':'横軸で数値を選択してください'}</p></div></div>
  <div class="rv4-rail" aria-label="評価軸と対応する代表イラスト"><div class="rv4-rail-top"><strong>代表イラスト</strong><small>選ぶと直下に説明を表示</small></div>
  <div class="rv4-anchor-row" aria-label="原版の5つの代表位置">${anchors}</div>
  <div class="rv4-description" aria-live="polite" aria-atomic="true"><small>イラストの説明 <span data-rof-v4-position>（目安：${esc(anchor.positionLabel)}）</span></small><strong data-rof-v4-anchor-meaning>${anchorDescriptionMarkup(anchor.descriptor)}</strong></div>
@@ -167,7 +167,8 @@ export function reflectRofPage(root,d,ui){
  const current=page.querySelector('.rv4-current');current?.classList.toggle('is-empty',!selected);
  update('[data-rof-v4-number]',selected?String(n):'—');
  update('[data-rof-v4-scoreline]',(ui.phase==='before'?'運動前':'運動後')+' / 10');
- update('[data-rof-v4-meaning]',selected?guidanceForRofJ(n):'まだ選択されていません');
+ const scoreMeaning=page.querySelector('[data-rof-v4-meaning]');
+ if(scoreMeaning)scoreMeaning.innerHTML=selected?anchorDescriptionMarkup(guidanceForRofJ(n)):'まだ選択されていません';
  update('[data-rof-v4-caption]',selected?'選択値：'+n+' / 10':'横軸で数値を選択してください');
  page.querySelectorAll('[data-rof-v4-anchor]').forEach(el=>el.setAttribute('aria-pressed',String(Number(el.dataset.rofV4Anchor)===ui.focusedAnchor)));
  page.querySelectorAll('[data-rof-v4-tick]').forEach(el=>el.classList.toggle('is-selected',selected&&Number(el.dataset.rofV4Tick)===n));

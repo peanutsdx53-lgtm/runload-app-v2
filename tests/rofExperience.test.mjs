@@ -124,3 +124,9 @@ test('S06: exact anchor copy and escaped markup remain intact',()=>{
  assert.match(anchorDescriptionMarkup('完全な疲労困憊（何も残っていない状態）'),/完全な疲労困憊<\/span><span class="rv4-description-detail">（何も残っていない状態）/);
  assert.doesNotMatch(anchorDescriptionMarkup('<b>'),/<b>/);
 });
+
+test('S06: selected score 10 is grouped at the exact parenthetical boundary too',()=>{
+ const d={rofBefore:10,rofAfter:null},html=rofPage(d,createRofUiState());
+ assert.match(html,/data-rof-v4-meaning><span class="rv4-description-main">完全な疲労困憊<\/span><span class="rv4-description-detail">（何も残っていない状態）<\/span>/);
+ assert.equal(d.rofBefore,10);
+});

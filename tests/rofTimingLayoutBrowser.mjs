@@ -44,6 +44,14 @@ try{
   const slider=panel.locator('[data-rof-v4-range]');
   await slider.evaluate(el=>{el.value='10';el.dispatchEvent(new Event('input',{bubbles:true}));});
   assert.equal(await panel.locator('[data-rof-v4-number]').innerText(),'10');
+  const scorePhrase=await panel.locator('[data-rof-v4-meaning]').evaluate(el=>{
+    const a=el.querySelector('.rv4-description-main'),b=el.querySelector('.rv4-description-detail'),r=el.getBoundingClientRect();
+    const bounds=n=>{const q=n.getBoundingClientRect();return {left:q.left,right:q.right,top:q.top,bottom:q.bottom}};
+    return {outer:bounds(el),main:a?.textContent,detail:b?.textContent,mainBounds:a?bounds(a):null,detailBounds:b?bounds(b):null};
+  });
+  assert.equal(scorePhrase.main,'完全な疲労困憊');
+  assert.equal(scorePhrase.detail,'（何も残っていない状態）');
+  for(const b of [scorePhrase.mainBounds,scorePhrase.detailBounds])assert.ok(b.left>=scorePhrase.outer.left-1&&b.right<=scorePhrase.outer.right+1,'selected score description fits without midphrase clipping '+JSON.stringify(scorePhrase));
   assert.match(await explanation.innerText(),/完全な疲労困憊/);
   assert.match(await explanation.innerText(),/何も残っていない状態/);
   const level10=await explanation.evaluate(el=>{
