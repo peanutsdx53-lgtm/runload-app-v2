@@ -57,7 +57,7 @@ test('single optional header and aligned shoe-length counter do not change the r
  const d={shoeName:'シューズ名',bodyObservation:'違和感',memo:'自由記述'};
  const html=renderScreen(d,makeUi());
  assert.match(html,/maxlength="100" data-draft="shoeName"/);
- assert.match(html,/data-counter="shoeName">6\/100/);
+ assert.match(html,/data-counter="shoeName">5\/100/);
  assert.doesNotMatch(html,/必要な項目だけ入力してください|身体で感じたことと、使ったもの/);
  assert.equal((html.match(/cx-optional/g)||[]).length,0);
  assert.deepEqual(DRAFT_KEYS,['bodyObservation','shoeName','memo']);
