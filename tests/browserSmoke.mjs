@@ -935,6 +935,7 @@ try{
   await page.locator('[data-draft="bodyObservation"]').fill("膝の前が気になった");
   assert.ok(await page.locator('[data-append-name]').isEnabled(),'editing the observation updates transfer action immediately');
   assert.match(await page.locator('.cx-transfer-status').innerText(),/選んだだけでは記録に残りません/);
+  assert.equal((await page.locator('[data-cx-page] [data-status]').innerText()).trim(),'','S07 cannot claim transfer still completed after deleting the transferred line');
   assert.equal(await page.locator('[data-counter="shoeName"]').innerText(),'7/100','shoe-name count matches the current 100-character field limit');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-body-v8-integrated.png'),fullPage:true});
