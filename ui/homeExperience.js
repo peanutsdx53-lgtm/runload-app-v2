@@ -286,7 +286,7 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal(),deleteP
   '<button type="button" data-sleep-mode="'+value+'" class="'+(mode===value?'is-selected':'')+'" aria-pressed="'+String(mode===value)+'">'+label+'</button>').join("");
  const dayRadios=[["auto","自動判定"],["previous","前日に就寝"],["same","当日に就寝"]].map(([v,label])=>
   '<label class="hx-day-radio"><input type="radio" name="bedDayRule" value="'+v+'"'+(dayRule===v?' checked':'')+'><span>'+label+'</span></label>').join("");
- return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
+ return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog hx-condition-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
  '<div class="hx-dialog-head"><h2 id="hx-dialog-label">コンディション</h2><button data-home-close aria-label="閉じる" type="button">×</button></div>'+
  (preview?'<p class="hx-dialog-notice">グラフは表示例です。以下の入力は実際の記録として保存されます。</p>':'')+
  
