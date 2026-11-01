@@ -1699,10 +1699,10 @@ try{
     await page.goto(host+'#/record',{waitUntil:'networkidle'});
     await page.locator('[data-draft="distance"]').fill(example.distance);
     await page.locator('[data-draft="minutes"]').fill(example.minutes);
-    await page.goto(host+'#/record-compare',{waitUntil:'networkidle'});
-    await page.locator('[data-g4-gait="'+example.activity+'"]').click();
-    assert.equal(await page.locator('[data-g4-gait="'+example.activity+'"]').getAttribute('aria-pressed'),'true');
-    await page.goto(host+'#/record',{waitUntil:'networkidle'});
+    // Activity selection now belongs to the required fields of the manual
+    // record, not the optional gait/steps sub-screen. Use the real save path.
+    await page.locator('[data-manual-gait="'+example.activity+'"]').click();
+    assert.equal(await page.locator('[data-manual-gait="'+example.activity+'"]').getAttribute('aria-pressed'),'true');
     await page.locator('[data-demo-save]').click();
     await page.locator('[data-record-review] [data-manual-run-save]').click();
     const output=page.locator('#runload-result-v4');
