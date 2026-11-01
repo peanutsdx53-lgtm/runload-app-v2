@@ -18,3 +18,10 @@ Inspect computed colors of date control, icon, focus border, achievement modal b
 
 ## Screenshot refinement
 The first browser captures showed that the Condition modal's auto-focused close button still inherited a teal focus ring from the generic home button rule. Scope that focus ring to lavender without modifying keyboard semantics or other screens. Run real Chromium and WebKit computed-style checks for the focused close button as part of the S02 visual acceptance.
+
+## Final verification (2026-11-01)
+- Code head: `98a752b214e5d40ad59e1ef219193d9f9453bdef`. S02 condition and achievements visual acceptance run `41273688095` completed SUCCESS in both Chromium and WebKit. Screenshot artifacts: `s02-condition-achievements-chromium` and `s02-condition-achievements-webKit`.
+- Verified computed Condition date background `rgb(32, 36, 64)`, border `rgb(169, 155, 224)`, calendar icon `rgb(210, 193, 255)`, and native `type=date`. The Condition dialog close button has a lavender focus outline on actual keyboard focus; `:focus` fallback was added because WebKit's focus-visible behavior differs in the browser testing setup.
+- Achievement dialog border `rgb(199, 148, 91)`, warm close control `rgb(91, 67, 53)`, warm/brown gradient. Existing 4 labels and achievement state preserved. Checked 320, 390, 768, 1440px and prior duration-only save / no-response rejection / 200%-root-font stress tests.
+- On head `98a752b214e5d40ad59e1ef219193d9f9453bdef`, UI Next smoke, Research interpretation audit, S02 home guide visual acceptance, B/C optional-function acceptance, 20-screen design acceptance and Pages build/deployment reported SUCCESS. Do not equate the S02 result with full 29-condition acceptance or real-device QA.
+- The screenshots are headless WebKit/Chromium captures, not the actual user's iPhone. Physical Safari date-picker wheel, Android picker, accessibility and OS text sizing remain to be verified on real devices.
