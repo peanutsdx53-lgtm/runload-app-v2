@@ -809,16 +809,30 @@ function recordExtras(){
     }
     if(target.matches("[data-rv-surface-range],[data-rv-surface-value]")){
       const k=target.dataset.rvSurfaceRange||target.dataset.rvSurfaceValue;
-      d["surface"+k]=target.value===""?"":String(Math.max(0,Math.min(100,Number(target.value))));ui.notice="";
-      const oldError=app.querySelector(".rv-error");if(oldError)oldError.remove();
-      const direct=app.querySelector('[data-rv-surface-value="'+k+'"]'),slide=app.querySelector('[data-rv-surface-range="'+k+'"]');
-      if(direct&&direct!==target)direct.value=d["surface"+k];if(slide&&slide!==target)slide.value=d["surface"+k]||0;
-      const selected=ui.surfaceSelected,total=selected.reduce((sum,key)=>sum+(d['surface'+key]===""?0:Number(d['surface'+key])),0);
-      const ok=selected.length>=2&&selected.every(key=>d['surface'+key]!==""&&Number(d['surface'+key])>0)&&Math.abs(total-100)<.001;
-      const sumSurface=app.querySelector("[data-rv-summary-surface]");if(sumSurface)sumSurface.textContent=recordExperience.courseSummary(d,ui).surface;
-      const totalEl=app.querySelector('[data-rv-surface-total]'),warn=app.querySelector('[data-rv-surface-warning]');
-      if(totalEl){totalEl.textContent='合計 '+total+'% / 100%';totalEl.className=ok?'rv-ok':'rv-invalid';}
-      if(warn){warn.textContent=ok?'割合の合計は100%です。':'選択した路面の割合を合計100%にしてください。';warn.className='rv-hint '+(ok?'rv-ok':'rv-invalid');}
+      if(!ui.surfaceSelected.includes(k))return;
+      const before=recordExperience.surfaceShareState(d,ui);
+      const value=target.value;
+      d['surface'+k]=value===""?"":String(Math.max(0,Math.min(before.max,Math.round(Number(value)))));
+      ui.notice="";
+      const oldError=app.querySelector('.rv-error');if(oldError)oldError.remove();
+      if(target.value!==d['surface'+k])target.value=d['surface'+k];
+      const direct=app.querySelector('[data-rv-surface-value="'+k+'"]');
+      const slide=app.querySelector('[data-rv-surface-range="'+k+'"]');
+      if(direct&&direct!==target)direct.value=d['surface'+k];
+      if(slide&&slide!==target)slide.value=d['surface'+k]||0;
+      const stateNow=recordExperience.surfaceShareState(d,ui);
+      const label=stateNow.share(k)===null?'—':stateNow.share(k)+'%';
+      const tile=app.querySelector('[data-rv-surface-tile-value="'+k+'"]');
+      const pick=app.querySelector('[data-rv-surface-pick-value="'+k+'"]');
+      const bar=app.querySelector('[data-rv-surface-bar="'+k+'"]');
+      if(tile)tile.textContent=label;if(pick)pick.textContent=label;
+      if(bar)bar.style.width=(stateNow.share(k)??0)+'%';
+      const total=app.querySelector('[data-rv-surface-total]');
+      const warn=app.querySelector('[data-rv-surface-warning]');
+      if(total){total.textContent='合計 '+stateNow.total+'% / 100%';total.className=stateNow.valid?'rv-ok':'rv-invalid';}
+      if(warn){warn.textContent=stateNow.valid?'割合の合計は100%です。':'選択した路面の割合を合計100%にしてください。';warn.className='rv-hint '+(stateNow.valid?'rv-ok':'rv-invalid');}
+      const summary=app.querySelector('[data-rv-summary-surface]');
+      if(summary)summary.textContent=recordExperience.courseSummary(d,ui).surface;
       return;
     }
     if(event.target.matches('[data-gps-note]')&&currentPage()==='gps-review'&&ensureGps().state.phase==='finished'){
@@ -1316,10 +1330,26 @@ function recordExtras(){
     }
     const surfaceMode=event.target.closest("[data-rv-surface-mode]");
     if(surfaceMode){d.surfaceMode=surfaceMode.dataset.rvSurfaceMode;ui.notice="";drawRecord();return;}
+    const surfaceFocus=event.target.closest("[data-rv-surface-focus]");
+    if(surfaceFocus){ui.surfaceFocus=surfaceFocus.dataset.rvSurfaceFocus;drawRecord();return;}
+    const surfaceStep=event.target.closest("[data-rv-surface-step]");
+    if(surfaceStep){
+      const info=recordExperience.surfaceShareState(d,ui),k=info.active;
+      if(k){
+        const previous=info.share(k)??0;
+        d['surface'+k]=String(Math.max(0,Math.min(info.max,previous+Number(surfaceStep.dataset.rvSurfaceStep))));
+        ui.notice="";drawRecord();
+      }
+      return;
+    }
     const surface=event.target.closest("[data-rv-surface]");
     if(surface){const k=surface.dataset.rvSurface;
       if(d.surfaceMode==="SINGLE")d.primarySurface=k;
-      else if(d.surfaceMode==="MIXED")ui.surfaceSelected=ui.surfaceSelected.includes(k)?ui.surfaceSelected.filter(x=>x!==k):[...ui.surfaceSelected,k];
+      else if(d.surfaceMode==="MIXED"){
+        ui.surfaceSelected=ui.surfaceSelected.includes(k)?ui.surfaceSelected.filter(x=>x!==k):[...ui.surfaceSelected,k];
+        if(!ui.surfaceSelected.includes(ui.surfaceFocus))ui.surfaceFocus=ui.surfaceSelected[0]||null;
+        else if(ui.surfaceSelected.includes(k))ui.surfaceFocus=k;
+      }
       ui.notice="";drawRecord();return;
     }
     if(event.target.closest("[data-rv-add]")){if(ui.sections<5){ui.sections++;ui.notice="";drawRecord()}return;}
