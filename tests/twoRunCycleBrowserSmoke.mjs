@@ -345,7 +345,8 @@ try{
  const eligibleText=await eligiblePanel.innerText();
  assert.match(eligibleText,/選択した部位の文献参考値/);
  assert.match(eligibleText,/比較相手|選択中/);
- assert.match(eligibleText,/差 [+-]?[0-9]/,'two genuinely saved eligible runs must show a same-region descriptive reference difference');
+ const eligibleDifference=await eligiblePanel.locator('.rv4-region-compare-change strong').innerText();
+ assert.match(eligibleDifference,/^[+-]?[0-9]+(?:\\.[0-9]+)?\\s*ポイント$/,'two saved eligible runs show their descriptive reference difference in the value card');
  assert.doesNotMatch(eligibleText,/この部位は比較できません/);
  const actualRuns=await readRuns();
  assert.ok(actualRuns.records.some(r=>r.id===eligibleA)&&actualRuns.records.some(r=>r.id===eligibleB));
