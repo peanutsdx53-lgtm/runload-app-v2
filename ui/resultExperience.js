@@ -147,16 +147,20 @@ export function mountResult(host,inputDraft={},options={}){
   const regionCmp=fromSaved&&other?compareBodyReferenceRows(
     options.record,other,reference,calculateActivityReference(other),bodyReferenceEngineId(chosen)):null;
   // The compared record may share a date or be later than the selected record.
-   const provenance=fromSaved&&other?'<div class="rv4-compare-provenance" role="note"><span>比較相手：'+clean(other.date)+'／記録ID '+clean(other.id)+'</span><span>選択中：'+clean(options.record.date)+'／記録ID '+clean(options.record.id)+'</span></div>':'';
+   const provenance=fromSaved&&other?'<details class="rv4-compare-provenance"><summary>比較する2件の記録情報（日時・記録ID）</summary><div class="rv4-compare-provenance-ids"><span>比較相手：'+clean(other.date)+'／記録ID '+clean(other.id)+'</span><span>選択中：'+clean(options.record.date)+'／記録ID '+clean(options.record.id)+'</span></div></details>':'';
    const regionCmpView=fromSaved&&other?'<section class="rv4-region-compare" aria-label="同一部位の文献参考値比較">'+
-    '<h3>選択した部位の文献参考値</h3><label>比較する部位 <select data-reference-compare-region>'+
+    '<div class="rv4-region-compare-heading"><h3>選択した部位の文献参考値</h3><span>同一部位の比較</span></div>'+
+    '<label class="rv4-region-compare-picker">比較する部位 <select data-reference-compare-region aria-label="文献参考値を比較する部位">'+
     OFFICIAL_NAMES.map(([id,name])=>'<option value="'+clean(id)+'"'+(id===chosen?' selected':'')+'>'+clean(name)+'</option>').join('')+
     '</select></label>'+
     (regionCmp?.status==='ready'?
-      '<p>比較相手 '+clean(other.date)+'：'+format(regionCmp.previousValue,1)+'　選択中 '+clean(options.record.date)+'：'+format(regionCmp.currentValue,1)+
-      '　差 '+(regionCmp.difference>0?'+':'')+format(regionCmp.difference,1)+' ポイント</p><p>'+clean(regionCmp.note)+'</p>':
-      '<p>この部位は比較できません：'+clean(regionCmp?.reason||'比較対象がありません')+'</p>')+
-    '<p>保存された走行情報を、現在の同一モデルでそれぞれ再計算した参考値です。記録当時の計算結果を保存・復元したものではありません。</p></section>':'';
+      '<div class="rv4-region-compare-stats" role="group" aria-label="同一部位の文献参考値の差">'+
+        '<div><small>比較相手 '+clean(other.date)+'</small><strong>'+format(regionCmp.previousValue,1)+'</strong></div>'+
+        '<div><small>選択中 '+clean(options.record.date)+'</small><strong>'+format(regionCmp.currentValue,1)+'</strong></div>'+
+        '<div class="rv4-region-compare-change"><small>参考値の差</small><strong>'+(regionCmp.difference>0?'+':'')+format(regionCmp.difference,1)+' <em>ポイント</em></strong></div>'+
+      '</div><p class="rv4-region-compare-limit">'+clean(regionCmp.note)+'</p>':
+      '<p class="rv4-region-compare-unavailable" role="status">この部位は比較できません：'+clean(regionCmp?.reason||'比較対象がありません')+'</p>')+
+    '<p class="rv4-region-compare-method">保存された走行情報を、現在の同一モデルでそれぞれ再計算した参考値です。記録当時の計算結果を保存・復元したものではありません。</p></section>':'';
   const compareCards=comparison?.status==='ready'?'<div class="rv4-compare-cards" aria-label="二件の記録の比較">'+comparison.rows.map(r=>'<div class="rv4-compare-card"><strong>'+clean(r.label)+'</strong><div><span><small>比較相手 '+clean(comparison.other.date)+'</small>'+clean(r.first)+'</span><span><small>選択中 '+clean(comparison.current.date)+'</small>'+clean(r.second)+'</span><span><small>差</small>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</span></div></div>').join('')+'</div>':'';
   const compareTable=comparison?.status==='ready'?'<div class="rv4-comparison-scroller"><table class="rv4-comparison-table"><thead><tr><th scope="col">項目</th><th scope="col">比較相手 '+clean(comparison.other.date)+'</th><th scope="col">選択中 '+clean(comparison.current.date)+'</th><th scope="col">差</th></tr></thead><tbody>'+comparison.rows.map(r=>'<tr><th scope="row">'+clean(r.label)+'</th><td>'+clean(r.first)+'</td><td>'+clean(r.second)+'</td><td>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</td></tr>').join('')+'</tbody></table></div>'+compareCards+'<div class="rv4-comparison-memos"><div><small>比較相手のメモ</small><p>'+clean(comparison.other.memo||'メモなし')+'</p></div><div><small>選択中の記録のメモ</small><p>'+clean(comparison.current.memo||'メモなし')+'</p></div></div><p class="rv4-comparison-caution">'+comparison.uncertainty+'</p>':
    '<p class="rv4-comparison-empty">'+clean(hasInvalidCompare?'指定された比較相手は保存記録にありません。':comparison?.reason||'同じ活動種別の保存記録をもう1件残すと、距離・時間・疲労感を見比べられます。')+'</p>';
