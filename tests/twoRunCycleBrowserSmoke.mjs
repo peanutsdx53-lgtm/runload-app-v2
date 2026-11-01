@@ -356,6 +356,11 @@ try{
  const eligiblePanel=page.locator('.rv4-region-compare');
  await eligiblePanel.waitFor();
  const eligibleText=await eligiblePanel.innerText();
+ // Screenshot the *eligible calculated-reference state* as well as the rejected state.
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-reference-ready-390.png',fullPage:true});
+ await page.setViewportSize({width:1440,height:900});
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-reference-ready-1440.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
  assert.match(eligibleText,/選択した部位の文献参考値/);
  assert.match(eligibleText,/比較相手|選択中/);
  assert.ok(await eligiblePanel.locator('.rv4-region-compare-method').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=13),'same-model scientific comparison limitation is readable');
