@@ -123,6 +123,10 @@ test('S08 repeated warnings are merged without losing any validation or disablin
  assert.match(html,/id="rr-review-validation"/);
  assert.match(html,/aria-describedby="rr-review-validation"/);
  assert.match(html,/role="alert"/);
+ assert.match(html,/距離を入力してください/);
+ assert.match(html,/時間を入力してください/);
+ assert.doesNotMatch(html,/距離が未取得です/);
+ assert.doesNotMatch(html,/時間が未取得です/);
  assert.match(html,/data-manual-run-save[^>]+disabled/);
  assert.doesNotMatch(html,/id="rr-save-validation"/);
  assert.doesNotMatch(html,/class="rr-save-required-warning"/);
