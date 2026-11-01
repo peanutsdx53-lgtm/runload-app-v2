@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {REGIONS,VIEWS,DRAFT_KEYS,makeUi,setView,focusRegion,toggleRegion,clearSelected,viewRegionIds,addRegionNamesToNote,checkDefinitions,renderScreen} from '../ui/bodyContextExperience.js';
+import {REGIONS,VIEWS,DRAFT_KEYS,makeUi,setView,focusRegion,toggleRegion,clearSelected,viewRegionIds,addRegionNamesToNote,transferStatus,checkDefinitions,renderScreen} from '../ui/bodyContextExperience.js';
 const appSource=readFileSync(new URL('../app.js',import.meta.url),'utf8');
 test('12 original body IDs and labels match app.js unchanged',()=>{
  assert.equal(REGIONS.length,12);
@@ -79,4 +79,18 @@ test('S07 transient selection is distinct from user-authored body observation an
  assert.equal(addRegionNamesToNote(d,ui),false,'a changed selection should not silently append another conflicting region line');
  assert.match(ui.notice,/重複を避けるため/);
  assert.equal((d.bodyObservation.match(/気になった部位：/g)||[]).length,1);
+});
+
+test('S07 transfer state refreshes when the user edits or removes an existing region line',()=>{
+ const ui=makeUi(),d={bodyObservation:'',memo:'',shoeName:''};
+ toggleRegion(ui,'BA-DISP-019');
+ assert.equal(transferStatus(d,ui).disabled,false);
+ assert.equal(addRegionNamesToNote(d,ui),true);
+ assert.equal(transferStatus(d,ui).disabled,true);
+ toggleRegion(ui,'BA-DISP-023');
+ assert.equal(transferStatus(d,ui).disabled,true);
+ assert.match(transferStatus(d,ui).message,/以前に追加した部位名/);
+ d.bodyObservation='本人が気づいたこと';
+ assert.equal(transferStatus(d,ui).disabled,false,'removing the previous line re-enables explicit transfer');
+ assert.match(transferStatus(d,ui).message,/選んだだけでは記録に残りません/);
 });
