@@ -68,6 +68,17 @@ try{
   assert.equal(selectBackground,'rgb(12, 51, 68)','dark select maintains the approved palette');
   const comparison=await compareView.innerText();
   assert.match(comparison,/2026-10-18/);assert.match(comparison,/2026-10-25/);assert.match(comparison,/未回答|運動前に感じた疲れ/);
+  const refPanel=page.locator('.rv4-region-compare');
+  await refPanel.waitFor({state:'visible'});
+  assert.equal(await refPanel.locator('[data-reference-compare-region]').count(),1);
+  assert.equal(await page.locator('.rv4-compare-provenance').getAttribute('open'),null,'IDs remain available but not dominant');
+  assert.equal(await page.locator('.rv4-compare-provenance summary').count(),1);
+  assert.match(await refPanel.locator('.rv4-region-compare-method').innerText(),/現在の同一モデル/);
+  assert.match(await refPanel.innerText(),/文献参考値/);
+  const referenceLayout=await refPanel.evaluate(el=>{
+   const b=el.getBoundingClientRect();return{width:innerWidth,left:b.left,right:b.right,scrollWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(referenceLayout.right<=referenceLayout.width+3&&referenceLayout.left>=-3&&referenceLayout.scrollWidth<=referenceLayout.width+3,'reference panel reflows '+JSON.stringify(referenceLayout));
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-result-compare.png'),fullPage:true});
   await page.locator('[data-compare-select]').selectOption(saved.otherGait);
   await page.locator('.rv4-comparison-empty').waitFor();
