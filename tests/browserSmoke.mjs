@@ -965,6 +965,7 @@ try{
   await page.locator('[data-rv-grade="SECTIONS"]').click();
   for(let i=0;i<5;i++)await page.locator('[data-rv-add]').click();
   assert.equal(await page.locator('.rv-section-row').count(),5,"five sections maximum");
+  if(mode.width>800)assert.equal(await page.locator('.rv-condition-pair').evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length),1,'five-section editor gets full width on desktop, not half-width');
   assert.match(await page.locator('[data-rv-section-progress]').innerText(),/0 \/ 5 件入力/, 'five blank sections are not silently recorded as 0%');
   await page.locator('[data-draft="sectionShare0"]').fill('40');
   assert.match(await page.locator('[data-rv-section-progress]').innerText(),/1 \/ 5 件入力・入力分の合計 40%/,'course progress updates while the first field keeps keyboard focus');
