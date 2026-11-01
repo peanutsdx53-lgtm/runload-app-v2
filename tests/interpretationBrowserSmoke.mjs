@@ -63,7 +63,7 @@ try{
   for(const [id,state] of [[saved.current,'answers-two-five'],[saved.earlier,'answers-zero-six'],[saved.otherGait,'answer-zero-unanswered']]){
    if(id!==saved.current){
     await page.goto(base+'#/result?record='+encodeURIComponent(id),{waitUntil:'domcontentloaded'});
-    await page.locator('.rv4-fatigue').waitFor();
+    await page.locator('.rv4-app').waitFor();
    }
    if(mode.width<=800)await page.locator('[data-tab="fatigue"]').click();
    const panel=page.locator('.rv4-fatigue');
