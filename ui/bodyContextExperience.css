@@ -77,3 +77,10 @@
  .app-shell:has(.cx-page) .mobile-link{color:#c0cbd5}
  .app-shell:has(.cx-page) .mobile-link.is-active{color:#55dce3;background:transparent}
 }
+
+/* S07: visible selected-region transfer state and readable research limitations. */
+.cx-transfer .cx-transfer-status{font-size:13px;line-height:1.65;color:#d4e8ee;margin:0 0 6px;overflow-wrap:anywhere;font-weight:550}
+.cx-transfer button:disabled{opacity:.58;cursor:not-allowed}
+.cx-science-note{font-size:13px;line-height:1.7;color:#c4dae2}
+.cx-chosen-row .cx-selected-chip{font-size:13px;line-height:1.45;min-height:44px}
+@media(max-width:800px){.cx-page .cx-tab{min-height:44px;height:auto}.cx-page .cx-picker-trigger,.cx-page .cx-clear{min-height:44px}.cx-page .cx-selected-chip{min-height:44px}}
