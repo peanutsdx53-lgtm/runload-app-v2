@@ -775,7 +775,11 @@ try{
   assert.equal(await page.locator('.rv-surface-tile').count(),8,"all surface categories retained");
   await page.locator('[data-rv-surface="paved"]').click();
   await page.locator('[data-rv-surface="trail"]').click();
+  // One focused numeric editor is rendered at a time. Choose the selected
+  // surface explicitly before editing instead of assuming both inputs exist.
+  await page.locator('[data-rv-surface-focus="paved"]').click();
   await page.locator('[data-rv-surface-value="paved"]').fill("70");
+  await page.locator('[data-rv-surface-focus="trail"]').click();
   await page.locator('[data-rv-surface-value="trail"]').fill("20");
   await page.locator('[data-rv-apply]').click();
   assert.match(await page.locator('.rv-error').innerText(),/路面の割合/,'reject underfilled surface split');
