@@ -326,3 +326,59 @@
 .gps-review .gps-live-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .gps-review .gps-live-actions>*{text-align:center;min-width:0;display:flex;align-items:center;justify-content:center;white-space:normal;text-decoration:none;line-height:1.4}
 @media(max-width:450px){.gps-review-facts dl,.gps-review-rof-grid{grid-template-columns:minmax(0,1fr)}.gps-review .gps-live-actions{grid-template-columns:minmax(0,1fr)}}
+
+/* GPS mobile editorial pass: always a three-step rail; only the current phase
+   panel is shown. No changes to timer, watcher, or scientific calculations. */
+.gps-v35 .gps-live-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gps-v35 .gps-live-steps span{
+ min-width:0;min-height:48px;padding:10px 5px;display:flex;align-items:center;
+ justify-content:center;gap:7px;white-space:nowrap;overflow-wrap:normal;
+ font-size:clamp(11px,1.4vw,14px);border-radius:11px;
+}
+.gps-v35 .gps-live-steps span b{color:#8ed8e2;font-size:1em;letter-spacing:.01em}
+.gps-v35 .gps-live-steps span.is-current{
+ border-color:#56e6e0;background:#155b70;color:#f6feff;
+}
+.gps-v35 .gps-live-steps span.is-current b{color:#a9fff3}
+.gps-v35[data-phase="ready"] .gps-live-measure{display:none}
+.gps-v35 .gps-v35-panel{min-width:0}
+.gps-v2 .gps-rof-link{
+ display:flex;align-items:center;gap:12px;min-width:0;
+ margin:15px 0;padding:15px 16px;border-radius:13px;
+ border:1px solid #5595a7;background:#103e50;color:#edfaff;text-decoration:none;
+}
+.gps-v2 .gps-rof-link span:first-child{display:grid;gap:5px;min-width:0;flex:1}
+.gps-v2 .gps-rof-link strong{font-weight:810;font-size:.89rem}
+.gps-v2 .gps-rof-link small{font-size:.73rem;color:#abd4df}
+.gps-v2 .gps-rof-link output{
+ flex:none;color:#8bece7;font-size:.88rem;font-weight:800;
+ white-space:nowrap;font-variant-numeric:tabular-nums
+}
+.gps-v2 .gps-rof-link>span:last-child{flex:none;color:#8ad6e3;font-size:1.65rem}
+.gps-v2 .gps-review-rof-before{color:#b9d8e1;font-size:.77rem;line-height:1.45;margin:-4px 0 12px}
+.gps-v2 .gps-live-info summary{font-size:.78rem;font-weight:800;cursor:pointer;color:#d7edf3}
+.gps-v2 .gps-live-info[open] summary{margin-bottom:9px}
+.gps-platform-unavailable{padding:26px;border:1px solid #4c8695;border-radius:18px;background:#12394b}
+.gps-platform-unavailable h1{font-size:1.45rem;margin:0 0 10px}
+.gps-platform-unavailable p{line-height:1.65;margin:0 0 14px}
+.record-v3 .rv-method-card.is-unavailable{
+ opacity:.76;cursor:default;border-style:dashed;box-shadow:none;
+}
+.record-v3 .rv-method-unavailable{
+ flex:none;color:#b8cdd7;border:1px solid #587483;border-radius:8px;
+ padding:5px 8px;font-size:.77rem;font-weight:760;
+}
+@media(max-width:800px){
+ .gps-v35 .gps-live-steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .gps-v35 .gps-live-steps span{min-height:44px;padding:8px 3px;gap:4px;font-size:clamp(10px,2.8vw,13px)}
+ .gps-v35 .gps-live-steps span b{font-size:.9em}
+ .gps-v35 .gps-live-actions--finished,
+ .gps-review .gps-live-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .gps-review .gps-live-actions>*{min-height:50px;font-size:clamp(11px,3vw,15px);padding:8px 6px}
+ .gps-v2 .gps-rof-link{padding:13px 12px}
+}
+@media(max-width:355px){
+ .gps-v35 .gps-live-steps span{font-size:10px}
+ .gps-v35 .gps-live-actions--finished,
+ .gps-review .gps-live-actions{grid-template-columns:minmax(0,1fr)}
+}
