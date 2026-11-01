@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'tests/recordOptionalDensityAuditBrowser.mjs'
+      - 'ui/bodyContextExperience.js'
+      - 'ui/bodyContextExperience.css'
+      - 'app.js'
+      - 'tests/bodyContextExperience.test.mjs'
       - '.github/workflows/record-optional-density-audit.yml'
   workflow_dispatch:
 permissions:
@@ -25,6 +29,8 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Body regression tests
+        run: node --test tests/bodyContextExperience.test.mjs tests/recordExperience.test.mjs
       - name: Capture empty and dense populated screens
         env:
           RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
