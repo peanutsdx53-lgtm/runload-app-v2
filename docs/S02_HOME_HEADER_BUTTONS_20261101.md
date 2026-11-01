@@ -5,3 +5,7 @@ Decision: keep their meanings, locations and existing dashboard actions unchange
 Rules: do not add navigation, overwrite saved widget order, change the first-use guide, introduce voice playback or touch running data.
 Evidence: tests/s02HomeGuideBrowser.mjs now checks computed geometry, overflow and edit-mode width at 320/390/768/1440 for Chromium/WebKit. Screenshot artifacts are written for closed/open/editing states.
 Limits: browser emulation does not prove physical iPhone/Android tap behavior or full 29-condition acceptance. Review actual screenshots after CI.
+
+## Browser finding and correction
+- First CI 320px computed inspection found Edit 32px high while Help was 44px. A legacy `styles.css` `:has()` media rule had higher specificity and won over the first home-only declaration.
+- Fix selectors target `.home-v3 .home-head .home-heading-actions >` (same specificity, later home stylesheet) instead of changing global CSS. Re-run real browser screenshot and geometry checks. Prior failure must not count as PASS.

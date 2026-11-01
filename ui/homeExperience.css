@@ -545,24 +545,24 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 
 /* S02 final header balance: make Edit and screen-help equally tappable.
    Do not change the navigation, guide contents or dashboard preferences. */
-.home-v3 .home-heading-actions > .hx-help-toggle,
-.home-v3 .home-heading-actions > .dashboard-edit-trigger{
+.home-v3 .home-head .home-heading-actions > .hx-help-toggle,
+.home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{
   box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
   min-height:44px;border:1px solid #5493a4;background:#123d4e;color:#e9f9fb;
   border-radius:11px;padding:10px 13px;font-weight:800;font-size:.79rem;
   line-height:1.25;white-space:nowrap;
 }
-.home-v3 .home-heading-actions > .dashboard-edit-trigger{min-width:88px}
-.home-v3 .home-heading-actions > .dashboard-edit-trigger[aria-pressed="true"]{background:#185363;border-color:#8de1e3}
-.home-v3 .home-heading-actions > .dashboard-edit-trigger:disabled{opacity:.6;cursor:not-allowed}
-.home-v3 .home-heading-actions > .dashboard-edit-trigger:focus-visible{outline:3px solid #8dece9;outline-offset:3px}
+.home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{min-width:88px}
+.home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger[aria-pressed="true"]{background:#185363;border-color:#8de1e3}
+.home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger:disabled{opacity:.6;cursor:not-allowed}
+.home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger:focus-visible{outline:3px solid #8dece9;outline-offset:3px}
 @media(max-width:800px){
- .home-v3 .home-heading-actions > .hx-help-toggle,
- .home-v3 .home-heading-actions > .dashboard-edit-trigger{min-height:44px;font-size:.72rem;padding:9px 10px}
- .home-v3 .home-heading-actions > .dashboard-edit-trigger{min-width:80px}
+ .home-v3 .home-head .home-heading-actions > .hx-help-toggle,
+ .home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{min-height:44px;font-size:.72rem;padding:9px 10px}
+ .home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{min-width:80px}
 }
 @media(max-width:350px){
- .home-v3 .home-heading-actions > .hx-help-toggle,
- .home-v3 .home-heading-actions > .dashboard-edit-trigger{min-height:44px;font-size:.67rem;padding:8px 7px}
- .home-v3 .home-heading-actions > .dashboard-edit-trigger{min-width:70px}
+ .home-v3 .home-head .home-heading-actions > .hx-help-toggle,
+ .home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{min-height:44px;font-size:.67rem;padding:8px 7px}
+ .home-v3 .home-head .home-heading-actions > .dashboard-edit-trigger{min-width:70px}
 }
