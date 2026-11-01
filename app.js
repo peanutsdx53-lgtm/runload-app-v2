@@ -6,20 +6,20 @@ import * as restDayStore from './ui/restDayStore.js';
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
   const rofScale=await import("./ui/rofJScale.js");
-  const rofExperience=await import("./ui/rofExperience.js?v=20261101-illustration-help-v2");
+  const rofExperience=await import("./ui/rofExperience.js?v=20261101-gps-mobile-v1");
   const reviewDraft=await import("./ui/recordDraftReview.js");
   const recordReviewExperience=await import("./ui/recordReviewExperience.js?v=20261101-review-density-v1");
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
   const canonical=await import("./ui/manualRunCanonical.js");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261101-review-density-v1");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261101-gps-mobile-v1");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261101-body-density-v1");
   const gpsPlatform=await import("./ui/gpsPlatform.js?v=20261101-gps-mobile-v1");
-  const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-measurement-polish-v2");
+  const measurementExperience=await import("./ui/measurementExperience.js?v=20261101-gps-mobile-v1");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-measurement-polish-v2");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
@@ -873,8 +873,10 @@ function recordExtras(){
     if(event.target.matches("[data-onboard-height]"))onboardingState.heightCm=event.target.value;
     if(event.target.matches("[data-onboard-weight]"))onboardingState.weightKg=event.target.value;
     if(event.target.matches("[data-rof-v4-range]")){
-      rofExperience.setRofScore(rofUi,state.recordDraft,event.target.value);
-      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);
+      const ui=getRofUi(),d=getRofData();
+      rofExperience.setRofScore(ui,d,event.target.value);
+      if(gpsRofActive())syncGpsRofCapture(ui.phase);
+      rofExperience.reflectRofPage(app,d,ui);
       return;
     }
     if(event.target.matches("[data-rof-input]")){
@@ -1548,23 +1550,30 @@ function recordExtras(){
     if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){explorationUi.selected=cat;explorationUi.topic=topic;explorationUi.tab="field";explorationUi.modal="";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
     const rofTab=event.target.closest("[data-rof-v4-phase]");
     if(rofTab){
-      rofUi.metaOpen=!!app.querySelector('.rv4-optional-meta')?.open;
-      rofExperience.setRofPhase(rofUi,rofTab.dataset.rofV4Phase,state.recordDraft);
+      const ui=getRofUi(),d=getRofData();
+      if(gpsRofActive()&&rofTab.dataset.rofV4Phase!==ui.phase)return;
+      ui.metaOpen=!!app.querySelector('.rv4-optional-meta')?.open;
+      rofExperience.setRofPhase(ui,rofTab.dataset.rofV4Phase,d);
       const y=window.scrollY;render();window.scrollTo(0,y);return;
     }
     const rofAnchor=event.target.closest("[data-rof-v4-anchor]");
     if(rofAnchor){
-      rofExperience.focusRofAnchor(rofUi,Number(rofAnchor.dataset.rofV4Anchor));
-      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+      const ui=getRofUi(),d=getRofData();
+      rofExperience.focusRofAnchor(ui,Number(rofAnchor.dataset.rofV4Anchor));
+      rofExperience.reflectRofPage(app,d,ui);return;
     }
     const rofStep=event.target.closest("[data-rof-v4-step]");
     if(rofStep){
-      rofExperience.adjustRofScore(rofUi,state.recordDraft,Number(rofStep.dataset.rofV4Step));
-      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+      const ui=getRofUi(),d=getRofData();
+      rofExperience.adjustRofScore(ui,d,Number(rofStep.dataset.rofV4Step));
+      if(gpsRofActive())syncGpsRofCapture(ui.phase);
+      rofExperience.reflectRofPage(app,d,ui);return;
     }
     if(event.target.closest("[data-rof-v4-clear]")){
-      rofExperience.clearRofScore(rofUi,state.recordDraft);
-      rofExperience.reflectRofPage(app,state.recordDraft,rofUi);return;
+      const ui=getRofUi(),d=getRofData();
+      rofExperience.clearRofScore(ui,d);
+      if(gpsRofActive())syncGpsRofCapture(ui.phase);
+      rofExperience.reflectRofPage(app,d,ui);return;
     }
     const rofClear=event.target.closest("[data-rof-clear]");
     if(rofClear){const y=window.scrollY;rofExperience.recordRofInput(state.recordDraft,rofClear.dataset.rofClear==='rofBefore'?'before':'after',null);render();window.scrollTo(0,y);return}
