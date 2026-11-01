@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {SURFACES,courseReadiness,courseSummary,derivedFlat,initialCourseUi,manualPage,coursePage} from "../ui/recordExperience.js";
+import {SURFACES,courseReadiness,courseSummary,derivedFlat,initialCourseUi,surfaceShareState,manualPage,coursePage} from "../ui/recordExperience.js";
 const draft=()=>({date:"",distance:"",minutes:"",courseName:"",gradeMode:"UNKNOWN",surfaceMode:"UNKNOWN",upPercent:"",downPercent:"",primarySurface:"",...Object.fromEntries(SURFACES.map(([k])=>["surface"+k,""])),...Object.fromEntries(Array.from({length:5},(_,i)=>[["sectionShare"+i,""],["sectionDirection"+i,"FLAT"],["sectionGrade"+i,""],["sectionSurface"+i,"UNKNOWN"]]).flat())});
 test("all eight legacy surface categories remain selectable",()=>{
  assert.deepEqual(SURFACES.map(x=>x[1]),["舗装路","陸上トラック","トレッドミル","締まった土道","不整地トレイル","天然芝","人工芝","砂地"]);
@@ -142,4 +142,45 @@ test('S07: selected course has immediately accessible edit and copy actions in s
  assert.equal((h.match(/data-rv-apply/g)||[]).length,1);
  assert.ok(h.includes('data-course-save-new'));
  assert.equal(d.courseName,'川沿い走行','rendering did not mutate draft');
+});
+
+test('S08: selected preset removes the second save operation in 03, keeping apply',()=>{
+ const d={...draft(),courseName:'テスト'},id='course-v1-11111111-1111-4111-8111-111111111111';
+ const ui={...initialCourseUi(d),selectedPresetId:id};
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[{id,data:d}]});
+ assert.equal((h.match(/data-course-save(?: |=)/g)||[]).length,1);
+ assert.equal((h.match(/data-course-save-new/g)||[]).length,1);
+ assert.doesNotMatch(h,/rv-commit-group--save/);
+ assert.match(h,/rv-summary-actions--single/);
+ assert.equal((h.match(/data-rv-apply/g)||[]).length,1);
+});
+test('S08: unsaved case still has a single save action at 03',()=>{
+ const d=draft(),ui=initialCourseUi(d);
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[]});
+ assert.equal((h.match(/data-course-save /g)||[]).length,1);
+ assert.match(h,/rv-commit-group--save/);
+ assert.doesNotMatch(h,/rv-inline-preset-tools/);
+});
+test('S08: delete confirmation retains both cancel and confirm as separate controls',()=>{
+ const d={...draft(),courseName:'テスト'},id='course-v1-11111111-1111-4111-8111-111111111111';
+ const ui={...initialCourseUi(d),selectedPresetId:id,pendingDelete:id};
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui,{ok:true,records:[{id,data:d}]});
+ assert.equal((h.match(/data-course-confirm-delete/g)||[]).length,1);
+ assert.equal((h.match(/data-course-cancel-delete/g)||[]).length,1);
+});
+test('S08: mixed surface shares use slope-like focus and no implicit remainder category',()=>{
+ const d={...draft(),surfaceMode:'MIXED',surfacepaved:'60',surfacetrack:'40'};
+ const ui=initialCourseUi(d);
+ assert.deepEqual(ui.surfaceSelected,['paved','track']);
+ assert.equal(ui.surfaceFocus,'paved');
+ assert.equal(surfaceShareState(d,ui).max,60);
+ assert.equal(surfaceShareState(d,ui).valid,true);
+ ui.surfaceFocus='track';assert.equal(surfaceShareState(d,ui).max,40);
+ d.surfacetrack='';assert.equal(surfaceShareState(d,ui).valid,false);
+ assert.equal(surfaceShareState(d,ui).total,60);
+ assert.match(courseReadiness(d,ui).join(' '),/合計100%/);
+ const h=coursePage({recordDraft:d,recordCourseUi:ui},ui);
+ assert.match(h,/data-rv-surface-step="-1"/);
+ assert.match(h,/data-rv-surface-step="1"/);
+ assert.match(h,/data-rv-surface-mix|class="rv-surface-mix"/);
 });
