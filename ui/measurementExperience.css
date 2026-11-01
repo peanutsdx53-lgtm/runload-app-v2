@@ -363,6 +363,13 @@
 .gps-platform-unavailable{padding:26px;border:1px solid #4c8695;border-radius:18px;background:#12394b}
 .gps-platform-unavailable h1{font-size:1.45rem;margin:0 0 10px}
 .gps-platform-unavailable p{line-height:1.65;margin:0 0 14px}
+/* UX-034: this return link is an anchor. Keep it a single block at 200%
+   browser zoom rather than painting a separate fragmented inline background. */
+.gps-platform-unavailable .gps-v2-button{
+ display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+ padding:12px 10px;text-align:center;line-height:1.5;text-decoration:none;
+ white-space:normal;overflow-wrap:anywhere
+}
 .record-v3 .rv-method-card.is-unavailable{
  opacity:.76;cursor:default;border-style:dashed;box-shadow:none;
 }
