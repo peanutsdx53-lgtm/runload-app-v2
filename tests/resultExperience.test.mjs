@@ -115,3 +115,17 @@ test('result route explains missing or deleted explicit IDs, with no fallback',(
  assert.match(result,/比較相手/);
  assert.match(result,/選択中/);
 });
+
+
+test('S09 comparison data and long IDs remain readable without changing scientific provenance',()=>{
+ const inline=read('ui/resultInlineStyles.js'),js=read('ui/resultExperience.js');
+ assert.match(inline,/\.rv4-region-compare-stats/);
+ assert.match(inline,/\.rv4-region-compare-method\{font-size:13px/);
+ assert.match(inline,/\.rv4-compare-provenance\{display:block/);
+ assert.doesNotMatch(inline,/\.rv4-compare-provenance\{display:grid/);
+ assert.match(inline,/\.rv4-fatigue-method p\{[^}]*font-size:14px/);
+ assert.match(js,/記録ID末尾 '\+clean\(other\.id\.slice\(-8\)\)/);
+ assert.match(js,/記録ID '\+clean\(other\.id\)/,'full identifiers remain in disclosure details');
+ assert.match(js,/compareBodyReferenceRows/);
+ assert.match(js,/再計算した参考値です/);
+});
