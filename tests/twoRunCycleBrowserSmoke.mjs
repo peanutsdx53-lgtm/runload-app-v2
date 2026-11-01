@@ -94,6 +94,9 @@ try{
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  const ux23Selected=page.locator('[data-ex-learning="distance-time-pace"]');
  await ux23Selected.waitFor();
+ // Hash navigation can resolve before the SPA asynchronously paints the newly
+ // requested record. Verify the content belongs to the requested ID first.
+ await page.waitForFunction(()=>{const e=document.querySelector('[data-ex-learning="distance-time-pace"] .ex-tool-result');return e?.textContent.includes('選択した保存済み走行（手入力）')&&e?.textContent.includes('2026-10-19');},null,{timeout:15000});
  assert.match(await ux23Selected.locator('.ex-tool-result').innerText(),/選択した保存済み走行（手入力）/);
  assert.match(await ux23Selected.locator('.ex-context').innerText(),/2026-10-19 に保存した走行距離と時間に関連/);
  assert.doesNotMatch(await ux23Selected.innerText(),/2026-10-21 に保存した走行距離と時間に関連/);
