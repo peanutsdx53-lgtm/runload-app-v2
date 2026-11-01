@@ -1,0 +1,44 @@
+name: S02 condition and achievements visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/homeExperience.js'
+      - 'ui/homeExperience.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/s02ConditionAchievementBrowser.mjs'
+      - 'tests/s02ConditionAchievementPresentation.test.mjs'
+      - '.github/workflows/s02-condition-achievements-visual-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture-cards:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium,webKit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine == 'webKit' && 'webkit' || matrix.engine }}
+      - name: Check data presentation
+        run: node --test tests/s02ConditionAchievementPresentation.test.mjs tests/homeExperience.test.mjs
+      - name: Capture condition and achievements
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine == 'webKit' && 'webkit' || matrix.engine }}
+        run: node tests/s02ConditionAchievementBrowser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: s02-condition-achievements-${{ matrix.engine }}
+          path: audit-output/s02-condition-achievements/
+          if-no-files-found: warn
+          retention-days: 14
