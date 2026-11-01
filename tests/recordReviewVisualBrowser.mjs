@@ -49,6 +49,14 @@ try{
   assert.equal(await page.locator('[data-required-status]').count(),3);
   assert.match(await page.locator('.rr-alert').innerText(),/保存前に入力が必要な項目があります/);
   assert.equal(await page.locator('.rr-save').isDisabled(),true,'incomplete record cannot save');
+  assert.equal(await page.locator('.rr-save').getAttribute('aria-describedby'),'rr-review-validation');
+  assert.equal(await page.locator('#rr-review-validation').count(),1,'single warning with complete reasons');
+  assert.equal(await page.locator('.rr-save-required-warning').count(),0,'do not repeat footer warning');
+  const statusChips=await page.locator('[data-required-status]').evaluateAll(els=>els.map(e=>({
+    childTags:[...e.children].map(c=>c.tagName),clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+    label:e.getAttribute('aria-label'),height:e.getBoundingClientRect().height
+  })));
+  assert.ok(statusChips.every(c=>c.clientWidth+2>=c.scrollWidth&&c.childTags.join(',')==='B,EM'&&c.height>=48),'labels remain legible without forced wrapping '+JSON.stringify(statusChips));
   await take(page,width,'REVIEW-required-incomplete');
   await page.locator('.rr-back').click();
   await page.locator('.rv-manual').waitFor();
@@ -67,6 +75,9 @@ try{
   const icons=await page.locator('.rr-row-icon svg').evaluateAll(els=>els.map(e=>e.outerHTML));
   assert.deepEqual(icons,manualIcons,'manual and review use the exact same icons');
   assert.equal(await page.locator('[data-required-ok="true"]').count(),3);
+  assert.equal(await page.locator('#rr-review-validation,.rr-save-required-warning').count(),0,'valid review has no redundant warnings');
+  assert.equal(await page.locator('[data-required-status] b').count(),3);
+  assert.equal(await page.locator('[data-required-status] em').count(),3);
   await take(page,width,'REVIEW-valid-six-km');
   assert.deepEqual(exceptions,[],'browser errors '+width);
   await ctx.close();
