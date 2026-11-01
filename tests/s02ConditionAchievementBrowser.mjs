@@ -62,14 +62,15 @@ try{
   assert.equal(dateTone.icon,'rgb(210, 193, 255)','Condition date calendar uses lavender');
   assert.equal(dateTone.dialogBorder,'rgb(164, 146, 213)');
   assert.equal(dateTone.type,'date','native date picker retained');
-  const focusTone=await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>getComputedStyle(el).outlineColor);
-  assert.equal(focusTone,'rgb(225, 201, 255)','Condition focused close button uses lavender rather than teal');
   assert.match(dateTone.display,/\d{4}\/\d{2}\/\d{2}/);
   assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog receives focus');
   await page.keyboard.press('Shift+Tab');
   assert.equal(await dialog.locator('.hx-save').evaluate(el=>document.activeElement===el),true,'condition dialog Shift+Tab wraps to last enabled action');
   await page.keyboard.press('Tab');
   assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog Tab wraps to close');
+  const keyboardFocus=await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>({visible:el.matches(':focus-visible'),color:getComputedStyle(el).outlineColor}));
+  assert.equal(keyboardFocus.visible,true,'keyboard Tab makes the focus ring visible');
+  assert.equal(keyboardFocus.color,'rgb(225, 201, 255)','visible keyboard focus ring uses lavender, not teal');
   await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
   const modalGeometry=await dialog.evaluate(el=>{
    const d=el.getBoundingClientRect(),f=el.querySelector('[data-condition-form]'),button=f.querySelector('.hx-save'),save=button.getBoundingClientRect();
