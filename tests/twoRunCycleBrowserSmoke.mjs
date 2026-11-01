@@ -86,14 +86,21 @@ try{
  assert.match(await ux23Latest.locator('.ex-tool-result').innerText(),/2026-10-21/);
  assert.match(await ux23Latest.locator('.ex-context').innerText(),/2026-10-21 に保存した走行距離と時間に関連/);
  assert.doesNotMatch(await ux23Latest.innerText(),/関連する入力がなくても/);
+ // Preserve the real viewport with fixed navigation before making a clean full-card audit capture.
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-latest-viewport-390.png',fullPage:false});
+ await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto';el.style.width='100%'});
  await ux23Latest.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-latest-390.png'});
+ await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom='';el.style.width=''});
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(firstId)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  const ux23Selected=page.locator('[data-ex-learning="distance-time-pace"]');
  await ux23Selected.waitFor();
  assert.match(await ux23Selected.locator('.ex-tool-result').innerText(),/選択した保存済み走行（手入力）/);
  assert.match(await ux23Selected.locator('.ex-context').innerText(),/2026-10-19 に保存した走行距離と時間に関連/);
  assert.doesNotMatch(await ux23Selected.innerText(),/2026-10-21 に保存した走行距離と時間に関連/);
+ await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-selected-viewport-390.png',fullPage:false});
+ await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto';el.style.width='100%'});
  await ux23Selected.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-selected-390.png'});
+ await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom='';el.style.width=''});
  await page.setViewportSize({width:1440,height:900});
  await ux23Selected.screenshot({path:'audit-output/p0-continuity/'+engineName+'-UX023-two-saved-selected-1440.png'});
  await page.setViewportSize({width:390,height:844});
