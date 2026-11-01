@@ -55,6 +55,19 @@ try{
   await page.locator('[data-rv-surface-value="'+surfaces[0]+'"]').fill('60');
   await page.locator('[data-rv-surface-value="'+surfaces[1]+'"]').fill('40');
   await take(page,w,'COURSE-dense');
+  assert.equal(await page.locator('.rv-inline-preset-tools').count(),0,'new course has no edit/copy controls');
+  await page.locator('.rv-course-summary [data-course-save]').click();
+  await page.locator('.rv-inline-preset-tools').waitFor({state:'visible',timeout:6000});
+  assert.equal(await page.locator('.rv-course-setup [data-course-save]').count(),1,'existing preset can be edited in first card');
+  assert.equal(await page.locator('.rv-course-setup [data-course-save-new]').count(),1,'existing preset can be copied in first card');
+  assert.equal(await page.locator('[data-rv-apply]').count(),1,'record application is still a separate action');
+  assert.ok(await page.evaluate(()=>{
+    const c=document.querySelector('.rv-course-setup').getBoundingClientRect();
+    const a=document.querySelector('.rv-inline-preset-tools').getBoundingClientRect();
+    const n=document.querySelector('.rv-course-conditions').getBoundingClientRect();
+    return a.top>=c.top&&a.bottom<=c.bottom+2&&a.bottom<n.top;
+  }),'preset follow-up actions appear in the first card before conditions');
+  await take(page,w,'COURSE-saved-followup');
   await enter(page,'record-rof','[data-rof-v4-root]',w,'ROF');
   const range=page.locator('[data-rof-v4-range]');
   await range.evaluate(e=>{e.value='4';e.dispatchEvent(new Event('input',{bubbles:true}));});
