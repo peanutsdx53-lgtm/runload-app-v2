@@ -52,6 +52,17 @@ try{
   const dialog=page.locator('.hx-condition-dialog');
   await dialog.waitFor();
   assert.equal(await dialog.count(),1,'condition-only themed dialog');
+  const dateTone=await dialog.evaluate(el=>{
+    const panel=el.querySelector('.rl-date-control'),svg=el.querySelector('.rl-date-icon'),date=el.querySelector('[name="date"]');
+    const css=getComputedStyle(panel),icon=getComputedStyle(svg),dialogCss=getComputedStyle(el);
+    return {bg:css.backgroundColor,border:css.borderTopColor,icon:icon.color,type:date?.type,display:el.querySelector('.rl-date-value')?.textContent,dialogBorder:dialogCss.borderTopColor};
+  });
+  assert.equal(dateTone.bg,'rgb(32, 36, 64)','Condition date uses indigo, not global teal');
+  assert.equal(dateTone.border,'rgb(169, 155, 224)','Condition date uses lavender border');
+  assert.equal(dateTone.icon,'rgb(210, 193, 255)','Condition date calendar uses lavender');
+  assert.equal(dateTone.dialogBorder,'rgb(164, 146, 213)');
+  assert.equal(dateTone.type,'date','native date picker retained');
+  assert.match(dateTone.display,/\d{4}\/\d{2}\/\d{2}/);
   assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog receives focus');
   await page.keyboard.press('Shift+Tab');
   assert.equal(await dialog.locator('.hx-save').evaluate(el=>document.activeElement===el),true,'condition dialog Shift+Tab wraps to last enabled action');
@@ -91,6 +102,10 @@ try{
   await page.locator('[data-achievement-open]').click();
   const achDialog=page.locator('.hx-ach-dialog');
   await achDialog.waitFor();
+  const achTone=await achDialog.evaluate(el=>({border:getComputedStyle(el).borderTopColor,background:getComputedStyle(el).backgroundImage,closeBg:getComputedStyle(el.querySelector('.hx-dialog-head button')).backgroundColor}));
+  assert.equal(achTone.border,'rgb(199, 148, 91)','achievement detail border should be gold');
+  assert.equal(achTone.closeBg,'rgb(91, 67, 53)','achievement detail close action should be warm brown');
+  assert.match(achTone.background,/rgb\(59, 45, 39\)/,'achievement detail uses dark orange/brown background');
   assert.equal(await achDialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'achievement dialog receives keyboard focus');
   assert.equal(await achDialog.locator('.hx-ach-milestone').count(),4,'four visible and explicitly named milestones');
   const geometry=await achDialog.evaluate(el=>{
