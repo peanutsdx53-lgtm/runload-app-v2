@@ -108,3 +108,6 @@
   .app-shell:has(.cj-screen) .mobile-link{color:#c0cbd5}
   .app-shell:has(.cj-screen) .mobile-link.is-active{color:#55dce3;background:transparent}
 }
+
+/* UX-026: force readable native select controls on WebKit and Chromium. */
+.cj-controls select,.cj-controls select option{color-scheme:dark;background-color:#092a3b;color:#ebfafc}
