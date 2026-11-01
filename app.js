@@ -18,6 +18,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
   const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261101-body-density-v1");
+  const gpsPlatform=await import("./ui/gpsPlatform.js?v=20261101-gps-mobile-v1");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261027-measurement-polish-v2");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-measurement-polish-v2");
   const gpsStore=await import("./ui/gpsIndexedDbStore.js?v=20261027-gps-backup-v39");
@@ -148,6 +149,15 @@ import * as restDayStore from './ui/restDayStore.js';
   const environmentUi=environmentExperience.newEnvironmentUi();
   const bodyUi=bodyExperience.makeUi();
   const rofUi=rofExperience.createRofUiState();
+  const gpsRofUi=rofExperience.createRofUiState();
+  const gpsRofActive=()=>currentPage()==='gps-rof'&&gpsPlatform.currentGpsSmartphone()&&['ready','finished'].includes(ensureGps().state.phase);
+  const getRofData=()=>gpsRofActive()?gpsSelfReport:state.recordDraft;
+  const getRofUi=()=>gpsRofActive()?gpsRofUi:rofUi;
+  const syncGpsRofCapture=phase=>{
+    const key=phase==='before'?'rofBefore':'rofAfter';
+    const stamp=phase==='before'?'beforeCapturedAt':'afterCapturedAt';
+    gpsSelfReport[stamp]=Number.isInteger(gpsSelfReport[key])?new Date().toISOString():null;
+  };
   const onboardingKey="runload-v2-introduction-preview-v1";
   const nativeStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const canonicalStartup=await canonical.initialize();
@@ -161,7 +171,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
   const needsLegalReconfirmation=!!introStored?.completed&&hasPriorLegalRecord&&!legalDocuments.readLegalConsent(onboardStorage);
   const onboardingState={open:!introStored?.completed||needsLegalReconfirmation,step:needsLegalReconfirmation?1:0,reconsentOnly:needsLegalReconfirmation,replay:false,language:"ja",termsAccepted:false,privacyConfirmed:false,error:"",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
-  const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定","gps-review":"GPS記録内容の確認",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定","gps-review":"GPS記録内容の確認","gps-rof":"GPSの疲労感",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
   const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
   const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const raw=location.hash.replace(/^#\/?/,"");const path=raw.split("?")[0];return path==="history"&&raw.includes("life=1")?"condition":pageLabels[path]?path:"home"};
@@ -356,7 +366,7 @@ import * as restDayStore from './ui/restDayStore.js';
     try{onboardStorage?.setItem(onboardingKey,JSON.stringify({completed:true,language:"ja"}))}catch{}
     render();
   }
-  function recordStart(){return recordExperience.recordMethodPage();}
+  function recordStart(){return recordExperience.recordMethodPage(gpsPlatform.currentGpsSmartphone());}
 function recordExtras(){
  const d=state.recordDraft, field=(id)=>esc(d[id]??"");
  const select=(name,items,extra="")=>`<select data-draft="${name}" ${extra}>${items.map(([value,label])=>`<option value="${value}" ${d[name]===value?"selected":""}>${label}</option>`).join("")}</select>`;
@@ -481,8 +491,18 @@ function recordExtras(){
     function secondary(page){
  const title=pageLabels[page]||"その他";
  const top=`<section class="home-head"><div><h1>${esc(title)}</h1><p class="lead">${esc({measurement:"走る時間とルートを確かめる。",course:"走りたいコースを、自分で組み立てる。",simulation:"条件を変えて、参考値の違いを考える。",consultation:"記録を振り返り、必要な情報を整理する。","body-part-detail":"気になる部位を、過去の記録と照らし合わせる。"}[page]||"自分の記録を大切に扱う。")}</p></div></section>`;
+
+ if(['measurement','gps-review','gps-rof'].includes(page)&&!gpsPlatform.currentGpsSmartphone())
+   return '<section class="gps-v2 gps-platform-unavailable" role="status"><h1>GPS測定はスマートフォン専用です</h1><p>PCでは手入力をご利用ください。</p><a href="#/record-start" class="gps-v2-button gps-v2-primary">記録方法に戻る</a></section>';
  if(page==="measurement")return measurementExperience.measurementPage(ensureGps().state,ensureGps().elapsed(),gpsSelfReport);
  if(page==="gps-review")return measurementExperience.gpsReviewPage(ensureGps().state,ensureGps().elapsed(),gpsSelfReport);
+ if(page==="gps-rof"){
+   const phase=ensureGps().state.phase;
+   if(!['ready','finished'].includes(phase))
+     return '<section class="gps-v2 gps-platform-unavailable"><h1>測定中は疲労感を入力できません</h1><a href="#/measurement">GPS測定に戻る</a></section>';
+   gpsRofUi.phase=phase==='ready'?'before':'after';
+   return rofExperience.rofPage(gpsSelfReport,gpsRofUi,{gps:true});
+ }
    if(page==="course")return recordCourse(true);
  if(page==="simulation"){
   const savedGps=gpsStore.readGpsRuns();
@@ -508,14 +528,14 @@ function recordExtras(){
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
  const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',"dynamic-result":()=>'<section data-gps-dynamic aria-label="GPS動的結果"><p class="gd-empty">動的結果を読み込んでいます…</p></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,course:()=>recordCourse(true),"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
- const navPage=page==="condition"?"home":page==="result"||page==="dynamic-result"?"result":["measurement","gps-review"].includes(page)?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment"].includes(page)?"record":page;
+ const navPage=page==="condition"?"home":page==="result"||page==="dynamic-result"?"result":["measurement","gps-review"].includes(page)?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","gps-rof"].includes(page)?"record":page;
  // Return links to the common confirmation when a detail was opened from that screen.
  const detailPages=["record-course","record-rof","record-more","record-compare","record-environment","record-reflection"];
  const detailContent=(state.recordReviewReturn&&detailPages.includes(page))
    ? content.replaceAll('href="#/record"','href="#/record-review"') : content;
  const gpsConsentMarkup=gpsConsentAction&&page==="measurement"
-   ?`<div class="gps-consent-backdrop" data-gps-consent-overlay><section class="gps-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="gps-consent-title" aria-describedby="gps-consent-description gps-consent-interruption"><div class="gps-consent-symbol" aria-hidden="true">⌖</div><h2 id="gps-consent-title">${gpsConsentAction==="resume"?"位置情報の取得を再開しますか？":"位置情報を使用しますか？"}</h2><p id="gps-consent-description">測定中は端末の現在地・移動経路・取得可能な標高を利用します。道路地図の表示時には、表示する場所の範囲がOpenStreetMapへ伝わります。走行軌跡は保存時に選択した場合だけ端末に保存します。</p><div class="gps-consent-interruption" id="gps-consent-interruption" role="note"><strong>画面ロック・アプリ切り替え時の動作</strong><p>画面をロックしたり別のアプリへ切り替えたりすると、<b>活動時間のタイマーとGPS測位は自動で一時停止</b>します。</p><p>画面に戻っても自動では再開しません。<b>「測定を再開」から位置情報の使用を確認</b>してください。停止中の時間・距離は加算されません。</p></div><div class="gps-consent-actions"><button type="button" data-gps-consent-cancel class="gps-v2-button gps-v2-secondary">使用しない</button><button type="button" data-gps-consent-confirm class="gps-v2-button gps-v2-primary">${gpsConsentAction==="resume"?"許可して再開":"許可して開始"}</button></div></section></div>` : "";
- app.innerHTML=`<div class="app-shell ${page==="consultation"?"cp-app":""}" data-mobile-view="edit" data-mode-preview="single"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement","gps-review"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
+   ?`<div class="gps-consent-backdrop" data-gps-consent-overlay><section class="gps-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="gps-consent-title" aria-describedby="gps-consent-description gps-consent-interruption"><div class="gps-consent-symbol" aria-hidden="true">⌖</div><h2 id="gps-consent-title">${gpsConsentAction==="resume"?"位置情報の取得を再開しますか？":"位置情報を使用しますか？"}</h2><p id="gps-consent-description">現在地・経路・取得可能な標高を計測に使います。地図の表示範囲はOpenStreetMapへ伝わります。経路の保存は終了後に選択します。</p><div class="gps-consent-interruption" id="gps-consent-interruption" role="note"><strong>画面ロック・アプリ切り替え時の動作</strong><p>ロック・アプリ切り替えで<b>タイマーとGPSは自動で一時停止</b>します。戻っても自動再開せず、再開時に再確認が必要です。停止中の時間・距離は加算しません。</p></div><div class="gps-consent-actions"><button type="button" data-gps-consent-cancel class="gps-v2-button gps-v2-secondary">使用しない</button><button type="button" data-gps-consent-confirm class="gps-v2-button gps-v2-primary">${gpsConsentAction==="resume"?"許可して再開":"許可して開始"}</button></div></section></div>` : "";
+ app.innerHTML=`<div class="app-shell ${page==="consultation"?"cp-app":""}" data-mobile-view="edit" data-mode-preview="single"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement","gps-review","gps-rof"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
  if(page==="consultation"){
   consultationExperience.mountConsultation(app.querySelector('#runload-consultation'),consultationExperience.consultationSources({
    manual:manualRunStore.readManualRuns(onboardStorage),gps:gpsStore.readGpsRuns(),conditions:homeExperience.readConditions(onboardStorage)
@@ -1172,7 +1192,7 @@ function recordExtras(){
     if(gpsConsentChoice){
       const pending=gpsConsentAction;
       gpsConsentAction="";
-      if(gpsConsentChoice.hasAttribute('data-gps-consent-confirm')&&currentPage()==='measurement'){
+      if(gpsConsentChoice.hasAttribute('data-gps-consent-confirm')&&currentPage()==='measurement'&&gpsPlatform.currentGpsSmartphone()){
         const gps=ensureGps();
         if(pending==='start'&&gps.state.phase==='ready'){
           // Capture optional profile body mass only when measurement begins.
@@ -1212,6 +1232,7 @@ function recordExtras(){
     if(gpsAction){
       const gps=ensureGps(),action=gpsAction.dataset.gpsAction;
       if(action==='start'){
+        if(!gpsPlatform.currentGpsSmartphone()){gps.state.notice='GPS測定はスマートフォン専用です';render();return;}
         if(!window.isSecureContext){gps.state.notice='GPS計測はHTTPSで開いてください';render();return;}
         if(gps.state.phase==='ready'){gpsConsentAction='start';render();app.querySelector('[data-gps-consent-confirm]')?.focus();return;}
       }else if(action==='flag'){gps.addFlag();}
