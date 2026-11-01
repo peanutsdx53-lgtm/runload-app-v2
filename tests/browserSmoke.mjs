@@ -1460,7 +1460,7 @@ try{
   assert.equal(await review.locator('[data-review-gait]').count(),3,
    'missing activity is disclosed as an explicitly required field');
   assert.match(await review.locator('.rr-alert').innerText(),/活動種目を選択してください/);
-  assert.match(await review.locator('.rr-save-required-warning').innerText(),/入力が完了すると保存/);
+  assert.match(await review.locator('.rr-gait-warning small').innerText(),/活動種目を選択するまで記録は保存できません/,'missing activity has an explicit save-blocking explanation');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-manual-required-warning-v19.png'),fullPage:false});
   await review.locator('[data-review-gait="RUNNING"]').click();
   assert.ok(await review.locator('[data-manual-run-save]').isEnabled(),
