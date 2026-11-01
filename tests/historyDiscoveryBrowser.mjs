@@ -99,7 +99,7 @@ try{
   await capture(page,width,'08-jump-to-record-month');
   await page.reload({waitUntil:'networkidle'});
   await rootSel.waitFor();
-  await rootSel.locator('[data-history-scope="all"]').click();
+  await rootSel.locator('.hx-scope [data-history-scope="all"]').click();
   assert.equal(await rootSel.locator('[data-select-id="'+runId+'"]').count(),1,'reload retains IndexedDB record');
   await capture(page,width,'09-reload-all-months');
   assert.deepEqual(errors,[],'no script errors');
