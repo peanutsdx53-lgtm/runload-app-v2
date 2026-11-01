@@ -727,3 +727,6 @@ body.runload-dialog-open{overflow:hidden;overscroll-behavior:none}
 #app .hx-dialog.hx-ach-dialog .hx-ach-milestone-status{color:#ffdf9e}
 #app .hx-dialog.hx-ach-dialog .hx-ach-milestone.is-unearned .hx-ach-milestone-status{color:#ddcebc}
 #app .hx-dialog.hx-ach-dialog .hx-ach-limit{color:#e0d2c2}
+
+/* All Condition-dialog focus rings follow the approved lavender palette. */
+#app .hx-dialog.hx-condition-dialog .hx-dialog-head button:focus-visible{outline:3px solid #e1c9ff;outline-offset:2px}

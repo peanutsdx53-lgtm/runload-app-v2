@@ -62,6 +62,8 @@ try{
   assert.equal(dateTone.icon,'rgb(210, 193, 255)','Condition date calendar uses lavender');
   assert.equal(dateTone.dialogBorder,'rgb(164, 146, 213)');
   assert.equal(dateTone.type,'date','native date picker retained');
+  const focusTone=await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>getComputedStyle(el).outlineColor);
+  assert.equal(focusTone,'rgb(225, 201, 255)','Condition focused close button uses lavender rather than teal');
   assert.match(dateTone.display,/\d{4}\/\d{2}\/\d{2}/);
   assert.equal(await dialog.locator('.hx-dialog-head [data-home-close]').evaluate(el=>document.activeElement===el),true,'condition dialog receives focus');
   await page.keyboard.press('Shift+Tab');

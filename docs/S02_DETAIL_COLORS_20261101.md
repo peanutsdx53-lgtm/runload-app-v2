@@ -15,3 +15,6 @@ On physical iPhone screenshot the Condition native date input's custom visual su
 
 ## Acceptance
 Inspect computed colors of date control, icon, focus border, achievement modal background/border/close button at 320/390/768/1440 in Chromium and WebKit; capture screenshots. Verify date input remains a native input, date value remains the selected date, and editing the date still works. Verify 4 milestones and their achieved/unachieved status, keyboard focus and no horizontal clipping. Real iPhone and Android device visual and picker behavior remains a separate check.
+
+## Screenshot refinement
+The first browser captures showed that the Condition modal's auto-focused close button still inherited a teal focus ring from the generic home button rule. Scope that focus ring to lavender without modifying keyboard semantics or other screens. Run real Chromium and WebKit computed-style checks for the focused close button as part of the S02 visual acceptance.
