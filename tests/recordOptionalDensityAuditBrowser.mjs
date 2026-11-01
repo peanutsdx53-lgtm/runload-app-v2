@@ -89,7 +89,21 @@ try{
     const ids=await page.locator('[data-picker-id]').evaluateAll(xs=>xs.map(x=>x.dataset.pickerId));
     for(const id of ids)await page.locator('[data-picker-id="'+id+'"]').click();
   }
-  assert.equal(await page.locator('.cx-selected-chip').count(),12);
+  assert.equal(await page.locator('.cx-selected-chip').count(),3,'initial twelve-region display compact');
+  assert.match(await page.locator('[data-selected-expand]').innerText(),/ほか 9 部位を表示/);
+  await take(page,w,'BODY-12-regions-compact');
+  await page.locator('[data-selected-expand]').click();
+  assert.equal(await page.locator('.cx-selected-chip').count(),12,'expand reveals all selections without loss');
+  await take(page,w,'BODY-12-regions-expanded');
+  await page.locator('[data-selected-expand]').click();
+  assert.equal(await page.locator('.cx-selected-chip').count(),3,'collapse does not discard selected regions');
+  const shoeBefore=await page.locator('#cx-shoeName').evaluate(el=>({limit:el.maxLength,length:el.value.length}));
+  assert.equal((await page.locator('[data-counter="shoeName"]').innerText()),shoeBefore.length+'/100');
+  for(const name of ['bodyObservation','memo']){
+    const m=await page.locator('#cx-'+name).evaluate(el=>({height:el.getBoundingClientRect().height,scrollHeight:el.scrollHeight}));
+    assert.ok(m.height>=170,'long text expands: '+name+' '+JSON.stringify(m));
+    assert.ok(m.height<=242,'long text bounded: '+name);
+  }
   await take(page,w,'BODY-12-regions-long-fields');
   await page.locator('[data-append-name]').click();
   await take(page,w,'BODY-appended');
