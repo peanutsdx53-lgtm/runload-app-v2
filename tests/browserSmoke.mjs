@@ -595,12 +595,16 @@ try{
     });
     assert.equal(r.cards.length,3,label+' step count');
     assert.ok(r.cards[0].bottom+2<r.cards[1].top&&r.cards[1].bottom+2<r.cards[2].top,label+' vertical flow '+JSON.stringify(r));
+    // A selected reusable preset has a single "apply" decision; its separate
+    // update/save-as controls live beside the preset. New courses offer two.
+    assert.equal(r.commits.length,label==='saved'?1:2,label+' valid commit choices for selected preset '+JSON.stringify(r));
+    if(label==='saved')assert.equal(await page.locator('.rv-summary-actions--single .rv-commit-group--apply').count(),1,'saved course retains the apply action');
     if(mode.width>800){
       assert.ok(Math.abs(r.conditions[0].top-r.conditions[1].top)<4,label+' desktop side-by-side conditions '+JSON.stringify(r));
-      assert.ok(Math.abs(r.commits[0].top-r.commits[1].top)<4,label+' desktop side-by-side decisions '+JSON.stringify(r));
+      if(label!=='saved')assert.ok(Math.abs(r.commits[0].top-r.commits[1].top)<4,label+' desktop side-by-side decisions '+JSON.stringify(r));
     }else{
       assert.ok(r.conditions[0].bottom<r.conditions[1].top,label+' phone stacked conditions '+JSON.stringify(r));
-      assert.ok(r.commits[0].bottom<r.commits[1].top,label+' phone stacked decisions '+JSON.stringify(r));
+      if(label!=='saved')assert.ok(r.commits[0].bottom<r.commits[1].top,label+' phone stacked decisions '+JSON.stringify(r));
     }
     assert.ok(r.documentWidth<=r.screen+3,label+' no viewport overflow '+JSON.stringify(r));
     assert.deepEqual(r.textOverflow,[],label+' uncut help text '+JSON.stringify(r));
