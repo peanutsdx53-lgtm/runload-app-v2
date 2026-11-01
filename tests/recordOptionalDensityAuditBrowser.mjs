@@ -112,8 +112,14 @@ try{
   await page.locator('[data-draft="environmentNote"]').fill('向かい風の体感があった。'.repeat(26));
   await page.locator('[data-e4-weather="CLOUD"]').click();
   await page.locator('[data-e4-flag="WIND"]').click();
+  await page.locator('[data-e4-selection-status][data-state="pending"]').waitFor();
+  assert.equal(await page.locator('[data-e4-commit]').isEnabled(),true,'uncommitted environment choice requires explicit action');
+  assert.doesNotMatch(await page.locator('[data-draft="environmentNote"]').inputValue(),/【本人申告の環境選択】/,'choosing alone does not write the note');
   await take(page,w,'ENV-selected');
   await page.locator('[data-e4-commit]').click();
+  await page.locator('[data-e4-selection-status][data-state="applied"]').waitFor();
+  assert.equal(await page.locator('[data-e4-commit]').isEnabled(),false,'same applied choice cannot be copied twice');
+  assert.match(await page.locator('[data-draft="environmentNote"]').inputValue(),/【本人申告の環境選択】天候：くもり、風が強い/);
   await take(page,w,'ENV-committed');
   await enter(page,'record-reflection','[data-cx-page]',w,'BODY');
   await page.locator('#cx-bodyObservation').fill('走行後の感覚を本人の言葉で記録。'.repeat(15));
