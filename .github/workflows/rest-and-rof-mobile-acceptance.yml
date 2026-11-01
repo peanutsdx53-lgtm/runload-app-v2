@@ -48,3 +48,11 @@ jobs:
         env:
           RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
         run: node tests/restAndRofMobileBrowser.mjs
+      - name: Retain rest-day screenshots for PC and smartphone review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rest-day-visual-${{ matrix.engine }}
+          path: audit-output/rest-mobile-${{ matrix.engine }}/
+          if-no-files-found: warn
+          retention-days: 14
