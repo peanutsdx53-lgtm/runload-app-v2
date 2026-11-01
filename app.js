@@ -874,6 +874,10 @@ function recordExtras(){
         const count=app.querySelector(`[data-counter="${k}"]`);
         if(count)count.textContent=`${event.target.value.length}/${event.target.maxLength}`;
         if(k==='bodyObservation'){
+          // A prior "added" notice is stale as soon as the person edits the text.
+          bodyUi.notice='';
+          const prior=app.querySelector('[data-cx-page] [data-status]');
+          if(prior)prior.textContent='';
           const transfer=bodyExperience.transferStatus(state.recordDraft,bodyUi);
           const button=app.querySelector('[data-append-name]'),status=app.querySelector('.cx-transfer-status');
           if(button)button.disabled=transfer.disabled;
