@@ -78,13 +78,20 @@ function slopeSection(d,ui){
 }
 function segmentSection(d,ui){
  const count=ui.sections;
- return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。割合・方向・傾斜・路面を必要な範囲で設定できます。</p>
- ${Array.from({length:count},(_,i)=>`<div class="rv-section-row"><div class="rv-section-row-head"><strong>区間 ${i+1}</strong><button type="button" data-rv-remove="${i}">削除</button></div>
+ const shares=Array.from({length:count},(_,i)=>d['sectionShare'+i]);
+ const entered=shares.filter(filled);
+ const values=entered.map(Number);
+ const invalid=values.some(n=>!Number.isFinite(n)||n<0||n>100);
+ const total=invalid?null:Math.round(values.reduce((sum,n)=>sum+n,0)*10)/10;
+ const complete=count>0&&entered.length===count&&!invalid&&Math.abs(total-100)<=.01;
+ const progress=count===0?'区間を追加してください。':invalid?'区間割合に範囲外の値があります。':`区間割合 ${entered.length} / ${count} 件入力・入力分の合計 ${total}%${complete?'（100%）':''}`;
+ return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。各区間の割合・方向・傾斜・路面を設定します。</p><p class="rv-section-progress ${complete?'is-complete':''}" data-rv-section-progress role="status">${progress}</p>
+ ${Array.from({length:count},(_,i)=>`<div class="rv-section-row"><div class="rv-section-row-head"><strong>区間 ${i+1} <small>${filled(d['sectionShare'+i])?'割合 '+escape(d['sectionShare'+i])+'%':'割合 未入力'}</small></strong><button type="button" data-rv-remove="${i}" aria-label="区間 ${i+1} を削除">削除</button></div>
  <div class="rv-section-fields"><label>割合 (%)<input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-draft="sectionShare${i}" value="${courseValue(d,'sectionShare'+i)}"></label>
  <label>坂道<select data-draft="sectionDirection${i}">${choose(DIRECTIONS,d['sectionDirection'+i])}</select></label>
  <label>傾斜 (%)<input data-draft="sectionGrade${i}" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${courseValue(d,'sectionGrade'+i)}"></label>
  <label>路面<select data-draft="sectionSurface${i}">${choose([['UNKNOWN','不明'],...SURFACES],d['sectionSurface'+i])}</select></label></div></div>`).join('')}
- <button type="button" class="rv-add" data-rv-add ${count>=5?'disabled':''}>＋ 区間を追加（${count} / 5）</button><p class="rv-hint">区間割合は合計100%で確定します。空欄を0とみなしません。</p></div>`;
+ <button type="button" class="rv-add" data-rv-add ${count>=5?'disabled':''}>＋ 区間を追加（${count} / 5）</button><p class="rv-hint">区間割合は全区間で合計100%にしてください。空欄を0とはみなしません。</p></div>`;
 }
 
 export function surfaceShareState(d,ui){
