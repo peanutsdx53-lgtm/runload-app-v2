@@ -1377,10 +1377,11 @@ try{
     await page.locator('[data-gps-action="start"]').click();
     await page.locator('[data-gps-consent-confirm]').click();
     await page.locator('[data-gps-action="finish"]').click();
-    await page.locator('[data-gps-review]').waitFor();
-    assert.match(await page.locator('.gps-review [role="alert"]').innerText(),/保存できません/);
-    assert.equal(await page.locator('[data-gps-action="save"]').isEnabled(),false);
-    await page.locator('.gps-review .gps-v2-button[href="#/measurement"]').click();
+    // Below 10m the finished measurement screen must reject review outright.
+    await page.locator('.gps-finish-unavailable').waitFor({state:'visible'});
+    assert.match(await page.locator('.gps-finish-unavailable').innerText(),/保存できません/);
+    assert.equal(await page.locator('[data-gps-action="review"]').count(),0,'zero-movement GPS never enters the save-review screen');
+    assert.equal(await page.locator('[data-gps-action="save"]').count(),0,'zero-movement GPS cannot save');
     await page.locator('[data-gps-action="discard"]').click();
     assert.match(new URL(page.url()).hash,/record-start/);
   }
