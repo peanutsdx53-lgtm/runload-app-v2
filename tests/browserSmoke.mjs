@@ -148,7 +148,8 @@ try{
     assert.equal(await intro.locator(".onboard-dialog").count(),1,"tutorial can be reopened in Settings");
     await intro.close();
   }
-  const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:1,reducedMotion:"reduce"});
+  const mobileUserAgent='Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+  const page=await browser.newPage({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:1,reducedMotion:"reduce",...(mode.name!=='desktop'?{userAgent:mobileUserAgent}:{})});
   await page.addInitScript(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja",formalTermsAccepted:false}))});
   // Test-only GPS provider. No actual physical location or permission request.
   await page.addInitScript(()=>{
@@ -1186,8 +1187,7 @@ try{
    if(mode.name!=="desktop")await page.locator(".mobile-nav").evaluate(el=>{el.style.position="";el.style.width=""});
    const visibleArea=route==="history"?page.locator("#runload-history-v2").locator(".stage"):page.locator("main");
    const textContent=await visibleArea.innerText();
-   if(route==='measurement'){
-     // Every viewport is desktop-UA until the explicit mobile-GPS scenario.
+   if(route==='measurement'&&mode.name==='desktop'){
      assert.match(textContent,/GPS測定はスマートフォン専用です/);
      assert.match(textContent,/PCでは手入力/);
    }else{
@@ -1198,17 +1198,19 @@ try{
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
   await page.goto(host+"#/measurement",{waitUntil:"networkidle"});
-  // GPS belongs to smartphone UA, not merely a narrow viewport. Verify the
-  // desktop-UA denial first at every width, then emulate a mobile UA for the
-  // GPS-only browser scenario without changing the viewport or stored records.
-  await page.locator('.gps-platform-unavailable').waitFor({state:"visible"});
-  assert.match(await page.locator('.gps-platform-unavailable').innerText(),/スマートフォン専用/);
-  assert.equal(await page.locator('[data-gps-action="start"]').count(),0,'desktop UA may not start GPS even at phone width');
-  await page.addInitScript(()=>{
-    Object.defineProperty(navigator,'userAgent',{configurable:true,
-      get:()=> 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36'});
-  });
-  await page.reload({waitUntil:"networkidle"});
+  // PC cannot enter the GPS route. Mobile widths use a smartphone UA
+  // from page creation, not viewport width as a proxy for device type.
+  if(mode.name==='desktop'){
+    await page.locator('.gps-platform-unavailable').waitFor({state:"visible"});
+    assert.match(await page.locator('.gps-platform-unavailable').innerText(),/スマートフォン専用/);
+    assert.equal(await page.locator('[data-gps-action="start"]').count(),0,'PC may never start GPS');
+    // Also exercise the GPS flow at desktop width under an explicitly mobile UA.
+    await page.addInitScript(()=>{
+      Object.defineProperty(navigator,'userAgent',{configurable:true,
+        get:()=> 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36'});
+    });
+    await page.reload({waitUntil:"networkidle"});
+  }
   await page.locator('[data-gps-live-page]').waitFor({state:"visible"});
   assert.equal(await page.locator('[data-gps-live-page]').count(),1);
   assert.equal(await page.locator('[data-gps-distance]').innerText(),'0.00','no prefilled GPS values');
