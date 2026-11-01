@@ -116,6 +116,40 @@ try{
   await capture(page,width,'09-reload-all-months');
   assert.deepEqual(errors,[],'no script errors');
   await ctx.close();
+  // An independent profile with only a rest day must not synthesize a run or result.
+  const restCtx=await browser.newContext({viewport:{width,height:width===1440?900:844},locale:'ja-JP',reducedMotion:'reduce'});
+  await restCtx.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
+  const restPage=await restCtx.newPage(),restErrors=[];
+  restPage.on('pageerror',e=>restErrors.push(e.message));
+  await restPage.goto(host+'record',{waitUntil:'networkidle'});
+  await restPage.locator('[data-record-type="rest"]').click();
+  await restPage.locator('[data-draft="date"]').fill(date);
+  await restPage.locator('[data-demo-save]').click();
+  await restPage.locator('[data-record-review]').waitFor();
+  assert.match(await restPage.locator('[data-record-review]').innerText(),/走行の結果画面は表示しません/);
+  await restPage.locator('[data-rest-day-save]').click();
+  const restHistory=restPage.locator('#runload-history-v2');await restHistory.waitFor();
+  await restHistory.locator('.hx-scope [data-history-scope="all"]').click();
+  await restHistory.locator('[data-record-kind="rest"]').click();
+  const restItem=restHistory.locator('[data-select-id^="rest-v1-"]');
+  assert.equal(await restItem.count(),1,'rest-only profile has one rest record');
+  assert.equal(await restHistory.locator('[data-open-record]').count(),0);
+  await capture(restPage,width,'10-rest-only');
+  await restItem.click();
+  const restNotice=restHistory.locator('.selected-footer .pill');
+  await restNotice.waitFor({state:'visible'});
+  assert.match(await restNotice.innerText(),/休養日：走行結果・参考値なし/);
+  assert.equal(await restHistory.locator('[data-open-record]').count(),0,'rest selection must not open running result');
+  await capture(restPage,width,'11-rest-selected');
+  await restPage.reload({waitUntil:'networkidle'});
+  await restHistory.waitFor();
+  await restHistory.locator('.hx-scope [data-history-scope="all"]').click();
+  assert.equal(await restHistory.locator('[data-select-id^="rest-v1-"]').count(),1,'rest survives reload without adding a run');
+  const savedRuns=await restPage.evaluate(async()=>{const {readCanonical}=await import('/ui/manualRunCanonical.js');return (await readCanonical()).read.records.length;});
+  assert.equal(savedRuns,0,'rest-only profile must have zero manual runs');
+  await capture(restPage,width,'12-rest-reloaded');
+  assert.deepEqual(restErrors,[],'rest-only profile page errors');
+  await restCtx.close();
  }
  console.log('PASS '+engine+' history search, month jump, saved run and reload at 320/390/1440');
 }finally{
