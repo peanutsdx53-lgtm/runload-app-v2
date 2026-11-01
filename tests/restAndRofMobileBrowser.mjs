@@ -2,7 +2,7 @@
  * Never transform rest into running or manufacture missing ROF answers. */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,dirname,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium,webkit} from 'playwright';
@@ -11,6 +11,8 @@ const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=u
 const server=createServer(async(req,res)=>{try{const name=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);const target=resolve(root,'.'+name);if(target!==root&&!target.startsWith(root+sep))throw Error('traversal');const file=target===root?resolve(root,'index.html'):target;res.setHeader('Content-Type',mime[extname(file)]||'application/octet-stream');res.end(await readFile(file))}catch{res.statusCode=404;res.end('missing')}});
 await new Promise(done=>server.listen(4299,'127.0.0.1',done));
 const engine=process.env.RUNLOAD_BROWSER_ENGINE==='webkit'?'webkit':'chromium';
+const shots=resolve(root,'audit-output','rest-mobile-'+engine);
+await mkdir(shots,{recursive:true});
 const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
 try{
  for(const width of [320,390,1440]){
@@ -63,7 +65,30 @@ try{
   await restSave.click();
   await page.locator('#runload-history-v2').waitFor();
   const history=page.locator('#runload-history-v2');
-  await history.locator('[data-select-id="rest-v1-2026-10-29"]').waitFor();
+  const verifySavedRest=async()=>{
+   // History defaults to the present month; the saved Oct 2026 entry may be outside it.
+   // Navigate with the actual month control rather than assuming a test execution date.
+   for(let n=0;n<36;n++){
+    const label=(await history.locator('.month-nav strong').innerText()).trim();
+    if(label==='2026年10月')break;
+    const match=label.match(/^(\d{4})年(\d{1,2})月$/);
+    assert.ok(match,'history month is visible: '+label);
+    const delta=(Number(match[1])-2026)*12+(Number(match[2])-10);
+    assert.ok(Math.abs(delta)<=36,'test record should be within 3 years: '+label);
+    await history.locator(`[data-month="${delta>0?-1:1}"]`).click();
+   }
+   assert.equal((await history.locator('.month-nav strong').innerText()).trim(),'2026年10月');
+   const saved=history.locator('[data-select-id="rest-v1-2026-10-29"]');
+   await saved.waitFor({state:'visible',timeout:12000});
+   await saved.click();
+   const notice=history.locator('.selected-footer .pill');
+   await notice.waitFor({state:'visible'});
+   assert.match(await notice.innerText(),/休養日：走行結果・参考値なし/);
+   const bounds=await notice.evaluate(el=>{const r=el.getBoundingClientRect();return{width:r.width,left:r.left,right:r.right,viewport:innerWidth};});
+   assert.ok(bounds.left>=-3&&bounds.right<=bounds.viewport+3,'rest notice remains in viewport '+JSON.stringify(bounds));
+  };
+  await verifySavedRest();
+  await page.screenshot({path:resolve(shots,engine+'-'+width+'-rest-selected.png'),fullPage:true,animations:'disabled'});
   const record=await page.evaluate(async()=>{
    const r=await import('/ui/restDayStore.js');
    const d=await import('/ui/manualRunCanonical.js');
@@ -74,7 +99,9 @@ try{
   assert.equal(record.run.length,0);
   assert.equal(record.rest.records[0].date,'2026-10-29');
   await page.reload({waitUntil:'networkidle'});
-  await page.locator('#runload-history-v2 [data-select-id="rest-v1-2026-10-29"]').waitFor();
+  await page.locator('#runload-history-v2').waitFor();
+  await verifySavedRest();
+  await page.screenshot({path:resolve(shots,engine+'-'+width+'-rest-reloaded.png'),fullPage:true,animations:'disabled'});
   assert.deepEqual(errors,[],'real browser no errors');
   await ctx.close();
  }
