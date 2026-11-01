@@ -71,7 +71,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
-  const homeUi={preview:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal(),deletePendingDate:null};
+  const homeUi={preview:false,guideOpen:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal(),deletePendingDate:null};
   let gpsController=null;
   const emptyGpsReport=()=>({rofBefore:null,rofAfter:null,beforeCapturedAt:null,afterCapturedAt:null,memo:'',saveRoute:false});
   let gpsSelfReport=emptyGpsReport();
@@ -267,6 +267,22 @@ import * as restDayStore from './ui/restDayStore.js';
     const polygon=(data,r)=>data.map((v,i)=>{const theta=i*Math.PI/3;return `${(cx+Math.sin(theta)*r*v).toFixed(1)},${(cy-Math.cos(theta)*r*v).toFixed(1)}`}).join(" ");
     return `<svg class="radar-chart" viewBox="0 0 300 225" role="img" aria-label="架空の今回と前回を示す6軸走行プロフィール。能力点数ではありません">${[.33,.66,1].map(f=>`<polygon points="${polygon([f,f,f,f,f,f],76)}" fill="none" stroke="#c8d8e0"/>`).join("")}${labels.map((l,i)=>{const t=i*Math.PI/3;return `<line x1="${cx}" y1="${cy}" x2="${cx+Math.sin(t)*76}" y2="${cy-Math.cos(t)*76}" stroke="#cadbe3"/><text class="radar-label" text-anchor="middle" x="${cx+Math.sin(t)*108}" y="${cy-Math.cos(t)*97+4}" font-size="13.5" font-weight="650">${l}</text>`}).join("")}<polygon points="${polygon(b,76)}" fill="#94a3b8" fill-opacity=".14" stroke="#94a3b8" stroke-width="2"/><polygon points="${polygon(a,76)}" fill="#0891b2" fill-opacity=".16" stroke="#0891b2" stroke-width="2.4"/></svg>`;
   }
+  // S02 optional screen-specific guidance. Does not write user data.
+  function homeScreenGuide(){
+    if(!homeUi.guideOpen)return '<section id="home-screen-guide" hidden aria-label="ホーム画面の使い方"></section>';
+    return `<section id="home-screen-guide" class="hx-screen-guide" role="region" aria-labelledby="home-screen-guide-title">
+      <div class="hx-guide-bar"><div><span class="hx-guide-eyebrow">画面ガイド · ホーム</span>
+      <h2 id="home-screen-guide-title" tabindex="-1">この画面でできること</h2>
+      <p>必要な項目だけ使えます。すべて記録する必要はありません。</p></div>
+      <button type="button" class="hx-guide-close" data-home-guide-close aria-label="ホーム画面の使い方ガイドを閉じる">閉じる ×</button></div>
+      <ol class="hx-guide-steps">
+        <li><span aria-hidden="true">01</span><div><strong>走行を記録する</strong><p>「記録」から手入力またはGPS測定を選びます。記録がないときは「最新の走行」からも開始できます。</p></div></li>
+        <li><span aria-hidden="true">02</span><div><strong>自分の記録に戻る</strong><p>保存した走行は「結果」や「履歴」で再び確認できます。入力しない日があっても問題ありません。</p></div></li>
+        <li><span aria-hidden="true">03</span><div><strong>表示を自分好みに</strong><p>「編集」でカードの並べ替えや表示切替ができます。記録自体は変わりません。</p></div></li>
+      </ol>
+      <p class="hx-guide-note">生活コンディションは任意の別記録です。睡眠などの数値だけで健康状態を判断するものではありません。</p>
+    </section>`;
+  }
   function home(){
  const editing=homeEditState.editing;
  const pref=editing?homeEditState.draft:homePreferenceState.layout;
@@ -297,12 +313,14 @@ import * as restDayStore from './ui/restDayStore.js';
  }).join("");
  const controls=editing?`<section class="dashboard-edit-toolbar" role="group" aria-label="ホームの表示を編集"><div><strong>ホームの表示を編集</strong><p>ハンドルを長押しして移動できます。上下ボタン・表示・サイズ変更も使えます。変更の保存は手動です。</p></div><div class="dashboard-edit-buttons"><button type="button" class="btn" data-home-reset>初期配置に戻す</button><button type="button" class="btn" data-home-cancel>キャンセル</button><button type="button" class="btn primary" data-home-save ${!homePreferenceState.canSave?"disabled":""}>変更を保存</button></div></section>`:"";
  return `<div class="home-v3"><section class="home-head"><h1>ホーム</h1><div class="home-heading-actions">
+ <button type="button" class="hx-help-toggle" data-home-guide-toggle aria-expanded="${homeUi.guideOpen}" aria-controls="home-screen-guide">？ この画面の使い方</button>
  <button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を終了":"編集"}</button>
  </div></section>
  ${homeUi.preview?'<div class="hx-preview-banner" role="status">表示例：走行・実績・睡眠は説明用の数字です。あなたの記録には保存されません。</div>':""}
  ${homeEditState.notice?`<div class="dashboard-edit-notice" role="status">${esc(homeEditState.notice)}</div>`:""}
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
+ ${homeScreenGuide()}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="ホームの表示">${widgets}</div>
   ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
  ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate,homeUi.deletePendingDate):""}
@@ -1361,6 +1379,19 @@ function recordExtras(){
       if(!savedProfile.ok){onboardingState.error=savedProfile.message;render();return;}
       settingsUi.profile=savedProfile.value;finishOnboarding();return;
     }
+    if(event.target.closest("[data-home-guide-toggle]")){
+      homeUi.guideOpen=!homeUi.guideOpen;
+      render();
+      const focusTarget=homeUi.guideOpen?app.querySelector("#home-screen-guide-title"):app.querySelector("[data-home-guide-toggle]");
+      focusTarget?.focus({preventScroll:!homeUi.guideOpen});
+      return;
+    }
+    if(event.target.closest("[data-home-guide-close]")){
+      homeUi.guideOpen=false;
+      render();
+      app.querySelector("[data-home-guide-toggle]")?.focus({preventScroll:true});
+      return;
+    }
     const homeEdit=event.target.closest("[data-home-edit]");
     if(homeEdit){homeEditState.notice="";if(homeEditState.editing){homeEditState.editing=false;homeEditState.draft=null}else{homeEditState.editing=true;homeEditState.draft=dashboardPrefs.copyHomeDashboardLayout(homePreferenceState.layout)}render();return}
     if(event.target.closest("[data-home-cancel]")){homeEditState.editing=false;homeEditState.draft=null;homeEditState.notice="";render();return}
@@ -1551,6 +1582,7 @@ function recordExtras(){
   window.addEventListener("focus",async()=>{await canonical.refresh();await gpsStore.reloadGpsRuns();gpsV2Cache=await gpsV2.readGpsV2Summaries();render();});
   document.addEventListener("visibilitychange",async()=>{if(!document.hidden){await canonical.refresh();render();}});
   window.addEventListener("hashchange",async()=>{await canonical.refresh();
+    if(currentPage()!=="home")homeUi.guideOpen=false;
     gpsConsentAction="";
     if(currentPage()!=='measurement'&&gpsController?.state.phase==='running'){gpsController.pause();refreshGpsTicker();releaseGpsWakeLock();}
     // GPS saves and deletes show toast; do not immediately erase them on navigation.
