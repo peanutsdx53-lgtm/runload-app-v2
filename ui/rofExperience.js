@@ -115,8 +115,10 @@ export function anchorDescriptionMarkup(descriptor){
   ?'<span class="rv4-description-main">'+esc(split[1])+'</span><span class="rv4-description-detail">'+esc(split[2])+'</span>'
   :'<span class="rv4-description-main">'+esc(raw)+'</span>';
 }
-export function rofPage(d,ui){
+export function rofPage(d,ui,options={}){
  syncRofUiState(ui,d);
+ const gpsMode=options.gps===true;
+ const backHref=gpsMode?(ui.phase==='before'?'#/measurement':'#/gps-review'):'#/record';
  const n=d[rofPhaseKey[ui.phase]],hasScore=isValidRofJ(n),anchor=ROF_J_ANCHORS[ui.focusedAnchor];
  const chosen=d.rofTimingChoices?.[ui.phase]||{mode:'UNKNOWN',declaredAt:''};
  const runTimes=d.exerciseTimingDraft||{};
@@ -138,14 +140,14 @@ export function rofPage(d,ui){
   (resolved.ok&&clockFromLocal(runTimes.endedLocal)?'終了日：'+esc(resolved.endedLocal.slice(0,10).replaceAll('-','/'))+(resolved.endDayOffset?'（翌日）':'（当日）'):'')+'</p>'+
   '<p>入力した時刻だけを保存します。終了時刻が開始より早ければ、コンディション記録と同様に翌日として自動判定します。未入力の時刻を推定しません。</p></section>';
  const provenance='<section class="rv4-timing" aria-label="疲労感を評価した時点"><h3>回答時点（本人申告・任意）</h3><label>回答の時点 <select data-rof-v4-timing><option value="UNKNOWN"'+(chosen.mode==='UNKNOWN'?' selected':'')+'>時点不明・未指定</option><option value="AT_ENTRY"'+(chosen.mode==='AT_ENTRY'?' selected':'')+'>今この画面で評価</option><option value="RECALLED"'+(chosen.mode==='RECALLED'?' selected':'')+'>過去の状態を思い出して入力</option></select></label>'+(chosen.mode==='RECALLED'?'<label>実際に評価した時刻（分かる場合のみ・本人申告）<input type="datetime-local" data-rof-v4-declared value="'+esc(chosen.declaredAt||'')+'"></label>':'')+'<small>操作時刻と評価時刻は区別します。どちらも本人の経験を実測した証拠ではありません。</small></section>';
- const tabs=Object.entries(rofPhaseKey).map(([phase,key],i)=>`<button type="button" role="tab" data-rof-v4-phase="${phase}" id="rof-v4-${phase}-tab" aria-controls="rof-v4-panel" aria-selected="${ui.phase===phase}" tabindex="${ui.phase===phase?0:-1}">${labels[i]}<small>${isValidRofJ(d[key])?esc(d[key]+'/10'):'未入力'}</small></button>`).join('');
+ const tabs=Object.entries(rofPhaseKey).filter(([phase])=>!gpsMode||phase===ui.phase).map(([phase,key],i)=>`<button type="button" role="tab" data-rof-v4-phase="${phase}" id="rof-v4-${phase}-tab" aria-controls="rof-v4-panel" aria-selected="${ui.phase===phase}" tabindex="${ui.phase===phase?0:-1}">${labels[i]}<small>${isValidRofJ(d[key])?esc(d[key]+'/10'):'未入力'}</small></button>`).join('');
  const anchors=ROF_J_ANCHORS.map((a,i)=>`<button type="button" class="rv4-anchor" style="--anchor-position:${a.position*10}%" data-rof-v4-anchor="${i}" aria-label="代表位置 ${esc(a.positionLabel)}：${esc(a.descriptor)}。説明を確認します。数値は変えません。" aria-pressed="${ui.focusedAnchor===i}">
  <span class="rv4-picture"><img src="${esc(referenceImageUrl(a))}" alt="" loading="eager" decoding="async"><span class="rv4-picture-fallback" aria-hidden="true">図を表示できません</span></span><strong>${esc(a.positionLabel)}</strong><small>${shortLabels[i]}</small></button>`).join('');
  const ticks=Array.from({length:11},(_,i)=>`<span data-rof-v4-tick="${i}" style="--tick-position:${i*10}%" class="${hasScore&&n===i?'is-selected':''}">${i}</span>`).join('');
- return `<div class="record-v3 rv4-page" data-rof-v4-root><header class="rv-head rv4-head"><a href="#/record" class="rv-back" aria-label="手入力へ戻る">‹</a><div><h1>運動前後の疲労感</h1><p>ROF-J｜0〜10の整数11段階</p></div></header>
+ return `<div class="record-v3 rv4-page" data-rof-v4-root><header class="rv-head rv4-head"><a href="${backHref}" class="rv-back" aria-label="${gpsMode?'GPSに戻る':'手入力へ戻る'}">‹</a><div><h1>${gpsMode?(ui.phase==='before'?'運動前':'運動後')+'の疲労感':'運動前後の疲労感'}</h1><p>ROF-J｜0〜10の整数11段階</p></div></header>
  <section class="rv4-card" aria-labelledby="rv4-title"><div class="rv4-title"><h2 id="rv4-title">疲労感の記録</h2><span>任意</span></div>
  <div class="rv4-tabs" role="tablist" aria-label="疲労感の入力タイミング">${tabs}</div>
- <details class="rv4-optional-meta" ${ui.metaOpen?'open':''}><summary>任意：運動時刻・回答時点を記録する</summary><div class="rv4-meta-body">${exerciseTiming}${provenance}</div></details><div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
+ ${gpsMode?'':`<details class="rv4-optional-meta" ${ui.metaOpen?'open':''}><summary>任意：運動時刻・回答時点を記録する</summary><div class="rv4-meta-body">${exerciseTiming}${provenance}</div></details>`}<div class="rv4-workspace" role="tabpanel" id="rof-v4-panel" aria-labelledby="rof-v4-${ui.phase}-tab">
  <div class="rv4-current${hasScore?'':' is-empty'}" aria-live="polite"><output data-rof-v4-number>${hasScore?n:'—'}</output><div><small data-rof-v4-scoreline>${ui.phase==='before'?'運動前':'運動後'} / 10</small><strong data-rof-v4-meaning>${hasScore?anchorDescriptionMarkup(guidanceForRofJ(n)):'まだ選択されていません'}</strong><p data-rof-v4-caption>${hasScore?'選択値：'+n+' / 10':'横軸で数値を選択してください'}</p></div></div>
  <div class="rv4-rail" aria-label="評価軸と対応する代表イラスト"><div class="rv4-rail-top"><strong>代表イラスト</strong><small>選ぶと直下に説明を表示</small></div>
  <div class="rv4-anchor-row" aria-label="原版の5つの代表位置">${anchors}</div>
@@ -153,7 +155,7 @@ export function rofPage(d,ui){
  <div class="rv4-axis" aria-label="0から10の一直線の評価軸"><div class="rv4-ticks">${ticks}</div><div class="rv4-track"><input type="range" data-rof-v4-range aria-label="${ui.phase==='before'?'運動前':'運動後'}のROF-J疲労感、0から10まで1ずつ" min="0" max="10" step="1" value="${hasScore?n:5}"></div></div>
  <div class="rv4-axis-ends"><span>0：まったく疲れていない</span><span>10：完全な疲労困憊</span></div>
  <div class="rv4-tools"><div class="rv4-adjust"><button type="button" data-rof-v4-step="-1" aria-label="疲労感を1下げる">−</button><span>1ずつ調整</span><button type="button" data-rof-v4-step="1" aria-label="疲労感を1上げる">＋</button></div><button type="button" data-rof-v4-clear ${hasScore?'':'disabled'}>選択を消す</button></div></div>
- <aside class="rv4-aside"><details class="rv4-rights"><summary>尺度・イラストの出典</summary><p>尺度：${esc(ROF_J_RIGHTS.scale)}。図：${esc(ROF_J_RIGHTS.images)}。</p><a href="${esc(ROF_J_RIGHTS.scaleUrl)}" target="_blank" rel="noopener">尺度の出典</a><a href="${esc(ROF_J_RIGHTS.imagesUrl)}" target="_blank" rel="noopener">図の出典</a></details><div class="rv4-next-actions"><a class="rv4-done" href="#/record">記録へ戻る</a></div></aside></div></section></div>`;
+ <aside class="rv4-aside"><details class="rv4-rights"><summary>尺度・イラストの出典</summary><p>尺度：${esc(ROF_J_RIGHTS.scale)}。図：${esc(ROF_J_RIGHTS.images)}。</p><a href="${esc(ROF_J_RIGHTS.scaleUrl)}" target="_blank" rel="noopener">尺度の出典</a><a href="${esc(ROF_J_RIGHTS.imagesUrl)}" target="_blank" rel="noopener">図の出典</a></details><div class="rv4-next-actions"><a class="rv4-done" href="${backHref}">${gpsMode?'GPSに戻る':'記録へ戻る'}</a></div></aside></div></section></div>`;
 }
 export function reflectRofPage(root,d,ui){
  const page=root?.querySelector('[data-rof-v4-root]');if(!page)return;
