@@ -17,3 +17,12 @@
 ## 確認する正常系・反例
 手入力必須がすべて満たされた状態／距離未入力／活動種目未選択／休養日／GPS不使用。PC・スマホでステータスと距離カードの非干渉、任意リンク5件のSVG一致、保存ボタンの有効・無効、横方向オーバーフローを試験。
 既存Currentと研究理論の承認済み部分は変更しない。実機でのタップ・OS文字拡大や利用者効果は別途確認。
+
+## 実施後の検証（2026-11-01）
+- 反映HEAD `724067cee28ea0e807daab706a78a70943296e67`。新設GitHub Actions `S09 record review and manual icon visual acceptance` run `41284083186` はChromium・WebKitともSUCCESS。
+- PC 1440px、スマホ390px・320pxで手入力空欄／入力済み、確認画面の必須未入力／正常入力をそれぞれ全ページ撮影。アーティファクト `s09-review-chromium`／`s09-review-webkit` に画像と測定JSONを保存。
+- 未入力時は必須3項目状態を表示し、明示的なエラー警告を残し、保存ボタンを無効化。6.00km・42:00・ランニング入力時は必須3項目すべて「入力済み」、平均ペース7:00/km、保存ボタン有効、正常時の重複説明カードを非表示。
+- 状態表示の下端と距離・時間カードの上端の実測間隔：Chromium/WebKitとも320px=22px、390px=24px、1440px=23px。全画面幅で document/body の横オーバーフローは未検出。
+- 手入力画面の任意5件と確認画面の詳細5件のSVG文字列が同一であることをDOM比較で検証。新規shared iconは表示専用で保存データに非干渉。
+- 同HEADの `UI Next smoke`、`Research interpretation audit`、`Exploration editorial QA`、`pages build and deployment` はSUCCESS。
+- WebKit/Chromiumはブラウザ内部監査で、iPhone・Android実機のOS文字拡大やタップ、29成立条件の最終PASS、利用者の自己理解の改善効果を直接証明しない。
