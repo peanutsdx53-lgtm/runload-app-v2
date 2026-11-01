@@ -16,3 +16,12 @@
 - 基本情報でランニングを選択→S05で走行＋歩行（部分距離・時間）を記録→基本情報へ戻る→S05再訪：activityGait と runningFormat と入力値が保持され、S05で活動種別が再設定されないこと。
 - 不正な activityGait は従来どおりgaitValidationでエラー。走歩混在の区間値が全体値を超えた場合もエラー。
 - Chromium/WebKit、幅320/390/768/1440px、未入力・入力完了・休養・S05を検査。実機と全29条件の完全評価は未実施、効果の実証は行わない。
+
+## 実装結果・受入記録（2026-11-01）
+- UI実装 `57f3dc9e47bda371483312d1653c8dafac53c3b9`。GitHub Actions `S03 S04 S05 record manual visual acceptance` run `41275327536` の Chromium・WebKit とも SUCCESS。320／390／768／1440px、S04走行未入力・3項目入力済み・休養切替・S05走行パターン未設定／走行＋歩行を撮影した。
+- S04：基本情報の見出しにだけ「必須」を置き、距離／時間／活動種目のバッジと説明段落が0件。距離・時間の `aria-required`、活動種目3択、入力不足時の状態表示を維持。
+- S05：重複活動種別の `data-g4-gait` は0件。歩数取得方法3択と走行パターン3択を維持。基本情報で RUNNING と距離5km・時間30分を選択→S05で走行＋歩行の部分距離2km・時間12分を入力→基本情報→再度S05へ移動しても値・種別が保持された。
+- `tests/scienceEngineParity.test.mjs` に存在した旧S05活動種別UIの前提を現在の画面契約に変更したテスト専用補正は `e3104e1886162bfa951e70bac15d90066c49419f`。このHEADの `UI Next smoke`、`Research interpretation audit`、`Exploration editorial QA`、`pages build and deployment` は SUCCESS。
+- その他、コード変更コミットでは `Current 20-screen design acceptance`、`P0 two-run continuity`、`B/C group acceptance`、`GPS ROF and confirmation acceptance` は SUCCESS。
+- 全体ブラウザスモークに残る廃止済み `[data-home-preview]` 参照による試験失敗と、Rest and ROF mobileの履歴リロード後の休養記録選択待機タイムアウトは、今回のS04/S05専用受入成功と区別し、未解消として記録する。これらを今回の変更で解決済みとはしない。
+- WebKit／ChromiumのスクリーンショットはGitHub Actionsの `s03s04-record-webkit`、`s03s04-record-chromium` に保存。実機のSafari日付入力・ソフトキーボード、Android・読み上げ、全29条件の最終判定は対象外。
