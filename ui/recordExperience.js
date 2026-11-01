@@ -76,7 +76,7 @@ function slopeSection(d,ui){
  mode==='SECTIONS'?segmentSection(d,ui):`<p class="rv-hint">${mode==='FLAT'?'ほぼ平坦として記録します。':'分からない場合は不明のままで構いません。'}</p>`}
  </section>`;
 }
-function segmentSection(d,ui){
+export function sectionShareProgress(d,ui){
  const count=ui.sections;
  const shares=Array.from({length:count},(_,i)=>d['sectionShare'+i]);
  const entered=shares.filter(filled);
@@ -84,8 +84,13 @@ function segmentSection(d,ui){
  const invalid=values.some(n=>!Number.isFinite(n)||n<0||n>100);
  const total=invalid?null:Math.round(values.reduce((sum,n)=>sum+n,0)*10)/10;
  const complete=count>0&&entered.length===count&&!invalid&&Math.abs(total-100)<=.01;
- const progress=count===0?'区間を追加してください。':invalid?'区間割合に範囲外の値があります。':`区間割合 ${entered.length} / ${count} 件入力・入力分の合計 ${total}%${complete?'（100%）':''}`;
- return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。各区間の割合・方向・傾斜・路面を設定します。</p><p class="rv-section-progress ${complete?'is-complete':''}" data-rv-section-progress role="status">${progress}</p>
+ const text=count===0?'区間を追加してください。':invalid?'区間割合に範囲外の値があります。':`区間割合 ${entered.length} / ${count} 件入力・入力分の合計 ${total}%${complete?'（100%）':''}`;
+ return {text,complete};
+}
+function segmentSection(d,ui){
+ const count=ui.sections;
+ const progress=sectionShareProgress(d,ui);
+ return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。各区間の割合・方向・傾斜・路面を設定します。</p><p class="rv-section-progress ${progress.complete?'is-complete':''}" data-rv-section-progress role="status">${progress.text}</p>
  ${Array.from({length:count},(_,i)=>`<div class="rv-section-row"><div class="rv-section-row-head"><strong>区間 ${i+1} <small>${filled(d['sectionShare'+i])?'割合 '+escape(d['sectionShare'+i])+'%':'割合 未入力'}</small></strong><button type="button" data-rv-remove="${i}" aria-label="区間 ${i+1} を削除">削除</button></div>
  <div class="rv-section-fields"><label>割合 (%)<input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-draft="sectionShare${i}" value="${courseValue(d,'sectionShare'+i)}"></label>
  <label>坂道<select data-draft="sectionDirection${i}">${choose(DIRECTIONS,d['sectionDirection'+i])}</select></label>
