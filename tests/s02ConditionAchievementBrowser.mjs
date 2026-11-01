@@ -49,8 +49,39 @@ try{
   assert.equal(await page.locator('.hx-award-item.won').count(),0);
   await page.screenshot({path:resolve(out,name+'-'+width+'-empty.png'),fullPage:true,animations:'disabled'});
   await page.locator('[data-condition-open]').click();
-  await page.locator('.hx-dialog').waitFor();await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
-  await page.locator('.hx-dialog [data-home-close]').first().click();
+  const dialog=page.locator('.hx-condition-dialog');
+  await dialog.waitFor();
+  assert.equal(await dialog.count(),1,'condition-only themed dialog');
+  await page.screenshot({path:resolve(out,name+'-'+width+'-condition-dialog.png'),animations:'disabled'});
+  const modalGeometry=await dialog.evaluate(el=>{
+   const d=el.getBoundingClientRect(),f=el.querySelector('[data-condition-form]'),button=f.querySelector('.hx-save'),save=button.getBoundingClientRect();
+   return {viewport:innerWidth,dialog:{left:d.left,right:d.right,top:d.top,bottom:d.bottom,height:d.height},scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,scrollTop:el.scrollTop,save:{left:save.left,right:save.right,top:save.top,bottom:save.bottom}};
+  });
+  assert.ok(modalGeometry.dialog.left>=-1&&modalGeometry.dialog.right<=width+1,'dialog fits viewport '+JSON.stringify(modalGeometry));
+  assert.ok(modalGeometry.scrollHeight>=modalGeometry.clientHeight,'dialog scrollable whenever longer');
+  assert.ok(modalGeometry.save.left>=modalGeometry.dialog.left-1&&modalGeometry.save.right<=modalGeometry.dialog.right+1,'Save within dialog width');
+  // Trigger a real voluntary, duration-only input and check the save action.
+  await dialog.locator('[data-sleep-mode="duration"]').click();
+  assert.equal(await dialog.locator('[name="sleepMode"]').inputValue(),'duration');
+  await dialog.locator('[name="durationHours"]').fill('7');
+  await dialog.locator('[name="durationMinutes"]').fill('30');
+  const save=dialog.locator('.hx-save');
+  await save.scrollIntoViewIfNeeded();
+  await page.screenshot({path:resolve(out,name+'-'+width+'-condition-save-visible.png'),animations:'disabled'});
+  const reached=await dialog.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.querySelector('.hx-save').getBoundingClientRect();return {saveTop:b.top,saveBottom:b.bottom,dialogTop:r.top,dialogBottom:r.bottom,scrollTop:el.scrollTop,scrollHeight:el.scrollHeight};});
+  assert.ok(reached.saveTop>=reached.dialogTop-2&&reached.saveBottom<=reached.dialogBottom+2,'save can be reached by scrolling '+JSON.stringify(reached));
+  await save.click();
+  assert.equal(await dialog.count(),1,'without a stated condition answer, form remains open');
+  assert.match(await dialog.locator('[data-sleep-error]').innerText(),/起床時の調子/);
+  await dialog.locator('[name="feeling"]').selectOption({label:'良い'});
+  await save.click();
+  await dialog.waitFor({state:'detached'});
+  const savedCondition=await page.evaluate(async()=>{
+   const h=await import('./ui/homeExperience.js');const current=h.readConditions(localStorage);return current.entries.find(x=>x.date===h.todayLocal());
+  });
+  assert.equal(savedCondition?.sleepSource,'duration','self-reported duration remains separate from clock-derived bedtime');
+  assert.equal(savedCondition?.sleepMinutes,450);
+  assert.equal(savedCondition?.feeling,'良い');
   await page.locator('[data-achievement-open]').click();
   await page.locator('.hx-ach-dialog').waitFor();await page.screenshot({path:resolve(out,name+'-'+width+'-achievement-dialog.png'),animations:'disabled'});
   await page.locator('.hx-ach-dialog [data-home-close]').first().click();
