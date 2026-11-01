@@ -91,6 +91,7 @@ try{
   await page.locator('#runload-result-v4').waitFor({state:'visible'});
   await capture(page,width,'07-selected-result');
   await page.goto(host+'history',{waitUntil:'networkidle'});
+  await rootSel.locator('[data-history-scope="month"]').click();
   await rootSel.locator('[data-jump-month="'+month+'"]').click();
   assert.match(await rootSel.locator('.month-nav').innerText(),new RegExp(String(old.getFullYear())+'年'));
   assert.equal(await rootSel.locator('[data-select-id="'+runId+'"]').count(),1);
