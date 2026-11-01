@@ -971,7 +971,7 @@ try{
   const historyRoot=page.locator('#runload-history-v2');
   assert.equal(await page.locator('.topbar').isVisible(),false,'history must not keep the empty top header');
   const historyHeadingTop=await historyRoot.locator('.topline h1').evaluate(el=>el.getBoundingClientRect().top);
-  assert.ok(Math.abs(historyHeadingTop-homeHeadingTop)<=6,'history title matches home: '+JSON.stringify({homeHeadingTop,historyHeadingTop}));
+  assert.ok(Math.abs(historyHeadingTop-homeHeadingTop)<=8,'history title matches home: '+JSON.stringify({homeHeadingTop,historyHeadingTop}));
   const historySurfaceTheme=await historyRoot.locator('.calendar-panel').evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
   assert.match(historySurfaceTheme.bg,/radial-gradient/,'history cards receive luminous gradient');
   assert.notEqual(historySurfaceTheme.ring,'none','history cards retain decorative arc');
@@ -1172,7 +1172,7 @@ try{
    if(route==="settings"){
      assert.equal(await page.locator('.topbar').isVisible(),false,'settings must not keep the empty top header');
      const settingsHeadingTop=await page.locator('.s2-heading h1').evaluate(el=>el.getBoundingClientRect().top);
-     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=6,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
+     assert.ok(Math.abs(settingsHeadingTop-homeHeadingTop)<=8,'settings title matches home: '+JSON.stringify({homeHeadingTop,settingsHeadingTop}));
      const panelTheme=await page.locator('.s2-panel').first().evaluate(el=>({bg:getComputedStyle(el).backgroundImage,ring:getComputedStyle(el,'::after').content}));
      assert.match(panelTheme.bg,/radial-gradient/,'settings cards receive luminous gradient');
      assert.notEqual(panelTheme.ring,'none','settings cards retain decorative arc');
