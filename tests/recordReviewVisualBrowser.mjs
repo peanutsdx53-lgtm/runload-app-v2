@@ -35,7 +35,7 @@ async function take(page,width,label){
  await page.screenshot({path:resolve(out,engine+'-'+width+'-'+label+'.png'),fullPage:true,animations:'disabled',timeout:15000});
 }
 try{
- for(const width of [320,390,1440]){
+ for(const width of [320,390,430,1440]){
   const ctx=await browser.newContext({viewport:{width,height:width===1440?900:844},locale:'ja-JP',reducedMotion:'reduce'});
   await ctx.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
   const page=await ctx.newPage(),exceptions=[];page.on('pageerror',e=>exceptions.push(e.message));
