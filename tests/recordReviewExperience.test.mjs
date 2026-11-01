@@ -105,3 +105,15 @@ test('S09: optional section icon paths have the same shared SVG source',()=>{
  const h=reviewView(base,{source:'manual',recordType:'run'});
  assert.equal((h.match(/class="rr-row-icon"><svg/g)||[]).length,5);
 });
+
+test('long personal notes stay intact in the draft but are concise on the save review',()=>{
+ const long='走行後の本人の気づき'.repeat(48);
+ const note='自由記述'+long;
+ const d={...base,bodyObservation:long,shoeName:'使用したシューズ名'.repeat(12),memo:note,temperatureC:'18.5',environmentNote:'気づいた環境のメモ\\n【本人申告の環境選択】天候：くもり、風が強い'};
+ const html=reviewView(d,{});
+ assert.match(html,/本人申告：天候：くもり、風が強い/);
+ assert.match(html,/全文は編集画面で確認/);
+ assert.equal(html.includes(long),false,'full long text is not duplicated in the review summary');
+ assert.match(html,/気になった部位|身体・使用品・メモ/);
+ assert.match(html,/data-manual-run-save/);
+});
