@@ -19,3 +19,12 @@
 - コース0件・保存直後・保存済み・削除確認・取消・路面60/40・未入力・割合超過を通常系／反例で検査。
 - Chromium/WebKit、PC1440px、スマホ390・320pxで画面全体スクリーンショット、ボタン非重複と枠内位置を実測。
 - 正式Current非変更。実機Safari/Android、端末キーボードや文字拡大、全29条件の完全PASSと効果検証は別工程。
+
+## 実施後の検証とスクリーンショット（2026-11-01）
+- 画面改修を含むmainの検証HEADは `1cdf8e3b7f80b1a873d57948505177e23e27292e`。Record optional screen density audit run `41282507000`：ChromiumとWebKitともSUCCESS。
+- PC 1440px／スマホ390px・320pxでコース未入力、坂道5区間＋路面2種類（舗装路60%・陸上トラック40%）、保存後の01・03表示、削除確認・キャンセルを撮影。GitHub Actions成果物 `record-optional-density-chromium` と `record-optional-density-webkit` に完全ページPNGと計測JSONを保存。
+- ブラウザで、保存直後の01カード更新・別名保存が各1件、03の保存ボタン0件、記録へ反映1件を確認。削除確認で2ボタンの上端座標が揃い、左右に離れており、親枠の内側に収まることを実測し、キャンセル後に確認欄が消えることを確認。
+- 路面は種類を切り替えて60%、40%を直接入力し、割合100%・選択表示・±1%・スライダーの存在を確認。内部テストで他の路面の割合を差し引いた上限、未入力時の無効判定を確認。自動補完なし。
+- 両ブラウザの監査は各57状態。documentとbodyの横方向オーバーフローは320、390、1440pxのすべてで未検出。
+- 同HEADの `UI Next smoke`、`Research interpretation audit`、`Exploration editorial QA`、`pages build and deployment` はSUCCESS。試験中の旧マッチ式に由来する最初の失敗は `tests/recordExperience.test.mjs` の判定を修正し、最終HEADでPASSにした。
+- 実機iPhone/Androidのタッチ・入力・拡大文字、全29成立条件の最終合格、実際の利用者の自己理解への影響は未検証。
