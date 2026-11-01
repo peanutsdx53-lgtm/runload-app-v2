@@ -17,7 +17,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
   const environmentExperience=await import("./ui/environmentExperience.js?v=20261026-user-copy-v21");
-  const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261101-uiux-s05s07s09-v2");
+  const bodyExperience=await import("./ui/bodyContextExperience.js?v=20261101-uiux-s05s07s09-v4");
   const gpsPlatform=await import("./ui/gpsPlatform.js?v=20261101-gps-mobile-v1");
   const measurementExperience=await import("./ui/measurementExperience.js?v=20261101-gps-mobile-v1");
   const gpsCore=await import("./ui/gpsMeasurementCore.js?v=20261027-measurement-polish-v2");
