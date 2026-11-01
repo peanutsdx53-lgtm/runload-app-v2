@@ -244,3 +244,6 @@
  }
  .sm-page .sm-source-selector .sm-source-text{min-width:0;overflow-wrap:anywhere;white-space:normal}
 }
+
+/* UX-036: desktop GPS restriction is an explanatory note, not a dead button. */
+.sm-actions [role="note"].sm-action-secondary{display:inline-flex;align-items:center;min-height:44px;padding:11px 13px;border:1px solid #456e7a;border-radius:11px;background:#0a2d3d;color:#c2dce3;font-size:.8rem;font-weight:700}
