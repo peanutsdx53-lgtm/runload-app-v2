@@ -207,7 +207,10 @@ export function conditionCard(storage,preview){
  const stat='<div class="hx-condition-stats"><div><small>'+sleepLabel+'</small><strong>'+escape(sleep)+'</strong>'+(today?.sleepSource==="clock"?'<span class="hx-wake-time">起床 '+escape(today.wakeTime)+'</span>':'')+'</div><div><small>起床時の調子</small><strong>'+escape(feeling)+'</strong></div><div><small>直近7日の入力</small><strong>'+count+'<em> / 7日</em></strong></div></div>';
  return '<section class="hx-card hx-condition">'+
  '<button type="button" class="hx-title-button" data-condition-open aria-label="コンディションの入力と詳細を開く">'+head("コンディション","moon",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+
- stat+'<div class="hx-chart-label">記録時間の推移 <span>直近7日</span></div>'+sevenBars(entries)+'<a class="hx-condition-explore" href="#/condition" aria-label="コンディションの歩みを開き、長期の変化とメモを確認">コンディションの歩みを見る <span aria-hidden="true">›</span></a>'+
+ stat+'<div class="hx-chart-label">睡眠・就床の記録 <span>直近7日</span></div>'+
+ (count===0?'<div class="hx-condition-empty" role="status"><strong>'+(state.canSave?'直近7日の記録はまだありません':'生活記録を確認できません')+'</strong><p>'+(state.canSave?'未記録日は0時間として扱いません。':'保存領域の状態を確認してください。')+'</p></div>'
+ :sevenBars(entries)+'<p class="hx-condition-source">記録した日のみ表示します。未記録日は空欄です。</p>')+
+ '<a class="hx-condition-explore" href="#/condition" aria-label="コンディションの歩みを開き、長期の変化とメモを確認">コンディションの歩みを見る <span aria-hidden="true">›</span></a>'+
  (!state.canSave&&!preview?'<p class="hx-warning">'+escape(state.reason)+'</p>':"")+'</section>';
 }
 // Derived display-only milestones. The only source is a successfully read, saved
@@ -224,7 +227,10 @@ export function achievementCard(preview,savedRuns={ok:true,records:[]}){
  const result=achievementSummary(savedRuns);
  const track=preview?'<div class="hx-ach-main"><div class="hx-medal" aria-hidden="true">★</div><div class="hx-ach-data"><small>獲得 2 件 · 次の目標</small><strong>42.0 <em>/ 50 km</em></strong><div class="hx-progress"><span style="width:84%"></span></div><small>累計走行距離　84%</small></div></div><div class="hx-awards" aria-label="獲得済み2件、未獲得2件"><span class="won">★</span><span class="won">✦</span><span class="locked">◇</span><span class="locked">◇</span></div>'
  :!result.ok?'<div class="hx-ach-main"><div class="hx-medal hx-unearned" aria-hidden="true">☆</div><div class="hx-ach-data"><strong>実績を確認できません</strong><small>'+escape(result.reason)+'</small></div></div>'
- :'<div class="hx-ach-main"><div class="hx-medal '+(result.count?'':'hx-unearned')+'" aria-hidden="true">'+(result.count?'★':'☆')+'</div><div class="hx-ach-data"><small>保存済み手入力走行から確認 · '+result.count+' / 4 項目</small><strong>'+result.distance.toFixed(1)+' <em>/ '+result.target+' km</em></strong><div class="hx-progress" role="progressbar" aria-label="累計走行距離の節目" aria-valuemin="0" aria-valuemax="'+result.target+'" aria-valuenow="'+Math.min(result.distance,result.target).toFixed(1)+'"><span style="width:'+result.progress+'%"></span></div><small>'+(result.runs?'累計走行距離 '+result.distance.toFixed(1)+' km':'記録を保存すると実績を確認できます')+'</small></div></div><div class="hx-awards" aria-label="'+result.count+'件達成、'+(4-result.count)+'件未達成">'+result.achieved.map((yes,i)=>'<span class="'+(yes?'won':'locked')+'" title="'+['初回の走行','30分以上の走行','累計50 km','累計100 km'][i]+'">'+(yes?'★':'◇')+'</span>').join('')+'</div>';
+ :'<div class="hx-ach-main"><div class="hx-medal '+(result.count?'':'hx-unearned')+'" aria-hidden="true">'+(result.count?'★':'☆')+'</div><div class="hx-ach-data"><small>保存済み手入力走行から確認 · '+result.count+' / 4 項目</small><strong>'+result.distance.toFixed(1)+' <em>/ '+result.target+' km</em></strong><div class="hx-progress" role="progressbar" aria-label="累計走行距離の節目" aria-valuemin="0" aria-valuemax="'+result.target+'" aria-valuenow="'+Math.min(result.distance,result.target).toFixed(1)+'"><span style="width:'+result.progress+'%"></span></div><small>'+(result.runs?'累計走行距離 '+result.distance.toFixed(1)+' km':'記録を保存すると実績を確認できます')+'</small></div></div><div class="hx-awards" role="list" aria-label="保存済み走行による実績4項目">'+result.achieved.map((yes,i)=>
+ '<div class="hx-award-item '+(yes?'won':'locked')+'" role="listitem" aria-label="'+['初回の走行','30分以上の走行','累計50 km','累計100 km'][i]+' '+(yes?'達成':'未達成')+'">'+
+ '<span class="hx-award-symbol" aria-hidden="true">'+(yes?'★':'◇')+'</span><div class="hx-award-copy"><strong>'+['初回の走行','30分以上','累計50 km','累計100 km'][i]+'</strong><small>'+(yes?'達成':'未達成')+'</small></div></div>'
+ ).join('')+'</div><p class="hx-ach-source">保存済みの手入力走行のみを集計します。記録しない日を失敗と判定しません。</p>';
  return '<section class="hx-card hx-achievement"><button type="button" class="hx-title-button" data-achievement-open aria-label="実績の詳細を開く">'+head("実績","trophy",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+track+'</section>';
 }
 export function shortcutsCard(){
