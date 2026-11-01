@@ -205,3 +205,6 @@
  .cp-app .cp-panel div:has(> select#cp-target){min-width:0;max-width:100%;overflow-x:hidden}
  .cp-app select#cp-target{display:block;box-sizing:border-box;min-width:0;max-width:100%;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* UX-029: avoid pale-on-light native record selectors in Safari/WebKit. */
+.cp-app .cp-select,.cp-app .cp-select option{color-scheme:dark;background-color:#0c2634;color:#ebf8fc}
