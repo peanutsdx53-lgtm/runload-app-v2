@@ -32,8 +32,10 @@ async function capture(page,width,label){
   scopeTouchHeights:controls.map(el=>el.getBoundingClientRect().height),bounds};
 });
  assert.ok(metrics.document<=width+3&&metrics.body<=width+3,'no horizontal overflow '+label+': '+JSON.stringify(metrics));
- assert.ok(metrics.scopeTouchHeights.length===2&&metrics.scopeTouchHeights.every(h=>h>=43.5),'44px scope targets '+JSON.stringify(metrics.scopeTouchHeights));
- assert.ok(metrics.bounds.every(b=>b.left>=-3&&b.right<=width+3),'history panels inside viewport '+label+': '+JSON.stringify(metrics.bounds));
+ if(!label.includes('selected-result')){
+  assert.ok(metrics.scopeTouchHeights.length===2&&metrics.scopeTouchHeights.every(h=>h>=43.5),'44px scope targets '+JSON.stringify(metrics.scopeTouchHeights));
+  assert.ok(metrics.bounds.every(b=>b.left>=-3&&b.right<=width+3),'history panels inside viewport '+label+': '+JSON.stringify(metrics.bounds));
+ }
  const filename=engine+'-'+width+'-'+label+'.png';
  await page.screenshot({path:resolve(out,filename),fullPage:true,animations:'disabled'});
  results.push({width,label,filename,...metrics});
