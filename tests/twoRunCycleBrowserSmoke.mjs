@@ -79,10 +79,10 @@ try{
  assert.deepEqual(runs.records.map(r=>r.memo),['次回は同じコースでペースと疲れを確認する','前回の問い：距離とペースを再確認した']);
  await page.goto(host+'#/result?record='+encodeURIComponent(secondId)+'&compare='+encodeURIComponent(firstId)+'&view=compare',{waitUntil:'networkidle'});
  const table=page.locator('.rv4-comparison-table');
- await table.waitFor();
- assert.match(await table.innerText(),/2026-10-19/);
- assert.match(await table.innerText(),/2026-10-21/);
- assert.match(await table.innerText(),/距離/);
+ await page.locator('.rv4-compare-cards').waitFor();
+ assert.match(await table.textContent(),/2026-10-19/);
+ assert.match(await table.textContent(),/2026-10-21/);
+ assert.match(await page.locator('.rv4-compare-cards').innerText(),/距離/);
  const regionPanel=page.locator('.rv4-region-compare');
  await regionPanel.waitFor();
  assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
@@ -111,7 +111,7 @@ try{
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
  await page.reload({waitUntil:'networkidle'});
  assert.equal((await readRuns()).records.length,2,'both records survive reload');
- assert.ok(await table.isVisible(),'comparison survives interruption/reload');
+ assert.ok(await page.locator('.rv4-compare-cards').isVisible(),'responsive factual comparison survives interruption/reload');
  await page.goto(host+'#/result?record='+encodeURIComponent(secondId)+'&compare=not-a-record&view=compare',{waitUntil:'networkidle'});
  await page.locator('.rv4-comparison-empty').filter({hasText:'指定された比較相手は保存記録にありません'}).waitFor({timeout:15000});
  assert.equal(await page.locator('.rv4-comparison-table').count(),0,'invalid compare ID never substitutes an arbitrary record');
@@ -204,8 +204,8 @@ try{
  const selector=page.locator('[data-compare-select]');
  assert.ok(await selector.locator('option[value="'+sameDayA+'"]').count());
  assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング.*ID末尾/);
- assert.equal((await page.locator('.rv4-comparison-table').innerText()).includes('距離'),true);
- const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().innerText();
+ assert.equal((await page.locator('.rv4-compare-cards').innerText()).includes('距離'),true);
+ const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().textContent();
  assert.match(zeroDistance,/0(\\.00)?/,'same-day zero change is a descriptive value, not missing');
  await page.reload({waitUntil:'networkidle'});
  const restoredProvenance=page.locator('.rv4-compare-provenance');
