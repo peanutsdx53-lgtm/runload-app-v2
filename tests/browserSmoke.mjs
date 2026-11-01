@@ -932,10 +932,18 @@ try{
   await page.locator('[data-append-name]').click();
   assert.match(await page.locator('[data-draft="bodyObservation"]').inputValue(),/気になった部位：膝蓋大腿関節部、下腿後面/);
   assert.ok(await page.locator('[data-append-name]').isDisabled(),'body-region line is transferred exactly once');
+  // Audit the actual post-transfer UI, not solely the later edited state.
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.bottom='auto'});
+  await page.screenshot({path:resolve(root,'screenshots',mode.name+'-body-transfer-confirmed.png'),fullPage:true});
+  if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='';el.style.bottom=''});
   await page.locator('[data-draft="bodyObservation"]').fill("膝の前が気になった");
   assert.ok(await page.locator('[data-append-name]').isEnabled(),'editing the observation updates transfer action immediately');
   assert.match(await page.locator('.cx-transfer-status').innerText(),/選んだだけでは記録に残りません/);
   assert.equal((await page.locator('[data-cx-page] [data-status]').innerText()).trim(),'','S07 cannot claim transfer still completed after deleting the transferred line');
+  await page.locator('[data-append-name]').click();
+  assert.ok(await page.locator('[data-append-name]').isDisabled(),'transfer remains available after user removes the line');
+  await page.locator('[data-draft="bodyObservation"]').fill("膝の前が気になった");
+  assert.equal((await page.locator('[data-cx-page] [data-status]').innerText()).trim(),'','stale success notice must remain cleared after second edit');
   assert.equal(await page.locator('[data-counter="shoeName"]').innerText(),'7/100','shoe-name count matches the current 100-character field limit');
   if(mode.name!=="desktop")await page.locator('.mobile-nav').evaluate(el=>{el.style.position='static';el.style.width='100%';el.style.bottom='auto'});
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-body-v8-integrated.png'),fullPage:true});
