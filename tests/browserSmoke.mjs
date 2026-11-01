@@ -1192,6 +1192,18 @@ try{
    assert.ok(routeOverflow<=3,mode.name+" "+route+" horizontal overflow: "+routeOverflow);
   }
   await page.goto(host+"#/measurement",{waitUntil:"networkidle"});
+  // GPS belongs to smartphone UA, not merely a narrow viewport. Verify the
+  // desktop-UA denial first at every width, then emulate a mobile UA for the
+  // GPS-only browser scenario without changing the viewport or stored records.
+  await page.locator('.gps-platform-unavailable').waitFor({state:"visible"});
+  assert.match(await page.locator('.gps-platform-unavailable').innerText(),/スマートフォン専用/);
+  assert.equal(await page.locator('[data-gps-action="start"]').count(),0,'desktop UA may not start GPS even at phone width');
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'userAgent',{configurable:true,
+      get:()=> 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36'});
+  });
+  await page.reload({waitUntil:"networkidle"});
+  await page.locator('[data-gps-live-page]').waitFor({state:"visible"});
   assert.equal(await page.locator('[data-gps-live-page]').count(),1);
   assert.equal(await page.locator('[data-gps-distance]').innerText(),'0.00','no prefilled GPS values');
   assert.equal(await page.locator('[data-gps-action="start"]').isEnabled(),true);
@@ -1221,10 +1233,10 @@ try{
   assert.equal(await page.locator('[data-gps-consent-interruption]').count(),0,'no duplicate pause notice overlay');
   const consentNotice=page.locator('#gps-consent-interruption');
   assert.equal(await consentNotice.count(),1,'existing consent modal contains pause/resume notice');
-  assert.match(await consentNotice.innerText(),/活動時間のタイマーとGPS測位は自動で一時停止/);
-  assert.match(await consentNotice.innerText(),/画面に戻っても自動では再開しません/);
-  assert.match(await consentNotice.innerText(),/「測定を再開」から位置情報の使用を確認/);
-  assert.match(await consentNotice.innerText(),/停止中の時間・距離は加算されません/);
+  assert.match(await consentNotice.innerText(),/タイマーとGPSは自動で一時停止/);
+  assert.match(await consentNotice.innerText(),/戻っても自動再開せず/);
+  assert.match(await consentNotice.innerText(),/再開時に再確認が必要/);
+  assert.match(await consentNotice.innerText(),/停止中の時間・距離は加算しません/);
   assert.match(await page.locator('.gps-consent-dialog').getAttribute('aria-describedby'),/gps-consent-interruption/);
   assert.ok(await consentNotice.isVisible(),'warning visible before GPS permission and watcher start');
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-gps-prestart-notice.png'),fullPage:false});
