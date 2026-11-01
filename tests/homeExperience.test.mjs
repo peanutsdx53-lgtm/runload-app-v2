@@ -140,11 +140,11 @@ test("new lifestyle entry requires an explicit feeling; legacy choices remain in
 
 test("S02 contextual recording entry never invents records or conceals read failures",()=>{
  const empty=latestCard(false,null,{ok:true,records:[]});
- assert.match(empty,/href="#\\/record-start"/);
+ assert.ok(empty.includes('href="#/record-start"'));
  assert.match(empty,/走行記録はまだありません/);
  const failed=latestCard(false,null,{ok:false,reason:"読み取り失敗"});
- assert.doesNotMatch(failed,/href="#\\/record-start"/);
+ assert.ok(!failed.includes('href="#/record-start"'));
  assert.match(failed,/読み取り失敗/);
  const withRun=latestCard(false,{id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:3,durationSeconds:1000},{ok:true,records:[]});
- assert.doesNotMatch(withRun,/href="#\\/record-start"/);
+ assert.ok(!withRun.includes('href="#/record-start"'));
 });
