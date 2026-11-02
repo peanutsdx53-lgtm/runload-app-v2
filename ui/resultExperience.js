@@ -1,6 +1,6 @@
 import {BODY_REGION_VIEWS} from '../assets/bodyRegionVisuals.js';
 import {bodyReferenceRow,bodyReferenceEngineId,bodyReferenceColor,bodyReferenceScale,BODY_REFERENCE_GRADIENT,renderBodyReferenceLabels,referenceReliefDefs,referenceReliefOverlays,bodyReferenceSilhouetteClipDef} from './bodyReferencePresentation.js';
-import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES,RESULT_GPS_GATE_STYLES,RESULT_REFLECTION_STYLES,RESULT_ROF_AUDIT_STYLES,RESULT_QUESTION_STYLES,RESULT_UI_CLEAN_STYLES} from './resultInlineStyles.js?v=20261102-result-clean-v2';
+import {RESULT_STYLES,RESULT_GAIT_STYLES,RESULT_VISUAL_STYLES,RESULT_SIDEBYSIDE_PREVIEW_STYLES,RESULT_ANATOMY_RELIEF_STYLES,RESULT_GPS_GATE_STYLES,RESULT_REFLECTION_STYLES,RESULT_ROF_AUDIT_STYLES,RESULT_QUESTION_STYLES,RESULT_UI_CLEAN_STYLES} from './resultInlineStyles.js?v=20261102-result-polish-v1';
 import {REGIONS} from './bodyContextExperience.js';
 import {comparableRunChoices,compareSavedRuns,gaitOf} from './runReflection.js';
 import {compareBodyReferenceRows} from './regionReferenceComparison.js';
@@ -112,23 +112,23 @@ export function mountResult(host,inputDraft={},options={}){
  const body=()=>{const r=current(),v=selectedView(),scale=bodyReferenceScale(r.value);
    const delta=r.value===null?'':(r.value>=100?'+':'')+format(r.value-100,1);
    return '<section class="rv4-card rv4-body" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>部位の参考値</h2><p>文献条件にもとづく参考情報</p></div><span class="rv4-mini">'+(reference?.count?reference.count+'/12 算出':'未取得')+'</span></div>'
-    +'<div class="rv4-tone-legend"><span><i class="rv4-low"></i>100より低い</span><span><i class="rv4-mid"></i>基準100</span><span><i class="rv4-high"></i>100より高い</span></div>'
+
     +'<div class="rv4-view-tabs">'+BODY_REGION_VIEWS.map(item=>'<button type="button" data-view="'+item.key+'" aria-pressed="'+(view===item.key)+'" class="'+(view===item.key?'active':'')+'">'+item.title+'</button>').join('')+'</div>'
     +'<div class="rv4-body-content"><div class="rv4-body-figure"><span class="rv4-orbit"></span>'+svgMap()
-    +'<div class="rv4-figure-actions"><span>部位をタップして確認</span><button type="button" data-label-toggle aria-pressed="'+showBodyNumbers+'">'+(showBodyNumbers?'数値を隠す':'図に数値を表示')+'</button></div></div>'
+    +'<div class="rv4-figure-actions"><span>タップで部位を確認</span><button type="button" data-label-toggle aria-pressed="'+showBodyNumbers+'">'+(showBodyNumbers?'数値を隠す':'図に数値を表示')+'</button></div></div>'
     +'<div class="rv4-reading"><small>選択中の部位</small><h3>'+clean(r.name)+'</h3>'
     +'<div class="rv4-big-score" data-reference-region="'+clean(r.id)+'">'+(r.value===null?'—':format(r.value,1))+'</div>'
     +(r.value!==null?'<div class="rv4-value-diff">部位内基準100との差 <strong>'+delta+'</strong></div>':'')
-    +'<div class="rv4-score-caption">'+(r.value!==null?'この部位自身の文献基準100に対する参考値（個人の測定値ではありません）':'この速度条件で算出可能な文献参考値はありません')+'</div>'
-    +'<div class="rv4-scale" style="background:'+BODY_REFERENCE_GRADIENT+'" role="img" aria-label="基準100を中心とする連続カラースケール">'
+     +(r.value===null?'<div class="rv4-score-caption">この条件では算出できません</div>':'')
+     +'<div class="rv4-scale" style="background-image:'+BODY_REFERENCE_GRADIENT+';background-color:#66C4B5" role="img" aria-label="左端60の青色から中央100の緑色を経て右端140の赤色へと変わる配色">'
     +'<span class="rv4-scale-ref"></span>'+(scale?'<span class="rv4-scale-current" style="left:'+scale.position.toFixed(2)+'%"></span>':'')+'</div>'
     +'<div class="rv4-scale-labels"><span>60</span><span>100</span><span>140</span></div>'
     +(scale?.clipped?'<div class="rv4-scale-note">現在値は配色表示範囲（60〜140）の外側です。数値はそのまま表示しています。</div>':'')
-    +'<button type="button" class="rv4-picker" data-picker-toggle aria-expanded="'+picker+'"><span>部位を選ぶ</span> <span>⌄</span></button></div></div>'
+     +'</div></div><div class="rv4-region-selection"><button type="button" class="rv4-picker" data-picker-toggle aria-expanded="'+picker+'"><span>部位を選ぶ</span><span aria-hidden="true">⌄</span></button></div>'
     +(picker?'<div class="rv4-choices">'+v.paths.map(([id])=>{const n=data.find(x=>x.id===id);return '<button type="button" data-region="'+id+'" class="'+(id===chosen?'active':'')+'">'+clean(n?.name||id)+'</button>'}).join('')+'</div>':'')
     +(fromGps&&gps.detailSaved&&['RUNNING','JOGGING','WALK'].includes(gps.activity)?
        '<div class="rv4-gps-gate"><div><small>GPSコースと身体の変化</small><strong>フラッグ地点の参考値を振り返る</strong><span>コース上の地点・速度・人体図を連動表示します</span></div><a data-gps-dynamic-gate href="#/dynamic-result?record='+encodeURIComponent(gps.id)+'">動的結果を見る ›</a></div>':'')
-    +'<p class="rv4-disclaimer">色は部位内基準100との差です。危険度や部位間の順位ではありません。</p>'
+
     +evidencePanel()+'</section>';
   };
  const fatigue=()=>'<section class="rv4-card rv4-fatigue" data-pane="fatigue" data-rof-time-status="unverified"><div class="rv4-card-heading"><span class="rv4-icon warm">'+icon('fatigue')+'</span><div><h2>疲労感の記録</h2><p>「運動前／後」として入力した回答（0〜10）</p></div></div><div class="rv4-fatigue-numbers"><div><small>運動前</small><strong>'+ (before??'—')+'</strong></div><span class="rv4-arrow" aria-hidden="true">／</span><div><small>運動後</small><strong>'+(after??'—')+'</strong></div><div class="rv4-change"><small>前後差</small><strong>—</strong></div></div><div class="rv4-tracks"><span style="width:'+(before===null?0:before*10)+'%"></span><span style="width:'+(after===null?0:after*10)+'%"></span></div><p class="rv4-fatigue-note" role="note"><strong>この回答から前後差は判定できません。</strong><span>ROF-Jは本人が申告した疲労感（0〜10）です。未回答は「—」で、0と区別します。</span></p><details class="rv4-fatigue-method"><summary>判断できないこと・回答時刻の扱い</summary><p>'+(fromGps?'GPSで測った疲労感ではなく、本人の回答です。入力操作時刻は疲労を感じた時刻の実測ではありません。運動前後の時間的な差や原因は判定しません。':'本人の回答です。入力操作時刻と本人申告の評価時刻を分けて記録します。運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません。')+'未回答は「—」です。</p></details>'
@@ -200,11 +200,11 @@ export function mountResult(host,inputDraft={},options={}){
   const reason=reference?.reason==='MIXED_GAIT_NOT_QUANTIFIED'?'走歩混在は単一活動として数値化しません。':reference?.reason==='GAIT_NOT_SELECTED'?'活動種別が未選択のため部位別値は表示しません。':'この速度条件で算出可能な部位別文献参考値はありません。';
   const detail=reference?.count?'活動種別：'+clean(ACTIVITY_LABELS[reference.activity]||'未設定')+'。平均速度：'+format(reference.speedMps,2)+' m/s。文献条件に合う'+reference.count+'/12部位のみ算出。路面・勾配は数値補正していません。':reason;
   return '<div class="rv4-notice" role="status"><span>'+label+'</span>'+(status?'<strong>'+status+'</strong>':'')+(!hasInput?'<span>保存された走行記録はまだありません。</span>':'')+'</div>'+
-   '<details class="rv4-method-disclosure"><summary>参考値の条件と限界</summary><p>'+detail+' 個人の身体負荷を直接測定した値ではありません。</p></details>';
+   '<details class="rv4-method-disclosure"><summary>参考値の条件と限界</summary><p>'+detail+' この色は各部位自身の文献基準100との差を示し、危険度や部位間の順位ではありません。個人の身体負荷を直接測定した値ではありません。</p></details>';
  };
  const hero=()=>'<section class="rv4-hero"><div class="rv4-hero-glow"></div><div class="rv4-hero-left"><small class="rv4-date">'+titleDate+'　<span>走行</span></small><div class="rv4-measures"><div class="rv4-distance"><small>距離</small><strong>'+format(distance,2)+'</strong><span>km</span></div><div class="rv4-secondary"><div><small>時間</small><strong>'+(duration>0?format(duration,0)+' 分':'—')+'</strong></div><div><small>平均ペース</small><strong>'+pace+' <em>/km</em></strong></div></div></div></div><div class="rv4-hero-report"><span>今回の記録・疲労感（本人申告）</span><div class="rv4-today-chips"><span>運動前 <b>'+(before??'—')+'</b></span><span>運動後 <b>'+(after??'—')+'</b></span></div></div></section>';
  function draw(){
-  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><h1>結果</h1></div><div class="rv4-actions"><details class="rv4-export-menu"><summary>保存・出力</summary><div class="rv4-export-options"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存</button><button type="button" data-print>印刷</button></div></details></div></header>'+resultNotice()+hero()+reflectionPath()+missingActivityPanel()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+explorationNext()+'</div>';
+  root.querySelector('.rv4-app').innerHTML='<div class="rv4-frame"><header class="rv4-header"><div><h1>結果</h1></div><div class="rv4-actions"><details class="rv4-export-menu"><summary><span>保存・出力</span><span class="rv4-export-chevron" aria-hidden="true"></span></summary><div class="rv4-export-options"><button type="button" data-download '+(!(distance!==null&&duration>0)?'disabled':'')+'>画像で保存</button><button type="button" data-print>印刷</button></div></details></div></header>'+resultNotice()+hero()+reflectionPath()+missingActivityPanel()+nav()+'<div class="rv4-grid" data-tab-state="'+tab+'">'+body()+'<div class="rv4-side">'+fatigue()+radar()+'</div></div>'+extras()+explorationNext()+'</div>';
   root.querySelectorAll('[data-result-gait]').forEach(b=>b.addEventListener('click',()=>{
     if(!activityMissing||!['RUNNING','JOGGING','WALK'].includes(b.dataset.resultGait))return;
     options.onAssignGait?.(b.dataset.resultGait);
