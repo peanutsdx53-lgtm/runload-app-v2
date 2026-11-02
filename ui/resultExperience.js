@@ -109,7 +109,7 @@ export function mountResult(host,inputDraft={},options={}){
    '<summary><span class="rv4-icon">'+icon('memo')+'</span><span><strong>文献の根拠と条件</strong><small>'+clean(badge)+'</small></span><b>⌄</b></summary>'+
    '<div class="rv4-note">'+entry+'</div></details>';
  };
- const body=()=>{if(!hasInput)return '<section class="rv4-card rv4-body rv4-empty-card" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>部位の参考値</h2></div></div><p class="rv4-empty-note">走行記録がないため、部位の参考値は表示されません。</p></section>';
+ const body=()=>{if(!hasInput)return '<section class="rv4-card rv4-body rv4-empty-card" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>部位の参考値</h2></div></div><p class="rv4-empty-note">記録後に参考値を表示します。</p></section>';
    const r=current(),v=selectedView(),scale=bodyReferenceScale(r.value);
    const delta=r.value===null?'':(r.value>=100?'+':'')+format(r.value-100,1);
    return '<section class="rv4-card rv4-body" data-pane="body"><div class="rv4-card-heading"><span class="rv4-icon">'+icon('body')+'</span><div><h2>部位の参考値</h2><p>文献条件にもとづく参考情報</p></div><span class="rv4-mini">'+(reference?.count?reference.count+'/12 算出':'未取得')+'</span></div>'
