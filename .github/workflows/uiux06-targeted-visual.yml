@@ -1,0 +1,60 @@
+name: UIUX06 S18 S19 S20 targeted visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/uiux06TargetBrowser.mjs'
+      - 'tests/gpsRofReviewBrowser.mjs'
+      - 'tests/offlineShellBrowserSmoke.mjs'
+      - '.github/workflows/uiux06-targeted-visual.yml'
+      - 'ui/measurementExperience.js'
+      - 'ui/simulationExperience.js'
+      - 'ui/resultExperience.js'
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  state-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 23
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check tests/uiux06TargetBrowser.mjs
+          node --check tests/gpsRofReviewBrowser.mjs
+          node --check tests/offlineShellBrowserSmoke.mjs
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: GPS before/during/after ROF-J and voluntary route storage
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/gpsRofReviewBrowser.mjs
+      - name: Four-step simulation, saved result PNG, input and focus states
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/uiux06TargetBrowser.mjs
+      - name: Installed offline shell and saved-record interpretation continuity
+        if: matrix.engine == 'chromium'
+        run: node tests/offlineShellBrowserSmoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uiux06-screens-${{ matrix.engine }}
+          path: |
+            audit-output/uiux06-${{ matrix.engine }}/
+            audit-output/gps-mobile/*${{ matrix.engine }}*.png
+          if-no-files-found: warn
+          retention-days: 14
