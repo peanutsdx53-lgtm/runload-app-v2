@@ -196,7 +196,8 @@ export function mountResult(host,inputDraft={},options={}){
  };
  const resultNotice=()=>{
   const label=fromGps?'GPS記録':fromSaved?'保存した手入力記録':hasInput?'保存前の入力':'記録なし';
-  const status=fromGps||fromSaved?(reference?.count?'参考値 '+reference.count+'/12部位':'参考値なし'):'';
+  const unavailableHint=reference?.reason==='MIXED_GAIT_NOT_QUANTIFIED'?'（走歩混在）':reference?.reason==='GAIT_NOT_SELECTED'?'（活動種別未設定）':reference?.state==='NO_AUTHORIZED_SPEED_REFERENCE'?'（文献条件外）':'';
+  const status=fromGps||fromSaved?(reference?.count?'参考値 '+reference.count+'/12部位':'参考値なし'+unavailableHint):'';
   const reason=reference?.reason==='MIXED_GAIT_NOT_QUANTIFIED'?'走歩混在は単一活動として数値化しません。':reference?.reason==='GAIT_NOT_SELECTED'?'活動種別が未選択のため部位別値は表示しません。':'この速度条件で算出可能な部位別文献参考値はありません。';
   const detail=reference?.count?'活動種別：'+clean(ACTIVITY_LABELS[reference.activity]||'未設定')+'。平均速度：'+format(reference.speedMps,2)+' m/s。文献条件に合う'+reference.count+'/12部位のみ算出。路面・勾配は数値補正していません。':reason;
   return '<div class="rv4-notice" role="status"><span>'+label+'</span>'+(status?'<strong>'+status+'</strong>':'')+(!hasInput?'<span>保存された走行記録はまだありません。</span>':'')+'</div>'+
