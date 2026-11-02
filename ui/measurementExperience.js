@@ -19,7 +19,7 @@ export function gpsReviewPage(s,elapsedMs=0,experience={}){
  return '<div class="gps-v2 gps-review" data-gps-review><header class="gps-v2-header"><a href="#/measurement" class="gps-v2-back" aria-label="測定終了画面へ戻る">‹</a><div><small class="gps-live-eyebrow">REAL GPS / 実測</small><h1>GPS記録内容の確認</h1></div></header>'+
  '<section class="gps-v35-panel gps-review-facts"><h2>GPSで取得した記録</h2><dl><div><dt>活動</dt><dd>'+esc(GPS_ACTIVITY[s.activity])+'</dd></div><div><dt>GPS移動距離</dt><dd>'+data.distance+' km</dd></div><div><dt>測定した活動時間</dt><dd>'+data.time+'</dd></div><div><dt>平均ペース</dt><dd>'+data.pace+' /km</dd></div></dl></section>'+
  '<section class="gps-v35-panel gps-review-subjective"><h2>任意の記録</h2>'+
- '<a href="#/gps-rof" class="gps-rof-link" data-gps-rof-entry="after"><span><strong>運動後の疲労感（ROF-J）</strong><small>任意・イラストで選択</small></span><output>'+reportedScore(experience.rofAfter)+'</output><span aria-hidden="true">›</span></a>'+
+ '<a href="#/gps-rof" class="gps-rof-link" data-gps-rof-entry="after"><span><strong>運動後の疲労感<b class="gps-rof-term">（ROF-J）</b></strong><small>任意・イラストで選択</small></span><output>'+reportedScore(experience.rofAfter)+'</output><span aria-hidden="true">›</span></a>'+
  '<p class="gps-review-rof-before">運動前：'+reportedScore(experience.rofBefore)+'</p>'+
  '<p class="gps-review-provenance">疲労感は本人の任意回答（0〜10）です。0は回答済み、未回答は未回答のまま保存します。「運動前／後」の区分だけで実際の時間的前後差を判定しません。</p>'+
  '<label class="gps-review-note">今回の気づき・メモ（任意）<textarea data-gps-note maxlength="500" rows="3" placeholder="次に確かめたいこと、気づいたことなど">'+esc(experience.memo||'')+'</textarea></label>'+
