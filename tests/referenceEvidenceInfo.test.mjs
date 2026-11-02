@@ -48,7 +48,7 @@ test('walking/jogging never inherit the running source and GPS never guesses it'
 test('body evidence panel is additive; it does not alter calculators or storage',()=>{
  const body=readFileSync(new URL('../ui/resultExperience.js',import.meta.url),'utf8');
  assert.match(body,/data-region-evidence/);
- assert.match(body,/この部位の研究根拠と条件/);
+ assert.match(body,/文献の根拠と条件/);
  assert.match(body,/evidencePanel\(\)/);
  assert.doesNotMatch(body,/localStorage\.setItem\(/);
 });
