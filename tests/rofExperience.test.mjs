@@ -82,6 +82,9 @@ test('S06 reuses recorded running date and native time picker, without duplicate
  assert.match(v,/type="time" data-rof-run-start/);
  assert.match(v,/value="10:20"/);
  assert.doesNotMatch(v,/type="date"/);
+ assert.match(v,/運動時刻・回答時点（任意）/);
+ assert.match(v,/未入力の時刻は推定しません/);
+ assert.doesNotMatch(v,/ここで再入力する必要はありません/);
  assert.doesNotMatch(v,/data-rof-run-start-date|data-rof-v4-next-phase/);
 });
 test('S06 calendar auto resolution matches condition midnight principle and does not infer missing times',()=>{
