@@ -225,8 +225,10 @@ try{
    // The 320/390px offline result has cards, not a visible desktop table.
    await compareView.waitFor();
    const offlineComparison=await compareView.innerText();
-   assert.match(offlineComparison,/2026-10-18/);
-   assert.match(offlineComparison,/2026-10-25/);
+   const offlineLabels=await page.locator('.rv4-compare-summary').innerText();
+   assert.match(offlineLabels,/2026-10-18/);
+   assert.match(offlineLabels,/2026-10-25/);
+   assert.match(offlineComparison,/距離/);
    await page.locator('.rv4-export-menu summary').click();
     const [offlineImage]=await Promise.all([page.waitForEvent('download'),page.locator('#runload-result-v4 [data-download]').click()]);
    assert.equal(offlineImage.suggestedFilename(),'走行結果.png');
