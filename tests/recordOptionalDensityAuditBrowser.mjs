@@ -42,6 +42,9 @@ try{
   await page.locator('[data-draft="minutes"]').fill('54');
   await page.locator('[data-manual-gait="RUNNING"]').click();
   await enter(page,'record-course','.rv-course',w,'COURSE');
+  const flowRail=await page.locator('.rv-course .rv-flow-rail').evaluate(el=>getComputedStyle(el).display);
+  assert.equal(flowRail,w<=480?'none':'grid','S05 collapses duplicate tiny steps on phone');
+  assert.equal(await page.locator('.rv-course-step .rv-step-index').count(),3,'all card headings keep 01–03 step labels');
   await page.locator('[data-draft="courseName"]').fill('川沿い周回・橋を渡るコース');
   await page.locator('[data-rv-grade="SECTIONS"]').click();
   for(let k=0;k<5;k++){
