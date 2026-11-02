@@ -250,3 +250,7 @@
 
 /* UX-036: desktop GPS restriction is an explanatory note, not a dead button. */
 .sm-actions [role="note"].sm-action-secondary{display:inline-flex;align-items:center;min-height:44px;padding:11px 13px;border:1px solid #456e7a;border-radius:11px;background:#0a2d3d;color:#c2dce3;font-size:.8rem;font-weight:700}
+
+/* UIUX06 S19 keep all four approved stages on one row at phone widths.
+   Earlier auto-fit 75px columns caused the fourth stage to become a new row at 320px. */
+@media(max-width:650px){.sm-page .sm-steps{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.sm-page .sm-steps span{min-width:0;padding:7px 2px;white-space:normal;overflow-wrap:anywhere;font-size:clamp(9px,2.7vw,11px);line-height:1.4}}
