@@ -1485,7 +1485,7 @@ try{
   // Saved manual run E2E: real storage and explicit ID, no simulated GPS input.
   await page.reload({waitUntil:'networkidle'});
   await page.goto(host+"#/record",{waitUntil:'networkidle'});
-  assert.match(await page.locator('.rv-required-progress').innerText(),/距離・時間・活動種目/);
+  assert.equal(await page.locator('.rv-required-progress').isHidden(),true,'untouched manual form does not duplicate required fields');
   await page.locator('[data-demo-save]').click();
   await page.locator('[data-record-review]').waitFor();
   assert.equal(await page.locator('[data-manual-run-save]').isDisabled(),true);
