@@ -52,9 +52,10 @@ try{
   const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'reduce',acceptDownloads:true,...(userAgent?{userAgent}:{})});
   await ctx.addInitScript(()=>{
    localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'}));
+   const day=offset=>{const d=new Date();d.setDate(d.getDate()+offset);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
    localStorage.setItem('runload-v2-life-condition-v1',JSON.stringify([
-    {date:'2026-10-27',sleepMinutes:420,feeling:'良い',memo:'前日の生活記録'},
-    {date:'2026-10-28',sleepMinutes:400,feeling:'ふつう',memo:'本人による記録'}
+    {date:day(-2),sleepMinutes:420,sleepSource:'duration',feeling:'良い',memo:'前日の生活記録'},
+    {date:day(-1),sleepMinutes:400,sleepSource:'duration',feeling:'ふつう',memo:'本人による記録'}
    ]));
   });
   const page=await ctx.newPage();
@@ -110,8 +111,14 @@ try{
    assert.equal(await t.locator('[data-tab]').count(),3,'S09 body / fatigue / historic comparison retained');
    assert.match(await t.locator('.rv4-notice').innerText(),/参考値|文献|算出/);
   });
-  await verify('S10','history','#runload-history-v2',async t=>{
+  await page.goto(host+'history',{waitUntil:'networkidle'});
+  await page.locator('#runload-history-v2 .stage').waitFor();
+  await page.locator('[data-history-scope="all"]').click();
+  await page.locator('[data-select-id="'+run+'"]').click();
+  await verify('S10',null,'#runload-history-v2',async t=>{
    assert.equal(await t.locator('.stage').count(),1);
+   assert.equal(await t.locator('.selected-footer .hx-record-id').count(),1,'selected saved run must be visible, not empty current month');
+   assert.equal(await t.locator('[data-open-record]').isEnabled(),true,'selected running record has a results route');
   });
   await verify('S11','exploration-tree','[data-experience-v3]',async t=>{
    assert.match(await t.innerText(),/探究/);
@@ -129,6 +136,9 @@ try{
   await page.keyboard.press('Escape');
   await verify('S14','condition','#condition-journey',async t=>{
    assert.match(await t.innerText(),/生活記録|睡眠|コンディション/);
+   assert.equal(await t.locator('[data-cj-day]:not([disabled])').count(),2,'screen must show two actually stored recent life entries');
+   await t.locator('[data-cj-day]:not([disabled])').first().click();
+   assert.match(await t.locator('.cj-day-memo').innerText(),/本人による記録|前日の生活記録/);
   });
   await verify('S15','consultation','#runload-consultation',async t=>{
    assert.equal(await t.locator('#cp-target').count(),1);
