@@ -13,7 +13,10 @@ test('Result v4 does not fabricate biomechanical comparisons when no activity is
  assert.match(js,/value:null/);
  assert.match(js,/同じ活動種別の保存記録をもう1件残すと/);
  assert.match(js,/calculateActivityReference/);
- assert.match(js,/この部位自身の文献基準100/);
+ assert.match(js,/各部位自身の文献基準100/);
+ assert.doesNotMatch(js,/rv4-tone-legend/,'duplicate legend removed');
+ assert.match(js,/rv4-region-selection/,'picker has its own row');
+ assert.match(js,/BODY_REFERENCE_GRADIENT/,'reference scale uses unchanged scientific palette');
  assert.match(js,/まだ保存していない記録/);
  assert.ok(!js.includes('distance:8.20'));
  assert.ok(!js.includes('rofBefore:6,rofAfter:8'));
