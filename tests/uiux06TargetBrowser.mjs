@@ -38,6 +38,8 @@ try{
   await page.goto(base+'simulation',{waitUntil:'networkidle'});
   const sim=page.locator('[data-sim-page]');await sim.waitFor();
   assert.equal(await sim.locator('.sm-steps span').count(),4,'all four approved simulation phases retained');
+  const stages=await sim.locator('.sm-steps span').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().top));
+  assert.ok(stages.every(top=>Math.abs(top-stages[0])<=2),'all four simulation stages remain on one row at '+width+'px: '+JSON.stringify(stages));
   assert.match(await sim.locator('.sm-limits').innerText(),/身体負荷を予測しません/);
   assert.match(await sim.locator('.sm-comparison-note').innerText(),/仮定/);
   await shot(page,width,'S19-manual-hypothetical');
