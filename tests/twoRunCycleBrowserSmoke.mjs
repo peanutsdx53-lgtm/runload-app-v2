@@ -251,7 +251,7 @@ try{
  assert.match(await page.locator('[data-compare-select] option[value="'+sameDayA+'"]').innerText(),/ランニング.*活動種別が異なる/);
  assert.equal(await page.locator('.rv4-comparison-table').count(),0,'cross gait factual comparisons must fail closed');
  assert.match(await page.locator('.rv4-comparison-empty').innerText(),/活動種別が不明または異なります/);
- assert.match(await page.locator('.rv4-region-compare').innerText(),/活動種別が異なる記録の参考値は比較できません/);
+ assert.equal(await page.locator('.rv4-region-compare').count(),0,'cross-gait case does not show a redundant, unusable reference region picker');
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'three approved result tabs remain');
  state=await readRuns();
  assert.equal(state.records.filter(r=>r.date==='2026-10-25').length,3);
