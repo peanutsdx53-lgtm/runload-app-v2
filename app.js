@@ -616,7 +616,15 @@ function recordExtras(){
  if(page==="simulation"){
    const panel=app.querySelector("[data-sim-page]");
    simulationExperience.bindSimulation(panel,simulationUi);
-   panel?.addEventListener("sim-redraw",()=>{const y=window.scrollY;render();window.scrollTo(0,y);});
+   panel?.addEventListener("sim-redraw",()=>{
+     const y=window.scrollY,active=document.activeElement;
+     const source=active?.getAttribute?.("data-sm-source"),field=active?.getAttribute?.("data-sm-field");
+     render();window.scrollTo(0,y);
+     // A simulation source or saved-record selection replaces this entire screen.
+     // Restore focus to the same control without moving the scroll position.
+     const current=source?app.querySelector('[data-sm-source="'+source+'"]'):field?app.querySelector('[data-sm-field="'+field+'"]'):null;
+     current?.focus({preventScroll:true});
+   });
  }
  if(page==="history"){
    const saved=manualRunStore.readManualRuns(onboardStorage);
