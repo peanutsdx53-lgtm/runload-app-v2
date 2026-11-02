@@ -18,6 +18,7 @@ async function checkSavedResultPng(page,result,mode,label,required,forbidden){
   };
  });
  await page.evaluate(()=>{window.__runloadImageAuditText=[];});
+ await result.locator('.rv4-export-menu summary').click();
  const [file]=await Promise.all([page.waitForEvent('download'),result.locator('[data-download]').click()]);
  assert.equal(file.suggestedFilename(),'走行結果.png');
  const path=resolve(root,'screenshots',mode.name+'-result-image-'+label+'.png');
@@ -1523,7 +1524,7 @@ try{
   await review.locator('[data-manual-run-save]').click();
   await page.waitForURL(/#\/result\?record=run-v1-/);
   const savedResult=page.locator('#runload-result-v4');
-  assert.match(await savedResult.locator('.rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.match(await savedResult.locator('.rv4-notice').innerText(),/保存した手入力記録/);
   assert.equal(await savedResult.locator('style[data-result-inline-styles]').count(),1,'result shadow styles are available immediately');
   const savedTheme=await savedResult.locator('.rv4-app').evaluate(el=>getComputedStyle(el).backgroundImage);
   assert.match(savedTheme,/radial-gradient/,'saved result has approved dark palette without flash');
@@ -1592,7 +1593,7 @@ try{
    });db.close();return original;
   });
   await page.reload({waitUntil:'networkidle'});
-  assert.match(await savedResult.locator('.rv4-notice').innerText(),/活動種別が未選択/,'legacy/unspecified runs have no inferred activity');
+  assert.match(await savedResult.locator('.rv4-notice').innerText(),/参考値なし/,'legacy/unspecified runs have no inferred activity');
   assert.equal((await savedResult.locator('.rv4-big-score').innerText()).trim(),'—','no fabricated score without explicit activity');
   assert.equal(await savedResult.locator('[data-body-reference-label]').count(),0,
    'unknown manual activity never creates fabricated reference values');
@@ -1629,7 +1630,7 @@ try{
   const recordIds=await page.evaluate(async()=>JSON.parse((await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw).records.map(r=>r.id));
   assert.equal(recordIds.length,1);
   await page.reload({waitUntil:'networkidle'});
-  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存した手入力記録/);
   assert.equal(await page.locator('#runload-result-v4 [data-result-gait]').count(),0);
   assert.equal(await page.locator('#runload-result-v4 [data-body-reference-label]').count(),0,
    'body stays uncluttered by default after reload');
@@ -1678,9 +1679,9 @@ try{
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-pace-saved-v27.png'),fullPage:false});
    await page.goto(host+'#/home',{waitUntil:'networkidle'});
   await page.locator('.hx-latest a[href^="#/result?record="]').click();
-  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/);
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存した手入力記録/);
   await page.goto(host+'#/result',{waitUntil:'networkidle'});
-  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/端末に保存した手入力/,'result navigation defaults to latest saved run');
+  assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/保存した手入力記録/,'result navigation defaults to latest saved run');
   await page.goto(host+'#/result?record=missing-record',{waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-result-v4 [role="status"]').innerText(),/指定された保存済み走行記録が見つかりません/,'invalid explicit ID is explicitly rejected');
   assert.equal(await page.locator('#runload-result-v4 .rv4-notice').count(),0,'invalid ID cannot alias a valid result');
@@ -1754,7 +1755,7 @@ try{
     const output=page.locator('#runload-result-v4');
     await output.locator('.rv4-mini').waitFor();
     const notice=await output.locator('.rv4-notice').innerText();
-    assert.match(notice,/文献条件/,example.activity+' must render a source-bounded reference result');
+    assert.match(notice,/参考値/,example.activity+' must render a source-bounded reference result');
     assert.match(await output.locator('.rv4-mini').innerText(),/[1-9][0-2]?\/12 算出/,example.activity+' has at least one real output');
     await output.locator('[data-picker-toggle]').click();
     await output.locator('.rv4-choices button[data-region="BA-DISP-014"]').click();
@@ -1781,7 +1782,7 @@ try{
     const actualId=new URLSearchParams(page.url().split('?')[1]||'').get('record');
     assert.ok(actualId?.startsWith('run-v1-'));
     await page.reload({waitUntil:'networkidle'});
-    assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/文献条件/,'calculation survives saved-ID reload');
+    assert.match(await page.locator('#runload-result-v4 .rv4-notice').innerText(),/参考値/,'calculation survives saved-ID reload');
     assert.match(await page.locator('#runload-result-v4 .rv4-mini').innerText(),/\/12 算出/);
   }
   await page.close();
