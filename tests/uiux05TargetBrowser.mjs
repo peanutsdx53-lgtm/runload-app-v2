@@ -83,7 +83,7 @@ try{
    await page.goto(base+'measurement',{waitUntil:'networkidle'});
    const gps=page.locator('[data-measurement-v2]');await gps.waitFor();
    assert.equal(await gps.locator('.gps-live-steps [aria-current="step"]').count(),1);
-   assert.match(await gps.locator('.gps-live-steps [aria-current="step"]').innerText(),/01.*準備/);
+   assert.match(await gps.locator('.gps-live-steps [aria-current="step"]').innerText(),/01\s*準備/);
    assert.equal(await gps.locator('.gps-live-prep [data-gps-rof-entry="before"]').count(),1);
    assert.equal(await gps.locator('.gps-live-prep [data-gps-action="start"]').count(),1);
    // Do not start geolocation or accept a GPS permission dialog in this test.
