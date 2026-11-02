@@ -502,3 +502,10 @@
 .ex-jump-topics:focus-visible{outline:3px solid #9cfff2;outline-offset:3px}
 #ex-topic-content{scroll-margin-top:18px}
 @media(max-width:1150px){.ex-page .ex-jump-topics{display:inline-flex}}
+
+/* S13: a deliberate second choice before removing one optional note. */
+.ex-delete-confirm blockquote{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow-y:auto;border-left:3px solid #90d6d8;margin:12px 0;padding:9px 12px;background:#0b2938;color:#e5f6fa;font-size:.83rem;line-height:1.65}
+.ex-delete-confirm .ex-dialog-actions{flex-wrap:wrap}
+.ex-delete-confirm .ex-dialog-actions button{flex:1 1 150px;min-height:44px}
+.ex-delete-confirm .ex-dialog-actions .ex-delete-danger{background:#682b33;border-color:#d88e93;color:#fff5f5}
+.ex-delete-confirm .ex-dialog-actions button:focus-visible{outline:3px solid #a6f9e8;outline-offset:3px}
