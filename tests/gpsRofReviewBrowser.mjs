@@ -94,6 +94,9 @@ try{
   assert.match(await page.locator('.gps-review-rof-before').innerText(),/0 \/ 10/);
   assert.match(await page.locator('.gps-review-provenance').innerText(),/0は回答済み、未回答は未回答のまま保存/);
   assert.match(await page.locator('.gps-review-storage-note').innerText(),/位置情報を含むコース詳細は/);
+  const rofTerm=await page.locator('[data-gps-rof-entry="after"] .gps-rof-term').evaluate(el=>({whiteSpace:getComputedStyle(el).whiteSpace,fragments:el.getClientRects().length}));
+  assert.equal(rofTerm.whiteSpace,'nowrap','ROF-J name cannot split at a hyphen in narrow layout');
+  assert.equal(rofTerm.fragments,1,'ROF-J scientific term must remain a single visual fragment');
   await safe('review');await shot('03-review-empty-after');
   await page.locator('[data-gps-rof-entry="after"]').click();
   await page.locator('[data-rof-v4-root]').waitFor();
