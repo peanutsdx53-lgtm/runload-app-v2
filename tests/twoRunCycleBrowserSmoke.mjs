@@ -137,7 +137,7 @@ try{
  if(await regionPanel.locator('.rv4-region-compare-unavailable').count())
   assert.match(regionDetails,/両方の記録でこの部位の参考値を算出/,'no scientific comparison must explain why');
  else assert.match(regionDetails,/現在の同一モデルで再計算/,'eligible comparison explains its method');
- assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
+ assert.match(await regionPanel.innerText(),/ポイント|この部位の参考値は比較できません/,
   'same-region scientific result or explicit rejection must be visible');
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
  assert.equal(await page.locator('.rv4-next-path .rv4-learn-link').count(),1,'one contextual exploration link');
@@ -408,7 +408,7 @@ try{
  assert.match(await eligiblePanel.locator('.rv4-region-compare-change strong').innerText(),/^[+-]?[0-9]/,'same-method scientific comparison survives reload in the structured value card');
  const outside=await saveRun('2026-10-29',0.5,30,'','RUNNING');
  await page.goto(host+'#/result?record='+encodeURIComponent(outside)+'&compare='+encodeURIComponent(eligibleA)+'&view=compare',{waitUntil:'networkidle'});
- assert.match(await page.locator('.rv4-region-compare').innerText(),/この部位は比較できません/,'ineligible speed must not invent a comparative reference');
+ assert.match(await page.locator('.rv4-region-compare').innerText(),/この部位の参考値は比較できません/,'ineligible speed must not invent a comparative reference');
  console.log('PASS stage 10: two real in-domain saved references and speed-out-of-range rejection');
 
  console.log('PASS stage 10: explicit question ID, two saved run IDs, no automatic transfer and browser reload');
