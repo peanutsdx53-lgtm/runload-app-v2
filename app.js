@@ -761,7 +761,7 @@ function recordExtras(){
       if(event.target.matches("[data-cj-method]"))conditionUi.method=event.target.value;
       else conditionUi.focus=event.target.value;
       conditionUi.selected="";conditionUi.scrollLeft=null;
-      const y=window.scrollY;render();window.scrollTo(0,y);return;
+      const y=window.scrollY,selector=event.target.matches("[data-cj-method]")?"[data-cj-method]":"[data-cj-focus]";render();window.scrollTo(0,y);app.querySelector(selector)?.focus({preventScroll:true});return;
     }
     if(event.target.matches("[data-interpret-date]")){
       lifeCompareUi[event.target.dataset.interpretDate]=event.target.value;
@@ -1130,7 +1130,11 @@ function recordExtras(){
         const result=conditionInsights.removeConditionInsight(onboardStorage,conditionControl.dataset.cjDeleteInsight);
         conditionUi.notice=result.ok?"気づきを削除しました":result.reason;
       }
-      render();window.scrollTo(0,y);return;
+      render();window.scrollTo(0,y);
+      // S14: preserve focus on the actual chart control after rebuilding the graph.
+      if(conditionControl.hasAttribute("data-cj-day"))app.querySelector('[data-cj-day="'+conditionUi.selected+'"]')?.focus({preventScroll:true});
+      else if(conditionControl.hasAttribute("data-cj-range"))app.querySelector('[data-cj-range="'+conditionUi.days+'"]')?.focus({preventScroll:true});
+      return;
     }
     const lifeAction=event.target.closest("[data-interpret-save-intent],[data-interpret-mark-reviewed],[data-interpret-pause],[data-interpret-resume],[data-interpret-delete]");
     if(lifeAction){
