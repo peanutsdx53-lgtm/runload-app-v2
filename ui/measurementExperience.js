@@ -21,9 +21,10 @@ export function gpsReviewPage(s,elapsedMs=0,experience={}){
  '<section class="gps-v35-panel gps-review-subjective"><h2>任意の記録</h2>'+
  '<a href="#/gps-rof" class="gps-rof-link" data-gps-rof-entry="after"><span><strong>運動後の疲労感（ROF-J）</strong><small>任意・イラストで選択</small></span><output>'+reportedScore(experience.rofAfter)+'</output><span aria-hidden="true">›</span></a>'+
  '<p class="gps-review-rof-before">運動前：'+reportedScore(experience.rofBefore)+'</p>'+
+ '<p class="gps-review-provenance">疲労感は本人の任意回答（0〜10）です。0は回答済み、未回答は未回答のまま保存します。「運動前／後」の区分だけで実際の時間的前後差を判定しません。</p>'+
  '<label class="gps-review-note">今回の気づき・メモ（任意）<textarea data-gps-note maxlength="500" rows="3" placeholder="次に確かめたいこと、気づいたことなど">'+esc(experience.memo||'')+'</textarea></label>'+
  '</section>'+
- '<section class="gps-v35-panel gps-review-save"><h2>保存する</h2>'+
+ '<section class="gps-v35-panel gps-review-save"><h2>保存する</h2><p class="gps-review-storage-note">記録の距離・時間と本人の任意回答をこの端末に保存します。位置情報を含むコース詳細は、次のチェックを入れた場合だけ追加保存します。</p>'+
  '<label class="gps-live-checkbox"><input type="checkbox" data-gps-save-route '+(experience.saveRoute?'checked':'')+'><span><b>コースと動的結果用データを保存する</b><small>位置・速度・フラッグを含みます。初期OFFで、本人が選んだ場合だけ保存します。</small></span></label>'+
  (s.flags?.length?flagCards(s):'')+
  ''+
