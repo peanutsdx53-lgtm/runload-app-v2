@@ -1186,7 +1186,7 @@ try{
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const historicalReport=page.locator("#runload-result-v4");
   assert.match(await historicalReport.locator(".rv4-notice").innerText(),/記録なし/);
-  assert.equal((await historicalReport.locator(".rv4-distance strong").innerText()).trim(),"—","unsaved input must not leak into result");
+  assert.equal(await historicalReport.locator(".rv4-distance strong").count(),0,"unsaved input must not create a fictitious result card");
     for(const route of ["record","history","settings","measurement","course","simulation","consultation","body-part-detail"]){
    await page.goto(host+"#/"+route,{waitUntil:"networkidle"});
    await page.locator("h1").waitFor();
