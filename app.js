@@ -1533,7 +1533,8 @@ function recordExtras(){
     if(exploreAction){
       const action=exploreAction.dataset.exAction;
       if(action==="close"){explorationUi.modal="";explorationUi.editingNoteId=null;render();restoreExplorationFocus();return;}
-      if(action==="catalog"){explorationUi.tab="catalog";render();return;}
+      if(action==="jump-topics"){app.querySelector("#ex-topic-content")?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});app.querySelector("#ex-topic-content .ex-topic.is-picked")?.focus({preventScroll:true});return;}
+       if(action==="catalog"){explorationUi.tab="catalog";render();return;}
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
       if(action==="save-edited-note"){
         const revised=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.editNote(
