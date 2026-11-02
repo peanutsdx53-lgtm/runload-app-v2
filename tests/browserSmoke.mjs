@@ -913,6 +913,9 @@ try{
     el.style.position="";el.style.width="";el.style.bottom="";
   });
   await page.goto(host+"#/record-reflection",{waitUntil:"networkidle"});
+  // A hash route may finish its canonical IndexedDB refresh after navigation resolves.
+  // Wait for the actual reflection screen; never classify an intermediate blank paint as a removed route.
+  await page.locator(".cx-page").waitFor({state:"visible",timeout:12000});
   assert.equal(await page.locator(".cx-page").count(),1,"reflection remains an independent routed screen");
   assert.equal(await page.locator('[data-region-focus]').count(),5,"five official front-map targets");
   await page.locator('[data-region-focus="BA-DISP-019"]').evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true})));
