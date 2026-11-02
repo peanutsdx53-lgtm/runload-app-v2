@@ -1,0 +1,46 @@
+name: UIUX02 stages 04-06 S05-S08 overdue visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/uiux02Stage0406Browser.mjs'
+      - '.github/workflows/uiux02-stages0406-visual.yml'
+      - 'ui/recordExperience.js'
+      - 'ui/rofExperience.js'
+      - 'ui/bodyContextExperience.js'
+      - 'ui/recordReviewExperience.js'
+      - 'app.js'
+      - 'index.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  targeted-states:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source syntax
+        run: node --check tests/uiux02Stage0406Browser.mjs
+      - name: Install tested browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Exercise normal and counterexample states on three widths
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/uiux02Stage0406Browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uiux02-stage0406-${{ matrix.engine }}
+          path: audit-output/uiux02-${{ matrix.engine }}/
+          if-no-files-found: warn
+          retention-days: 14
