@@ -181,6 +181,9 @@ try{
   });
   assert.match(await result.locator('.rv4-notice').innerText(),/記録なし/);
   assert.equal(await result.locator('.rv4-scale').count(),0,'empty result must not show color scale');
+  assert.equal(await result.locator('.rv4-hero').count(),0,'unrecorded distance and pace are not shown as a mock result');
+  assert.equal(await result.locator('.rv4-empty-card').count(),2,'empty anatomy and fatigue have short accessible states');
+  assert.equal(await result.locator('.rv4-mobile-tabs [data-tab]').count(),3,'three approved tabs stay available');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-empty.png'),fullPage:true,animations:'disabled'});
   await fit(page,prefix+' all state cases');
 
