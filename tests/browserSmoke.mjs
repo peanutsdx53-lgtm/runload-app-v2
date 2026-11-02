@@ -369,6 +369,7 @@ try{
   if(mode.name!=="desktop"){
     await report.locator('[data-tab="fatigue"]').click();
     assert.ok(await report.locator('.rv4-fatigue').isVisible());
+    assert.equal(await report.locator('[data-tab="fatigue"]').evaluate(el=>el===el.getRootNode().activeElement),true,'result fatigue tab retains keyboard focus after redraw');
     await report.locator('[data-tab="radar"]').click();
     assert.ok(await report.locator('.rv4-history').isVisible());
     await report.locator('[data-tab="body"]').click();
@@ -424,6 +425,14 @@ try{
    assert.equal(await ex.locator('[data-ex-action="memories"]').count(),1,'only one reflection entry point in header');
    assert.equal(await ex.locator('.ex-memories').count(),0,'avoid duplicate reflection panel');
    assert.equal(await ex.locator('.ex-citation').count(),0,'research references do not dominate beginner reading');
+   if(mode.name!=="desktop"){
+     const jump=ex.locator('[data-ex-action="jump-topics"]');
+     assert.ok(await jump.isVisible(),'mobile constellation offers direct selected-theme navigation');
+     await jump.click();
+     assert.equal(await ex.locator('.ex-topic.is-picked').evaluate(el=>el===document.activeElement),true,'theme jump focuses the selected topic');
+     assert.match(page.url(),/#\/exploration-tree/,'jump preserves current route');
+     await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-theme-jump-v03.png'),fullPage:false});
+   }
    await page.screenshot({path:resolve(root,'screenshots',mode.name+'-explore-constellation-v23.png'),fullPage:false});
   const fromDraft=await ex.locator('.ex-node.is-related').count();
   if(fromDraft)assert.ok((await ex.locator('.ex-focus-intro').innerText()).length>0,'linked field retains a short status');
