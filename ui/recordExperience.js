@@ -95,13 +95,13 @@ export function sectionShareProgress(d,ui){
 function segmentSection(d,ui){
  const count=ui.sections;
  const progress=sectionShareProgress(d,ui);
- return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。各区間の割合・方向・傾斜・路面を設定します。</p><p class="rv-section-progress ${progress.complete?'is-complete':''}" data-rv-section-progress role="status">${progress.text}</p>
+ return `<div class="rv-section-rows"><p class="rv-hint">最大5区間。割合の合計は100%です。</p><p class="rv-section-progress ${progress.complete?'is-complete':''}" data-rv-section-progress role="status">${progress.text}</p>
  ${Array.from({length:count},(_,i)=>`<div class="rv-section-row"><div class="rv-section-row-head"><strong>区間 ${i+1} <small>${filled(d['sectionShare'+i])?'割合 '+escape(d['sectionShare'+i])+'%':'割合 未入力'}</small></strong><button type="button" data-rv-remove="${i}" aria-label="区間 ${i+1} を削除">削除</button></div>
  <div class="rv-section-fields"><label>割合 (%)<input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-draft="sectionShare${i}" value="${courseValue(d,'sectionShare'+i)}"></label>
  <label>坂道<select data-draft="sectionDirection${i}">${choose(DIRECTIONS,d['sectionDirection'+i])}</select></label>
  <label>傾斜 (%)<input data-draft="sectionGrade${i}" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${courseValue(d,'sectionGrade'+i)}"></label>
  <label>路面<select data-draft="sectionSurface${i}">${choose([['UNKNOWN','不明'],...SURFACES],d['sectionSurface'+i])}</select></label></div></div>`).join('')}
- <button type="button" class="rv-add" data-rv-add ${count>=5?'disabled':''}>＋ 区間を追加（${count} / 5）</button><p class="rv-hint">区間割合は全区間で合計100%にしてください。空欄を0とはみなしません。</p></div>`;
+ <button type="button" class="rv-add" data-rv-add ${count>=5?'disabled':''}>＋ 区間を追加（${count} / 5）</button><p class="rv-hint">空欄は0%として扱いません。</p></div>`;
 }
 
 export function surfaceShareState(d,ui){
@@ -134,9 +134,9 @@ export function coursePage(state,ui,library={ok:true,records:[]},fromHome=false)
  const selectedPreset=selected&&library.ok?records.find(p=>p.id===selected):null;
  const listing=library.ok?records.slice().reverse().map(p=>`<article class="rv-preset-item" data-course-row="${escape(p.id)}"><div><strong>${escape(p.data.courseName)}</strong><small>${escape(courseSummary(p.data,initialCourseUi(p.data)).slope)} / ${escape(courseSummary(p.data,initialCourseUi(p.data)).surface)}</small></div><div class="rv-preset-actions"><button type="button" data-course-use="${escape(p.id)}">使う</button><button type="button" data-course-delete="${escape(p.id)}">削除</button></div>${pending===p.id?`<div class="rv-course-confirm" role="group" aria-label="コース削除の確認"><p>「${escape(p.data.courseName)}」を削除しますか？保存済みの走行記録は変わりません。</p><button type="button" data-course-confirm-delete="${escape(p.id)}">削除を確定</button><button type="button" data-course-cancel-delete>キャンセル</button></div>`:''}</article>`).join(''):'<p class="rv-error" role="alert">'+escape(library.reason)+'</p>';
  const quickSave=selectedPreset?`<div class="rv-inline-preset-tools" role="group" aria-label="選択中の保存コース"><div class="rv-inline-preset-status"><strong>選択中の保存コース</strong><span>「${escape(selectedPreset.data.courseName)}」</span></div><div class="rv-course-save-actions"><button type="button" data-course-save>保存コースを更新</button><button type="button" data-course-save-new>別名で保存</button></div></div>`:'';
- const saveHelp='保存すると、次回の入力で呼び出せます。';
+ const saveHelp='次回の入力でも使用できます。';
  return `<div class="record-v3 rv-course rv-proposed-desk">
- <header class="rv-head"><a href="${fromHome?'#/home':'#/record'}" class="rv-back" aria-label="${fromHome?'ホーム':'手入力'}へ戻る">‹</a><div><h1>コース・走行条件</h1><p class="rv-flow-intro">必要な条件だけ設定して、今回の記録に使えます。</p></div></header>
+ <header class="rv-head"><a href="${fromHome?'#/home':'#/record'}" class="rv-back" aria-label="${fromHome?'ホーム':'手入力'}へ戻る">‹</a><div><h1>コース・走行条件</h1></div></header>
  <div class="rv-flow-rail" aria-label="操作の順番"><span><b>01</b> コースを選ぶ<small>保存済み・新規作成</small></span><span><b>02</b> 条件を整える<small>坂道・路面</small></span><span><b>03</b> ${selectedPreset?'内容を確認':'使い方を選ぶ'}<small>今回の記録${selectedPreset?'':'・保存コース'}</small></span></div>
  <div class="rv-course-grid rv-course-flow">
  <section class="rv-panel rv-course-setup rv-course-step" aria-label="コースの選択と名前"><div class="rv-section-title rv-block-heading"><span class="rv-step-index">01</span><h2>今回のコース</h2><small>保存済み ${records.length}件</small></div>
@@ -150,14 +150,14 @@ export function coursePage(state,ui,library={ok:true,records:[]},fromHome=false)
  <div class="rv-summary-actions ${selectedPreset?'rv-summary-actions--single':''}">
   <div class="rv-commit-group rv-commit-group--apply"><div class="rv-commit-label">今回の記録に使う</div>
    <button type="button" data-rv-apply class="rv-main-button">この条件を記録に使う</button>
-   <p class="rv-commit-help">この画面を閉じて、記録の入力画面に戻ります。</p>
+   <p class="rv-commit-help">記録の入力画面へ戻ります。</p>
   </div>
   ${!selectedPreset?`<div class="rv-commit-group rv-commit-group--save"><div class="rv-commit-label">保存コースとして残す</div>
    <div class="rv-course-save-actions"><button type="button" data-course-save ${!library.ok?'disabled':''}>このコースを保存</button></div>
    <p class="rv-commit-help">${saveHelp}</p>
   </div>`:''}
  </div>
- <p class="rv-save-caption">コースの保存・削除によって、過去の走行記録は変更されません。</p>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}
+ <p class="rv-save-caption">コースの保存・削除は過去の記録に影響しません。</p>${summary?`<div class="rv-error" role="alert">${escape(summary)}</div>`:''}
  </section>
  </div></div>`;
 }
