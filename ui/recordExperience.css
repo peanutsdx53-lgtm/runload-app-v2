@@ -628,3 +628,10 @@
  .record-v3.rv-proposed-desk .rv-save-caption{font-size:13px;line-height:1.6}
  .record-v3.rv-proposed-desk .rv-block-heading small{font-size:12.5px;white-space:normal;text-align:right}
 }
+
+
+/* S05: 01/02/03 cards already label the reading order. The tiny repeat rail
+   obscured labels on 320-390px phones, so retain it only when there is room. */
+@media(max-width:480px){
+  .record-v3.rv-course.rv-proposed-desk .rv-flow-rail{display:none}
+}
