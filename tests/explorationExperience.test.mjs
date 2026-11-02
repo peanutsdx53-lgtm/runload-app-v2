@@ -161,3 +161,15 @@ test('learning help distinguishes numerical definitions, ROF-J self-reports and 
   if(row[1]!=='距離・時間・ペース')assert.doesNotMatch(html,/このテーマは距離と経過時間による算術上の定義を説明します/);
  }
 });
+
+
+test('UIUX batch03 S11: constellation offers a single non-navigating jump to selected theme',()=>{
+ const html=render(makeUi(memory()),{categories,draft:{},conditions:{entries:[]}});
+ assert.equal((html.match(/data-ex-action="jump-topics"/g)||[]).length,1);
+ assert.match(html,/id="ex-topic-content"/);
+ assert.equal((html.match(/class="ex-node /g)||[]).length,7);
+ const app=read('app.js');
+ assert.match(app,/action==="jump-topics"/);
+ assert.match(app,/\.ex-topic\.is-picked/);
+ assert.match(app,/preventScroll:true/);
+});
