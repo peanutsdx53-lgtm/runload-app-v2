@@ -92,6 +92,8 @@ try{
   await page.locator('[data-gps-review]').waitFor();
   assert.ok(page.url().includes('#/gps-review'),'finished GPS review');
   assert.match(await page.locator('.gps-review-rof-before').innerText(),/0 \/ 10/);
+  assert.match(await page.locator('.gps-review-provenance').innerText(),/0は回答済み、未回答は未回答のまま保存/);
+  assert.match(await page.locator('.gps-review-storage-note').innerText(),/位置情報を含むコース詳細は/);
   await safe('review');await shot('03-review-empty-after');
   await page.locator('[data-gps-rof-entry="after"]').click();
   await page.locator('[data-rof-v4-root]').waitFor();
