@@ -64,7 +64,7 @@ export function manualPage(state){
 }
 export function recordMethodPage(isGpsPhone=true){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
- ${isGpsPhone?`<a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマートフォンで位置情報を測定</small></span><span class="rv-chevron">›</span></a>`:`<div class="rv-method-card rv-method-gps is-unavailable" aria-disabled="true"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマートフォン専用・PCでは使用できません</small></span><span class="rv-method-unavailable">対象外</span></div>`}
+ ${isGpsPhone?`<a class="rv-method-card rv-method-gps" href="#/measurement"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマホの位置情報を使用</small></span><span class="rv-chevron">›</span></a>`:`<div class="rv-method-card rv-method-gps is-unavailable" aria-disabled="true"><span class="rv-method-mark">⌖</span><span><strong>GPSで測定</strong><small>スマートフォン専用・PCでは使用できません</small></span><span class="rv-method-unavailable">対象外</span></div>`}
  <a class="rv-method-card rv-method-manual" href="#/record"><span class="rv-method-mark">✎</span><span><strong>手入力で記録</strong><small>走行距離・時間などを入力</small></span><span class="rv-chevron">›</span></a>
  </div></div>`;}
 function courseValue(d,key){return escape(d[key]);}

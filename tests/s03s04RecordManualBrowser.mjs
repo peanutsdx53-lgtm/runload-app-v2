@@ -45,14 +45,20 @@ const geometry=async(page,width,state)=>{
 };
 try{
  for(const width of [320,390,768,1440]){
-  const context=await browser.newContext({viewport:{width,height:width===1440?900:844},locale:'ja-JP',reducedMotion:'reduce'});
+  const smartphone=width<=800;
+  const userAgent=smartphone?(engine==='webkit'?
+   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1':
+   'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36'):undefined;
+  const context=await browser.newContext({viewport:{width,height:width===1440?900:844},locale:'ja-JP',reducedMotion:'reduce',...(userAgent?{userAgent}:{})});
   await context.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja'})));
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(rootUrl+'record-start',{waitUntil:'networkidle'});
   const selection=page.locator('.rv-method');await selection.waitFor();
   assert.equal(await selection.locator('.rv-method-card').count(),2,'GPS or manual choice only');
-  assert.equal(await selection.locator('a[href="#/measurement"]').count(),1);
+  assert.equal(await selection.locator('a[href="#/measurement"]').count(),smartphone?1:0,'GPS link is smartphone-only, never inferred from viewport alone');
+  assert.equal(await selection.locator('.rv-method-gps.is-unavailable').count(),smartphone?0:1,'desktop shows disabled GPS guidance');
+  if(smartphone)assert.match(await selection.locator('.rv-method-gps small').innerText(),/スマホの位置情報を使用/);
   assert.equal(await selection.locator('a[href="#/record"]').count(),1);
   await geometry(page,width,'S03-selection');
   await page.screenshot({path:resolve(output,`${engine}-${width}-S03-selection.png`),fullPage:true,animations:'disabled'});
