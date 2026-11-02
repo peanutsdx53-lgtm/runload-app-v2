@@ -1543,7 +1543,8 @@ function recordExtras(){
       if(action==="confirm-delete-note"){
         const id=explorationUi.deletingNoteId;
         if(!id||explorationUi.modal!=="delete-note"||!explorationUi.notes.some(n=>n.id===id))return;
-        const success=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,id));
+        const deleteResult=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,id));
+        const success=deleteResult===true;
         explorationUi.notice=success?"選択したメモを削除しました":"削除できませんでした。保存データは保護しています。";
         explorationUi.deletingNoteId=null;explorationUi.modal="memories";render();app.querySelector('.ex-dialog-head button')?.focus({preventScroll:true});return;
       }
