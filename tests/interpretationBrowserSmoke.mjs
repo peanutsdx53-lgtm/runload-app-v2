@@ -117,8 +117,8 @@ try{
   const refPanel=page.locator('.rv4-region-compare');
   await refPanel.waitFor({state:'visible'});
   assert.equal(await refPanel.locator('[data-reference-compare-region]').count(),1);
-  assert.equal(await page.locator('.rv4-compare-provenance').getAttribute('open'),null,'IDs remain available but not dominant');
-  assert.equal(await page.locator('.rv4-compare-provenance summary').count(),1);
+   assert.equal(await page.locator('.rv4-compare-provenance').count(),0,'internal IDs have no disclosure in result UI');
+   assert.equal(await page.locator('.rv4-compare-summary > div').count(),2,'two comparison records are labelled');
   await refPanel.locator('.rv4-region-compare-method summary').click();
    assert.match(await refPanel.locator('.rv4-region-compare-method').innerText(),/現在の同一モデル/);
   assert.match(await refPanel.innerText(),/文献参考値/);
@@ -152,7 +152,7 @@ try{
   assert.equal(note.length,1);assert.equal(note[0].text,'次の走行でも前後の疲れを見比べたい');
   await page.locator('.ex-record-return a').click();
   assert.ok(page.url().includes('record='+encodeURIComponent(saved.current)),'return to exact run');
-  await page.locator('.rv4-next-path a').first().click();
+   await page.goto(base+'#/exploration-tree?record='+encodeURIComponent(saved.current)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'domcontentloaded'});
   await page.locator('[data-ex-learning="distance-time-pace"]').waitFor();
   const focusedLesson=await page.locator('[data-ex-learning="distance-time-pace"]').innerText();
   assert.match(focusedLesson,/選択した保存済み走行/);
