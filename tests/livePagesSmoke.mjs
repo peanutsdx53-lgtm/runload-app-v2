@@ -60,9 +60,13 @@ try{
  await resultCheck.goto(root+'?check='+tag+'#/result',{waitUntil:'networkidle'});
  if(await resultCheck.locator('[data-onboard-close]').count())await resultCheck.locator('[data-onboard-close]').click();
  const report=resultCheck.locator('#runload-result-v4');
- await report.locator('.rv4-region').first().waitFor({timeout:15000});
+ await report.locator('.rv4-empty-card[data-pane="body"]').waitFor({timeout:15000});
  assert.match(await report.locator('.rv4-card-heading').first().innerText(),/部位の参考値/);
- assert.equal(await report.locator('[data-download]').isDisabled(),true);
+ assert.match(await report.locator('.rv4-notice').innerText(),/記録なし/);
+ assert.equal(await report.locator('.rv4-hero').count(),0,'public Pages never invents a run');
+ assert.equal(await report.locator('.rv4-region').count(),0,'anatomy hidden before a record exists');
+ assert.equal(await report.locator('[data-download]').count(),0,'no export of unrecorded data');
+ assert.equal(await report.locator('.rv4-mobile-tabs [data-tab]').count(),3,'approved result tabs remain');
  await resultCheck.screenshot({path:'screenshots/live-result-v4-mobile.png',fullPage:true});
 }finally{await resultCheck.close()}
 const explorationCheck=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
