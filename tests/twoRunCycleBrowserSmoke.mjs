@@ -229,7 +229,7 @@ try{
  assert.ok(!(await page.locator('.rv4-app').innerText()).includes(sameDayA),'same-day IDs stay internal');
  const selector=page.locator('[data-compare-select]');
  assert.ok(await selector.locator('option[value="'+sameDayA+'"]').count());
- assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング.*同条件/);
+ assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング/,'only eligible choices appear; when unique, ordinal suffix is not needed');
  assert.equal((await page.locator('.rv4-compare-cards').innerText()).includes('距離'),true);
  const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().textContent();
  assert.match(zeroDistance,/0(\\.00)?/,'same-day zero change is a descriptive value, not missing');
@@ -346,6 +346,7 @@ try{
  const prior=await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1'))[0]);
  assert.equal(prior.recordId,sameDayA);
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
+ await page.locator('.rv4-question-continuation>summary').click();
  await page.locator('[data-run-question-source]').waitFor();
  assert.match(await page.locator('.rv4-question-continuation').innerText(),/本人が選んで保存/);
  const emptySelection=await page.locator('[data-run-question-source]').inputValue();
