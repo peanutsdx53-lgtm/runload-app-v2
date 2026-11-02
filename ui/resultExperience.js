@@ -154,7 +154,7 @@ export function mountResult(host,inputDraft={},options={}){
     options.record,other,reference,calculateActivityReference(other),bodyReferenceEngineId(chosen)):null;
   // The compared record may share a date or be later than the selected record.
    const provenance=fromSaved&&other?'<div class="rv4-compare-summary" aria-label="比較中の記録"><div><small>比較する記録</small><strong>'+clean(other.date)+'</strong><span>'+format(other.distanceKm,2)+' km ・ '+clean(ACTIVITY_LABELS[gaitOf(other)]||'種別不明')+'</span></div><div><small>今回の記録</small><strong>'+clean(options.record.date)+'</strong><span>'+format(Number(options.record.distanceKm),2)+' km ・ '+clean(ACTIVITY_LABELS[gaitOf(options.record)]||'種別不明')+'</span></div></div>':'';
-   const regionCmpView=fromSaved&&other?'<section class="rv4-region-compare" aria-label="同一部位の文献参考値比較">'+
+   const regionCmpView=fromSaved&&other&&comparison?.status==='ready'?'<section class="rv4-region-compare" aria-label="同一部位の文献参考値比較">'+
     '<div class="rv4-region-compare-heading"><h3>部位の参考値</h3><span>同一部位</span></div>'+
     '<label class="rv4-region-compare-picker">比較する部位 <select data-reference-compare-region aria-label="文献参考値を比較する部位">'+
     OFFICIAL_NAMES.map(([id,name])=>'<option value="'+clean(id)+'"'+(id===chosen?' selected':'')+'>'+clean(name)+'</option>').join('')+
@@ -164,9 +164,9 @@ export function mountResult(host,inputDraft={},options={}){
         '<div><small>比較相手 '+clean(other.date)+'</small><strong>'+format(regionCmp.previousValue,1)+'</strong></div>'+
         '<div><small>選択中 '+clean(options.record.date)+'</small><strong>'+format(regionCmp.currentValue,1)+'</strong></div>'+
         '<div class="rv4-region-compare-change"><small>参考値の差</small><strong>'+(regionCmp.difference>0?'+':'')+format(regionCmp.difference,1)+' <em>ポイント</em></strong></div>'+
-      '</div><p class="rv4-region-compare-limit">'+clean(regionCmp.note)+'</p>':
-      '<p class="rv4-region-compare-unavailable" role="status">この部位は比較できません：'+clean(regionCmp?.reason||'比較対象がありません')+'</p>')+
-    '<details class="rv4-region-compare-method"><summary>比較値の算出条件</summary><p>保存した走行情報を現在の同一モデルで再計算した参考値です。記録当時の結果を再現したものではありません。</p></details></section>':'';
+      '</div>':
+      '<p class="rv4-region-compare-unavailable" role="status">この部位の参考値は比較できません</p>')+
+    '<details class="rv4-region-compare-method"><summary>'+(regionCmp?.status==='ready'?'比較値の算出条件と限界':'比較できない理由')+'</summary><p>'+(regionCmp?.status==='ready'?'保存した走行情報を現在の同一モデルで再計算した参考値です。記録当時の結果を再現したものではありません。'+clean(regionCmp.note):clean(regionCmp?.reason||'両方の記録について参考情報を確認できません'))+'</p></details></section>':'';
   const compareCards=comparison?.status==='ready'?'<div class="rv4-compare-cards" aria-label="二件の記録の比較">'+comparison.rows.map(r=>'<div class="rv4-compare-card"><strong>'+clean(r.label)+'</strong><div><span><small>比較相手</small>'+clean(r.first)+'</span><span><small>今回</small>'+clean(r.second)+'</span><span><small>差</small>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</span></div></div>').join('')+'</div>':'';
   const compareTable=comparison?.status==='ready'?'<div class="rv4-comparison-scroller"><table class="rv4-comparison-table"><thead><tr><th scope="col">項目</th><th scope="col">比較相手 '+clean(comparison.other.date)+'</th><th scope="col">選択中 '+clean(comparison.current.date)+'</th><th scope="col">差</th></tr></thead><tbody>'+comparison.rows.map(r=>'<tr><th scope="row">'+clean(r.label)+'</th><td>'+clean(r.first)+'</td><td>'+clean(r.second)+'</td><td>'+(r.change===null?'比較できません':(r.change>0?'+':'')+r.change+' '+clean(r.unit))+'</td></tr>').join('')+'</tbody></table></div>'+compareCards+'<div class="rv4-comparison-memos"><div><small>比較相手のメモ</small><p>'+clean(comparison.other.memo||'メモなし')+'</p></div><div><small>選択中の記録のメモ</small><p>'+clean(comparison.current.memo||'メモなし')+'</p></div></div><details class="rv4-comparison-caution"><summary>比較結果の限界</summary><p>'+comparison.uncertainty+'</p></details>':
    '<p class="rv4-comparison-empty">'+clean(hasInvalidCompare?'指定された比較相手は保存記録にありません。':comparison?.reason||'同じ活動種別の保存記録をもう1件残すと、距離・時間・疲労感を見比べられます。')+'</p>';
