@@ -1534,7 +1534,15 @@ function recordExtras(){
     const exploreAction=event.target.closest("[data-ex-action]");
     if(exploreAction){
       const action=exploreAction.dataset.exAction;
-      if(action==="close"){explorationUi.modal="";explorationUi.editingNoteId=null;render();restoreExplorationFocus();return;}
+      if(action==="close"){const deleting=explorationUi.modal==="delete-note";const id=explorationUi.deletingNoteId;explorationUi.modal=deleting?"memories":"";explorationUi.editingNoteId=null;explorationUi.deletingNoteId=null;render();if(deleting)[...app.querySelectorAll('[data-ex-delete]')].find(el=>el.dataset.exDelete===id)?.focus({preventScroll:true});else restoreExplorationFocus();return;}
+      if(action==="cancel-delete-note"){const id=explorationUi.deletingNoteId;explorationUi.deletingNoteId=null;explorationUi.modal="memories";render();[...app.querySelectorAll('[data-ex-delete]')].find(el=>el.dataset.exDelete===id)?.focus({preventScroll:true});return;}
+      if(action==="confirm-delete-note"){
+        const id=explorationUi.deletingNoteId;
+        if(!id||explorationUi.modal!=="delete-note"||!explorationUi.notes.some(n=>n.id===id))return;
+        const success=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,id));
+        explorationUi.notice=success?"選択したメモを削除しました":"削除できませんでした。保存データは保護しています。";
+        explorationUi.deletingNoteId=null;explorationUi.modal="memories";render();app.querySelector('.ex-dialog-head button')?.focus({preventScroll:true});return;
+      }
       if(action==="jump-topics"){app.querySelector("#ex-topic-content")?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});app.querySelector("#ex-topic-content .ex-topic.is-picked")?.focus({preventScroll:true});return;}
        if(action==="catalog"){explorationUi.tab="catalog";render();return;}
       if(action==="sample"){explorationUi.sample=!explorationUi.sample;render();return;}
@@ -1571,7 +1579,12 @@ function recordExtras(){
       render();app.querySelector("#ex-note-edit")?.focus();return;
     }
     const exploreDelete=event.target.closest("[data-ex-delete]");
-    if(exploreDelete){const deleteResult=await manualRunLock.withManualRunWriteLock(()=>explorationExperience.deleteNote(explorationUi,exploreDelete.dataset.exDelete));const success=deleteResult===true;explorationUi.notice=success?"削除しました":"削除できませんでした。保存データは保護しています。";render();return;}
+    if(exploreDelete){
+      const id=exploreDelete.dataset.exDelete;
+      if(!explorationUi.canSave||!explorationUi.notes.some(n=>n.id===id))return;
+      explorationUi.deletingNoteId=id;explorationUi.modal="delete-note";explorationUi.notice="";
+      render();app.querySelector('[data-ex-action="cancel-delete-note"]')?.focus({preventScroll:true});return;
+    }
     if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
     const expandRegions=event.target.closest("[data-expand-regions]");
     if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
@@ -1652,7 +1665,7 @@ function recordExtras(){
     }
     const explorationDialog=app.querySelector('.ex-dialog');
     if(explorationUi.modal&&explorationDialog){
-      if(event.key==="Escape"){event.preventDefault();explorationUi.modal="";render();restoreExplorationFocus();return;}
+      if(event.key==="Escape"){event.preventDefault();if(explorationUi.modal==="delete-note"){const id=explorationUi.deletingNoteId;explorationUi.deletingNoteId=null;explorationUi.modal="memories";render();[...app.querySelectorAll('[data-ex-delete]')].find(el=>el.dataset.exDelete===id)?.focus({preventScroll:true});}else{explorationUi.modal="";render();restoreExplorationFocus();}return;}
       if(event.key==="Tab"){
         const items=[...explorationDialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
           .filter(el=>el.getClientRects().length>0);
