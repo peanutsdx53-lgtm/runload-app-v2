@@ -25,7 +25,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const gpsV2=await import("./ui/gpsReplayIndexedDbStore.js?v=20261027-measurement-polish-v2");
   const gpsDynamic=await import("./ui/gpsDynamicResult.js?v=20261028-back-symmetry-v2");
   const gpsStorageHealth=await import("./ui/gpsStorageHealth.js?v=20261027-gps-storage-v40");
-  const resultExperience=await import("./ui/resultExperience.js?v=20261102-result-polish-v2");
+  const resultExperience=await import("./ui/resultExperience.js?v=20261102-result-state-v1");
   const questionContinuation=await import("./ui/runQuestionContinuation.js");
   const historyExperience=await import("./ui/historyExperience.js?v=20261026-history-focus-v26");
   const settingsExperience=await import("./ui/settingsExperience.js?v=20261028-data-management-v1");
