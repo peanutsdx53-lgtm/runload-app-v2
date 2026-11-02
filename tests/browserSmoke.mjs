@@ -530,6 +530,12 @@ try{
   await ex.locator('[data-ex-action="memories"]').first().click();
   assert.match(await ex.locator('.ex-dialog').innerText(),/次は上りと下りで感じ方を確かめたい/);
   await ex.locator('[data-ex-delete]').click();
+  assert.match(await ex.locator('.ex-delete-confirm').innerText(),/削除後は元に戻せません/);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),1,'first deletion click preserves stored note');
+  await ex.locator('[data-ex-action="cancel-delete-note"]').click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),1,'cancel preserves note');
+  await ex.locator('[data-ex-delete]').click();
+  await ex.locator('[data-ex-action="confirm-delete-note"]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===0);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')).length),0);
   await ex.locator('[data-ex-action="close"]').click();
@@ -1155,8 +1161,10 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',mode.name+'-condition-detail-viewport-v16.png'),fullPage:false});
   assert.equal(await journey.locator('[data-cj-day]:not([disabled])').count(),2);
   await journey.locator('[data-cj-day="'+dateA+'"]').click();
+  assert.equal(await journey.locator('[data-cj-day="'+dateA+'"]').evaluate(el=>el===document.activeElement),true,'condition selected day retains focus');
   assert.match(await journey.locator('.cj-day-memo').innerText(),/いつもどおり/);
   await journey.locator('[data-cj-range="90"]').click();
+  assert.equal(await journey.locator('[data-cj-range="90"]').evaluate(el=>el===document.activeElement),true,'condition range retains focus');
   assert.equal(await journey.locator('[data-cj-day]').count(),90);
   await journey.locator('[data-cj-method]').selectOption('self-reported');
   await journey.locator('[data-cj-day="'+dateB+'"]').click();
