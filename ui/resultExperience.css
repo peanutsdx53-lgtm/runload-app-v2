@@ -50,7 +50,8 @@
 
 .rv4-rof-audit{margin:12px 0 0;padding:12px;border:1px solid #54899a;border-radius:12px;overflow-wrap:anywhere;min-width:0}
 .rv4-rof-audit summary{cursor:pointer;min-height:44px;font-weight:800;display:flex;align-items:center;color:#effcfc}
-.rv4-rof-audit p{line-height:1.6;font-size:12px;color:#b9dce0}
+.rv4-rof-audit h3{margin:0 0 8px;color:#effcfc;font-size:14px;line-height:1.5}
+.rv4-rof-audit p{line-height:1.6;font-size:14px;color:#b9dce0}
 .rv4-rof-correct-form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));margin-top:12px}
 .rv4-rof-correct-form label{display:grid;gap:6px;font-size:12px;color:#dff6f7;min-width:0}
 .rv4-rof-correct-form input,.rv4-rof-correct-form select{width:100%;min-width:0;max-width:100%;min-height:44px;border:1px solid #548c9d;background:#0b3041;color:#f7ffff;border-radius:9px;padding:9px;color-scheme:dark}
@@ -67,12 +68,13 @@
 
 
 /* S09: the user's ROF-J response is a self-report, not a verified time-series change. */
-.rv4-fatigue-note{display:grid;gap:7px;margin:12px 0 8px;padding:12px 13px;border:1px solid #4b929f;border-left:3px solid #80d8d2;border-radius:10px;background:#103847;color:#d9f3f5;font-size:13px;line-height:1.72;min-width:0}
-.rv4-fatigue-note strong{font-size:14px;color:#fff6df;font-weight:800}
-.rv4-fatigue-note span{display:block}
+.rv4-fatigue-note{margin:10px 0 6px;padding:10px 12px;border:1px solid #4b929f;border-left:3px solid #80d8d2;border-radius:10px;background:#103847;color:#d9f3f5;font-size:13px;line-height:1.65;min-width:0}
+
+
 .rv4-fatigue-method{min-width:0;margin:10px 0;border:1px solid #356b7c;border-radius:10px;background:#092d3e;color:#cfe5eb}
 .rv4-fatigue-method summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:11px 12px;font-size:13px;font-weight:720;line-height:1.6}
-.rv4-fatigue-method p{padding:0 12px 13px;font-size:12px;line-height:1.75;color:#bcd8e1;overflow-wrap:anywhere}
+.rv4-fatigue-method-content{padding:0 12px 13px}
+.rv4-fatigue-method-content>p{margin:0;font-size:14px;line-height:1.7;color:#bcd8e1;overflow-wrap:anywhere}
 .rv4-fatigue-method summary:focus-visible{outline:2px solid #f4cc75;outline-offset:2px}
 @media(max-width:620px){
  .rv4-fatigue-numbers{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr);gap:7px;padding:13px 4px}

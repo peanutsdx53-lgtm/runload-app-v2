@@ -38,18 +38,25 @@ test('PNG export explains calculated and uncalculated literature references',()=
 test('ROF-J results and image export do not manufacture time-eligible before/after changes',()=>{
  const js=read('ui/resultExperience.js');
  assert.match(js,/data-rof-time-status="unverified"/);
- assert.match(js,/運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません/);
+ assert.match(js,/実際の時間的な順序が検証できないため、変化量や原因は判定しません/);
  assert.match(js,/回答の実際の時間的前後差は判定しません/);
  assert.doesNotMatch(js,/評価時刻未記録：前後差は判定不可/,'PNG must not falsely claim no time evidence is stored');
  assert.doesNotMatch(js,/<small>前後差<\/small>|rv4-change/,'remove obsolete difference field');
- assert.match(js,/運動前・運動後として記録された疲労感です。/);
- assert.match(js,/実際の評価時刻の前後関係は確認していないため、運動による変化とは断定できません。/);
+ assert.match(js,/本人が記録した疲労感です。運動による変化とは断定できません。/);
+ assert.equal((js.match(/<details class="rv4-fatigue-method"/g)||[]).length,1,'one unified disclosure');
+ assert.doesNotMatch(js,/<details class="rv4-rof-audit"/,'audit lives inside the disclosure');
+ assert.match(js,/回答時刻・訂正履歴を確認・訂正/);
+ assert.match(js,/回答時刻と判定の限界を確認/);
+ assert.match(js,/data-rof-correct-save/,'saved correction action remains');
+ assert.match(js,/rofCorrections/,'saved correction history remains');
+ assert.match(js,/GPS時の入力操作時刻/);
  assert.match(js,/未回答は「—」で、0と区別します。/);
  assert.match(js,/before\?\?'—'/,'valid zero must not become missing');
  assert.match(js,/after\?\?'—'/,'valid zero must not become missing');
  for(const css of [read('ui/resultExperience.css'),read('ui/resultInlineStyles.js')]){
   assert.doesNotMatch(css,/\.rv4-change/,'obsolete delta styling absent');
   assert.match(css,/\.rv4-fatigue-numbers>div\{/,'retain two-value layout');
+  assert.match(css,/\.rv4-rof-audit h3\{/,'audit section has a heading');
  }
  assert.doesNotMatch(js,/\(after-before\)/);
  assert.doesNotMatch(js,/<h2>疲労感の変化<\/h2>/);
@@ -136,7 +143,7 @@ test('S09 comparison data and long IDs remain readable without changing scientif
  assert.match(inline,/\.rv4-region-compare-method/);
  assert.match(inline,/\.rv4-compare-summary/);
  assert.match(js,/rv4-export-menu/);
- assert.match(inline,/\.rv4-fatigue-method p\{[^}]*font-size:14px/);
+ assert.match(inline,/\.rv4-fatigue-method-content>p\{[^}]*font-size:14px/);
  assert.doesNotMatch(js,/記録ID末尾 '\+clean\(other\.id\.slice\(-8\)\)/);
  assert.match(js,/sameKind/,'same-date options remain distinguishable without user-facing IDs');
  assert.match(js,/compareBodyReferenceRows/);
