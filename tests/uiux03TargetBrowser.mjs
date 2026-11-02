@@ -76,7 +76,7 @@ try{
   const otherId=await page.evaluate(async()=>{
    const [canonical,manual]=await Promise.all([import('/ui/manualRunCanonical.js'),import('/ui/manualRunStore.js')]);
    const saved=await canonical.mutate(s=>manual.saveManualRun(s,{
-    date:'2026-10-25',distance:'4',hours:'',minutes:'28',seconds:'',activityGait:'RUNNING',
+    date:'2026-10-25',distance:'5',hours:'',minutes:'30',seconds:'',activityGait:'RUNNING',
     runningFormat:'UNKNOWN',rofBefore:3,rofAfter:5,steps:'',stepsProvenance:'UNKNOWN',
     courseName:'',shoeName:'',memo:'second saved record'
    }));
@@ -87,9 +87,38 @@ try{
   assert.match(await result.locator('.rv4-compare-summary').innerText(),/2026-10-25/);
   assert.match(await result.locator('.rv4-compare-summary').innerText(),/2026-10-28/);
   assert.equal(await result.locator('.rv4-history [data-compare-select]').count(),1);
-  assert.ok(await result.locator('.rv4-region-compare').count()===1||await result.locator('.rv4-comparison-table').count()===1,'comparison state is grounded in saved runs');
+  assert.equal(await result.locator('.rv4-region-compare-stats').count(),1,'same-speed same-region scientific reference comparison is available');
+  assert.equal(await result.locator('.rv4-comparison-table').count()+(await result.locator('.rv4-compare-cards').count())>=1,true,'saved distance and time comparison exists');
   await inspect(page,width,'S09-two-saved');
   await shot(page,width,'S09-two-saved-compare',true);
+  const incompatibleReferenceId=await page.evaluate(async()=>{
+   const [canonical,manual]=await Promise.all([import('/ui/manualRunCanonical.js'),import('/ui/manualRunStore.js')]);
+   const saved=await canonical.mutate(s=>manual.saveManualRun(s,{
+    date:'2026-10-23',distance:'4',hours:'',minutes:'28',seconds:'',activityGait:'RUNNING',
+    runningFormat:'UNKNOWN',rofBefore:null,rofAfter:null,steps:'',stepsProvenance:'UNKNOWN',
+    courseName:'',shoeName:'',memo:'nonmatching scientific reference domain'
+   }));
+   if(!saved.ok)throw Error('reference exception save: '+saved.reason);return saved.record.id;
+  });
+  await page.goto(base+'result?record='+encodeURIComponent(firstId)+'&compare='+encodeURIComponent(incompatibleReferenceId)+'&view=compare',{waitUntil:'networkidle'});
+  await result.locator('.rv4-compare-summary').waitFor();
+  assert.equal(await result.locator('.rv4-region-compare-unavailable').count(),1,'saved facts can compare even when same-region scientific reference cannot');
+  assert.equal(await result.locator('.rv4-comparison-table').count(),1,'fact-level comparison remains available');
+  await shot(page,width,'S09-scientific-reference-ineligible',true);
+  const incompatibleGaitId=await page.evaluate(async()=>{
+   const [canonical,manual]=await Promise.all([import('/ui/manualRunCanonical.js'),import('/ui/manualRunStore.js')]);
+   const saved=await canonical.mutate(s=>manual.saveManualRun(s,{
+    date:'2026-10-22',distance:'2',hours:'',minutes:'30',seconds:'',activityGait:'WALK',
+    runningFormat:'UNKNOWN',rofBefore:null,rofAfter:null,steps:'',stepsProvenance:'UNKNOWN',
+    courseName:'',shoeName:'',memo:'different activity identity'
+   }));
+   if(!saved.ok)throw Error('gait mismatch save: '+saved.reason);return saved.record.id;
+  });
+  await page.goto(base+'result?record='+encodeURIComponent(firstId)+'&compare='+encodeURIComponent(incompatibleGaitId)+'&view=compare',{waitUntil:'networkidle'});
+  await result.locator('.rv4-history').waitFor();
+  assert.match(await result.locator('.rv4-comparison-empty').innerText(),/活動種別が不明または異なります/);
+  assert.equal(await result.locator('.rv4-comparison-table').count(),0,'different activities cannot generate comparable numerical rows');
+  await shot(page,width,'S09-activity-incompatible',true);
   await page.goto(base+'result?record='+encodeURIComponent(firstId)+'&compare=nonexistent-explicit-id&view=compare',{waitUntil:'networkidle'});
   await result.locator('.rv4-history').waitFor();
   assert.match(await result.locator('.rv4-comparison-empty').innerText(),/指定された比較相手は保存記録にありません/);
@@ -107,6 +136,8 @@ try{
   assert.ok(await history.locator('[data-open-record]').isEnabled());
   await inspect(page,width,'S10-expanded');
   await shot(page,width,'S10-selected-id-expanded',true);
+  await history.locator('.selected-footer').evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+  await shot(page,width,'S10-selected-id-viewport',false);
   // Explore both with linked saved context and truly empty profile.
   await page.goto(base+'exploration-tree?record='+encodeURIComponent(firstId),{waitUntil:'networkidle'});
   const explore=page.locator('[data-experience-v3]');await explore.waitFor();
