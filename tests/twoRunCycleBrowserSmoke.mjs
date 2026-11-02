@@ -133,7 +133,10 @@ try{
  assert.ok(!surfaceText.includes(firstId)&&!surfaceText.includes(secondId),'record IDs are never shown to users');
  assert.equal(await page.locator('.rv4-compare-provenance').count(),0,'no internal-ID disclosure remains');
  await page.locator('.rv4-region-compare-method summary').click();
- assert.match(await regionPanel.innerText(),/現在の同一モデルで再計算/);
+ const regionDetails=await regionPanel.innerText();
+ if(await regionPanel.locator('.rv4-region-compare-unavailable').count())
+  assert.match(regionDetails,/両方の記録でこの部位の参考値を算出/,'no scientific comparison must explain why');
+ else assert.match(regionDetails,/現在の同一モデルで再計算/,'eligible comparison explains its method');
  assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
   'same-region scientific result or explicit rejection must be visible');
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
