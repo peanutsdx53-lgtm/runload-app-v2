@@ -113,7 +113,7 @@ try{
   });
   await page.goto(host+'history',{waitUntil:'networkidle'});
   await page.locator('#runload-history-v2 .stage').waitFor();
-  await page.locator('[data-history-scope="all"]').click();
+  await page.locator('#runload-history-v2 .hx-scope [data-history-scope="all"]').click();
   await page.locator('[data-select-id="'+run+'"]').click();
   await verify('S10',null,'#runload-history-v2',async t=>{
    assert.equal(await t.locator('.stage').count(),1);
