@@ -81,11 +81,13 @@ try{
    return {exportHeight:summary?.height,arrowOffset:Math.abs((summary?.top+summary?.height/2)-(arrow?.top+arrow?.height/2)),
     pickerTop:picker?.top,figureBottom:figure?.bottom,readingBottom:reading?.bottom,
     gradient:getComputedStyle(shadow.querySelector('.rv4-scale')).backgroundImage,
+    alignItems:getComputedStyle(shadow.querySelector('.rv4-body-content')).alignItems,
     methodOpen:shadow.querySelector('.rv4-method-disclosure')?.open};
   });
   assert.ok(visual.exportHeight<=44&&visual.arrowOffset<9,'compact export button has aligned chevron '+JSON.stringify(visual));
   assert.ok(visual.pickerTop>=Math.max(visual.figureBottom,visual.readingBottom)-2,'region picker follows both figure and reading '+JSON.stringify(visual));
   assert.equal(visual.methodOpen,false,'expanded scientific limitations remain optional');
+  if(width<=800)assert.equal(visual.alignItems,'center','mobile reading card is not stretched to figure height');
   const blue=visual.gradient.indexOf('rgb(71, 118, 166)'),green=visual.gradient.indexOf('rgb(102, 196, 181)'),red=visual.gradient.indexOf('rgb(202, 125, 139)');
   assert.ok(blue>=0&&green>blue&&red>green,'single blue-green-red scale direction '+visual.gradient);
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-compact-body.png'),fullPage:true,animations:'disabled'});

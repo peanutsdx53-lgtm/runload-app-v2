@@ -178,3 +178,10 @@
 .rv4-body .rv4-figure-actions button{font-size:10px}
 }
 @media print{.rv4-region-selection,.rv4-figure-actions button{display:none!important}}
+
+
+/* Compact the secondary reading card on mobile; do not stretch empty space. */
+@media(max-width:800px){
+ .rv4-body .rv4-body-content,.rv4-grid .rv4-body-content{align-items:center!important}
+ .rv4-body .rv4-reading,.rv4-grid .rv4-reading{height:auto!important;align-self:center!important}
+}
