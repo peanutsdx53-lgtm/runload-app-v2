@@ -44,17 +44,19 @@ try{
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:40000});
  const appSource=await readFile(resolve(root,'app.js'),'utf8');
  const explorationImport=appSource.match(/\.\/ui\/explorationExperience\.js\?v=[A-Za-z0-9_-]+/);
+ const consultationImport=appSource.match(/\.\/ui\/consultationExperience\.js\?v=[A-Za-z0-9_-]+/);
+ assert.ok(consultationImport,'app.js must import a versioned consultation module');
  assert.ok(explorationImport,'app.js must import a versioned exploration module');
- const cached=await page.evaluate(async(explorationUrl)=>{
+ const cached=await page.evaluate(async({explorationUrl,consultationUrl})=>{
   const keys=await caches.keys(),key=keys.find(k=>k.startsWith('runload-ui-next-shell-'));
   if(!key)return false;
   const cache=await caches.open(key),base=location.origin+'/';
   return !!(await cache.match(base+'index.html'))&&!!(await cache.match(base+'app.js'))&&
    !!(await cache.match(base+'ui/manualRunStore.js?v=20261030-rof-evidence-v2'))&&
-   !!(await cache.match(base+'ui/consultationExperience.js?v=20261028-print-integrity-v1'))&&
+   !!(await cache.match(base+consultationUrl.replace(/^\.\//,'')))&&
    !!(await cache.match(base+explorationUrl.replace(/^\.\//,'')))&&
    !!(await cache.match(base+'ui/referenceEvidenceInfo.js'));
- },explorationImport[0]);
+ },{explorationUrl:explorationImport[0],consultationUrl:consultationImport[0]});
  assert.equal(cached,true,'shell and saved-run V2 scripts are cached');
  await context.setOffline(true);
  await page.goto(host+'#/record',{waitUntil:'load',timeout:17000});
