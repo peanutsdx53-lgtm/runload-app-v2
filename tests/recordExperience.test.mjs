@@ -62,7 +62,7 @@ test('manual basic page gives user an explicit choice of three independently mod
  assert.match(html,/data-manual-gait="JOGGING"/);
  assert.match(html,/data-manual-gait="WALK"/);
  assert.doesNotMatch(html,/活動種目が未選択のため保存できません/);
- assert.match(html,/距離・時間・活動種目/);
+ assert.match(html,/rv-required-progress" role="status" hidden/,'initially blank form has no repeated missing-fields banner');
  assert.match(html,/data-required-field="distance" data-required-ok="false"/);
  assert.match(html,/data-required-field="time" data-required-ok="false"/);
  assert.match(html,/data-required-field="activity" data-required-ok="false"/);
@@ -75,13 +75,13 @@ test('required statuses work in both mobile and desktop templates without automa
  const d={...draft(),date:'2026-10-27',distance:'5',minutes:'30',activityGait:'UNKNOWN'};
  const state={recordType:'run',recordDraft:d,recordCourseUi:initialCourseUi(d)};
  const html=manualPage(state);
- assert.match(html,/未入力・要確認：活動種目/);
+ assert.match(html,/要入力：活動種目/);
  assert.match(html,/aria-required="true"/);
  d.activityGait='RUNNING';
  const complete=manualPage(state);
- assert.match(complete,/必須3項目が入力済みです/);
+ assert.match(complete,/rv-required-progress" role="status" hidden/,'complete form does not duplicate required labels');
  assert.match(complete,/data-required-field="activity" data-required-ok="true"/);
- assert.doesNotMatch(complete,/未入力・要確認/);
+ assert.doesNotMatch(complete,/要入力：/);
 });
 
 test('S04 basic information displays a compact Required label where Added information shows Optional',()=>{
@@ -95,10 +95,12 @@ test('S04 basic information displays a compact Required label where Added inform
  assert.equal((html.match(/rv-required-mark/g)||[]).length,0,'individual required badges removed at user request');
  assert.doesNotMatch(html,/rv-gait-hint|活動種目が未選択のため保存できません|単一活動として数値化しません/,'long activity explanation removed');
  assert.match(html,/aria-required="true"/,'actual required input validation retained');
- assert.match(html,/未入力・要確認：距離・時間・活動種目/,'contextual validation is preserved');
+ assert.match(html,/rv-required-progress" role="status" hidden/,'untouched form has no redundant warning');
+ const partiallyFilled=manualPage({...state,recordDraft:{...d,distance:'5'}});
+ assert.match(partiallyFilled,/要入力：時間・活動種目/,'partial entry identifies missing required fields');
  const complete={...d,distance:'5',minutes:'30',activityGait:'RUNNING'};
  const ready=manualPage({...state,recordDraft:complete});
- assert.match(ready,/必須3項目が入力済みです/);
+ assert.match(ready,/rv-required-progress" role="status" hidden/,'complete entry suppresses redundant success copy');
  assert.doesNotMatch(ready,/走行の保存には|rv-required-overview/);
  const rest=manualPage({...state,recordType:'rest'});
  assert.match(rest,/<h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須<\/small>/);
