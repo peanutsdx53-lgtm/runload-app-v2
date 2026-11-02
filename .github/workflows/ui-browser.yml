@@ -226,6 +226,7 @@ jobs:
           name: runload-exploration-webkit-screenshots
           path: |
             screenshots/webkit-*.png
+            screenshots/region-source-webkit-*.png
             screenshots/c09-webkit-*
           if-no-files-found: ignore
           retention-days: 14
