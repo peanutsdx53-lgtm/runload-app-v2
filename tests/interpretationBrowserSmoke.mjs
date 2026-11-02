@@ -212,9 +212,11 @@ try{
    await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
    await page.locator('.rv4-reading-route').waitFor();
    await page.locator('[data-tab="radar"]').click();
-   await page.locator('.rv4-comparison-table').waitFor();
-   assert.match(await page.locator('.rv4-comparison-table').innerText(),/2026-10-18/);
-   assert.match(await page.locator('.rv4-comparison-table').innerText(),/2026-10-25/);
+   // The 320/390px offline result has cards, not a visible desktop table.
+   await compareView.waitFor();
+   const offlineComparison=await compareView.innerText();
+   assert.match(offlineComparison,/2026-10-18/);
+   assert.match(offlineComparison,/2026-10-25/);
    const [offlineImage]=await Promise.all([page.waitForEvent('download'),page.locator('#runload-result-v4 [data-download]').click()]);
    assert.equal(offlineImage.suggestedFilename(),'走行結果.png');
    const savedPng=resolve(root,'screenshots',prefix+'-offline-export.png');
