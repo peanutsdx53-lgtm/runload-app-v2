@@ -104,7 +104,7 @@ try{
   assert.equal(await sharedResult.locator('[data-tab="radar"]').count(),1);
   assert.equal(await sharedResult.locator('.rv4-gps-gate').count(),1);
   assert.equal(await sharedResult.locator('[data-gps-dynamic-gate]').count(),1);
-  assert.match(await sharedResult.locator('.rv4-notice').innerText(),/GPSで保存した記録/);
+  assert.match(await sharedResult.locator('.rv4-notice').innerText(),/GPS記録/);
   assert.match(await sharedResult.locator('.rv4-hero').innerText(),/距離/);
   assert.equal(await sharedResult.locator('.rv4-region').count(),5);
   assert.ok((await sharedResult.locator('.rv4-region[data-reference-state="available"]').count())>0);
