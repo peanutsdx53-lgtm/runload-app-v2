@@ -43,7 +43,11 @@ try{
   assert.equal(await fresh.locator('.fu-shell').count(),1,'S01 real onboarding modal');
   assert.match(await fresh.locator('#onboard-title').innerText(),/表示言語/);
   assert.equal(await fresh.locator('[data-onboard-next]').count(),1);
-  reports.push({screen:'S01',width,engine,state:'first-visit',ok:true});
+  const firstSize=await fresh.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
+  assert.ok(firstSize.document<=firstSize.viewport+3&&firstSize.body<=firstSize.viewport+3,'S01 initial consent overflow '+JSON.stringify(firstSize));
+  await fresh.screenshot({path:resolve(root,'audit-output',engine+'-S01-'+width+'.png'),animations:'disabled',fullPage:true});
+  await fresh.screenshot({path:resolve(root,'audit-output',engine+'-S01-'+width+'-viewport.png'),animations:'disabled',fullPage:false});
+  reports.push({screen:'S01',width,engine,state:'first-visit',ok:true,measurement:firstSize});
   await first.close();
   const ctx=await browser.newContext({viewport:{width,height},reducedMotion:'reduce',acceptDownloads:true,...(userAgent?{userAgent}:{})});
   await ctx.addInitScript(()=>{
@@ -82,6 +86,7 @@ try{
    assert.deepEqual(jsErrors,[],screen+' '+width+' page script failures');
    reports.push({screen,engine,width,route,state:'realized',ok:true,measurement:measure});
    await page.screenshot({path:resolve(root,'audit-output',engine+'-'+screen+'-'+width+'.png'),animations:'disabled',fullPage:true});
+   await page.screenshot({path:resolve(root,'audit-output',engine+'-'+screen+'-'+width+'-viewport.png'),animations:'disabled',fullPage:false});
   };
   await verify('S02','home','.home-v3',async()=>{assert.match(await page.locator('.hx-latest').innerText(),/6.00/);});
   await verify('S03','record-start','main',async t=>{assert.match(await t.innerText(),/手入力/);});
@@ -102,6 +107,7 @@ try{
    assert.equal(await t.locator('[data-view="front"]').count(),1);
    assert.equal(await t.locator('[data-view="back"]').count(),1);
    assert.equal(await t.locator('[data-view="sole"]').count(),1);
+   assert.equal(await t.locator('[data-tab]').count(),3,'S09 body / fatigue / historic comparison retained');
    assert.match(await t.locator('.rv4-notice').innerText(),/参考値|文献|算出/);
   });
   await verify('S10','history','#runload-history-v2',async t=>{
@@ -109,6 +115,7 @@ try{
   });
   await verify('S11','exploration-tree','[data-experience-v3]',async t=>{
    assert.match(await t.innerText(),/探究/);
+   assert.equal(await t.locator('.ex-node').count(),7,'seven exploration categories retained');
   });
   const guide='exploration-tree?category=06&topic='+encodeURIComponent('ウォームアップ');
   await verify('S12',guide,'.ex-observation-guide',async t=>{
@@ -143,6 +150,18 @@ try{
    assert.equal(await button.isEnabled(),true);
    assert.match(await t.locator('.rv4-notice').innerText(),/参考値|文献|算出/);
   });
+  // S19 is not a decorative export button: create a real PNG from a persisted record.
+  const result=page.locator('#runload-result-v4');
+  await result.locator('.rv4-export-menu summary').click();
+  const [download]=await Promise.all([page.waitForEvent('download',{timeout:10000}),result.locator('[data-download]').click()]);
+  assert.equal(download.suggestedFilename(),'走行結果.png');
+  const pngPath=resolve(root,'audit-output',engine+'-S19-'+width+'-export.png');
+  await download.saveAs(pngPath);
+  const png=await readFile(pngPath);
+  assert.ok(png.length>12000&&png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'S19 real PNG required');
+  assert.equal(png.readUInt32BE(16),1200,'PNG width');
+  assert.equal(png.readUInt32BE(20),630,'PNG height');
+  reports[reports.length-1].export={file:engine+'-S19-'+width+'-export.png',size:png.length,width:1200,height:630};
   await verify('S20','settings','[data-settings-v2]',async t=>{
    assert.match(await t.innerText(),/文字サイズ/);
    assert.match(await t.innerText(),/インストール/);
