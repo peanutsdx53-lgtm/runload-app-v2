@@ -1,0 +1,47 @@
+name: UIUX03 S09 S10 S11 targeted visual acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/uiux03TargetBrowser.mjs'
+      - '.github/workflows/uiux03-targeted-visual.yml'
+      - 'ui/resultExperience.js'
+      - 'ui/historyExperience.js'
+      - 'ui/explorationExperience.js'
+      - 'ui/explorationExperience.css'
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-screen-states:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node syntax for targeted browser test
+        run: node --check tests/uiux03TargetBrowser.mjs
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Test saved real results, comparisons, histories and exploration at 320/390/1440
+        env:
+          RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
+        run: node tests/uiux03TargetBrowser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uiux03-real-screens-${{ matrix.engine }}
+          path: audit-output/uiux03-${{ matrix.engine }}/
+          if-no-files-found: warn
+          retention-days: 14
