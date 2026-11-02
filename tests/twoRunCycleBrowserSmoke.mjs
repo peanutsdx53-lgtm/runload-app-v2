@@ -137,6 +137,10 @@ try{
  assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
   'same-region scientific result or explicit rejection must be visible');
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
+ assert.equal(await page.locator('.rv4-next-path .rv4-learn-link').count(),1,'one contextual exploration link');
+ assert.equal(await page.locator('.rv4-history .rv4-learn-link').count(),0,'no duplicated exploration entry inside comparison');
+ assert.equal(await page.locator('.rv4-history .rv4-back-link').count(),0,'global history navigation replaces redundant button');
+ assert.equal(await page.locator('.rv4-export-menu > summary').count(),1,'save and print share one menu');
  await page.reload({waitUntil:'networkidle'});
  assert.equal((await readRuns()).records.length,2,'both records survive reload');
  assert.ok(await page.locator('.rv4-compare-cards').isVisible(),'responsive factual comparison survives interruption/reload');
