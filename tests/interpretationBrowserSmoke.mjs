@@ -102,9 +102,15 @@ try{
   await page.evaluate(()=>document.querySelector('#runload-fatigue-display-check')?.remove());
   await page.goto(base+'#/result?record='+encodeURIComponent(saved.current),{waitUntil:'domcontentloaded'});
   await page.locator('.rv4-body .rv4-reading').waitFor();
-  const resultText=await page.locator('.rv4-app').innerText();
-  assert.match(resultText,/本人の身体を測定した数値ではありません/);
-  assert.match(resultText,/記録を理解する順番/);
+  assert.equal(await page.locator('.rv4-next-path a').count(),1,'no duplicate exploration routes');
+  const method=page.locator('.rv4-method-disclosure');
+  await method.locator('summary').click();
+  assert.match(await method.innerText(),/個人の身体負荷を直接測定した値ではありません/);
+  await method.locator('summary').click();
+  const guide=page.locator('.rv4-reading-route');
+  await guide.locator('summary').click();
+  assert.match(await guide.innerText(),/記録を理解する順番/);
+  await guide.locator('summary').click();
   if(mode.width<=800)await page.locator('[data-tab="radar"]').click();
   // The result stylesheet switches to accessible comparison cards at <=620px.
    // Wait for the *visible* representation, not the table hidden by the responsive layout.
