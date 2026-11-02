@@ -63,10 +63,12 @@ try{
   await ex.locator('[data-ex-action="note"]').click();
   await ex.locator('#ex-note').fill('次は走る前に何を確かめたいか書く');
   await ex.locator('[data-ex-action="save-note"]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===1);
   assert.equal((await page.evaluate(data)).length,1);
   await ex.locator('[data-ex-action="note"]').click();
   await ex.locator('#ex-note').fill('消してもよい確認用の二件目');
   await ex.locator('[data-ex-action="save-note"]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===2);
   assert.equal((await page.evaluate(data)).length,2);
   await ex.locator('[data-ex-action="memories"]').click();
   await capture(page,width,'S13-two-saved-notes');
@@ -82,6 +84,7 @@ try{
   assert.equal(await page.evaluate(data).then(a=>a.length),2,'Escape preserves both notes');
   await ex.locator('[data-ex-delete]').first().click();
   await ex.locator('[data-ex-action="confirm-delete-note"]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]').length===1);
   const notes=await page.evaluate(data);
   assert.equal(notes.length,1,'confirmation removes exactly one note');
   assert.equal(notes[0].text,'次は走る前に何を確かめたいか書く','surviving note is unchanged');
@@ -91,6 +94,7 @@ try{
   await ex.locator('[data-ex-edit]').first().click();
   await ex.locator('#ex-note-edit').fill('次は走る前後の疲労感を別々に確かめたい');
   await ex.locator('[data-ex-action="save-edited-note"]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')||'[]')[0]?.text==='次は走る前後の疲労感を別々に確かめたい');
   const edited=await page.evaluate(data);
   assert.equal(edited.length,1);assert.equal(edited[0].id,preservedId);
   assert.equal(edited[0].revisions.at(-1).text,'次は走る前に何を確かめたいか書く');
