@@ -63,11 +63,11 @@ try{
   await ex.locator('[data-ex-action="note"]').click();
   await ex.locator('#ex-note').fill('次は走る前に何を確かめたいか書く');
   await ex.locator('[data-ex-action="save-note"]').click();
-  assert.equal(await page.evaluate(data),1);
+  assert.equal((await page.evaluate(data)).length,1);
   await ex.locator('[data-ex-action="note"]').click();
   await ex.locator('#ex-note').fill('消してもよい確認用の二件目');
   await ex.locator('[data-ex-action="save-note"]').click();
-  assert.equal(await page.evaluate(data),2);
+  assert.equal((await page.evaluate(data)).length,2);
   await ex.locator('[data-ex-action="memories"]').click();
   await capture(page,width,'S13-two-saved-notes');
   const firstDelete=ex.locator('[data-ex-delete]').first();
