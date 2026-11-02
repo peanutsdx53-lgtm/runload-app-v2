@@ -108,7 +108,7 @@ test("global double-tap suppression preserves accessible pinch zoom and approved
   assert.ok(condition.includes(token),"condition uses approved Home navigation: "+token);
  }
  assert.match(html,/styles\.css\?v=20261026-result-chrome-v20/);
- assert.match(html,/conditionJourney\.css\?v=20261026-condition-v17/);
+ assert.match(html,/conditionJourney\.css\?v=20261102-uiux-batch04-select-v1/);
  assert.match(sw,/back-symmetry-v2/);
  assert.match(sw,/\.\/ui\/gpsReplayReference\.js/);
 });
