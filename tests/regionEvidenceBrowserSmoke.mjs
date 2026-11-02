@@ -120,7 +120,7 @@ try{
   assert.ok(await result.locator('.rv4-history').count(),'comparison tab remains available');
   const high=await mount(page,{speed:20/3.6});
   assert.equal(high.count,0,'20km/h must not extrapolate');
-  assert.match(await result.locator('.rv4-notice').innerText(),/算出可能な部位別文献参考値はありません/);
+  assert.match(await result.locator('.rv4-notice').innerText(),/参考値なし/);
   await panel.locator('summary').click();
   assert.match(await panel.innerText(),/未算出/);
   assert.match(await result.locator('.rv4-hero').innerText(),/記録/);
@@ -137,7 +137,7 @@ try{
   assert.doesNotMatch(await panel.innerText(),/Fukuchi ほか/);
   const mixed=await mount(page,{speed:3,activity:'RUNNING',mixed:true});
   assert.equal(mixed.count,0,'run/walk is not reduced to one running reference');
-  assert.match(await result.locator('.rv4-notice').innerText(),/走歩混在/);
+  assert.match(await result.locator('.rv4-notice').innerText(),/参考値なし/);
   await fit(page,prefix+' activities');
 
   if(engine===chromium&&width===390){
