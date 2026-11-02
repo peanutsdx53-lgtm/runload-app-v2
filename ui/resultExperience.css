@@ -185,3 +185,14 @@
  .rv4-body .rv4-body-content,.rv4-grid .rv4-body-content{align-items:center!important}
  .rv4-body .rv4-reading,.rv4-grid .rv4-reading{height:auto!important;align-self:center!important}
 }
+
+
+/* Evidence-free result screen: no simulated distance or inactive anatomy visualization. */
+.rv4-empty-card{min-height:116px;padding:17px 19px}
+.rv4-empty-card .rv4-card-heading{margin-bottom:13px}
+.rv4-empty-note{font-size:13px;line-height:1.6;color:#b7d5dc;max-width:56ch}
+.rv4-empty-card .rv4-icon{opacity:.7}
+@media(max-width:800px){
+.rv4-empty-card{min-height:110px;padding:15px}
+.rv4-empty-note{font-size:12px}
+}
