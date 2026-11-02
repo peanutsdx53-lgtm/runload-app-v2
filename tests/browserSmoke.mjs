@@ -358,7 +358,7 @@ try{
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const report=page.locator('#runload-result-v4');
   await report.locator('.rv4-empty-card[data-pane="body"]').waitFor({timeout:15000});
-  assert.match(await report.locator('.rv4-empty-card[data-pane="body"]').innerText(),/走行記録がないため/);
+  assert.match(await report.locator('.rv4-empty-card[data-pane="body"]').innerText(),/記録後に参考値を表示/);
   assert.match(await report.locator('.rv4-notice').innerText(),/記録なし/);
   assert.equal(await report.locator('.rv4-hero').count(),0,'no fictitious measurement dashboard without a record');
   assert.equal(await report.locator('.rv4-region').count(),0,'no anatomy targets before a run exists');
