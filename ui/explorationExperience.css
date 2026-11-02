@@ -496,3 +496,9 @@
 .ex-page .ex-saved-actions button{min-height:37px;color:#e3f9fc}
 .ex-page .ex-saved-actions button:focus-visible{outline:3px solid #8de5e8;outline-offset:3px}
 @media(max-width:420px){.ex-page .ex-saved{flex-wrap:wrap}.ex-page .ex-saved-actions{width:100%;justify-content:flex-start}}
+
+/* S11: a direct route to the selected theme below the constellation on small screens. */
+.ex-jump-topics{display:none;align-items:center;gap:8px;min-height:44px;margin-top:12px;padding:9px 13px;border:1px solid #6dbdc1;border-radius:11px;background:#164958;color:#e4f9fa;font-weight:760;font-size:.8rem;text-align:left}
+.ex-jump-topics:focus-visible{outline:3px solid #9cfff2;outline-offset:3px}
+#ex-topic-content{scroll-margin-top:18px}
+@media(max-width:1150px){.ex-page .ex-jump-topics{display:inline-flex}}
