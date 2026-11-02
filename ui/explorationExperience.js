@@ -254,7 +254,7 @@ function field(ui,ctx){
  const currentTopic=selected.topics.includes(ui.topic)?ui.topic:selected.topics[0]||selected.name;
  const summary=links.sample?'光る星は説明用の例です。自分の記録ではありません。':linked?linked:'記録がなくても自由に選べます。';
  const any=links.linked.size>0;
- return '<section class="ex-workspace ex-orbit-workspace"><div class="ex-map-card ex-constellation"><div class="ex-map-head"><div><span class="ex-eyebrow">記録からも広がる発見</span><h2>今日は何が気になる？</h2><p>気になる星をタップしてみましょう。</p></div><button type="button" class="ex-help" data-ex-action="field-help" aria-label="星が光る理由と表示の意味">？</button></div>'
+ return '<section class="ex-workspace ex-orbit-workspace"><div class="ex-map-card ex-constellation"><div class="ex-map-head"><div><span class="ex-eyebrow">記録からも広がる発見</span><h2>今日は何が気になる？</h2><p>気になる星をタップしてみましょう。</p><button type="button" class="ex-jump-topics" data-ex-action="jump-topics">選んだ分野のテーマへ <span aria-hidden="true">↓</span></button></div><button type="button" class="ex-help" data-ex-action="field-help" aria-label="星が光る理由と表示の意味">？</button></div>'
  +'<div class="ex-map" role="group" aria-label="星座型の7分野から探す">'+art(links)+'<div class="ex-core" aria-hidden="true"><span>気になることから</span><strong>探究</strong><small>好きな星を選ぼう</small></div>'+nodes+'</div>'
  +'<div class="ex-legend ex-signal-legend"><span class="ex-legend-glow" aria-hidden="true"></span><span>'+(any?'光る星は、入力や記録とつながる分野です。':'どの星からでも自由に始められます。')+'</span></div>'
  +'<div class="ex-map-foot">'+(!any&&!links.sample?buttonAction("sample","光る星の表示例を見る","quiet"):links.sample?buttonAction("sample","表示例を終了","quiet"):'')+'</div></div>'
