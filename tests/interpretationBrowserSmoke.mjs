@@ -106,7 +106,9 @@ try{
   assert.match(resultText,/本人の身体を測定した数値ではありません/);
   assert.match(resultText,/記録を理解する順番/);
   if(mode.width<=800)await page.locator('[data-tab="radar"]').click();
-  const compareView=page.locator(mode.width<=375?'.rv4-compare-cards':'.rv4-comparison-table');
+  // The result stylesheet switches to accessible comparison cards at <=620px.
+   // Wait for the *visible* representation, not the table hidden by the responsive layout.
+   const compareView=page.locator(mode.width<=620?'.rv4-compare-cards':'.rv4-comparison-table');
   await compareView.waitFor();
   const selectBackground=await page.locator('[data-compare-select]').evaluate(el=>getComputedStyle(el).backgroundColor);
   assert.equal(selectBackground,'rgb(12, 51, 68)','dark select maintains the approved palette');
