@@ -39,7 +39,8 @@ test('ROF-J results and image export do not manufacture time-eligible before/aft
  const js=read('ui/resultExperience.js');
  assert.match(js,/data-rof-time-status="unverified"/);
  assert.match(js,/運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません/);
- assert.match(js,/評価時刻未記録：前後差は判定不可/);
+ assert.match(js,/回答の実際の時間的前後差は判定しません/);
+ assert.doesNotMatch(js,/評価時刻未記録：前後差は判定不可/,'PNG must not falsely claim no time evidence is stored');
  assert.match(js,/<small>前後差<\/small><strong>—<\/strong>/);
  assert.doesNotMatch(js,/\(after-before\)/);
  assert.doesNotMatch(js,/<h2>疲労感の変化<\/h2>/);
