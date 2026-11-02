@@ -41,7 +41,16 @@ test('ROF-J results and image export do not manufacture time-eligible before/aft
  assert.match(js,/運動の開始・終了時刻と順序が検証できないため、時間的な前後差は判定しません/);
  assert.match(js,/回答の実際の時間的前後差は判定しません/);
  assert.doesNotMatch(js,/評価時刻未記録：前後差は判定不可/,'PNG must not falsely claim no time evidence is stored');
- assert.match(js,/<small>前後差<\/small><strong>—<\/strong>/);
+ assert.doesNotMatch(js,/<small>前後差<\/small>|rv4-change/,'remove obsolete difference field');
+ assert.match(js,/運動前・運動後として記録された疲労感です。/);
+ assert.match(js,/実際の評価時刻の前後関係は確認していないため、運動による変化とは断定できません。/);
+ assert.match(js,/未回答は「—」で、0と区別します。/);
+ assert.match(js,/before\?\?'—'/,'valid zero must not become missing');
+ assert.match(js,/after\?\?'—'/,'valid zero must not become missing');
+ for(const css of [read('ui/resultExperience.css'),read('ui/resultInlineStyles.js')]){
+  assert.doesNotMatch(css,/\.rv4-change/,'obsolete delta styling absent');
+  assert.match(css,/\.rv4-fatigue-numbers>div\{/,'retain two-value layout');
+ }
  assert.doesNotMatch(js,/\(after-before\)/);
  assert.doesNotMatch(js,/<h2>疲労感の変化<\/h2>/);
 });
