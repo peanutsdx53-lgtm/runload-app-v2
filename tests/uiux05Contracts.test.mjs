@@ -10,7 +10,7 @@ test('S15 share mode and mobile preview buttons expose actual checked state',()=
  assert.match(html,/aria-pressed="true" data-mode-button="single"/);
  assert.match(html,/aria-pressed="false" data-mode-button="period"/);
  assert.match(html,/aria-pressed="true" data-switch="edit"/);
- assert.match(html,/aria-pressed="false" data-switch="preview"/);
+ assert.match(html,/data-switch="preview" aria-pressed="false"/);
  const js=readFileSync(new URL('../ui/consultationExperience.js',import.meta.url),'utf8');
  assert.match(js,/setAttribute\('aria-pressed',String\(x===b\)\)/);
  assert.match(html,/GPS詳細軌跡・個人プロフィール/);
