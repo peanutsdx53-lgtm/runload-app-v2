@@ -12,7 +12,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const manualRunStore=await import("./ui/manualRunStore.js?v=20261030-rof-evidence-v2");
   const manualRunLock=await import("./ui/manualRunLock.js");
   const canonical=await import("./ui/manualRunCanonical.js");
-  const recordExperience=await import("./ui/recordExperience.js?v=20261101-uiux-s05s07s09-v2");
+  const recordExperience=await import("./ui/recordExperience.js?v=20261102-s04-required-v1");
   const coursePresets=await import("./ui/coursePresetStore.js?v=20261026-courses-v30");
   const simulationExperience=await import("./ui/simulationExperience.js?v=20261027-scope-close-v46");
   const gaitExperience=await import("./ui/gaitExperience.js?v=20261101-manual-dedup-v1");
@@ -860,6 +860,17 @@ function recordExtras(){
     }
     if(event.target.matches("[data-draft]")){
       state.recordDraft[event.target.dataset.draft]=event.target.value;
+       if(event.target.closest('.rv-manual')&&['distance','minutes'].includes(event.target.dataset.draft)){
+         // Update the short incomplete-field notice without disrupting keyboard focus.
+         const message=recordExperience.requiredProgress(state.recordDraft);
+         const notice=app.querySelector('.rv-manual .rv-required-progress');
+         if(notice){notice.textContent=message;notice.hidden=!message;}
+         const validation=reviewDraft.checkManualRequiredFields(state.recordDraft);
+         for(const [field,valid] of [['distance',validation.fields.distance],['time',validation.fields.time]]){
+           const fieldBox=app.querySelector('.rv-manual [data-required-field="'+field+'"]');
+           if(fieldBox){fieldBox.dataset.requiredOk=String(valid);fieldBox.querySelector('input')?.setAttribute('aria-invalid',String(!valid));}
+         }
+       }
       if(event.target.closest('.rv-course')&&/^sectionShare[0-4]$/.test(event.target.dataset.draft)){
         const result=recordExperience.sectionShareProgress(state.recordDraft,ui);
         const progress=app.querySelector('[data-rv-section-progress]');

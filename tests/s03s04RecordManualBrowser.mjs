@@ -62,6 +62,7 @@ try{
   assert.match(await title.innerText(),/基本情報.*必須/s);
   assert.match(await page.locator('.rv-secondary .rv-section-title').innerText(),/追加情報.*任意/s);
   assert.equal(await page.locator('.rv-required-overview').count(),0,'old notice removed');
+  assert.equal(await page.locator('.rv-required-progress').isHidden(),true,'untouched fields do not repeat required labels');
   assert.doesNotMatch(await page.locator('.rv-primary').innerText(),/走行の保存には/);
   assert.equal(await page.locator('[data-required-field="distance"]').count(),1);
   assert.equal(await page.locator('[data-required-field="time"]').count(),1);
@@ -71,9 +72,14 @@ try{
   await geometry(page,width,'S04-empty-run');
   await page.screenshot({path:resolve(output,`${engine}-${width}-S04-run-empty.png`),fullPage:true,animations:'disabled'});
   await page.locator('[data-draft="distance"]').fill('5');
+  assert.match(await page.locator('.rv-required-progress').innerText(),/要入力：時間・活動種目/);
+  assert.equal(await page.locator('[data-required-field="distance"] input').getAttribute('aria-invalid'),'false');
+  await geometry(page,width,'S04-partial-run');
+  await page.screenshot({path:resolve(output,`${engine}-${width}-S04-run-partial.png`),fullPage:true,animations:'disabled'});
   await page.locator('[data-draft="minutes"]').fill('30');
+  assert.match(await page.locator('.rv-required-progress').innerText(),/要入力：活動種目/);
   await page.locator('[data-manual-gait="RUNNING"]').click();
-  assert.match(await page.locator('.rv-required-progress').innerText(),/必須3項目が入力済み/);
+  assert.equal(await page.locator('.rv-required-progress').isHidden(),true,'complete fields do not repeat a success label');
   assert.equal(await page.locator('[data-draft="distance"]').inputValue(),'5');
   assert.equal(await page.locator('[data-draft="minutes"]').inputValue(),'30');
   assert.equal(await page.locator('[data-manual-gait="RUNNING"]').getAttribute('aria-pressed'),'true');

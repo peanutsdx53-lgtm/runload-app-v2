@@ -27,9 +27,14 @@ export function courseSummary(d,ui){
  d.surfaceMode==='MIXED'?(SURFACES.filter(([k])=>(ui?.surfaceSelected||[]).includes(k)&&filled(d['surface'+k])&&Number(d['surface'+k])>0).map(([k])=>names[k]).join('・')||'割合未入力'):'路面は未設定';
  return {slope,surface,courseName:filled(d.courseName)?String(d.courseName):'コース未設定'};
 }
+export function requiredProgress(d){
+ const r=checkManualRequiredFields(d);
+ if(r.ok||(!filled(d.distance)&&!filled(d.minutes)&&!r.fields.activity))return '';
+ return '要入力：'+[['distance','距離'],['time','時間'],['activity','活動種目']].filter(([key])=>!r.fields[key]).map(([,label])=>label).join('・');
+}
 export function manualPage(state){
  const d=state.recordDraft,run=state.recordType==='run',s=courseSummary(d,state.recordCourseUi),required=checkManualRequiredFields(d);
- const requiredMessage=run?(required.ok?'<span class="rv-required-all-done">必須3項目が入力済みです</span>':'<span class="rv-required-pending">未入力・要確認：'+[['distance','距離'],['time','時間'],['activity','活動種目']].filter(([k])=>!required.fields[k]).map(([,n])=>n).join('・')+'</span>'):'';
+ const requiredMessage=run?requiredProgress(d):'';
  const date=escape(d.date);
  const time=filled(d.minutes)?Number(d.minutes):null;
  const pace=run&&filled(d.distance)&&Number(d.distance)>0&&Number.isFinite(time)&&time>0
@@ -42,7 +47,7 @@ export function manualPage(state){
   ['#/record-reflection','body','身体・使用品・メモ',filled(d.bodyObservation)||filled(d.shoeName)||filled(d.memo)?'入力あり':'未入力']
  ];
  return `<div class="record-v3 rv-manual"><header class="rv-head"><a href="#/record-start" class="rv-back rv-phone-only" aria-label="記録方法の選択へ戻る">‹</a><div><h1>手入力で記録</h1></div></header>
- <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須</small></h2>${run?`<p class="rv-required-progress" role="status">${requiredMessage}</p>`:''}
+ <div class="rv-manual-grid"><section class="rv-panel rv-primary"><h2 class="rv-section-title">基本情報 <small class="rv-required-heading">必須</small></h2>${run?`<p class="rv-required-progress" role="status" ${requiredMessage?'':'hidden'}>${requiredMessage}</p>`:''}
  ${optionGroup('data-record-type',[['run','走行'],['rest','休養']],state.recordType)}
  <label class="rv-field rv-date"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">${date.replaceAll("-", "/")}</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input aria-label="記録日" data-draft="date" type="date" value="${date}"></span></label>
  ${run?`<div class="rv-numbers"><label class="rv-field" data-required-field="distance" data-required-ok="${required.fields.distance}"><span>距離</span><div class="rv-unit-input"><input data-draft="distance" aria-label="距離（km）" aria-required="true" aria-invalid="${!required.fields.distance}" type="number" inputmode="decimal" min="0.01" max="10000" step="0.01" placeholder="0.00" value="${escape(d.distance)}"><em>km</em></div></label>
@@ -55,7 +60,7 @@ export function manualPage(state){
  '<p class="rv-muted">休養日は距離・時間を入力しません。必要に応じてメモを追加できます。</p>'}
  </section><section class="rv-panel rv-secondary"><h2 class="rv-section-title">追加情報 <small>任意</small></h2>
  <div class="rv-links">${(run?access:access.slice(3)).map(([url,icon,label,sub])=>`<a href="${url}" class="rv-link"><span class="rv-link-icon">${recordIcon(icon)}</span><span class="rv-link-content"><strong>${label}</strong><small>${sub}</small></span><span class="rv-chevron">›</span></a>`).join('')}</div></section></div>
- <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">${run?'手入力した走行は確認後に端末へ保存できます。身体の部位別の文献参考値は、保存後に活動種別と速度の適用範囲が確認できる場合に表示します。':'休養日は日付と任意の本人メモを保存し、履歴から見返せます。休養日の走行結果や身体部位別文献参考値は表示しません。'}</p></div></div>`;
+ <div class="rv-bottom-actions"><button type="button" class="rv-main-button" data-demo-save>入力内容を確認</button><p class="rv-muted">${run?'確認後に端末へ保存します。部位別の文献参考値は活動種別・速度の条件に合う場合のみ表示します。':'休養日は日付と任意メモを保存します。走行結果・部位別参考値は表示されません。'}</p></div></div>`;
 }
 export function recordMethodPage(isGpsPhone=true){return `<div class="record-v3 rv-method"><header class="rv-head"><h1>記録</h1></header>
  <h2 class="rv-method-caption">記録方法を選択</h2><div class="rv-method-cards">
