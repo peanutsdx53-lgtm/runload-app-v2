@@ -68,7 +68,8 @@ test("settings copy gives explicit GPS disclosure, verification, and deliberate 
  assert.match(backup,/data-dm-file/);
  assert.match(backup,/GPSを含む復元は複数の保存先に順番に追加/);
  assert.match(remove,/元に戻せません/);
- assert.match(remove,/data-dm-delete-confirm disabled/);
+ assert.match(remove,/data-dm-delete-confirm aria-describedby="dm-delete-rule" disabled/);
+ assert.match(remove,/次のチェックと「削除」の入力が両方そろうまで/);
  assert.doesNotMatch(backup+remove,/RunLoad|ランロード/);
 });
 
