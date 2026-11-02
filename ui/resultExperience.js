@@ -223,7 +223,7 @@ export function mountResult(host,inputDraft={},options={}){
    options.onCorrectRof?.(phase,raw===''?null:Number(raw),{timeBasis,assessedAt,reason});
   });
   root.querySelector('[data-label-toggle]')?.addEventListener('click',()=>{showBodyNumbers=!showBodyNumbers;draw()});
-   root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;const v=selectedView();if(!v.paths.some(x=>x[0]===chosen))chosen=v.paths[0][0];picker=false;draw()}));
+   root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;const v=selectedView();if(!v.paths.some(x=>x[0]===chosen))chosen=v.paths[0][0];picker=false;draw();root.querySelector('[data-view="'+view+'"]')?.focus({preventScroll:true})}));
   root.querySelectorAll('[data-region]').forEach(b=>{const select=()=>{chosen=b.dataset.region;draw()};b.addEventListener('click',select);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}})});
   // Accept taps on the SVG itself when a thin/nonconvex region is hit but the
   // browser targets the SVG container instead of its path.
@@ -296,8 +296,8 @@ export function mountResult(host,inputDraft={},options={}){
       draw();
     }
   });
-  root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;draw()}));
-  root.querySelector('[data-picker-toggle]')?.addEventListener('click',()=>{picker=!picker;draw()});
+  root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;draw();root.querySelector('[data-tab="'+tab+'"]')?.focus({preventScroll:true})}));
+  root.querySelector('[data-picker-toggle]')?.addEventListener('click',()=>{picker=!picker;draw();root.querySelector('[data-picker-toggle]')?.focus({preventScroll:true})});
   root.querySelector('[data-print]')?.addEventListener('click',()=>window.print());
   root.querySelector('[data-download]')?.addEventListener('click',saveCard);
  }
