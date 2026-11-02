@@ -97,6 +97,11 @@ try{
   await input.fill('');
   await rootSel.locator('[data-select-id="'+runId+'"]').click();
   assert.equal(await rootSel.locator('[data-open-record]').isEnabled(),true);
+  const runDisclosure=rootSel.locator('.selected-footer .hx-record-id');
+  assert.equal(await runDisclosure.count(),1,'long saved ID is available on demand');
+  assert.equal(await runDisclosure.evaluate(el=>el.open),false,'exact record ID starts collapsed');
+  await runDisclosure.locator('summary').click();
+  assert.equal((await runDisclosure.locator('code').innerText()).trim(),runId,'disclosed ID is the selected run');
   await capture(page,width,'06-selected-run');
   await rootSel.locator('[data-open-record]').click();
   await page.waitForFunction((id)=>location.hash.includes(encodeURIComponent(id)),runId);
@@ -139,6 +144,7 @@ try{
   const restNotice=restHistory.locator('.selected-footer .pill');
   await restNotice.waitFor({state:'visible'});
   assert.match(await restNotice.innerText(),/休養日：走行結果・参考値なし/);
+  assert.equal(await restHistory.locator('.selected-footer .hx-record-id').count(),1,'rest record preserves exact ID behind disclosure');
   assert.equal(await restHistory.locator('[data-open-record]').count(),0,'rest selection must not open running result');
   await capture(restPage,width,'11-rest-selected');
   await restPage.reload({waitUntil:'networkidle'});
