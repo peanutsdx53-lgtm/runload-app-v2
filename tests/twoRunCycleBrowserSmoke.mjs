@@ -115,7 +115,7 @@ try{
  assert.match(await page.locator('.rv4-compare-cards').innerText(),/距離/);
  const regionPanel=page.locator('.rv4-region-compare');
  await regionPanel.waitFor();
- assert.match(await regionPanel.innerText(),/選択した部位の文献参考値/);
+ assert.match(await regionPanel.innerText(),/部位の参考値/);
  // Preserve actual browser-rendered evidence for a human visual acceptance review.
  // The capture is taken from TWO genuinely saved runs, not synthetic fixture values.
  await mkdir('audit-output/p0-continuity',{recursive:true});
@@ -127,15 +127,13 @@ try{
  assert.equal(await page.locator('.rv4-grid').evaluate(el=>getComputedStyle(el).alignItems),'start','desktop grid must not stretch the anatomy card to match long notes');
  await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-compare-1440.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
- const provenance=page.locator('.rv4-compare-provenance');
- assert.equal(await provenance.getAttribute('open'),null,'full record IDs remain collapsed until requested');
- assert.equal(await provenance.evaluate(el=>getComputedStyle(el).display),'block','record-ID disclosure must not inherit stale grid layout');
- assert.ok(await provenance.locator('summary').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=14),'disclosure summary text is readable');
- await provenance.locator('summary').click();
- const labels=await provenance.innerText();
- assert.ok(labels.includes(firstId)&&labels.includes(secondId),'two saved IDs remain independently accessible when expanded');
- assert.match(labels,/比較相手/);assert.match(labels,/選択中/);
- assert.match(await regionPanel.innerText(),/現在の同一モデルでそれぞれ再計算/);
+ const comparisonSummary=page.locator('.rv4-compare-summary');
+ assert.equal(await comparisonSummary.locator(':scope > div').count(),2,'two comparable runs remain labelled without exposing IDs');
+ const surfaceText=await page.locator('.rv4-app').innerText();
+ assert.ok(!surfaceText.includes(firstId)&&!surfaceText.includes(secondId),'record IDs are never shown to users');
+ assert.equal(await page.locator('.rv4-compare-provenance').count(),0,'no internal-ID disclosure remains');
+ await page.locator('.rv4-region-compare-method summary').click();
+ assert.match(await regionPanel.innerText(),/現在の同一モデルで再計算/);
  assert.match(await regionPanel.innerText(),/ポイント|この部位は比較できません/,
   'same-region scientific result or explicit rejection must be visible');
  assert.equal(await page.locator('.rv4-mobile-tabs [data-tab]').count(),3,'preserve three result tabs');
@@ -224,23 +222,20 @@ try{
  assert.equal(state.records.find(r=>r.id===sameDayA).memo,'','note remains truly optional');
  assert.equal(state.records.find(r=>r.id===sameDayB).memo,'');
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB)+'&compare='+encodeURIComponent(sameDayA)+'&view=compare',{waitUntil:'networkidle'});
- const sameDayDetail=page.locator('.rv4-compare-provenance');
- await sameDayDetail.waitFor();
- assert.equal(await sameDayDetail.getAttribute('open'),null,'provenance IDs are initially collapsed');
- await sameDayDetail.locator('summary').click();
- const sources=await sameDayDetail.innerText();
- assert.ok(sources.includes(sameDayA)&&sources.includes(sameDayB),'same-day IDs remain independently accessible after expansion');
- assert.match(sources,/比較相手/);assert.match(sources,/選択中/);
+ const sameDaySummary=page.locator('.rv4-compare-summary');
+ await sameDaySummary.waitFor();
+ assert.equal(await sameDaySummary.locator(':scope > div').count(),2);
+ assert.equal(await page.locator('.rv4-compare-provenance').count(),0);
+ assert.ok(!(await page.locator('.rv4-app').innerText()).includes(sameDayA),'same-day IDs stay internal');
  const selector=page.locator('[data-compare-select]');
  assert.ok(await selector.locator('option[value="'+sameDayA+'"]').count());
- assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング.*ID末尾/);
+ assert.match(await selector.locator('option[value="'+sameDayA+'"]').innerText(),/ランニング.*同条件/);
  assert.equal((await page.locator('.rv4-compare-cards').innerText()).includes('距離'),true);
  const zeroDistance=await page.locator('.rv4-comparison-table tbody tr').filter({hasText:'距離'}).first().textContent();
  assert.match(zeroDistance,/0(\\.00)?/,'same-day zero change is a descriptive value, not missing');
  await page.reload({waitUntil:'networkidle'});
- const restoredProvenance=page.locator('.rv4-compare-provenance');
- await restoredProvenance.locator('summary').click();
- assert.ok(await restoredProvenance.innerText().then(x=>x.includes(sameDayA)&&x.includes(sameDayB)),'reloading retains both independently accessible record IDs');
+ const restoredSummary=page.locator('.rv4-compare-summary');
+ assert.equal(await restoredSummary.locator(':scope > div').count(),2,'reloading preserves comparison roles');
  await page.goto(host+'#/exploration-tree?record='+encodeURIComponent(sameDayB)+'&category=01&topic='+encodeURIComponent('距離・時間・ペース'),{waitUntil:'networkidle'});
  assert.equal(await page.locator('.ex-note-preview').count(),0,'no-note run never inherits older free/linked notes');
  assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('runload-v2-exploration-notes-v1')))).length,2,
@@ -391,9 +386,9 @@ try{
  await page.setViewportSize({width:1440,height:900});
  await page.screenshot({path:'audit-output/p0-continuity/'+engineName+'-S09-reference-ready-1440.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
- assert.match(eligibleText,/選択した部位の文献参考値/);
+ assert.match(eligibleText,/部位の参考値/);
  assert.match(eligibleText,/比較相手|選択中/);
- assert.ok(await eligiblePanel.locator('.rv4-region-compare-method').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=13),'same-model scientific comparison limitation is readable');
+ assert.ok(await eligiblePanel.locator('.rv4-region-compare-method summary').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=12),'same-model scientific comparison limitation is readable');
  const eligibleDifference=await eligiblePanel.locator('.rv4-region-compare-change strong').innerText();
  assert.match(eligibleDifference,/^[+-]?[0-9]+(?:\.[0-9]+)?\s*ポイント$/,'two saved eligible runs show their descriptive reference difference in the value card');
  assert.doesNotMatch(eligibleText,/この部位は比較できません/);
