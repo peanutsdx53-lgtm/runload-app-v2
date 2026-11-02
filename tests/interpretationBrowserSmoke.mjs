@@ -119,7 +119,8 @@ try{
   assert.equal(await refPanel.locator('[data-reference-compare-region]').count(),1);
   assert.equal(await page.locator('.rv4-compare-provenance').getAttribute('open'),null,'IDs remain available but not dominant');
   assert.equal(await page.locator('.rv4-compare-provenance summary').count(),1);
-  assert.match(await refPanel.locator('.rv4-region-compare-method').innerText(),/現在の同一モデル/);
+  await refPanel.locator('.rv4-region-compare-method summary').click();
+   assert.match(await refPanel.locator('.rv4-region-compare-method').innerText(),/現在の同一モデル/);
   assert.match(await refPanel.innerText(),/文献参考値/);
   const referenceLayout=await refPanel.evaluate(el=>{
    const b=el.getBoundingClientRect();return{width:innerWidth,left:b.left,right:b.right,scrollWidth:document.documentElement.scrollWidth};
@@ -133,7 +134,8 @@ try{
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-incompatible.png'),fullPage:true});
   await page.locator('[data-compare-select]').selectOption(saved.earlier);
   await compareView.waitFor();
-  await page.locator('.rv4-comparison-actions .rv4-learn-link').click();
+  assert.equal(await page.locator('.rv4-next-path a').count(),1,'one contextual exploration route');
+   await page.locator('.rv4-next-path a').click();
   await page.locator('.ex-record-return').waitFor();
   assert.match(await page.locator('.ex-record-return').innerText(),/2026-10-25/);
   assert.match(await page.locator('.ex-learning').innerText(),/違いを見つけて/);
@@ -217,7 +219,8 @@ try{
    const offlineComparison=await compareView.innerText();
    assert.match(offlineComparison,/2026-10-18/);
    assert.match(offlineComparison,/2026-10-25/);
-   const [offlineImage]=await Promise.all([page.waitForEvent('download'),page.locator('#runload-result-v4 [data-download]').click()]);
+   await page.locator('.rv4-export-menu summary').click();
+    const [offlineImage]=await Promise.all([page.waitForEvent('download'),page.locator('#runload-result-v4 [data-download]').click()]);
    assert.equal(offlineImage.suggestedFilename(),'走行結果.png');
    const savedPng=resolve(root,'screenshots',prefix+'-offline-export.png');
    await offlineImage.saveAs(savedPng);
