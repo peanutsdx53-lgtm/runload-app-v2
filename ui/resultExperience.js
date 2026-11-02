@@ -319,7 +319,7 @@ export function mountResult(host,inputDraft={},options={}){
   t('部位間の順位・傷害リスクを示しません',685,387,17,'#effdff');
   t('ROF-Jは本人が回答した疲労感です',685,431,17,'#abd6de');
   t('入力値：前 '+(before??'—')+' ／ 後 '+(after??'—'),685,478,24,'#f6d7b4');
-  t('評価時刻未記録：前後差は判定不可',685,506,15,'#abd6de');
+  t('回答の実際の時間的前後差は判定しません',685,506,15,'#abd6de');
   t('部位別数値の詳細はアプリ内で確認',685,550,16,'#abd6de');
   /* No internal branding in the saved image. */
   canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='走行結果.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png');
