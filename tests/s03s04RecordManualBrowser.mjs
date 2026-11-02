@@ -73,7 +73,8 @@ try{
   assert.equal(await page.locator('[data-required-field="distance"]').count(),1);
   assert.equal(await page.locator('[data-required-field="time"]').count(),1);
   assert.equal(await page.locator('[data-required-field="activity"]').count(),1);
-  assert.equal(await page.locator('.rv-required-mark,.rv-gait-hint').count(),0,'no item-level required badges or long activity help');
+  assert.equal(await page.locator('.rv-required-mark,.rv-gait-hint,.rv-gait-entry-title small').count(),0,'no duplicate small guidance beneath activity label');
+  assert.equal(await page.locator('.rv-bottom-actions .rv-muted').innerText(),'次の画面で確認してから保存します。');
   assert.equal(await page.locator('.rv-secondary a.rv-link').count(),5);
   await geometry(page,width,'S04-empty-run');
   await page.screenshot({path:resolve(output,`${engine}-${width}-S04-run-empty.png`),fullPage:true,animations:'disabled'});
@@ -92,6 +93,20 @@ try{
   assert.equal(await page.locator('.rv-required-overview').count(),0);
   await geometry(page,width,'S04-filled-run');
   await page.screenshot({path:resolve(output,`${engine}-${width}-S04-run-filled.png`),fullPage:true,animations:'disabled'});
+  // Full-page stitched images show fixed navigation at its viewport position.
+  // Record the real viewport with the action scrolled into view separately.
+  if(width<=800){
+    const button=page.locator('.rv-bottom-actions .rv-main-button');
+    await button.scrollIntoViewIfNeeded();
+    const visible=await page.evaluate(()=>{
+      const action=document.querySelector('.rv-bottom-actions .rv-main-button').getBoundingClientRect();
+      const nav=document.querySelector('.mobile-nav')?.getBoundingClientRect();
+      return {actionTop:action.top,actionBottom:action.bottom,navTop:nav?.top??null,viewport:innerHeight};
+    });
+    assert.ok(visible.actionTop>=0&&visible.actionBottom<=visible.viewport+2,'confirm button is in viewport '+JSON.stringify(visible));
+    assert.ok(visible.navTop===null||visible.actionBottom<=visible.navTop+2,'fixed nav does not cover confirm button '+JSON.stringify(visible));
+    await page.screenshot({path:resolve(output,`${engine}-${width}-S04-confirm-viewport.png`),fullPage:false,animations:'disabled'});
+  }
   // The duplicate S05 activity selector is gone. Preserve S04 activity and run/walk pattern on round-trip.
   await page.locator('a.rv-link[href="#/record-compare"]').click();
   const compare=page.locator('[data-g4-page]');await compare.waitFor();
