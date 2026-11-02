@@ -141,8 +141,13 @@ try{
   assert.match(await result.locator('.rv4-hero').innerText(),/記録/);
   assert.ok(await result.locator('.rv4-fatigue').count(),'fatigue remains available');
   assert.ok(await result.locator('.rv4-history').count(),'comparison tab remains available');
+  assert.equal(await result.locator('.rv4-scale').count(),1,'selected supported region keeps its color scale');
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-partial-three-of-twelve.png'),fullPage:true,animations:'disabled'});
   const high=await mount(page,{speed:20/3.6});
   assert.equal(high.count,0,'20km/h must not extrapolate');
+  assert.equal(await result.locator('.rv4-scale').count(),0,'no colored numerical scale for unsupported speed');
+  assert.match(await result.locator('.rv4-score-caption').innerText(),/算出できません/);
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-no-reference-outside-speed.png'),fullPage:true,animations:'disabled'});
   assert.match(await result.locator('.rv4-notice').innerText(),/参考値なし/);
   await panel.locator('summary').click();
   assert.match(await panel.innerText(),/未算出/);
@@ -160,8 +165,24 @@ try{
   assert.doesNotMatch(await panel.innerText(),/Fukuchi ほか/);
   const mixed=await mount(page,{speed:3,activity:'RUNNING',mixed:true});
   assert.equal(mixed.count,0,'run/walk is not reduced to one running reference');
+  assert.equal(await result.locator('.rv4-scale').count(),0,'mixed activity cannot render a fabricated scientific scale');
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-mixed-run-walk.png'),fullPage:true,animations:'disabled'});
   assert.match(await result.locator('.rv4-notice').innerText(),/参考値なし/);
   await fit(page,prefix+' activities');
+  const unknown=await mount(page,{speed:3,activity:'UNKNOWN'});
+  assert.equal(unknown.count,0,'missing activity is never guessed from pace');
+  assert.equal(await result.locator('.rv4-scale').count(),0,'unselected activity has no numerical reference scale');
+  assert.equal(await result.locator('.rv4-activity-missing').count(),1,'activity correction is offered only when required');
+  assert.match(await result.locator('.rv4-notice').innerText(),/活動種別未設定/);
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-missing-activity.png'),fullPage:true,animations:'disabled'});
+  await page.evaluate(async()=>{
+   const {mountResult}=await import('/ui/resultExperience.js');
+   mountResult(document.querySelector('#runload-result-v4'),{},{});
+  });
+  assert.match(await result.locator('.rv4-notice').innerText(),/記録なし/);
+  assert.equal(await result.locator('.rv4-scale').count(),0,'empty result must not show color scale');
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-empty.png'),fullPage:true,animations:'disabled'});
+  await fit(page,prefix+' all state cases');
 
   if(engine===chromium&&width===390){
    await page.evaluate(async()=>{
