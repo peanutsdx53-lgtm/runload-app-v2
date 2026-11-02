@@ -1518,6 +1518,8 @@ function recordExtras(){
        if(rail&&active){
          const r=rail.getBoundingClientRect(),b=active.getBoundingClientRect();
          rail.scrollLeft=Math.max(0,oldLeft+b.left-r.left-(r.width-b.width)/2);
+         // S12: topic switches replace the learning card; keep focus on its selected topic.
+         active.focus({preventScroll:true});
        }
        return;
      }
