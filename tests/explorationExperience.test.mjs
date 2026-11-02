@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {makeUi,signals,render,saveNote,deleteNote,EXPLORATION_NOTE_KEY} from '../ui/explorationExperience.js';
 const categories=[
  {id:'01',name:'走りの記録',topics:['距離・時間・ペース']},
@@ -168,7 +169,7 @@ test('UIUX batch03 S11: constellation offers a single non-navigating jump to sel
  assert.equal((html.match(/data-ex-action="jump-topics"/g)||[]).length,1);
  assert.match(html,/id="ex-topic-content"/);
  assert.equal((html.match(/class="ex-node /g)||[]).length,7);
- const app=read('app.js');
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
  assert.match(app,/action==="jump-topics"/);
  assert.match(app,/\.ex-topic\.is-picked/);
  assert.match(app,/preventScroll:true/);
