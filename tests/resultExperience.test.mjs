@@ -132,3 +132,13 @@ test('S09 comparison data and long IDs remain readable without changing scientif
  assert.match(js,/compareBodyReferenceRows/);
  assert.match(js,/再計算した参考値です/);
 });
+
+
+test('UIUX batch03 S09: tab/view redraw restores keyboard focus without changing three-tab or science contract',()=>{
+ const js=read('ui/resultExperience.js');
+ assert.match(js,/\[data-tab=\"'\+tab\+'\"\]'/);
+ assert.match(js,/\[data-view=\"'\+view\+'\"\]'/);
+ assert.match(js,/focus\(\{preventScroll:true\}\)/);
+ assert.match(js,/\['body','身体'\],\['fatigue','疲労感'\],\['radar','過去と比較'\]/);
+ assert.match(js,/compareBodyReferenceRows/);
+});
