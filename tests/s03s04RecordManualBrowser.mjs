@@ -97,6 +97,7 @@ try{
   // Record the real viewport with the action scrolled into view separately.
   if(width<=800){
     const button=page.locator('.rv-bottom-actions .rv-main-button');
+    const originalScroll=await page.evaluate(()=>window.scrollY);
     await button.scrollIntoViewIfNeeded();
     const visible=await page.evaluate(()=>{
       const action=document.querySelector('.rv-bottom-actions .rv-main-button').getBoundingClientRect();
@@ -106,6 +107,10 @@ try{
     assert.ok(visible.actionTop>=0&&visible.actionBottom<=visible.viewport+2,'confirm button is in viewport '+JSON.stringify(visible));
     assert.ok(visible.navTop===null||visible.actionBottom<=visible.navTop+2,'fixed nav does not cover confirm button '+JSON.stringify(visible));
     await page.screenshot({path:resolve(output,`${engine}-${width}-S04-confirm-viewport.png`),fullPage:false,animations:'disabled'});
+    // Restore before testing the next real navigation. Chromium's smooth-scroll
+    // repositioning can otherwise keep the subsequent link moving under Playwright.
+    await page.evaluate(y=>window.scrollTo({top:y,behavior:'instant'}),originalScroll);
+    await page.waitForFunction(y=>Math.abs(window.scrollY-y)<=2,originalScroll);
   }
   // The duplicate S05 activity selector is gone. Preserve S04 activity and run/walk pattern on round-trip.
   await page.locator('a.rv-link[href="#/record-compare"]').click();
