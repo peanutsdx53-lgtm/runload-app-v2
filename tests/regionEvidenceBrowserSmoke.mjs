@@ -71,6 +71,27 @@ try{
   const initial=await mount(page,{speed:3});
   assert.equal(initial.count,12,'3m/s running reference count');
   assert.equal(initial.unchanged,true,'presentation must not change calculations');
+  assert.equal(await result.locator('.rv4-tone-legend').count(),0,'duplicated color legend removed');
+  assert.equal(await result.locator('.rv4-disclaimer').count(),0,'risk explanation remains under details, not repeated');
+  assert.equal(await result.locator('.rv4-reading .rv4-score-caption').count(),0,'calculated value has no repeated paragraph');
+  const visual=await result.evaluate(el=>{
+   const shadow=el.shadowRoot,box=q=>shadow.querySelector(q)?.getBoundingClientRect();
+   const summary=box('.rv4-export-menu>summary'),arrow=box('.rv4-export-chevron');
+   const figure=box('.rv4-body-figure'),reading=box('.rv4-reading'),picker=box('.rv4-region-selection .rv4-picker');
+   return {exportHeight:summary?.height,arrowOffset:Math.abs((summary?.top+summary?.height/2)-(arrow?.top+arrow?.height/2)),
+    pickerTop:picker?.top,figureBottom:figure?.bottom,readingBottom:reading?.bottom,
+    gradient:getComputedStyle(shadow.querySelector('.rv4-scale')).backgroundImage,
+    methodOpen:shadow.querySelector('.rv4-method-disclosure')?.open};
+  });
+  assert.ok(visual.exportHeight<=44&&visual.arrowOffset<9,'compact export button has aligned chevron '+JSON.stringify(visual));
+  assert.ok(visual.pickerTop>=Math.max(visual.figureBottom,visual.readingBottom)-2,'region picker follows both figure and reading '+JSON.stringify(visual));
+  assert.equal(visual.methodOpen,false,'expanded scientific limitations remain optional');
+  const blue=visual.gradient.indexOf('rgb(71, 118, 166)'),green=visual.gradient.indexOf('rgb(102, 196, 181)'),red=visual.gradient.indexOf('rgb(202, 125, 139)');
+  assert.ok(blue>=0&&green>blue&&red>green,'single blue-green-red scale direction '+visual.gradient);
+  await page.screenshot({path:resolve(root,'screenshots',prefix+'-compact-body.png'),fullPage:true,animations:'disabled'});
+  await result.locator('.rv4-method-disclosure summary').click();
+  assert.match(await result.locator('.rv4-method-disclosure').innerText(),/危険度や部位間の順位ではありません/);
+  await result.locator('.rv4-method-disclosure summary').click();
   const panel=result.locator('.rv4-region-evidence');
   assert.equal(await panel.count(),1,'single detail disclosure');
   assert.equal(await panel.getAttribute('data-region-evidence'),'BA-DISP-014','hip selected');
