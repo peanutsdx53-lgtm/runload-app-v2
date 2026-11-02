@@ -76,6 +76,12 @@ try{
   assert.equal(await page.locator('.rv-required-mark,.rv-gait-hint,.rv-gait-entry-title small').count(),0,'no duplicate small guidance beneath activity label');
   assert.equal(await page.locator('.rv-bottom-actions .rv-muted').innerText(),'次の画面で確認してから保存します。');
   assert.equal(await page.locator('.rv-secondary a.rv-link').count(),5);
+  const summaries=await page.locator('.rv-secondary .rv-link-content small').evaluateAll(nodes=>nodes.map(el=>({
+    text:el.textContent,visibleWidth:el.clientWidth,actualWidth:el.scrollWidth
+  })));
+  assert.ok(summaries.every(x=>x.actualWidth<=x.visibleWidth+2),'default optional summaries are never cut off: '+JSON.stringify(summaries));
+  assert.equal(summaries[0].text,'未入力','unset course is stated briefly without duplicating the heading');
+  assert.equal(summaries[1].text,'前：未入力・後：未入力','both optional ROF answers remain distinguishable');
   await geometry(page,width,'S04-empty-run');
   await page.screenshot({path:resolve(output,`${engine}-${width}-S04-run-empty.png`),fullPage:true,animations:'disabled'});
   await page.locator('[data-draft="distance"]').fill('5');
