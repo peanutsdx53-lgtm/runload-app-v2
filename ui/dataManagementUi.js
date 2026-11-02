@@ -48,9 +48,10 @@ export function renderDataDelete(ui){
  return '<div class="dm-stack" data-dm-delete>'
   +'<p>このアプリが端末内に保存した運動記録、GPS記録、体調、メモ、プロフィール、設定、利用開始時の確認記録を削除します。</p>'
   +'<p class="dm-warning"><strong>削除後は元に戻せません。</strong> ダウンロード済みのJSONファイルやPDF、ブラウザのキャッシュ、他のWebサイトの情報は削除されません。必要な記録は先にバックアップしてください。</p>'
+  +'<p id="dm-delete-rule" class="dm-help">次のチェックと「削除」の入力が両方そろうまで削除ボタンは使えません。</p>'
   +'<label class="dm-choice"><input type="checkbox" data-dm-delete-agree '+(ui.deleteAgreed?'checked':'')+'><span>削除する内容と、復元できないことを確認しました。</span></label>'
   +'<label class="dm-confirm">確認のため「削除」と入力してください。<input type="text" data-dm-delete-word maxlength="2" autocomplete="off" value="'+esc(ui.deleteWord)+'" placeholder="削除"></label>'
-  +'<button class="dm-btn dm-danger" type="button" data-dm-delete-confirm '+(ui.deleteAgreed&&ui.deleteWord==="削除"&&!ui.busy?'':'disabled')+'>端末内の記録と設定を削除</button>'
+  +'<button class="dm-btn dm-danger" type="button" data-dm-delete-confirm aria-describedby="dm-delete-rule" '+(ui.deleteAgreed&&ui.deleteWord==="削除"&&!ui.busy?'':'disabled')+'>端末内の記録と設定を削除</button>'
   +(ui.notice?'<p class="dm-status" role="status">'+esc(ui.notice)+'</p>':'')
   +'</div>';
 }
