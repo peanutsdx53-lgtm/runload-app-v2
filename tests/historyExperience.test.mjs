@@ -103,3 +103,16 @@ test('UX-013: explicit all-period mode searches across saved months without fabr
  ui.allMonths=false;ui.month='2026-10';
  assert.equal(filterRecords(records,ui).length,1,'switching back restores month-bound filtering');
 });
+
+
+test('UIUX batch03 S10: exact selected record ID remains retrievable without a prominent long identifier',()=>{
+ const ui=createHistoryUi();ui.month='2026-10';ui.selectedId='id-a-very-long-record-1234567890';
+ const records=[{id:ui.selectedId,type:'run',date:'2026-10-22',activityGait:'RUNNING',distanceKm:3,durationSeconds:900}];
+ const html=renderHistory(ui,records,{connected:true,onOpen(){}});
+ assert.equal((html.match(/class="hx-record-id"/g)||[]).length,2,'focus and selected footer both offer exact ID');
+ assert.equal((html.match(/<summary>記録IDを確認<\/summary>/g)||[]).length,2);
+ assert.match(html,/<code>id-a-very-long-record-1234567890<\/code>/);
+ assert.match(html,/data-open-record/,'selected saved record can still open result');
+ ui.selectedId='missing';
+ assert.doesNotMatch(renderHistory(ui,records,{connected:true,onOpen(){}}),/<summary>記録IDを確認<\/summary>/);
+});
