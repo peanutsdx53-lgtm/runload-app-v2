@@ -128,3 +128,20 @@
 .rv4-export-options{min-width:152px}
 }
 @media print{.rv4-export-menu,.rv4-method-disclosure,.rv4-reading-route,.rv4-next-path{display:none}}
+
+
+/* Screenshot-driven compactness pass: show optional explanations on demand. */
+.rv4-hero-report{display:flex;flex-direction:column;justify-content:center;gap:9px}
+.rv4-hero-report .rv4-today-chips{margin:0}
+.rv4-comparison-caution{display:block;padding:0;margin:9px 0;color:#b6d4dd;font-size:12px;line-height:1.5}
+.rv4-comparison-caution>summary{cursor:pointer;display:inline-flex;align-items:center;min-height:36px;color:#b8d6de}
+.rv4-comparison-caution p{border-left:2px solid #4b9aa1;padding:9px 11px;margin:3px 0 0;line-height:1.7;color:#bbd4d9}
+.rv4-question-continuation{display:block;min-width:0}
+.rv4-question-continuation>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:780;color:#e5fcfa}
+.rv4-question-continuation>summary::marker{color:#83d8d3}
+.rv4-question-continuation[open]>p{margin:10px 0 13px}
+.rv4-question-continuation[open]>label{margin:11px 0}
+.rv4-question-continuation[open]>button{margin:4px 0 10px;width:100%}
+.rv4-question-continuation[open]>small{display:block;margin-top:5px}
+.rv4-compare-card small{font-size:12px}
+@media(max-width:620px){.rv4-hero-report{padding:13px 15px}.rv4-compare-card>div{gap:8px}}
