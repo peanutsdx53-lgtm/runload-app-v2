@@ -111,3 +111,6 @@
 
 /* UX-026: force readable native select controls on WebKit and Chromium. */
 .cj-controls select,.cj-controls select option{color-scheme:dark;background-color:#092a3b;color:#ebfafc}
+
+/* UIUX04/S14: full-width native selectors on phones; the source-method label must never be clipped at 390px. */
+@media(min-width:360px) and (max-width:480px){.cj-controls{grid-template-columns:minmax(0,1fr)}.cj-controls .cj-range{grid-column:1}}
