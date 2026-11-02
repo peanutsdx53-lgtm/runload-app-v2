@@ -49,10 +49,12 @@ test("course layout presents approved three-step flow without changing the save/
  assert.match(html,/rv-commit-group--apply/);
  assert.match(html,/rv-commit-group--save/);
  assert.match(html,/この条件を記録に使う/);
- assert.match(html,/この画面を閉じて、記録の入力画面に戻ります/);
- assert.match(html,/保存すると、次回の入力で呼び出せます/);
+ assert.match(html,/記録の入力画面へ戻ります/);
+ assert.match(html,/次回の入力でも使用できます/);
  assert.equal((html.match(/data-course-save /g)||[]).length,1);
  assert.equal((html.match(/data-rv-apply/g)||[]).length,1);
+ assert.doesNotMatch(html,/必要な条件だけ設定して|コースの保存・削除によって/);
+ assert.match(html,/コースの保存・削除は過去の記録に影響しません/);
 });
 
 test('manual basic page gives user an explicit choice of three independently modeled activities',()=>{
