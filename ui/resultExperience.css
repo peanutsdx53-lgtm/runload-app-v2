@@ -84,3 +84,47 @@
  .rv4-fatigue-numbers .rv4-change strong{font-size:23px}
  .rv4-fatigue-note{padding:12px;font-size:13px}
 }
+
+
+/* Result UI consolidation: preserve 3-tab and science, reduce prominent actions. */
+.rv4-header{align-items:flex-start;gap:12px}
+.rv4-export-menu{position:relative;min-width:112px;z-index:10}
+.rv4-export-menu>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:43px;padding:10px 13px;border:1px solid #5094a1;border-radius:11px;background:linear-gradient(130deg,#16485c,#0e3449);color:#e8fcfc;font-size:13px;font-weight:750;box-shadow:0 6px 14px #0003}
+.rv4-export-menu>summary::-webkit-details-marker{display:none}
+.rv4-export-menu>summary:after{content:"⌄";color:#91d8d6;font-size:17px}
+.rv4-export-options{position:absolute;right:0;top:calc(100% + 6px);z-index:15;display:grid;gap:5px;min-width:160px;padding:7px;border:1px solid #4c8998;border-radius:12px;background:#0d3042;box-shadow:0 15px 24px #0008}
+.rv4-export-options button{min-height:42px;white-space:nowrap;width:100%;text-align:left}
+.rv4-notice{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:5px 12px;padding:9px 13px;margin-bottom:6px;font-size:12px;line-height:1.45}
+.rv4-notice strong{color:#a7f3eb;font-size:12px;white-space:nowrap}
+.rv4-method-disclosure{margin:0 0 11px;color:#a5c8d2;font-size:11px}
+.rv4-method-disclosure>summary{cursor:pointer;display:inline-flex;align-items:center;min-height:30px;color:#b7dbe2}
+.rv4-method-disclosure p{padding:9px 12px;border:1px solid #2c6676;border-radius:9px;background:#0a3042;color:#c1e0e5;line-height:1.65}
+.rv4-reading-route{display:block;padding:0;margin:9px 0 1px;background:transparent;border:0;border-radius:0}
+.rv4-reading-route summary{color:#b8d7e1;cursor:pointer;display:inline-flex;align-items:center;min-height:33px;font-size:12px}
+.rv4-reading-route p{padding:8px 10px;font-size:12px;line-height:1.7;color:#afccd4}
+.rv4-next-path{margin:15px 0 0;display:flex;justify-content:flex-end}
+.rv4-next-path .rv4-learn-link{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:55px;margin:0;padding:11px 16px;max-width:380px;width:100%;border-radius:14px;background:linear-gradient(130deg,#124b5f,#0d3346);border:1px solid #3c8794;box-shadow:0 8px 18px #00111c3d;text-align:left;text-decoration:none}
+.rv4-next-path .rv4-learn-link strong{display:block;font-size:13px;color:#ebffff}
+.rv4-next-path .rv4-learn-link small{display:block;font-size:11px;margin-top:3px;color:#a5d2db}
+.rv4-next-path .rv4-learn-link>span:last-child{font-size:24px;color:#8feae4}
+.rv4-compare-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 15px}
+.rv4-compare-summary>div{min-width:0;padding:12px 14px;border-radius:12px;border:1px solid #366e80;background:linear-gradient(155deg,#124055,#092a3b)}
+.rv4-compare-summary small,.rv4-compare-summary span{display:block;color:#a6cfda;font-size:11px;line-height:1.5}
+.rv4-compare-summary strong{display:block;color:#ebffff;font-size:clamp(14px,1.5vw,17px);margin:5px 0;white-space:nowrap}
+.rv4-compare-summary span{overflow-wrap:anywhere}
+.rv4-region-compare{margin-top:9px}
+.rv4-region-compare-heading span{border:0;padding:0;color:#8dd3d1;font-size:11px}
+.rv4-region-compare-method{border-top:1px solid #2c6575;padding-top:9px;margin-top:10px;color:#b4d3d9}
+.rv4-region-compare-method>summary{cursor:pointer;font-size:12px;min-height:30px}
+.rv4-region-compare-method>p{margin:6px 0 0;line-height:1.65;font-size:12px}
+.rv4-history .rv4-compare-label{font-size:12px}
+@media(max-width:620px){
+.rv4-compare-summary{gap:8px}
+.rv4-compare-summary>div{padding:10px 9px}
+.rv4-compare-summary strong{font-size:13px}
+.rv4-compare-summary span{font-size:10px}
+.rv4-next-path .rv4-learn-link{max-width:none}
+.rv4-export-menu{min-width:110px}
+.rv4-export-options{min-width:152px}
+}
+@media print{.rv4-export-menu,.rv4-method-disclosure,.rv4-reading-route,.rv4-next-path{display:none}}
