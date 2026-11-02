@@ -8,6 +8,8 @@ on:
       - 'styles.css'
       - 'ui/**'
       - 'tests/screenDesign20PopulatedBrowser.mjs'
+      - 'tests/offlineShellBrowserSmoke.mjs'
+      - 'sw.js'
       - '.github/workflows/current-20-screen-design-acceptance.yml'
   workflow_dispatch:
 permissions:
@@ -33,6 +35,9 @@ jobs:
         env:
           RUNLOAD_BROWSER_ENGINE: ${{ matrix.engine }}
         run: node tests/screenDesign20PopulatedBrowser.mjs
+      - name: Confirm installed-offline canonical record, result, sharing and exploration
+        if: matrix.engine == 'chromium'
+        run: node tests/offlineShellBrowserSmoke.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
