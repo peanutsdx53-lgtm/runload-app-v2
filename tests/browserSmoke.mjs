@@ -357,21 +357,15 @@ try{
   }
   await page.goto(host+"#/result",{waitUntil:"networkidle"});
   const report=page.locator('#runload-result-v4');
-  await report.locator('.rv4-region').first().waitFor({timeout:15000});
-  assert.equal(await report.locator('.rv4-region').count(),5,"front view has five official region targets");
-  assert.match(await report.locator('.rv4-card-heading').first().innerText(),/部位の参考値/);
-  assert.match(await report.locator('.rv4-notice').innerText(),/保存された走行記録はまだありません/);
-  assert.match(await report.locator('.rv4-big-score').innerText(),/—/,"no synthetic scientific score");
-  assert.equal(await report.locator('[data-download]').isDisabled(),true,"no fabricated run card");
-  await report.locator('[data-view="sole"]').click();
-  assert.equal(await report.locator('.rv4-region').count(),3);
-  // Each region has an invisible true-interior SVG tap target, allowing
-  // pointer verification without Playwright picking empty bbox-centre pixels.
-  await report.locator('[data-tap-region="BA-DISP-028"]').click();
-  assert.equal(await report.locator('.rv4-reading h3').innerText(),'足底中部・内側縦足弓');
-  await report.locator('[data-view="front"]').click();
-  await report.locator('[data-tap-region="BA-DISP-019"]').click();
-  assert.equal(await report.locator('.rv4-reading h3').innerText(),'膝蓋大腿関節部');
+  await report.locator('.rv4-empty-card[data-pane="body"]').waitFor({timeout:15000});
+  assert.match(await report.locator('.rv4-empty-card[data-pane="body"]').innerText(),/走行記録がないため/);
+  assert.match(await report.locator('.rv4-notice').innerText(),/記録なし/);
+  assert.equal(await report.locator('.rv4-hero').count(),0,'no fictitious measurement dashboard without a record');
+  assert.equal(await report.locator('.rv4-region').count(),0,'no anatomy targets before a run exists');
+  assert.equal(await report.locator('.rv4-big-score').count(),0,'no synthetic scientific number');
+  assert.equal(await report.locator('[data-download]').count(),0,'do not offer export of a nonexistent run');
+  assert.equal(await report.locator('.rv4-empty-card').count(),2,'body and fatigue show concise empty states');
+  assert.equal(await report.locator('[data-tab]').count(),3,'the approved three tabs remain');
   if(mode.name!=="desktop"){
     await report.locator('[data-tab="fatigue"]').click();
     assert.ok(await report.locator('.rv4-fatigue').isVisible());
