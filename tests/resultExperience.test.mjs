@@ -109,9 +109,9 @@ test('result route explains missing or deleted explicit IDs, with no fallback',(
  assert.match(app,/if\(params\.has\("record"\)&&!record\)/);
  assert.match(app,/指定された保存済み走行記録が見つかりません/);
  assert.match(app,/found\.reason/);
- assert.match(result,/rv4-compare-provenance/);
- assert.match(result,/記録ID/);
- assert.match(result,/ID末尾/);
+ assert.match(result,/rv4-compare-summary/);
+ assert.doesNotMatch(result,/記録ID末尾|比較する2件の記録情報/);
+ assert.match(result,/同条件/);
  assert.match(result,/比較相手/);
  assert.match(result,/選択中/);
 });
@@ -120,12 +120,12 @@ test('result route explains missing or deleted explicit IDs, with no fallback',(
 test('S09 comparison data and long IDs remain readable without changing scientific provenance',()=>{
  const inline=read('ui/resultInlineStyles.js'),js=read('ui/resultExperience.js');
  assert.match(inline,/\.rv4-region-compare-stats/);
- assert.match(inline,/\.rv4-region-compare-method\{font-size:13px/);
- assert.match(inline,/\.rv4-compare-provenance\{display:block/);
- assert.doesNotMatch(inline,/\.rv4-compare-provenance\{display:grid/);
+ assert.match(inline,/\.rv4-region-compare-method/);
+ assert.match(inline,/\.rv4-compare-summary/);
+ assert.match(js,/rv4-export-menu/);
  assert.match(inline,/\.rv4-fatigue-method p\{[^}]*font-size:14px/);
- assert.match(js,/記録ID末尾 '\+clean\(other\.id\.slice\(-8\)\)/);
- assert.match(js,/記録ID '\+clean\(other\.id\)/,'full identifiers remain in disclosure details');
+ assert.doesNotMatch(js,/記録ID末尾 '\+clean\(other\.id\.slice\(-8\)\)/);
+ assert.match(js,/sameKind/,'same-date options remain distinguishable without user-facing IDs');
  assert.match(js,/compareBodyReferenceRows/);
  assert.match(js,/再計算した参考値です/);
 });
