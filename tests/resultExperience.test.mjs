@@ -42,7 +42,15 @@ test('ROF-J results and image export do not manufacture time-eligible before/aft
  assert.match(js,/回答の実際の時間的前後差は判定しません/);
  assert.doesNotMatch(js,/評価時刻未記録：前後差は判定不可/,'PNG must not falsely claim no time evidence is stored');
  assert.doesNotMatch(js,/<small>前後差<\/small>|rv4-change/,'remove obsolete difference field');
- assert.match(js,/本人が記録した疲労感です。運動による変化とは断定できません。/);
+ assert.match(js,/<p class="rv4-fatigue-caption">本人が記録した疲労感です。運動による変化とは断定できません。<\/p>/,'show a plain sentence under the bars');
+ assert.doesNotMatch(js,/rv4-fatigue-note|role="note"/,'do not render a callout');
+ for(const css of [read('ui/resultExperience.css'),read('ui/resultInlineStyles.js')]){
+  const caption=css.match(/\.rv4-fatigue-caption\{([^}]+)\}/);
+  assert.ok(caption,'caption has its own minimal styling');
+  assert.match(caption[1],/font-size:12px/);
+  assert.doesNotMatch(caption[1],/background|border|box-shadow|font-weight|padding:(?!0)/,'no callout styling');
+  assert.doesNotMatch(css,/\.rv4-fatigue-note/,'old callout styling removed');
+ }
  assert.equal((js.match(/<details class="rv4-fatigue-method"/g)||[]).length,1,'one unified disclosure');
  assert.doesNotMatch(js,/<details class="rv4-rof-audit"/,'audit lives inside the disclosure');
  assert.match(js,/回答時刻・訂正履歴を確認・訂正/);
