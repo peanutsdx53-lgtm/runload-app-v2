@@ -92,6 +92,9 @@ test('S09: valid review relies on status badges, without a redundant success car
  assert.doesNotMatch(html,/入力した日付・距離・時間を確認/);
  assert.match(html,/data-manual-run-save(?![^>]*disabled)/);
  assert.match(html,/平均ペースは距離と時間から計算しています/);
+ assert.match(html,/外部へ送信しません/);
+ assert.doesNotMatch(html,/12部位の文献参考値は活動種別と速度の適用条件/);
+ assert.doesNotMatch(html,/今回の内容を確かめ、必要な項目を編集/);
 });
 test('S09: incomplete required input retains explicit errors and disabled save',()=>{
  const missing={...base,distance:'',activityGait:'UNKNOWN'};
