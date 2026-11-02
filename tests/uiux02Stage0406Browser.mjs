@@ -68,7 +68,7 @@ for(const width of [320,390,1440]){
  await body.locator('[data-append-name]').click();
  assert.ok((await body.locator('[data-draft="bodyObservation"]').inputValue()).length>0,'explicit button copies selected region name');
  await body.locator('[data-draft="bodyObservation"]').fill('本人の長い観察。'.repeat(30));
- assert.equal(await body.locator('[data-draft="bodyObservation"]').inputValue().then(x=>x.length),270);
+ assert.equal(await body.locator('[data-draft="bodyObservation"]').inputValue(),'本人の長い観察。'.repeat(30),'500-character capacity retains the actual long observation');
  await shot('S07-selected-and-long-note');
  await body.locator('[data-map-view="back"]').click();
  assert.equal(await body.locator('[data-map-view="back"]').getAttribute('aria-pressed'),'true');
