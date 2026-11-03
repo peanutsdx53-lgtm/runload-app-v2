@@ -1,6 +1,10 @@
 /** Opt-in only. Distinct from legacy exploration notes and record/condition stores. */
 export const ACTION_INTENT_KEY='runload-v2-action-intents-v1';
-const validDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
+const validDate=s=>{
+ if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;
+ const date=new Date(s+'T12:00:00Z');
+ return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===s;
+};
 export function validateIntent(x){return !!x&&typeof x==='object'&&!Array.isArray(x)&&x.version===1&&typeof x.id==='string'&&/^[a-zA-Z0-9-]{8,85}$/.test(x.id)&&x.task==='compare-next-life-record'&&x.consent===true&&validDate(x.baseline?.date)&&['self-reported','time-in-bed'].includes(x.baseline.method)&&Number.isInteger(x.baseline.minutes)&&x.baseline.minutes>0&&x.baseline.minutes<1440&&['active','reviewed','paused'].includes(x.status)&&typeof x.createdAt==='string'&&!Number.isNaN(Date.parse(x.createdAt))&&typeof x.userText==='string'&&x.userText.length<=140;}
 export function loadIntent(storage){
  if(!storage||typeof storage.getItem!=='function'||typeof storage.setItem!=='function')return {ok:false,reason:'保存領域を利用できません',intent:null};
