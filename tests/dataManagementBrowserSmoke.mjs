@@ -26,7 +26,7 @@ try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  for(const mode of [{name:"narrow",width:320,height:740},{name:"mobile",width:390,height:844},{name:"desktop",width:1440,height:900}]){
   const ctx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
-  const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>errors.push(x.message));
+  const page=await ctx.newPage();const errors=[];page.on("pageerror",x=>{errors.push(x.message);console.log("P0 PAGEERROR",engineName,mode.name,page.url(),x.message);});
   page.on('download',download=>console.log('P0 NAV DOWNLOAD',engineName,mode.name,download.suggestedFilename()));
   page.on('request',request=>console.log('P0 NAV REQUEST',engineName,request.url()));
   page.on('requestfailed',request=>console.log('P0 NAV REQUESTFAILED',engineName,request.url(),request.failure()?.errorText));
@@ -35,7 +35,7 @@ try{
   const expectedOrigin="http://127.0.0.1:4176";
   let firstResponse;
   for(let attempt=0;attempt<3;attempt++){
-   firstResponse=await page.goto(expectedOrigin+"/?p0-entry="+attempt,{waitUntil:"domcontentloaded"});
+   firstResponse=await page.goto(expectedOrigin+"/?p0-entry="+attempt,{waitUntil:"networkidle"});
    if(new URL(page.url()).origin===expectedOrigin)break;
    console.log("P0 NAV RETRY",engineName,mode.name,attempt+1,page.url());
    if(attempt<2)await page.waitForTimeout(200);
@@ -51,7 +51,7 @@ try{
    localStorage.setItem("runload-v2-life-condition-v1",JSON.stringify([{date:"2026-10-10",sleepMinutes:420,feeling:"良い",memo:""}]));
    localStorage.setItem("runload-v2-legal-consent-v1",JSON.stringify({termsAccepted:true,privacyConfirmed:true,acceptedAt:"2026-10-28T00:00:00Z",termsVersion:"2026-10-28",privacyVersion:"2026-10-28"}));
   });
-  await page.goto(url,{waitUntil:"domcontentloaded"});await page.locator("[data-settings-v2]").waitFor();
+  await page.goto(url,{waitUntil:"networkidle"});await page.locator("[data-settings-v2]").waitFor();
   const run=await page.evaluate(async()=>{
    const [{saveManualRun},canonical]=await Promise.all([import('/ui/manualRunStore.js'),import('/ui/manualRunCanonical.js')]);
    await canonical.refresh();
@@ -105,21 +105,21 @@ try{
   await deletion.locator("[data-dm-delete-word]").fill("削除");
   assert.equal(await deletion.locator("[data-dm-delete-confirm]").isEnabled(),true);
   await Promise.all([page.waitForEvent("framenavigated",{predicate:f=>f===page.mainFrame(),timeout:20000}),deletion.locator("[data-dm-delete-confirm]").click()]);
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
   await page.waitForFunction(()=>localStorage.getItem("runload-v2-life-condition-v1")===null);
   const canonicalCleared=await page.evaluate(async()=>(await (await import('/ui/manualRunCanonical.js')).readCanonical()).raw);
   assert.equal(canonicalCleared,null,'deletion removes IDB run truth');
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-legal-consent-v1")),null);
   assert.equal(await page.evaluate(()=>localStorage.getItem("runload-v2-user-profile-v1")),null);
-  await page.goto(url,{waitUntil:"domcontentloaded"});
+  await page.goto(url,{waitUntil:"networkidle"});
   // Fresh initial use must appear after intentional removal of its local completion state.
   assert.match(await page.locator("#onboard-title").innerText(),/表示言語/);
   await ctx.close();
   const importCtx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
-  const importPage=await importCtx.newPage();const importErrors=[];importPage.on("pageerror",x=>importErrors.push(x.message));
-  await importPage.goto("http://127.0.0.1:4176/");
+  const importPage=await importCtx.newPage();const importErrors=[];importPage.on("pageerror",x=>{importErrors.push(x.message);console.log("P0 IMPORT PAGEERROR",engineName,mode.name,importPage.url(),x.message);});
+  await importPage.goto("http://127.0.0.1:4176/",{waitUntil:"networkidle"});
   await importPage.evaluate(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));});
-  await importPage.goto(url,{waitUntil:"domcontentloaded"});await importPage.locator("[data-settings-v2]").waitFor();
+  await importPage.goto(url,{waitUntil:"networkidle"});await importPage.locator("[data-settings-v2]").waitFor();
   const restoreBlock=importPage.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
   await restoreBlock.locator("summary").click();
   await restoreBlock.locator("[data-dm-file]").setInputFiles({name:"運動記録.json",mimeType:"application/json",buffer:Buffer.from(backupJson)});
