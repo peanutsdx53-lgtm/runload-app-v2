@@ -47,7 +47,8 @@ test("all 12 official region IDs come from the active result and scientific regi
  const ids=OFFICIAL_NAMES.map(([id])=>id);
  assert.equal(ids.length,12);assert.equal(new Set(ids).size,12);
  assert.deepEqual(REGIONS.map(r=>r.id),ids);
- assert.ok(read("app.js").includes("REGIONS=resultExperience.OFFICIAL_NAMES.map"));
+ assert.ok(read("app.js").includes("resultExperience.mountResult"),"approved result is rendered from saved evidence");
+ assert.ok(!read("app.js").includes("const REGIONS="),"obsolete mock numeric registry stays removed");
  assert.ok(read("assets/bodyRegionVisuals.js").includes("BODY_REGION_VIEWS"));
  for(const id of ids)assert.ok(read("assets/bodyRegionVisuals.js").includes(id),id);
 });
