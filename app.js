@@ -53,20 +53,9 @@ import * as restDayStore from './ui/restDayStore.js';
     {id:"06",name:"走る前後の工夫",color:"#7658dc",tint:"#efebff",icon:"✳",topics:["ウォームアップ","走行中の対応","クールダウン・ストレッチ","無理をしない判断"]},
     {id:"07",name:"目的と楽しみ方",color:"#d44a86",tint:"#ffeaf2",icon:"⚑",topics:["走る目的","目標との付き合い方","楽しみ方","自分に合う記録の使い方"]}
   ];
-  const REGIONS=[
-    {id:"BA-DISP-014",name:"股関節部",friendly:"股関節部",value:101.7,prev:100.2},
-    {id:"BA-DISP-015",name:"殿部",friendly:"殿部",value:103.2,prev:101.0},
-    {id:"BA-DISP-016",name:"大腿前面",friendly:"大腿前面",value:107.4,prev:105.2},
-    {id:"BA-DISP-018",name:"大腿後面",friendly:"大腿後面",value:98.8,prev:100.1},
-    {id:"BA-DISP-019",name:"膝蓋大腿関節部",friendly:"膝蓋大腿関節部",value:96.7,prev:99.0},
-    {id:"BA-DISP-021",name:"脛骨部",friendly:"脛骨部",value:100.8,prev:99.4},
-    {id:"BA-DISP-023",name:"下腿後面",friendly:"下腿後面",value:112.4,prev:108.2},
-    {id:"BA-DISP-024",name:"足関節部",friendly:"足関節部",value:100.1,prev:100.6},
-    {id:"BA-DISP-025",name:"アキレス腱部",friendly:"アキレス腱部",value:99.5,prev:100.7},
-    {id:"BA-DISP-027",name:"後足部",friendly:"後足部",value:95.2,prev:94.1},
-    {id:"BA-DISP-028",name:"足底中部・内側縦足弓",friendly:"足底中部・内側縦足弓",value:null,prev:null},
-    {id:"BA-DISP-029",name:"前足部",friendly:"前足部",value:106.3,prev:104.4}
-  ];
+  // The official science/result registry owns the 12 body region names.
+  // Retired layout helpers must not carry fabricated numeric examples.
+  const REGIONS=resultExperience.OFFICIAL_NAMES.map(([id,name])=>({id,name,friendly:name,value:null,prev:null}));
   const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",activityGait:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordReviewSource:"manual",recordReviewReturn:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   state.recordCourseUi=recordExperience.initialCourseUi(state.recordDraft);
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
