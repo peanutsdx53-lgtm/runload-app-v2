@@ -1,6 +1,6 @@
 /** Offline scope: initial visit without a cache fails; installed shell retains recorded data.
- * localhost is trusted but pwa.js registers SW only on HTTPS, so this test
- * registers the exact published sw.js explicitly after an online first visit.
+ * The application must register its own service worker in a trustworthy localhost context.
+ * Never work around a broken production registration path by manually registering in tests.
  */
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -36,12 +36,27 @@ try{
  await page.goto(host+'#/record',{waitUntil:'networkidle'});
  await page.locator('[data-draft="date"]').waitFor();
  const installed=await page.evaluate(async()=>{
-  const r=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
-  await navigator.serviceWorker.ready;
-  return !!r.active;
+  const ready=await navigator.serviceWorker.ready;
+  const actual=await navigator.serviceWorker.getRegistration('./');
+  return {active:!!actual?.active,scope:actual?.scope,secure:window.isSecureContext};
  });
- assert.equal(installed,true);
+ assert.equal(installed.secure,true,'localhost is a secure context');
+ assert.equal(installed.active,true,'app itself registers the service worker, with no test bypass');
+ assert.equal(installed.scope,host,'registered scope is the app origin');
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:40000});
+ const swSource=await readFile(resolve(root,'sw.js'),'utf8');
+ const assets=JSON.parse(swSource.match(/const ASSETS=(\[[^\n]*\]);/)[1]);
+ const initialManifest=await page.evaluate(async cachedAssets=>{
+  const keys=await caches.keys(),key=keys.find(k=>k.startsWith('runload-ui-next-shell-'));
+  if(!key)return {total:cachedAssets.length,missing:cachedAssets};
+  const cache=await caches.open(key),missing=[];
+  for(const relative of cachedAssets){
+   if(!(await cache.match(new URL(relative,location.href))))missing.push(relative);
+  }
+  return {total:cachedAssets.length,missing};
+ },assets);
+ assert.ok(initialManifest.total>=150,'the initial cache includes all versioned and unversioned critical assets');
+ assert.deepEqual(initialManifest.missing,[],'all declared precache keys exist before going offline');
  const appSource=await readFile(resolve(root,'app.js'),'utf8');
  const explorationImport=appSource.match(/\.\/ui\/explorationExperience\.js\?v=[A-Za-z0-9_-]+/);
  const consultationImport=appSource.match(/\.\/ui\/consultationExperience\.js\?v=[A-Za-z0-9_-]+/);
