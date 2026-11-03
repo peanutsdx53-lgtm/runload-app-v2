@@ -432,7 +432,7 @@ function recordExtras(){
  app.innerHTML=`<div class="app-shell ${page==="consultation"?"cp-app":""}" data-mobile-view="edit" data-mode-preview="single"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement","gps-review","gps-rof"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
  if(page==="consultation"){
   consultationExperience.mountConsultation(app.querySelector('#runload-consultation'),consultationExperience.consultationSources({
-   manual:manualRunStore.readManualRuns(onboardStorage),gps:gpsStore.readGpsRuns(),conditions:homeExperience.readConditions(onboardStorage)
+   manual:manualRunStore.readManualRuns(onboardStorage),gps:gpsStore.readGpsRuns(),gpsV2:gpsV2Cache,conditions:homeExperience.readConditions(onboardStorage)
   }));
  }
  if(page==="result"){
