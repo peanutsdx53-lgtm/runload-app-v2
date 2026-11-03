@@ -38,6 +38,9 @@ function database(){
    if(settled){db.close();return;}
    settled=true;clearTimeout(timer);
    db.onversionchange=()=>{db.close();opening=null;};
+   // A browser may close IndexedDB unexpectedly (for example under storage
+   // pressure). Do not reuse the resolved promise of a closed connection.
+   db.onclose=()=>{opening=null;};
    resolve(db);
   };
  });
