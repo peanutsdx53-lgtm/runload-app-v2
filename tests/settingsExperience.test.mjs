@@ -45,3 +45,15 @@ test('stale settings snapshot cannot overwrite a newer tab (035)',()=>{
  assert.equal(saveProfile(s,{nickname:'更新後'},updatedProfile.raw).ok,true);
  assert.equal(saveDisplay(s,{textSize:'standard'},updatedDisplay.raw).ok,true);
 });
+
+test('unapproved shoe presets and GPS alerts remain explicitly unavailable, not silent controls (038)',()=>{
+ const html=renderSettings({profile:loadProfile(null),display:loadDisplay(null)});
+ assert.match(html,/使用したシューズ/);
+ assert.match(html,/シューズ候補の保存・編集は、準備ができ次第/);
+ assert.match(html,/測定中のお知らせ/);
+ assert.match(html,/音や振動で知らせる機能は、まだ利用できません/);
+ assert.ok((html.match(/準備中/g)||[]).length>=2);
+ assert.doesNotMatch(html,/data-settings-(?:shoes|shoe-save|gps-alert|notification-toggle)/);
+ // Visibility is a conscious product-scope deferral, not evidence that either
+ // feature is implemented. Any removal/addition needs approved feature scope.
+});
