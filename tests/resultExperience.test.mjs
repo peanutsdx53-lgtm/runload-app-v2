@@ -173,7 +173,8 @@ test('legacy result markup is retired; standalone body detail never displays moc
  assert.doesNotMatch(app,/function result\(\)\{/,'the retired full result renderer must not be reachable');
  assert.match(app,/data-body-detail-source="saved-only"/,'direct links must clearly route to the saved-result view');
  assert.match(app,/resultExperience\.mountResult/,'the active three-tab results stay in the scientific component');
- assert.match(app,/resultExperience\.OFFICIAL_NAMES/,'metadata comes from the official body region registry');
+ assert.doesNotMatch(app,/const REGIONS=/,'old mock region registry no longer exists');
+ assert.match(app,/resultExperience\.mountResult/,'real results still use approved saved-input presenter');
  assert.doesNotMatch(app,/value:101\.7|value:112\.4|value:106\.3/,'fixed scientific-looking numbers are removed');
  assert.doesNotMatch(app,/11\/12<\/strong>/,'unverified fixed region availability is removed');
 });
@@ -183,8 +184,21 @@ test('official science test targets actual result/reference sources rather than 
  assert.equal(OFFICIAL_NAMES.length,12);
  assert.match(result,/calculateActivityReference\(options\.record\)/);
  assert.match(result,/bodyReferenceRow\(reference\?\.rows/);
- assert.match(app,/REGIONS=resultExperience\.OFFICIAL_NAMES\.map/);
+ assert.doesNotMatch(app,/REGIONS=resultExperience/,'old parallel region registry has been retired');
+ assert.match(app,/resultExperience\.mountResult/);
  assert.match(parity,/calculateActivityReference\(record\)/);
  assert.match(parity,/expected\.reference100/);
  assert.ok(!app.includes('value:101.7'),'legacy sample references must not serve as test oracle');
+});
+
+test('obsolete region helpers and mock graph generation have been fully retired (004)',()=>{
+ const app=read('app.js');
+ for(const old of ['function radarChart()','function historyChart(region)','function miniTrendChart(region)',
+                   'const svgBody=','const regionTiles=','const mobileRegionRows=','const regionPictogram=',
+                   'data-result-mode','data-expand-regions']){
+  assert.equal(app.includes(old),false,'retired result helper present: '+old);
+ }
+ assert.ok(app.includes('resultExperience.mountResult'));
+ assert.ok(app.includes('bodyExperience.focusRegion'),'separate anatomy selection experience stays available');
+ assert.ok(app.includes('data-body-detail-source="saved-only"'),'legacy direct details route to saved results');
 });
