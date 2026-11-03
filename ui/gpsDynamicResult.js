@@ -22,12 +22,24 @@ const time=ms=>{
 export const palette=bodyReferenceColor;
 export const gpsReplayRowForBody=bodyReferenceRow;
 const svgLine=points=>points.length<2?'':points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
-function routeGeometry(track){
+export function routeGeometry(track){
  if(!Array.isArray(track)||track.length<2)return {paths:[],coords:()=>[0,0]};
- const lo=Math.min(...track.map(p=>p.lon)),hi=Math.max(...track.map(p=>p.lon));
+ // Each longitude uses the closest world copy to the preceding stored fix.
+ // Only SVG coordinates change; original GPS evidence and distance are intact.
+ const unwrapped=new Map();let previous=null;
+ for(const p of track){
+  const lon=previous===null?p.lon:p.lon+Math.round((previous-p.lon)/360)*360;
+  unwrapped.set(p,lon);previous=lon;
+ }
+ const longitudes=[...unwrapped.values()];
+ const lo=Math.min(...longitudes),hi=Math.max(...longitudes),lonCenter=(lo+hi)/2;
  const mn=Math.min(...track.map(p=>p.lat)),mx=Math.max(...track.map(p=>p.lat));
  const dx=Math.max((hi-lo),.00001),dy=Math.max((mx-mn),.00001);
- const convert=p=>[24+352*(p.lon-lo)/dx,20+275*(mx-p.lat)/dy];
+ // Flags are separate objects: map their normalised lon to this route's copy.
+ const convert=p=>{
+  const lon=unwrapped.get(p)??p.lon+Math.round((lonCenter-p.lon)/360)*360;
+  return [24+352*(lon-lo)/dx,20+275*(mx-p.lat)/dy];
+ };
  const paths=[];let chunk=[];
  for(const p of track){
   if(p.breakBefore&&chunk.length){if(chunk.length>1)paths.push(svgLine(chunk));chunk=[];}
