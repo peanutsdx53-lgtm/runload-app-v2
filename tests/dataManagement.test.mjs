@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {DATA_KEYS,RESET_KEYS,PORTABLE_FORMAT,PORTABLE_VERSION,inspectLocalStorage,
- inspectPortableBackup,planPortableRestore,restorePortableBackup,exportPortableBackup} from "../ui/dataManagement.js";
+ inspectPortableBackup,planPortableRestore,restorePortableBackup,exportPortableBackup,portableUtf8Bytes} from "../ui/dataManagement.js";
 import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagementUi.js";
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
@@ -284,4 +284,15 @@ test('stage 8 portable V2 roundtrip preserves before/after attribution, correcti
  assert.equal(a.rofCorrections[0].next.timeBasis,'RECALLED');
  assert.equal(a.rofCorrections[0].next.assessedAt,'2026-10-25T00:35:00.000Z');
  assert.equal(a.exerciseTiming.source,'USER_DECLARED');
+});
+
+test('portable JSON byte checks use UTF-8 for Japanese and emoji (012)',async()=>{
+ assert.equal('あ🙂'.length,3,'UTF-16 code units are not file bytes');
+ assert.equal(portableUtf8Bytes('あ🙂'),7);
+ assert.equal(portableUtf8Bytes('ASCII'),5);
+ const source=fake({[CONDITION_KEY]:JSON.stringify([{...day('2026-10-29'),memo:'気づき🙂'}])});
+ const backup=await exportPortableBackup(source);
+ assert.equal(backup.ok,true,backup.reason);
+ assert.equal(portableUtf8Bytes(backup.text),new Blob([backup.text]).size);
+ assert.equal(inspectPortableBackup(backup.text).ok,true);
 });
