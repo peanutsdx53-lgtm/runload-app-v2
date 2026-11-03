@@ -23,7 +23,15 @@ export function setRofTiming(d,phase,mode,declaredAt=''){
  if(!Object.hasOwn(rofPhaseKey,phase)||!['UNKNOWN','AT_ENTRY','RECALLED'].includes(mode))return false;
  if(mode==='RECALLED'&&declaredAt&&!fromLocal(declaredAt))return false;
  d.rofTimingChoices={...d.rofTimingChoices,[phase]:{mode,declaredAt:mode==='RECALLED'?declaredAt:''}};
- if(isValidRofJ(d[rofPhaseKey[phase]]))recordRofInput(d,phase,d[rofPhaseKey[phase]]);
+ if(isValidRofJ(d[rofPhaseKey[phase]])){
+  // Changing the interpretation of an existing answer is not a new answer.
+  // Preserve the original input-operation timestamp; do not invent one for
+  // legacy scores that had no capturedAt evidence.
+  const previous=d.rofEntryEvidence?.[phase];
+  const capturedAt=typeof previous?.capturedAt==='string'?previous.capturedAt:null;
+  const assessedAt=mode==='RECALLED'?fromLocal(declaredAt):mode==='AT_ENTRY'?capturedAt:null;
+  d.rofEntryEvidence={...d.rofEntryEvidence,[phase]:{capturedAt,assessedAt,timeBasis:mode}};
+ }
  return true;
 }
 export function recordRofInput(d,phase,score,at=new Date().toISOString()){
@@ -83,6 +91,8 @@ export function resolveExerciseTimes(recordDate,start='',end='',endDayRule='auto
  if(!validCivilDate(recordDate))return {ok:false,reason:'記録画面で走行日を確認してください'};
  if((start!==''&&!validClockTime(start))||(end!==''&&!validClockTime(end)))
   return {ok:false,reason:'運動時刻は時・分を確認してください'};
+ if(endDayRule==='same'&&start!==''&&end!==''&&end<start)
+  return {ok:false,reason:'終了時刻が開始時刻より前です。翌日を選ぶか、時刻を確認してください'};
  const nextDay=endDayRule==='next'||(endDayRule==='auto'&&start!==''&&end!==''&&end<start);
  const endDate=nextDay?nextCivilDate(recordDate):recordDate;
  const startLocal=start?recordDate+'T'+start:'',endLocal=end?endDate+'T'+end:'';
