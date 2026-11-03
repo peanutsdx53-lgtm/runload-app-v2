@@ -156,3 +156,39 @@ test("PWA registration uses secure contexts and offline tests do not manually by
  assert.ok(offline.includes("navigator.serviceWorker.getRegistration('./')"));
  assert.ok(!offline.includes("navigator.serviceWorker.register("),"offline smoke must use app registration");
 });
+
+test("PR path filters protect PWA assets and exactly mirror UI browser main-push scope (019)",()=>{
+ const flow=read(".github/workflows/ui-browser.yml");
+ const pr=flow.split("\n  pull_request:\n")[1]?.split("\n  push:\n")[0];
+ const push=flow.split("\n  push:\n")[1]?.split("\npermissions:")[0];
+ assert.ok(pr&&push,"both PR and main push definitions remain present");
+ const paths=part=>[...part.matchAll(/- '([^']+)'/g)].map(m=>m[1]);
+ const p=new Set(paths(pr)),m=paths(push);
+ assert.ok(pr.includes("branches: [main]"));
+ for(const dependency of ["pwa.js","assets/**","tests/offlineShellBrowserSmoke.mjs","ui/resultExperience.css"])
+  assert.ok(p.has(dependency),"PR must cover "+dependency);
+ for(const dependency of m)assert.ok(p.has(dependency),"PR missing main-push UI path "+dependency);
+});
+test("PR science audit catches ROF-J layout, input and scientific result changes (020)",()=>{
+ const flow=read(".github/workflows/research-interpretation-audit.yml");
+ assert.ok(flow.includes("  push:\n    branches:\n      - main"),"main push still runs unconditionally");
+ const pr=flow.split("\n  pull_request:\n")[1]?.split("\n  workflow_dispatch:")[0];
+ assert.ok(pr?.includes("branches: [main]"));
+ for(const dependency of [
+  "ui/rofExperience.js","ui/rofExperience.css","ui/rofJScale.js",
+  "ui/resultExperience.css","ui/recordExperience.js","ui/recordReviewExperience.js",
+  "ui/measurementExperience.js","tests/rofExperience.test.mjs"
+ ])assert.ok(pr.includes("- '"+dependency+"'"),"missing ROF-J PR audit: "+dependency);
+ assert.ok(flow.includes("engine: [chromium, webkit]"),"both visual engines remain enabled");
+});
+test("P0 two-run PR gate matches main and retains two independent browser attempts (021)",()=>{
+ const flow=read(".github/workflows/p0-two-run-continuity.yml");
+ const push=flow.split("\n  push:\n")[1]?.split("\n  pull_request:\n")[0];
+ const pr=flow.split("\n  pull_request:\n")[1]?.split("\n  workflow_dispatch:")[0];
+ assert.ok(push?.includes("branches: [main]")&&pr?.includes("branches: [main]"));
+ const paths=part=>[...part.matchAll(/- '([^']+)'/g)].map(m=>m[1]);
+ assert.deepEqual(new Set(paths(pr)),new Set(paths(push)),"no PR test path gap");
+ assert.ok(flow.includes("engine: [chromium, webkit]"));
+ assert.ok(flow.includes("for attempt in 1 2"));
+ assert.ok(flow.includes("if node tests/twoRunCycleBrowserSmoke.mjs"));
+});
