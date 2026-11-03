@@ -37,7 +37,7 @@ function updateTileStatus(map){
  if(notice)notice.hidden=!failed;
  map.dataset.tileStatus=failed?'unavailable':loaded?'loaded':'loading';
 }
-function segmentPaths(track,center,w,h,zoom){
+export function segmentPaths(track,center,w,h,zoom){
  const chunks=[];let chunk=[];let last=null;
  const total=TILE*(2**zoom);
  for(const p of track||[]){
@@ -45,8 +45,11 @@ function segmentPaths(track,center,w,h,zoom){
   if(p.breakBefore&&chunk.length){chunks.push(chunk);chunk=[];last=null;}
   const pos=worldPoint(p.lat,p.lon,zoom);
   if(!pos)continue;
-  // Unwrap around the date line so adjacent track points do not cross the map.
-  if(last!==null)pos.x+=Math.round((last-pos.x)/total)*total;
+  // First fix of every segment is anchored to the displayed map centre,
+  // then following fixes stay in the nearest neighbouring world copy.
+  // This also handles a track split by a GPS gap at the date line.
+  const anchor=last===null?center.x:last;
+  pos.x+=Math.round((anchor-pos.x)/total)*total;
   last=pos.x;
   const x=pos.x-center.x+w/2,y=pos.y-center.y+h/2;
   chunk.push([x,y]);
