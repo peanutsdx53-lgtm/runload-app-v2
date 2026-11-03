@@ -51,3 +51,30 @@ test('course text is escaped and deletion requires explicit selection in UI',()=
  assert.match(html,/data-course-confirm-delete/);
  assert.match(html,/data-course-cancel-delete/);
 });
+
+test('course save and delete reject competing changes and ignored writes (028)',()=>{
+ const st=storage(),d=draft(),ui=initialCourseUi(d);
+ const first=saveCoursePreset(st,d,ui);assert.equal(first.ok,true);
+ const before=st.getItem(COURSE_PRESET_KEY);
+ const advanced=JSON.stringify({...JSON.parse(before),revision:JSON.parse(before).revision+1});
+ let reads=0;
+ const competing={
+  getItem(key){if(key===COURSE_PRESET_KEY&&++reads===2)st.setItem(key,advanced);return st.getItem(key);},
+  setItem:(key,value)=>st.setItem(key,value),removeItem:key=>st.removeItem(key)
+ };
+ assert.equal(saveCoursePreset(competing,d,ui).ok,false,'concurrently changed store not overwritten');
+ assert.equal(st.getItem(COURSE_PRESET_KEY),advanced);
+ let deleteReads=0;
+ const changedAgain=JSON.stringify({...JSON.parse(advanced),revision:JSON.parse(advanced).revision+1});
+ const competingDelete={
+  getItem(key){if(key===COURSE_PRESET_KEY&&++deleteReads===2)st.setItem(key,changedAgain);return st.getItem(key);},
+  setItem:(key,value)=>st.setItem(key,value),removeItem:key=>st.removeItem(key)
+ };
+ assert.equal(deleteCoursePreset(competingDelete,first.preset.id).ok,false);
+ assert.equal(st.getItem(COURSE_PRESET_KEY),changedAgain);
+ const ignoredWrite={getItem:key=>st.getItem(key),setItem(){},removeItem:key=>st.removeItem(key)};
+ assert.equal(saveCoursePreset(ignoredWrite,d,ui).ok,false);
+ assert.equal(deleteCoursePreset(ignoredWrite,first.preset.id).ok,false);
+ assert.equal(st.getItem(COURSE_PRESET_KEY),changedAgain);
+ assert.equal(readCoursePresets(st).records.length,1);
+});
