@@ -2,6 +2,7 @@ name: UI browser visual smoke
 on:
   workflow_dispatch:
   pull_request:
+    branches: [main]
     paths:
       - 'app.js'
       - 'styles.css'
@@ -22,6 +23,17 @@ on:
       - 'tests/c09ReflowDiagnosticBrowser.mjs'
       - 'tests/currentMainWidthObservation.mjs'
       - '.github/workflows/ui-browser.yml'
+      - 'pwa.js'
+      - 'assets/**'
+      - 'tests/uiContracts.test.mjs'
+      - 'tests/gpsDynamicLongitude.test.mjs'
+      - 'tests/gpsLiveMap.test.mjs'
+      - 'tests/gpxImport.test.mjs'
+      - 'tests/s02HomePreviewRemoval.test.mjs'
+      - 'tests/settingsExperience.test.mjs'
+      - 'tests/livePagesSmoke.mjs'
+      - 'ui/resultExperience.js'
+      - 'ui/resultExperience.css'
   push:
     branches: [main]
     paths:
