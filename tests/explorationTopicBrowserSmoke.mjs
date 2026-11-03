@@ -23,6 +23,16 @@ try{
   const prefix=`exploration-theme-${engine===webkit?'webkit':'chromium'}-${width}`;
   await page.goto('http://127.0.0.1:4196/#/exploration-tree?category=06&topic='+encodeURIComponent('ウォームアップ'),{waitUntil:'domcontentloaded'});
   await page.locator('.ex-observation-guide').waitFor();
+  // Browser check: no mid-word split or clipping on 320/390/1440 and Chromium/WebKit.
+  const purpose=await page.locator('[data-ex-category="07"] .ex-node-title').evaluate(el=>{
+   const chunks=[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE);
+   const rectangles=chunks.map(n=>{const r=document.createRange();r.selectNodeContents(n);return [...r.getClientRects()].filter(x=>x.width>0);});
+   const map=el.closest('.ex-map').getBoundingClientRect();
+   return {parts:chunks.map(n=>n.textContent),fragments:rectangles.map(a=>a.length),fits:rectangles.every(a=>a.every(r=>r.left>=map.left-2&&r.right<=map.right+2))};
+  });
+  assert.deepEqual(purpose.parts,['目的と','楽しみ方'],'purpose label words '+width);
+  assert.deepEqual(purpose.fragments,[1,1],'purpose label must not split a word '+width);
+  assert.equal(purpose.fits,true,'purpose label must not clip '+width);
   const guide=await page.locator('.ex-observation-guide').innerText();
   assert.match(guide,/観察ガイド/);assert.match(guide,/専門解説は出典審査前/);
   assert.match(guide,/この情報からは言えないこと/);assert.match(guide,/次に確かめたいこと/);

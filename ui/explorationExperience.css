@@ -509,3 +509,8 @@
 .ex-delete-confirm .ex-dialog-actions button{flex:1 1 150px;min-height:44px}
 .ex-delete-confirm .ex-dialog-actions .ex-delete-danger{background:#682b33;border-color:#d88e93;color:#fff5f5}
 .ex-delete-confirm .ex-dialog-actions button:focus-visible{outline:3px solid #a6f9e8;outline-offset:3px}
+
+/* Allow line wrapping only between the two semantic parts of this name. */
+.ex-page .ex-constellation .ex-node[data-ex-category="07"] .ex-node-title{
+ word-break:keep-all!important;overflow-wrap:normal!important;line-break:strict;
+}

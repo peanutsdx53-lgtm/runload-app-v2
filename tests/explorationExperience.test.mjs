@@ -53,6 +53,24 @@ test('field terminology names seven fields and makes relevance explicit without 
  assert.match(sourceHelp,/分野の強調表示は、入力・保存記録との関連を示す目印です/);
  assert.doesNotMatch(sourceHelp,/星/);
 });
+test('purpose label wraps only between semantic words without changing its accessible name',()=>{
+ const html=render(makeUi(memory()),{categories,draft:{},conditions:{entries:[]}});
+ assert.match(html,/<strong class="ex-node-title">目的と<wbr>楽しみ方<\/strong>/);
+ assert.match(html,/aria-label="目的と楽しみ方"/);
+ assert.doesNotMatch(html,/好きな星|どの星|光る星/);
+});
+test('exploration versioned assets agree across HTML, app and service worker',()=>{
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ const entry=html.match(/src="(\.\/app\.js\?v=[^"]+)"/)?.[1];
+ const css=html.match(/href="(\.\/ui\/explorationExperience\.css\?v=[^"]+)"/)?.[1];
+ const module=app.match(/import\("(\.\/ui\/explorationExperience\.js\?v=[^"]+)"\)/)?.[1];
+ for(const asset of [entry,css,module]){
+  assert.ok(asset,'versioned resource must be declared');
+  assert.ok(sw.includes('"'+asset+'"'),'offline cache must include '+asset);
+ }
+});
 test('theme catalog expansion is data-driven without fixed 28-topic cap',()=>{
  const ui=makeUi(memory());ui.tab='catalog';const extended=categories.map(c=>({...c,topics:[...c.topics]}));
  extended[2].topics.push('コース選び','地形と路面');const r=render(ui,{categories:extended,draft:{},conditions:{entries:[]}});
