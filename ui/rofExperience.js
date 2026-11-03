@@ -22,6 +22,10 @@ const fromLocal=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(x)&&!
 export function setRofTiming(d,phase,mode,declaredAt=''){
  if(!Object.hasOwn(rofPhaseKey,phase)||!['UNKNOWN','AT_ENTRY','RECALLED'].includes(mode))return false;
  if(mode==='RECALLED'&&declaredAt&&!fromLocal(declaredAt))return false;
+ // A legacy score with no recorded input operation cannot be relabelled as
+ // "entered now" or retrospectively assessed at a known time.
+ if(mode!=='UNKNOWN'&&isValidRofJ(d[rofPhaseKey[phase]])&&
+    typeof d.rofEntryEvidence?.[phase]?.capturedAt!=='string')return false;
  d.rofTimingChoices={...d.rofTimingChoices,[phase]:{mode,declaredAt:mode==='RECALLED'?declaredAt:''}};
  if(isValidRofJ(d[rofPhaseKey[phase]])){
   // Changing the interpretation of an existing answer is not a new answer.
