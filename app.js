@@ -1,7 +1,6 @@
 import * as restDayStore from './ui/restDayStore.js';
 (async function appMain(){
   "use strict";
-  const {BODY_REGION_VIEWS}=await import("./assets/bodyRegionVisuals.js");
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
   const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
@@ -53,10 +52,7 @@ import * as restDayStore from './ui/restDayStore.js';
     {id:"06",name:"走る前後の工夫",color:"#7658dc",tint:"#efebff",icon:"✳",topics:["ウォームアップ","走行中の対応","クールダウン・ストレッチ","無理をしない判断"]},
     {id:"07",name:"目的と楽しみ方",color:"#d44a86",tint:"#ffeaf2",icon:"⚑",topics:["走る目的","目標との付き合い方","楽しみ方","自分に合う記録の使い方"]}
   ];
-  // The official science/result registry owns the 12 body region names.
-  // Retired layout helpers must not carry fabricated numeric examples.
-  const REGIONS=resultExperience.OFFICIAL_NAMES.map(([id,name])=>({id,name,friendly:name,value:null,prev:null}));
-  const state={region:"BA-DISP-023",resultMode:"all",mobileRegionsExpanded:false,mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",activityGait:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordReviewSource:"manual",recordReviewReturn:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
+  const state={mode:"today",category:"03",topic:"上り坂・下り坂",recordType:"run",feeling:"",recordDraft:{distance:"",hours:"",minutes:"",seconds:"",date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),memo:"",rofBefore:null,rofAfter:null,steps:"",stepsProvenance:"UNKNOWN",activityGait:"UNKNOWN",runningFormat:"UNKNOWN",runWalkRunningDistanceKm:"",runWalkRunningDurationMinutes:"",courseName:"",gradeMode:"UNKNOWN",upPercent:"",downPercent:"",upGradePercent:"",downGradePercent:"",surfaceMode:"UNKNOWN",primarySurface:"",temperatureC:"",environmentNote:"",bodyObservation:"",shoeName:"",...Object.fromEntries(Array.from({length:5},(_,i)=>[[`sectionShare${i}`,""],[`sectionDirection${i}`,"FLAT"],[`sectionGrade${i}`,""],[`sectionSurface${i}`,"UNKNOWN"]]).flat()),...Object.fromEntries(["paved","track","treadmill","soil","trail","naturalGrass","artificialTurf","sand"].map(k=>[`surface${k}`,""]))},recordPreviewOpen:false,recordReviewSource:"manual",recordReviewReturn:false,recordOpenSections:[],rofEditorOpen:false,treeZoom:1,treeScroll:null,historyMode:"all",historyDate:null,toast:"",sheetVisible:false,sheetExpanded:false};
   state.recordCourseUi=recordExperience.initialCourseUi(state.recordDraft);
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
@@ -179,95 +175,9 @@ import * as restDayStore from './ui/restDayStore.js';
 };
   const navHtml=(items,page,mobile)=>items.map(([path,icon,label])=>`<a class="${mobile?"mobile-link":"side-link"} ${page===path?"is-active":""}" href="#/${path}" ${page===path?'aria-current="page"':""}><span class="nav-icon">${navIcon(path)}</span>${label}</a>`).join("");
   const header=(name,description,right="")=>`<section class="card page-hero"><div><h1>${name}</h1><p class="lead">${description}</p></div>${right}</section>${sheetBody}`;
-  const badge=(text,style="")=>`<span class="badge ${style}">${esc(text)}</span>`;
-  const buttonLink=(page,text,primary=false)=>`<a class="btn ${primary?"primary":""}" href="#/${page}">${text}<span aria-hidden="true">→</span></a>`;
-  const metric=(title,value,unit="")=>`<div class="metric"><label>${title}</label><strong>${value}</strong><em>${unit}</em></div>`;
-  const pct=(value)=>value===null?"—":(value>0?"+":"")+value.toFixed(1);
-  const valid=(x)=>x!==null&&x!==undefined&&Number.isFinite(x);
-  const regionData=(id)=>REGIONS.find(x=>x.id===id)||REGIONS[0];
-  const status=(v)=>!valid(v)?"missing":v>110?"above":v<90?"below":"near";
-  const stateLabel=(v)=>!valid(v)?"表示なし":v>110?"基準より上":v<90?"基準より下":"基準付近";
-  const svgBody=(view)=>{
-    const cid="clip-"+view.key;
-    const paths=view.paths.map(([id,d])=>{
-      const r=regionData(id);
-      const selected=state.region===id?" is-selected":"";
-      return `<path d="${d}" data-region="${esc(id)}" class="region-path ${status(r.value)}${selected}" role="button" tabindex="0" aria-label="${esc(r.friendly)}の詳細を表示"><title>${esc(r.name)}：${valid(r.value)?r.value.toFixed(1):"未取得"}</title></path>`;
-    }).join("");
-    return `<figure class="body-view"><figcaption>${esc(view.title)}</figcaption><svg viewBox="70 10 160 430" aria-label="${esc(view.title)}の部位図" role="group"><defs><linearGradient id="body-neutral-${cid}" x1="0" y1="0" x2="1" y2=".65"><stop offset="0" stop-color="#f5f9fb"/><stop offset=".48" stop-color="#dfe9f1"/><stop offset="1" stop-color="#cbdde9"/></linearGradient><clipPath id="${cid}">${view.silhouette}</clipPath></defs><g class="body-silhouette" style="fill:url(#body-neutral-${cid});stroke:#cad9e3;stroke-width:.35">${view.silhouette}</g><g clip-path="url(#${cid})">${paths}</g></svg></figure>`;
-  };
-  const legend=()=>`<div class="map-legend"><span><i class="dot above"></i>高め（110超）</span><span><i class="dot"></i>基準付近</span><span><i class="dot below"></i>低め（90未満）</span><span><i class="dot missing"></i>未取得</span></div>`;
-  const regionTiles=()=>REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1).map(r=>{
-    const delta=valid(r.value)?r.value-100:null;
-    return `<button type="button" class="region-tile ${state.region===r.id?"is-selected":""}" data-region="${r.id}" aria-pressed="${state.region===r.id}"><span class="name">${esc(r.friendly)}</span><span class="value">${valid(r.value)?r.value.toFixed(1):"—"}</span><span class="baseline ${status(r.value)}">${valid(delta)?"基準差 "+pct(delta):"数値なし"}</span></button>`;
-  }).join("");
-  function regionPictogram(id,value){
- const view=BODY_REGION_VIEWS.find(v=>v.paths.some(p=>p[0]===id));
- if(!view)return `<span class="region-picto-fallback" aria-hidden="true">◍</span>`;
- const found=view.paths.find(p=>p[0]===id);
- const color=status(value)==="above"?"#ed9651":status(value)==="below"?"#65aade":status(value)==="near"?"#6cc4af":"#ced8e1";
- const cropByRegion={
-  "BA-DISP-014":"92 128 116 160",
-  "BA-DISP-015":"92 155 116 155",
-  "BA-DISP-016":"92 207 116 166",
-  "BA-DISP-018":"92 207 116 166",
-  "BA-DISP-019":"92 260 116 145",
-  "BA-DISP-021":"92 278 116 145",
-  "BA-DISP-023":"92 278 116 145",
-  "BA-DISP-024":"92 305 116 132",
-  "BA-DISP-025":"92 305 116 132"
- };
- const crop=view.key==="sole"?"72 65 156 330":cropByRegion[id]||"90 145 120 285";
- return `<svg aria-hidden="true" focusable="false" class="region-picto" viewBox="${crop}"><g fill="#d9e4eb" opacity=".9">${view.silhouette}</g><path d="${found[1]}" fill="${color}" stroke="#fff" stroke-width=".8"/></svg>`;
-}
-  function mobileRegionRows(){
- const base=REGIONS.filter(r=>state.resultMode==="all"||!valid(r.value)||Math.abs(r.value-100)>=1);
- const preview=[...base].sort((a,b)=>Number(b.id===state.region)-Number(a.id===state.region)||Math.abs((b.value??100)-100)-Math.abs((a.value??100)-100));
- const listing=state.mobileRegionsExpanded?base:preview.slice(0,5);
- return `<div class="mobile-region-list">${listing.map(r=>{
- const v=r.value,d=valid(v)?v-100:null,prev=valid(v)&&valid(r.prev)?v-r.prev:null,active=r.id===state.region;
- return `<button type="button" data-region="${r.id}" aria-pressed="${active}" class="mobile-region-row ${active?"is-selected":""}">
-   ${regionPictogram(r.id,v)}
-   <span class="mobile-region-name">${esc(r.friendly)}</span>
-   <strong class="mobile-region-value">${valid(v)?v.toFixed(1):"—"}</strong>
-   <span class="mobile-region-diff ${status(v)}">${valid(d)?`基準差 ${pct(d)}`:"未取得"}</span>
-   <span class="mobile-region-prev">${valid(prev)?`前回差 ${pct(prev)}`:"比較なし"}</span><span class="mobile-chevron">›</span>
- </button>`}).join("")}</div>
- <button type="button" class="mobile-region-more" data-expand-regions aria-expanded="${state.mobileRegionsExpanded}">${state.mobileRegionsExpanded?"一部だけ表示":"全12部位を見る"} <span aria-hidden="true">${state.mobileRegionsExpanded?"⌃":"⌄"}</span></button>`;
-}
-    function historyChart(region){
-    // Demo only: values are derived from a mock selected region to keep the chart consistent with the card.
-    if(!Number.isFinite(region?.value))return `<div class="empty-state">この部位の推移は表示できません。</div>`;
-    const v=region.value;
-    const vals=[v-9.5,v-7.1,v-8.0,v-5.1,Number.isFinite(region.prev)?region.prev:v-2.8,v];
-    const lo=Math.min(...vals,100)-6,hi=Math.max(...vals,100)+6;
-    const x1=20,x2=520,y1=25,y2=132;
-    const coord=(val,i)=>[(x1+(x2-x1)*i/(vals.length-1)).toFixed(1),(y2-(val-lo)/(hi-lo)*(y2-y1)).toFixed(1)];
-    const pts=vals.map((val,i)=>coord(val,i).join(",")).join(" ");
-    const base=(y2-(100-lo)/(hi-lo)*(y2-y1)).toFixed(1);
-    return `<svg class="spark-chart" viewBox="0 0 540 155" role="img" aria-label="${region.friendly}の参考値の推移"><line x1="18" x2="520" y1="${base}" y2="${base}" stroke="#819eae" stroke-dasharray="5 4"/><text x="22" y="${Math.max(12,Number(base)-5)}" fill="#708895" font-size="11">基準100</text><polyline points="${pts}" fill="none" stroke="#008a9c" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((val,i)=>{const [x,y]=coord(val,i);return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#008a9c" stroke-width="2.4"/>`}).join("")}<text x="516" y="16" text-anchor="end" fill="#007589" font-size="12" font-weight="800">${v.toFixed(1)}</text></svg>`;
-}
-  function miniTrendChart(region){
- const v=region.value,prev=region.prev;
- if(!Number.isFinite(v))return `<div class="mini-empty">推移はありません</div>`;
- const ySeries=[v-9.5,v-7.1,v-8.0,v-5.1,Number.isFinite(prev)?prev:v-2.8,v];
- const low=Math.min(100,...ySeries)-5,high=Math.max(100,...ySeries)+5;
- const X=i=>24+i*37,Y=n=>74-(n-low)/(high-low)*55;
- const poly=ySeries.map((n,i)=>`${X(i)},${Y(n).toFixed(1)}`).join(" ");
- const base=Y(100).toFixed(1);
- return `<svg class="mobile-mini-trend" viewBox="0 0 220 103" role="img" aria-label="${esc(region.friendly)}の参考値の推移">
-    <line x1="24" y1="${base}" x2="211" y2="${base}" stroke="#93afc9" stroke-width="1" stroke-dasharray="3 3"/>
-    <text x="23" y="${Math.max(9,Number(base)-4)}" fill="#7e92a5" font-size="8.5">基準100</text>
-    <polyline points="${poly}" fill="none" stroke="#1686e3" stroke-width="2.7" stroke-linejoin="round" stroke-linecap="round"/>
-    ${ySeries.map((n,i)=>`<circle cx="${X(i)}" cy="${Y(n).toFixed(1)}" r="3.4" fill="#fff" stroke="#1987e6" stroke-width="1.9"/>`).join("")}
-    <text x="25" y="97" fill="#8ca0b3" font-size="9">過去</text><text x="210" y="97" text-anchor="end" fill="#4885b5" font-size="9">今回</text>
- </svg>`;
-}
-    function radarChart(){
-    const labels=["距離","平均速度","ペース変動","上り密度","推定歩調","疲労変化"],a=[.63,.58,.42,.28,.5,.6],b=[.5,.51,.35,.22,.42,.47],cx=150,cy=115;
-    const polygon=(data,r)=>data.map((v,i)=>{const theta=i*Math.PI/3;return `${(cx+Math.sin(theta)*r*v).toFixed(1)},${(cy-Math.cos(theta)*r*v).toFixed(1)}`}).join(" ");
-    return `<svg class="radar-chart" viewBox="0 0 300 225" role="img" aria-label="架空の今回と前回を示す6軸走行プロフィール。能力点数ではありません">${[.33,.66,1].map(f=>`<polygon points="${polygon([f,f,f,f,f,f],76)}" fill="none" stroke="#c8d8e0"/>`).join("")}${labels.map((l,i)=>{const t=i*Math.PI/3;return `<line x1="${cx}" y1="${cy}" x2="${cx+Math.sin(t)*76}" y2="${cy-Math.cos(t)*76}" stroke="#cadbe3"/><text class="radar-label" text-anchor="middle" x="${cx+Math.sin(t)*108}" y="${cy-Math.cos(t)*97+4}" font-size="13.5" font-weight="650">${l}</text>`}).join("")}<polygon points="${polygon(b,76)}" fill="#94a3b8" fill-opacity=".14" stroke="#94a3b8" stroke-width="2"/><polygon points="${polygon(a,76)}" fill="#0891b2" fill-opacity=".16" stroke="#0891b2" stroke-width="2.4"/></svg>`;
-  }
+  // Result reference maps and charts are owned by resultExperience, with
+  // saved-input science data. Legacy demo/reference charts were removed.
+  const valid=x=>x!==null&&x!==undefined&&Number.isFinite(x);
   // S02 optional screen-specific guidance. Does not write user data.
   function homeScreenGuide(){
     if(!homeUi.guideOpen)return '<section id="home-screen-guide" hidden aria-label="ホーム画面の使い方"></section>';
@@ -1510,7 +1420,6 @@ function recordExtras(){
       homeEditState.draft=dashboardPrefs.editHomeDashboardLayout(homeEditState.draft,widgetAction.dataset.widgetAction,widgetAction.dataset.widgetId);
       homeEditState.notice="";render();window.scrollTo(0,y);return;
     }
-    const region=event.target.closest("[data-region]");
     const sheetExpand=event.target.closest("[data-sheet-expand]");
     if(sheetExpand){const y=window.scrollY;state.sheetExpanded=!state.sheetExpanded;render();window.scrollTo(0,y);return}
     const sheetToggle=event.target.closest("[data-sheet-toggle]");
@@ -1600,11 +1509,6 @@ function recordExtras(){
       explorationUi.deletingNoteId=id;explorationUi.modal="delete-note";explorationUi.notice="";
       render();app.querySelector('[data-ex-action="cancel-delete-note"]')?.focus({preventScroll:true});return;
     }
-    if(region){const y=window.scrollY;state.region=region.dataset.region;render();window.scrollTo(0,y);return}
-    const expandRegions=event.target.closest("[data-expand-regions]");
-    if(expandRegions){const y=window.scrollY;state.mobileRegionsExpanded=!state.mobileRegionsExpanded;render();window.scrollTo(0,y);return}
-    const mode=event.target.closest("[data-result-mode]");
-    if(mode){const y=window.scrollY;state.resultMode=mode.dataset.resultMode;render();window.scrollTo(0,y);return}
     const openTopic=event.target.closest("[data-open-topic]");
     if(openTopic){const [cat,topic]=openTopic.dataset.openTopic.split("|");if(CATEGORIES.some(c=>c.id===cat&&c.topics.includes(topic))){explorationUi.selected=cat;explorationUi.topic=topic;explorationUi.tab="field";explorationUi.modal="";location.hash="#/exploration-tree";render();window.scrollTo(0,0)}return}
     const rofTab=event.target.closest("[data-rof-v4-phase]");
@@ -1709,7 +1613,6 @@ function recordExtras(){
         }
       }
     }
-    if((event.key==="Enter"||event.key===" ")&&event.target.matches("path[data-region]")){event.preventDefault();event.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
   });
   const pauseGpsOnHidden=()=>{
     if(gpsController?.state.phase==='running'){
