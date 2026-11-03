@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {prepareConditionJourney,renderConditionJourney,renderHomeConditionFollowup} from '../ui/conditionJourney.js';
 import {addConditionInsight,loadConditionInsights,removeConditionInsight,insightRecordStatus,CONDITION_INSIGHTS_KEY} from '../ui/conditionInsights.js';
-import {createLifeIntent} from '../ui/actionIntentStore.js';
+import {createLifeIntent,updateIntent,loadIntent,ACTION_INTENT_KEY} from '../ui/actionIntentStore.js';
 const localDay=offset=>{const d=new Date();d.setDate(d.getDate()+offset);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 const record=(date,minutes=420,feeling='良い',memo='',source='duration')=>({date,sleepMinutes:minutes,sleepSource:source,feeling,memo});
 const store=()=>{const map=new Map();return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
@@ -67,4 +67,21 @@ test('home presents real next-entry comparison inline and offers reflection inst
  assert.match(ready,/気づきを保存する/);
  assert.match(ready,/30分/);
  assert.doesNotMatch(ready,/data-interpret-mark-reviewed/);
+});
+
+test('invalid calendar dates reject safely without changing opt-in next-check records (037)',()=>{
+ const s=store(),baseline={date:'2024-02-29',source:'self-reported',minutes:440};
+ const created=createLifeIntent(s,baseline,'2026-11-03T00:00:00.000Z');
+ assert.equal(created.ok,true,created.reason);
+ const original=s.getItem(ACTION_INTENT_KEY);
+ for(const invalid of ['2026-02-29','2026-13-99','2026-11-31','not-a-date']){
+  assert.doesNotThrow(()=>createLifeIntent(s,{...baseline,date:invalid}));
+  assert.equal(createLifeIntent(s,{...baseline,date:invalid}).ok,false,invalid);
+  const candidate={...created.intent,baseline:{...created.intent.baseline,date:invalid}};
+  assert.doesNotThrow(()=>updateIntent(s,candidate),invalid);
+  assert.equal(updateIntent(s,candidate).ok,false,invalid);
+  assert.equal(s.getItem(ACTION_INTENT_KEY),original,'invalid date must not alter saved intent');
+ }
+ s.setItem(ACTION_INTENT_KEY,JSON.stringify({...created.intent,baseline:{...created.intent.baseline,date:'2026-13-99'}}));
+ assert.equal(loadIntent(s).ok,false,'corrupt saved date is rejected without exception');
 });
