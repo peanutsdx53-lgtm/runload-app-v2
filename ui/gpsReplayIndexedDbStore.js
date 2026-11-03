@@ -256,7 +256,7 @@ export function gpsV2DetailToFeature(summary,detail){
  }if(group.length)segments.push(group);
  const ele=detail.route.filter(p=>Number.isFinite(p.ele)).length;
  return {kind:'gps',name:summary.date+'・GPS保存コース',segments,distanceKm:summary.distanceKm,
-  points:detail.route.length,elevationPoints:ele,elevationStatus:ele?'partial':'none',
+  points:detail.route.length,elevationPoints:ele,elevationStatus:ele===detail.route.length?'complete':ele?'partial':'none',
   gapCount:Math.max(0,segments.length-1),simplified:detail.trackSimplified};
 }
 
