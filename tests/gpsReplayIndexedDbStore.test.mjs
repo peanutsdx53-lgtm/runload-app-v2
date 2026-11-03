@@ -139,3 +139,29 @@ test('V2 detail and backup reject reordered fixes and mismatched saved distances
  assert.equal(inspectGpsV2Backup(JSON.stringify(backup)).ok,false,'mismatched backup fails before writes');
  assert.equal(inspectGpsV2Backup(JSON.stringify({...backup,summaries:[summary]})).ok,true);
 });
+
+test('an unexpected V2 IDB closure permits a new connection attempt without touching V1 (025)',async()=>{
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'indexedDB');
+ const opened=[];
+ try{
+  Object.defineProperty(globalThis,'indexedDB',{configurable:true,value:{
+   open(name){
+    assert.equal(name,GPS_V2_DB);
+    const db={transaction(){throw Error('test-only unavailable DB transaction')},close(){}};
+    opened.push(db);
+    const request={result:db};
+    queueMicrotask(()=>request.onsuccess?.());
+    return request;
+   }
+  }});
+  assert.equal((await readGpsV2Summaries()).ok,false);
+  assert.equal(opened.length,1);
+  assert.equal(typeof opened[0].onclose,'function');
+  opened[0].onclose();
+  assert.equal((await readGpsV2Summaries()).ok,false);
+  assert.equal(opened.length,2,'fresh connection attempted after close event');
+  opened[1].onclose();
+ }finally{
+  if(previous)Object.defineProperty(globalThis,'indexedDB',previous);else delete globalThis.indexedDB;
+ }
+});
