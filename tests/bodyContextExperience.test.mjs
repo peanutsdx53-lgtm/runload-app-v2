@@ -8,7 +8,8 @@ test('12 formal body IDs and names match the active result registry, not old moc
  assert.equal(REGIONS.length,12);
  assert.equal(checkDefinitions(),true);
  assert.deepEqual(REGIONS.map(({id,name})=>[id,name]),OFFICIAL_NAMES);
- assert.ok(appSource.includes('REGIONS=resultExperience.OFFICIAL_NAMES.map'));
+ assert.ok(!appSource.includes('const REGIONS='),'obsolete mock region registry was removed');
+ assert.ok(appSource.includes('resultExperience.mountResult'),'only approved saved-data result presenter remains');
  assert.ok(!appSource.includes('value:101.7')&&!appSource.includes('value:112.4'));
 });
 test('official SVG silhouettes and region paths are directly referenced',()=>{
