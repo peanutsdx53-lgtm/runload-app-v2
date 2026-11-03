@@ -21,6 +21,27 @@ on:
       - 'ui/measurementExperience.js'
       - 'ui/simulationExperience.js'
       - '.github/workflows/p0-two-run-continuity.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'ui/manualRunCanonical.js'
+      - 'ui/manualRunStore.js'
+      - 'ui/runReflection.js'
+      - 'ui/explorationExperience.js'
+      - 'ui/runQuestionContinuation.js'
+      - 'ui/resultExperience.js'
+      - 'ui/regionReferenceComparison.js'
+      - 'tests/twoRunCycleBrowserSmoke.mjs'
+      - 'tests/screenDesign20PopulatedBrowser.mjs'
+      - 'tests/simulationExperience.test.mjs'
+      - 'ui/historyExperience.css'
+      - 'ui/historyInlineStyles.js'
+      - 'ui/conditionJourney.css'
+      - 'ui/consultationExperience.css'
+      - 'ui/measurementExperience.js'
+      - 'ui/simulationExperience.js'
+      - '.github/workflows/p0-two-run-continuity.yml'
   workflow_dispatch:
 permissions:
   contents: read
