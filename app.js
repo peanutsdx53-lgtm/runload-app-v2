@@ -165,7 +165,9 @@ import * as restDayStore from './ui/restDayStore.js';
   const loadIntro=()=>{try{return JSON.parse(onboardStorage?.getItem(onboardingKey)||"null")}catch{return null}};
   const introStored=loadIntro();
   if(!canonicalStartup.ok)state.toast='手入力記録の正本を利用できません。保存は停止しました。';
-  const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:""};
+  const readSettingsSnapshot=key=>{try{return onboardStorage?.getItem(key)??null}catch{return undefined}};
+  const settingsUi={profile:settingsExperience.loadProfile(onboardStorage,introStored||{}),display:settingsExperience.loadDisplay(onboardStorage),notice:"",
+   profileSnapshot:readSettingsSnapshot(settingsExperience.PROFILE_KEY),displaySnapshot:readSettingsSnapshot(settingsExperience.DISPLAY_KEY)};
   const dataUi=dataManagementUi.makeDataUi();
   settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
   const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
@@ -1011,8 +1013,8 @@ function recordExtras(){
     if(profileForm){
       event.preventDefault();
       const fields=Object.fromEntries(new FormData(profileForm).entries());
-      const stored=settingsExperience.saveProfile(onboardStorage,fields);
-      if(stored.ok){settingsUi.profile=stored.value;onboardingState.nickname=stored.value.nickname;onboardingState.purpose=stored.value.purpose;onboardingState.heightCm=String(stored.value.heightCm??'');onboardingState.weightKg=String(stored.value.weightKg??'');reportSettingsNotice('プロフィールをこの端末に保存しました。');}
+      const stored=settingsExperience.saveProfile(onboardStorage,fields,settingsUi.profileSnapshot);
+      if(stored.ok){settingsUi.profile=stored.value;settingsUi.profileSnapshot=stored.raw;onboardingState.nickname=stored.value.nickname;onboardingState.purpose=stored.value.purpose;onboardingState.heightCm=String(stored.value.heightCm??'');onboardingState.weightKg=String(stored.value.weightKg??'');reportSettingsNotice('プロフィールをこの端末に保存しました。');}
       else reportSettingsNotice(stored.message);
       return;
     }
@@ -1165,8 +1167,8 @@ function recordExtras(){
       const key=setting.hasAttribute('data-settings-text')?'textSize':'motion';
       const value=setting.dataset[key==='textSize'?'settingsText':'settingsMotion'];
       const updated={...settingsUi.display,[key]:value};
-      const saved=settingsExperience.saveDisplay(onboardStorage,updated);
-      if(saved.ok){settingsUi.display=saved.value;settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
+      const saved=settingsExperience.saveDisplay(onboardStorage,updated,settingsUi.displaySnapshot);
+      if(saved.ok){settingsUi.display=saved.value;settingsUi.displaySnapshot=saved.raw;settingsExperience.applyDisplay(settingsUi.display,document.documentElement);
         setting.parentElement?.querySelectorAll('button').forEach(el=>el.setAttribute('aria-pressed',String(el===setting)));
         reportSettingsNotice('表示設定を保存しました。');
       }else reportSettingsNotice(saved.message);
@@ -1475,9 +1477,9 @@ function recordExtras(){
         if(onboardingState.reconsentOnly){onboardingState.reconsentOnly=false;finishOnboarding();return;}
       }
       if(onboardingState.step<7){onboardingState.step+=1;onboardingState.error="";render();return;}
-      const savedProfile=settingsExperience.saveProfile(onboardStorage,{nickname:onboardingState.nickname,purpose:onboardingState.purpose,heightCm:onboardingState.heightCm,weightKg:onboardingState.weightKg,ageBand:onboardingState.ageBand});
+      const savedProfile=settingsExperience.saveProfile(onboardStorage,{nickname:onboardingState.nickname,purpose:onboardingState.purpose,heightCm:onboardingState.heightCm,weightKg:onboardingState.weightKg,ageBand:onboardingState.ageBand},settingsUi.profileSnapshot);
       if(!savedProfile.ok){onboardingState.error=savedProfile.message;render();return;}
-      settingsUi.profile=savedProfile.value;finishOnboarding();return;
+      settingsUi.profile=savedProfile.value;settingsUi.profileSnapshot=savedProfile.raw;finishOnboarding();return;
     }
     if(event.target.closest("[data-home-guide-toggle]")){
       homeUi.guideOpen=!homeUi.guideOpen;
