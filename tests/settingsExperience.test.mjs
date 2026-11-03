@@ -6,7 +6,7 @@ test('Japanese and dark stay the only active language/theme',()=>{const st=memor
 test('opt-in profile survives reload, including optional empty fields',()=>{const st=memory();const s=saveProfile(st,{nickname:'使用者',purpose:'learn',heightCm:'171.2',weightKg:'68.3',ageBand:'18-29'});assert.equal(s.ok,true);assert.deepEqual(loadProfile(st),s.value);assert.equal(saveProfile(st,{nickname:'',purpose:'',heightCm:'',weightKg:''}).ok,true);assert.equal(loadProfile(st).heightCm,null);assert.equal(loadProfile(st).weightKg,null)});
 test('invalid or unavailable profile storage fails without inventing success',()=>{const st=memory();assert.equal(saveProfile(st,{heightCm:'400'}).ok,false);assert.equal(saveProfile(st,{weightKg:'Infinity'}).ok,false);assert.equal(saveProfile(null,{}).ok,false);assert.deepEqual(loadProfile({getItem(){throw Error('blocked')}},{nickname:'legacy',purpose:'health'}).nickname,'legacy')});
 test('display choices persist safely and reject unapproved values',()=>{const st=memory();assert.equal(saveDisplay(st,{textSize:'large',motion:'reduce'}).ok,true);assert.equal(loadDisplay(st).textSize,'large');st.setItem(DISPLAY_KEY,JSON.stringify({language:'en',theme:'light',textSize:'huge',motion:'weird'}));assert.deepEqual(loadDisplay(st),{textSize:'standard',motion:'system',language:'ja',theme:'dark'});assert.equal(saveDisplay(null,{}).ok,false)});
-test('settings text does not claim legal consent or finished GPS/backup',()=>{const html=renderSettings({profile:loadProfile(null),display:loadDisplay(null)});for(const name of ['プロフィール','バックアップ・復元','利用規約・プライバシー','位置情報','初回ガイド','文字サイズ','表示言語'])assert.ok(html.includes(name),name);assert.ok(html.includes('同意済みになることはありません'));assert.ok(html.includes('GPSでの測定中に音や振動で知らせる機能'));assert.ok(html.includes('data-onboard-open'));assert.ok(html.includes('data-install-app'));assert.ok(!html.includes('data-settings-delete'))});
+test('settings text does not claim legal consent or finished GPS/backup',()=>{const html=renderSettings({profile:loadProfile(null),display:loadDisplay(null)});for(const name of ['プロフィール','バックアップ・復元','利用規約・プライバシー','位置情報','初回ガイド','文字サイズ','表示言語'])assert.ok(html.includes(name),name);assert.ok(html.includes('同意済みになることはありません'));assert.ok(!html.includes('GPSでの測定中に音や振動で知らせる機能'));assert.ok(html.includes('data-onboard-open'));assert.ok(html.includes('data-install-app'));assert.ok(!html.includes('data-settings-delete'))});
 
 test('purpose selector is one native, accessible select without tiled radios',()=>{
  const html=renderSettings({profile:{nickname:'',purpose:'learn',heightCm:null,weightKg:null,ageBand:''},display:loadDisplay(null)});
@@ -46,14 +46,17 @@ test('stale settings snapshot cannot overwrite a newer tab (035)',()=>{
  assert.equal(saveDisplay(s,{textSize:'standard'},updatedDisplay.raw).ok,true);
 });
 
-test('unapproved shoe presets and GPS alerts remain explicitly unavailable, not silent controls (038)',()=>{
+test('unapproved shoe library and GPS alert cards are not displayed (038)',()=>{
  const html=renderSettings({profile:loadProfile(null),display:loadDisplay(null)});
- assert.match(html,/使用したシューズ/);
- assert.match(html,/シューズ候補の保存・編集は、準備ができ次第/);
- assert.match(html,/測定中のお知らせ/);
- assert.match(html,/音や振動で知らせる機能は、まだ利用できません/);
- assert.ok((html.match(/準備中/g)||[]).length>=2);
+ assert.doesNotMatch(html,/使用したシューズ|シューズ候補の保存・編集|測定中のお知らせ|音や振動で知らせる機能/);
  assert.doesNotMatch(html,/data-settings-(?:shoes|shoe-save|gps-alert|notification-toggle)/);
- // Visibility is a conscious product-scope deferral, not evidence that either
- // feature is implemented. Any removal/addition needs approved feature scope.
+ assert.match(html,/位置情報/,'existing GPS permission explanation is retained');
+ assert.match(html,/バックアップ・復元/,'existing record management is retained');
+ assert.match(html,/プロフィールを保存/,'existing profile editing is retained');
+ // The existing free-text shoeName input lives on the record page, not the
+ // unapproved settings library. Removing a card must not remove that field.
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ const body=readFileSync(new URL('../ui/bodyContextExperience.js',import.meta.url),'utf8');
+ assert.match(app,/shoeName:""/);
+ assert.ok(body.includes('shoeName'));
 });
