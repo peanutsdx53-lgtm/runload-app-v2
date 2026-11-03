@@ -7,7 +7,35 @@ import {gpsCourseEvidence} from './gpsCourseEvidence.js';
 export const SIMULATION_VERSION='35.0';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,min,max)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max?v:null;
-export const newSimulationUi=()=>({source:'manual',presetId:'',recordId:'',gpsId:'',gpsFeature:null,distance:'3.5',manualDistance:'3.5',budget:'30',runPace:'7',walkPace:'12',runMin:'5',walkMin:'2',focus:'a',notice:'',gpxRoutes:[],gpxIndex:0,gpxName:''});
+export const newSimulationUi=()=>({source:'manual',presetId:'',recordId:'',gpsId:'',gpsFeature:null,gpsFeatureId:'',gpsSelectionVersion:0,distance:'3.5',manualDistance:'3.5',budget:'30',runPace:'7',walkPace:'12',runMin:'5',walkMin:'2',focus:'a',notice:'',gpxRoutes:[],gpxIndex:0,gpxName:''});
+// A selected ID and its loaded feature must always refer to the same saved run.
+export function beginGpsCourseSelection(ui,id){
+ ui.gpsSelectionVersion=(ui.gpsSelectionVersion||0)+1;
+ ui.gpsId=typeof id==='string'?id:'';
+ ui.gpsFeature=null;ui.gpsFeatureId='';ui.notice='';
+ return ui.gpsSelectionVersion;
+}
+// The route is loaded only after an explicit V2 selection. A late response
+// must never replace a more recently selected saved course.
+export async function resolveGpsV2CourseSelection(ui,{readDetail,toFeature}={}){
+ const id=ui.gpsId,version=ui.gpsSelectionVersion;
+ if(ui.source!=='gps'||!/^gps-v2-/.test(id||''))return {ok:false,reason:'NOT_V2_SELECTION'};
+ let saved=null,feature=null;
+ try{
+  saved=await readDetail(id);
+  if(saved?.ok)feature=toFeature(saved.summary,saved.detail);
+ }catch{saved={ok:false,reason:'GPSコースを読み込めませんでした'};}
+ if(ui.source!=='gps'||ui.gpsId!==id||ui.gpsSelectionVersion!==version)
+  return {ok:false,stale:true};
+ if(!feature){
+  ui.gpsFeature=null;ui.gpsFeatureId='';
+  ui.notice=saved?.reason||'保存済みのGPS軌跡を確認できませんでした';
+  return {ok:false,reason:ui.notice};
+ }
+ ui.gpsFeature=feature;ui.gpsFeatureId=id;
+ ui.distance=String(feature.distanceKm);ui.notice='';
+ return {ok:true,feature};
+}
 export function computeSteady(minutes,pace){
  if(num(minutes,1,600)===null||num(pace,2,40)===null)return null;
  return {distanceKm:minutes/pace,runMinutes:minutes,walkMinutes:0,changeCount:0};
@@ -103,7 +131,7 @@ export function renderSimulation(ui,{presets,manualRuns,gpsRuns}={}){
  <div class="sm-steps" aria-label="操作の順序"><span>01 コース</span><span>02 仮の走り方</span><span>03 比較結果</span><span>04 次につなぐ</span></div>
  <section class="sm-panel" aria-labelledby="sm-s1">${row('01','コースを用意する','GPS・GPXがなくても条件を試せます。')}
  <div class="sm-source-selector"><div class="sm-source-row" role="group" aria-label="コースの入力方法">${mode('manual','手動・保存','コース条件',ui.source==='manual')}${mode('gpx','GPX読込','ファイルから',ui.source==='gpx')}${mode('none','コースなし','時間だけ',ui.source==='none')}${mode('gps','GPS実走履歴','保存ルート',ui.source==='gps')}</div></div>
- ${ui.source==='gps'?`<div class="sm-source-detail"><label class="sm-field"><span class="sm-field-label">保存したGPS軌跡を使う</span><span class="sm-select-wrap"><select data-sm-field="gpsId"><option value="">保存済みの軌跡を選択</option>${gpsRuns?.ok?gpsRuns.records.filter(r=>r.track.length>=2).slice().reverse().map(r=>`<option value="${esc(r.id)}" ${ui.gpsId===r.id?'selected':''}>${esc(r.date)}・${esc(r.activity)}・${r.distanceKm.toFixed(2)}km</option>`).join(''):''}</select></span></label>${ui.gpsFeature?`<p class="sm-source-meta">${esc(ui.gpsFeature.name)}｜軌跡 ${ui.gpsFeature.distanceKm.toFixed(2)}km。仮の到達位置を下の比較結果に表示します。</p>`:'<p class="sm-source-meta">GPS計測で「軌跡も保存」を選んだ記録だけ表示します。保存がなければ手動・GPXを利用できます。</p>'}</div>`:ui.source==='gpx'?`<div class="sm-source-detail sm-gpx-source"><label class="sm-file-field">GPXファイル（最大5MB・25,000点）<input data-sm-gpx-file type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml"></label><p class="sm-tiny">GPXはこの端末のブラウザー内で解析します。サーバー送信・GPS測位・自動保存は行いません。</p>${ui.gpxRoutes.length?`<div class="sm-gpx-loaded"><strong>${esc(ui.gpxName)} を読み込みました</strong>${ui.gpxRoutes.length>1?`<label>使うトラック・ルート<select data-sm-field="gpxIndex">${ui.gpxRoutes.map((f,i)=>`<option value="${i}" ${i===ui.gpxIndex?'selected':''}>${esc(f.name)}（${f.distanceKm.toFixed(2)}km）</option>`).join('')}</select></label>`:''}<p><strong>${esc(ui.gpxRoutes[ui.gpxIndex].name)}</strong>｜${ui.gpxRoutes[ui.gpxIndex].distanceKm.toFixed(2)}km・${ui.gpxRoutes[ui.gpxIndex].points.toLocaleString('ja-JP')}点・${ui.gpxRoutes[ui.gpxIndex].elevationStatus==='none'?'標高なし':ui.gpxRoutes[ui.gpxIndex].elevationStatus==='partial'?'標高が一部欠損':'標高あり'}</p><p>走る場所の形状と高低差は下の比較結果に表示します。GPXの距離はファイルの位置点から概算しています。</p></div>`:'<div class="sm-gpx-await">GPXがまだ読み込まれていません。ファイル選択前も時間・走歩の比較は利用できます。</div>'}${ui.notice?`<p class="sm-error" role="alert">${esc(ui.notice)}</p>`:''}</div>`:ui.source==='none'?`<div class="sm-source-detail"><strong>コースを設定していません</strong><p>時間と走歩の仮定から進む距離だけを算術的に比較します。到達地点・残り距離は表示しません。</p></div>`:`<div class="sm-source-detail"><div class="sm-form-grid sm-course-fields"><label class="sm-field"><span class="sm-field-label">保存コースを選ぶ</span><span class="sm-select-wrap"><select data-sm-field="presetId"><option value="">選ばず手動で試す</option>${presets?.ok?presets.records.map(v=>`<option value="${esc(v.id)}" ${v.id===ui.presetId?'selected':''}>${esc(v.data.courseName)}</option>`).join(''):''}</select></span></label>${field('仮のコース距離','distance',ui.distance,'km',{min:'0.1',max:'1000',step:'0.1'})}</div><p class="sm-source-meta">${p?`「${esc(p.data.courseName)}」：${esc(summary.slope)} ／ ${esc(summary.surface)}`:hasPresets?'保存コースは任意です。未選択でも距離を入力して試せます。':'保存コースなしでも使えます。坂道・路面を追加したい場合はコース設計へ。'}</p>${!presets?.ok?`<p class="sm-error" role="alert">${esc(presets?.reason||'保存コースを読み取れません')}</p>`:''}<a href="#/course" class="sm-text-link">コースを設計・編集する ›</a></div>`}
+ ${ui.source==='gps'?`<div class="sm-source-detail"><label class="sm-field"><span class="sm-field-label">保存したGPS軌跡を使う</span><span class="sm-select-wrap"><select data-sm-field="gpsId"><option value="">保存済みの軌跡を選択</option>${gpsRuns?.ok?gpsRuns.records.filter(r=>r.track.length>=2).slice().reverse().map(r=>`<option value="${esc(r.id)}" ${ui.gpsId===r.id?'selected':''}>${esc(r.date)}・${esc(r.activity)}・${r.distanceKm.toFixed(2)}km</option>`).join(''):''}</select></span></label>${ui.gpsFeature?`<p class="sm-source-meta">${esc(ui.gpsFeature.name)}｜軌跡 ${ui.gpsFeature.distanceKm.toFixed(2)}km。仮の到達位置を下の比較結果に表示します。</p>`:'<p class="sm-source-meta">GPS計測で「軌跡も保存」を選んだ記録だけ表示します。保存がなければ手動・GPXを利用できます。</p>'}${ui.notice?'<p class="sm-error" role="alert">'+esc(ui.notice)+'</p>':''}</div>`:ui.source==='gpx'?`<div class="sm-source-detail sm-gpx-source"><label class="sm-file-field">GPXファイル（最大5MB・25,000点）<input data-sm-gpx-file type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml"></label><p class="sm-tiny">GPXはこの端末のブラウザー内で解析します。サーバー送信・GPS測位・自動保存は行いません。</p>${ui.gpxRoutes.length?`<div class="sm-gpx-loaded"><strong>${esc(ui.gpxName)} を読み込みました</strong>${ui.gpxRoutes.length>1?`<label>使うトラック・ルート<select data-sm-field="gpxIndex">${ui.gpxRoutes.map((f,i)=>`<option value="${i}" ${i===ui.gpxIndex?'selected':''}>${esc(f.name)}（${f.distanceKm.toFixed(2)}km）</option>`).join('')}</select></label>`:''}<p><strong>${esc(ui.gpxRoutes[ui.gpxIndex].name)}</strong>｜${ui.gpxRoutes[ui.gpxIndex].distanceKm.toFixed(2)}km・${ui.gpxRoutes[ui.gpxIndex].points.toLocaleString('ja-JP')}点・${ui.gpxRoutes[ui.gpxIndex].elevationStatus==='none'?'標高なし':ui.gpxRoutes[ui.gpxIndex].elevationStatus==='partial'?'標高が一部欠損':'標高あり'}</p><p>走る場所の形状と高低差は下の比較結果に表示します。GPXの距離はファイルの位置点から概算しています。</p></div>`:'<div class="sm-gpx-await">GPXがまだ読み込まれていません。ファイル選択前も時間・走歩の比較は利用できます。</div>'}${ui.notice?`<p class="sm-error" role="alert">${esc(ui.notice)}</p>`:''}</div>`:ui.source==='none'?`<div class="sm-source-detail"><strong>コースを設定していません</strong><p>時間と走歩の仮定から進む距離だけを算術的に比較します。到達地点・残り距離は表示しません。</p></div>`:`<div class="sm-source-detail"><div class="sm-form-grid sm-course-fields"><label class="sm-field"><span class="sm-field-label">保存コースを選ぶ</span><span class="sm-select-wrap"><select data-sm-field="presetId"><option value="">選ばず手動で試す</option>${presets?.ok?presets.records.map(v=>`<option value="${esc(v.id)}" ${v.id===ui.presetId?'selected':''}>${esc(v.data.courseName)}</option>`).join(''):''}</select></span></label>${field('仮のコース距離','distance',ui.distance,'km',{min:'0.1',max:'1000',step:'0.1'})}</div><p class="sm-source-meta">${p?`「${esc(p.data.courseName)}」：${esc(summary.slope)} ／ ${esc(summary.surface)}`:hasPresets?'保存コースは任意です。未選択でも距離を入力して試せます。':'保存コースなしでも使えます。坂道・路面を追加したい場合はコース設計へ。'}</p>${!presets?.ok?`<p class="sm-error" role="alert">${esc(presets?.reason||'保存コースを読み取れません')}</p>`:''}<a href="#/course" class="sm-text-link">コースを設計・編集する ›</a></div>`}
  <p class="sm-note">手動コースには軌跡がなく、地図上の位置は示しません。GPXの場合は位置点と標高を表示しますが、道路・通行可否・身体への負荷の予測は行いません。</p>
  </section>
  <section class="sm-panel">${row('02','「もしも」の走り方を設定','実際に走る速さではなく、計算の前提を入力します。')}
@@ -122,7 +150,7 @@ export function bindSimulation(root,ui){
  root.addEventListener('input',e=>{const key=e.target.dataset.smField;if(!key||!['distance','budget','runPace','walkPace','runMin','walkMin'].includes(key))return;ui[key]=e.target.value;if(key==='distance'&&ui.source==='manual')ui.manualDistance=ui.distance;refresh();});
  root.addEventListener('change',e=>{
   const key=e.target.dataset.smField;
-  if(key==='gpsId'){ui.gpsId=e.target.value;ui.needsRedraw=true;root.dispatchEvent(new CustomEvent('sim-redraw',{bubbles:true}));return;}
+  if(key==='gpsId'){beginGpsCourseSelection(ui,e.target.value);ui.needsRedraw=true;root.dispatchEvent(new CustomEvent('sim-redraw',{bubbles:true}));return;}
   if(key==='gpxIndex'){
    const index=Number(e.target.value);
    if(!Number.isInteger(index)||!ui.gpxRoutes[index])return;
@@ -156,6 +184,6 @@ export function bindSimulation(root,ui){
   const focus=e.target.closest('[data-sm-focus]');
   if(focus){ui.focus=focus.dataset.smFocus;refresh();return;}
   const button=e.target.closest('[data-sm-source]');if(!button)return;
-  ui.source=button.dataset.smSource;if(ui.source==='manual')ui.distance=ui.manualDistance||'3.5';if(ui.source==='gps'&&ui.gpsFeature)ui.distance=String(ui.gpsFeature.distanceKm);if(ui.source==='gpx'&&ui.gpxRoutes?.[ui.gpxIndex])ui.distance=String(ui.gpxRoutes[ui.gpxIndex].distanceKm);ui.notice='';root.dispatchEvent(new CustomEvent('sim-redraw',{bubbles:true}));
+  ui.source=button.dataset.smSource;ui.gpsSelectionVersion=(ui.gpsSelectionVersion||0)+1;if(ui.source==='manual')ui.distance=ui.manualDistance||'3.5';if(ui.source==='gps'&&ui.gpsFeature)ui.distance=String(ui.gpsFeature.distanceKm);if(ui.source==='gpx'&&ui.gpxRoutes?.[ui.gpxIndex])ui.distance=String(ui.gpxRoutes[ui.gpxIndex].distanceKm);ui.notice='';root.dispatchEvent(new CustomEvent('sim-redraw',{bubbles:true}));
  });
 }
