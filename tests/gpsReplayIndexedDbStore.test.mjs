@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
- prepareGpsV2Run,prepareGpsExperience,validGpsExperience,validGpsV2Summary,validGpsV2Detail,
+ prepareGpsV2Run,prepareGpsExperience,validGpsExperience,validGpsV2Summary,validGpsV2Detail,validGpsV2Pair,
  inspectGpsV2Backup,readGpsV2Summaries,saveGpsV2Run,
  GPS_V2_DB,GPS_V2_BACKUP_FORMAT
 } from '../ui/gpsReplayIndexedDbStore.js';
@@ -91,4 +91,51 @@ test('GPS ROF responses remain user reports on same GPS identity, 0 differs from
  assert.equal(notAnswered.summary.experience.rofAfter,null);
  for(const invalid of [{...experience,rofBefore:11},{...experience,rofAfter:2.5},{...experience,memo:'x'.repeat(501)},{...experience,beforeCapturedAt:'invalid'},{...experience,rofBefore:null}])
   assert.equal(prepareGpsV2Run(session(),{experience:invalid}).ok,false,JSON.stringify(invalid));
+});
+
+test('V2 summaries refuse malformed scientific rows, energy and calendar dates (010,036)',()=>{
+ const example=prepareGpsV2Run(session(),{saveDetails:true,date:'2026-10-27'});
+ assert.equal(example.ok,true,example.reason);
+ const s=example.summary;
+ assert.equal(validGpsV2Summary(s),true);
+ const copy=()=>structuredClone(s);
+ for(const invalid of ['2026-02-31','2026-13-99']){
+  const changed=copy();changed.date=invalid;
+  assert.equal(validGpsV2Summary(changed),false,'invalid day must fail: '+invalid);
+ }
+ for(const timestamp of ['not-a-time','2026-02-31T00:00:00Z']){
+  const changed=copy();changed.createdAt=timestamp;
+  assert.equal(validGpsV2Summary(changed),false,'invalid creation time must fail');
+ }
+ const duplicate=copy();duplicate.finalReference.regions[1].regionId=duplicate.finalReference.regions[0].regionId;
+ assert.equal(validGpsV2Summary(duplicate),false,'duplicate reference regions are invalid');
+ const notFinite=copy();notFinite.finalReference.regions[0].calculationState='CALCULATED';notFinite.finalReference.regions[0].value='unverified';
+ assert.equal(validGpsV2Summary(notFinite),false,'not a scientific value');
+ const missing=copy();missing.finalReference.regions[0].regionId='R99';
+ assert.equal(validGpsV2Summary(missing),false,'unknown scientific part is rejected');
+ const unsafeEnergy=copy();unsafeEnergy.energyEstimate={ok:true,estimatedKcal:'missing'};
+ assert.equal(validGpsV2Summary(unsafeEnergy),false,'bad kcal cannot reach toFixed');
+ const old=copy();delete old.energyEstimate;
+ assert.equal(validGpsV2Summary(old),true,'older summaries without energy remain readable');
+});
+test('V2 detail and backup reject reordered fixes and mismatched saved distances (018)',()=>{
+ const example=prepareGpsV2Run(session(),{saveDetails:true,date:'2026-10-27'});
+ assert.equal(example.ok,true,example.reason);
+ const {summary,detail}=example;
+ assert.equal(validGpsV2Pair(summary,detail),true);
+ const backward=structuredClone(detail);
+ backward.route[1].t=backward.route[0].t;
+ assert.equal(validGpsV2Detail(backward),false,'route timestamps must increase');
+ const shrinking=structuredClone(detail);
+ shrinking.route[1].km=shrinking.route[2].km+.05;
+ assert.equal(validGpsV2Detail(shrinking),false,'route distance cannot decrease');
+ const differentTrack=structuredClone(detail);
+ differentTrack.route.at(-1).km=detail.route.at(-1).km+.1;
+ assert.equal(validGpsV2Detail(differentTrack),false,'route and replay endpoints must agree');
+ const differentSummary=structuredClone(summary);
+ differentSummary.distanceKm=summary.distanceKm+.1;
+ assert.equal(validGpsV2Pair(differentSummary,detail),false,'summary and detail distances must match');
+ const backup={format:GPS_V2_BACKUP_FORMAT,version:2,summaries:[differentSummary],details:[detail]};
+ assert.equal(inspectGpsV2Backup(JSON.stringify(backup)).ok,false,'mismatched backup fails before writes');
+ assert.equal(inspectGpsV2Backup(JSON.stringify({...backup,summaries:[summary]})).ok,true);
 });
