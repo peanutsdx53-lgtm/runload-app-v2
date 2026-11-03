@@ -1,16 +1,18 @@
 // Settings: user-directed backup, review, restore, and deletion controls.
 import {DATA_KEYS,BACKUP_NOTICE} from "./dataManagement.js";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&quot;"}[c]));
-const fieldTitles=Object.freeze({
+// Keep the full 10-key backup contract aligned with the labels shown before restore.
+export const fieldTitles=Object.freeze({
  [DATA_KEYS[0]]:"手入力の運動記録",
- [DATA_KEYS[1]]:"日々の体調・睡眠",
- [DATA_KEYS[2]]:"保存コース",
- [DATA_KEYS[3]]:"振り返り",
- [DATA_KEYS[4]]:"メモ",
- [DATA_KEYS[5]]:"確認事項",
- [DATA_KEYS[6]]:"ホームの表示設定",
- [DATA_KEYS[7]]:"プロフィール",
- [DATA_KEYS[8]]:"表示設定"
+ [DATA_KEYS[1]]:"休養日の記録",
+ [DATA_KEYS[2]]:"日々の体調・睡眠",
+ [DATA_KEYS[3]]:"保存コース",
+ [DATA_KEYS[4]]:"コンディションの振り返り",
+ [DATA_KEYS[5]]:"探究メモ",
+ [DATA_KEYS[6]]:"確認事項",
+ [DATA_KEYS[7]]:"ホームの表示設定",
+ [DATA_KEYS[8]]:"プロフィール",
+ [DATA_KEYS[9]]:"表示設定"
 });
 export function makeDataUi(){return {includeGps:false,pendingText:"",preview:null,safetyCopy:false,deleteWord:"",deleteAgreed:false,notice:"",busy:false};}
 function summary(counts,gpsCount){
