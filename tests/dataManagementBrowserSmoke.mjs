@@ -51,7 +51,11 @@ try{
    localStorage.setItem("runload-v2-life-condition-v1",JSON.stringify([{date:"2026-10-10",sleepMinutes:420,feeling:"良い",memo:""}]));
    localStorage.setItem("runload-v2-legal-consent-v1",JSON.stringify({termsAccepted:true,privacyConfirmed:true,acceptedAt:"2026-10-28T00:00:00Z",termsVersion:"2026-10-28",privacyVersion:"2026-10-28"}));
   });
-  await page.goto(url,{waitUntil:"networkidle"});await page.locator("[data-settings-v2]").waitFor();
+  // Hash navigation reuses the initial page; reload to apply the freshly seeded first-use state.
+  await page.goto(url,{waitUntil:"networkidle"});
+  await page.reload({waitUntil:"networkidle"});
+  await page.locator("[data-settings-v2]").waitFor();
+  assert.equal(await page.locator("[data-onboard-overlay]").count(),0,"a completed first-use state must not cover backup controls");
   const run=await page.evaluate(async()=>{
    const [{saveManualRun},canonical]=await Promise.all([import('/ui/manualRunStore.js'),import('/ui/manualRunCanonical.js')]);
    await canonical.refresh();
@@ -119,7 +123,11 @@ try{
   const importPage=await importCtx.newPage();const importErrors=[];importPage.on("pageerror",x=>{importErrors.push(x.message);console.log("P0 IMPORT PAGEERROR",engineName,mode.name,importPage.url(),x.message);});
   await importPage.goto("http://127.0.0.1:4176/",{waitUntil:"networkidle"});
   await importPage.evaluate(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));});
-  await importPage.goto(url,{waitUntil:"networkidle"});await importPage.locator("[data-settings-v2]").waitFor();
+  // Likewise, apply the restored-profile test's seeded first-use completion before interacting.
+  await importPage.goto(url,{waitUntil:"networkidle"});
+  await importPage.reload({waitUntil:"networkidle"});
+  await importPage.locator("[data-settings-v2]").waitFor();
+  assert.equal(await importPage.locator("[data-onboard-overlay]").count(),0,"restoration preview must be reachable after first-use completion");
   const restoreBlock=importPage.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
   await restoreBlock.locator("summary").click();
   await restoreBlock.locator("[data-dm-file]").setInputFiles({name:"運動記録.json",mimeType:"application/json",buffer:Buffer.from(backupJson)});
