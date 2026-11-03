@@ -8,8 +8,8 @@ test('12 formal body IDs and names match the active result registry, not old moc
  assert.equal(REGIONS.length,12);
  assert.equal(checkDefinitions(),true);
  assert.deepEqual(REGIONS.map(({id,name})=>[id,name]),OFFICIAL_NAMES);
- assert.match(appSource,/REGIONS=resultExperience\\.OFFICIAL_NAMES\\.map/);
- assert.doesNotMatch(appSource,/value:101\\.7|value:112\\.4/);
+ assert.ok(appSource.includes('REGIONS=resultExperience.OFFICIAL_NAMES.map'));
+ assert.ok(!appSource.includes('value:101.7')&&!appSource.includes('value:112.4'));
 });
 test('official SVG silhouettes and region paths are directly referenced',()=>{
  assert.deepEqual(VIEWS.map(v=>v.key),['front','back','sole']);
