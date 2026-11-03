@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {REGIONS,VIEWS,DRAFT_KEYS,makeUi,setView,focusRegion,toggleRegion,clearSelected,viewRegionIds,addRegionNamesToNote,transferStatus,checkDefinitions,renderScreen} from '../ui/bodyContextExperience.js';
+import {OFFICIAL_NAMES} from '../ui/resultExperience.js';
 const appSource=readFileSync(new URL('../app.js',import.meta.url),'utf8');
-test('12 original body IDs and labels match app.js unchanged',()=>{
+test('12 formal body IDs and names match the active result registry, not old mock rows',()=>{
  assert.equal(REGIONS.length,12);
  assert.equal(checkDefinitions(),true);
- for(const {id,name} of REGIONS){
-  const match=appSource.match(new RegExp(`\\{id:"${id}",name:"[^"]+",friendly:"([^"]+)"`));
-  assert.ok(match,id);assert.equal(match[1],name,id);
- }
+ assert.deepEqual(REGIONS.map(({id,name})=>[id,name]),OFFICIAL_NAMES);
+ assert.match(appSource,/REGIONS=resultExperience\\.OFFICIAL_NAMES\\.map/);
+ assert.doesNotMatch(appSource,/value:101\\.7|value:112\\.4/);
 });
 test('official SVG silhouettes and region paths are directly referenced',()=>{
  assert.deepEqual(VIEWS.map(v=>v.key),['front','back','sole']);
@@ -38,7 +38,7 @@ test('unsafe HTML input is escaped and full screen retains correct labels',()=>{
  assert.equal((html.match(/data-region-focus=/g)||[]).length,5);
 });
 
-test("body and result keep old-app formal anatomical terminology",()=>{const expected=[["BA-DISP-014","股関節部"],["BA-DISP-015","殿部"],["BA-DISP-016","大腿前面"],["BA-DISP-018","大腿後面"],["BA-DISP-019","膝蓋大腿関節部"],["BA-DISP-021","脛骨部"],["BA-DISP-023","下腿後面"],["BA-DISP-024","足関節部"],["BA-DISP-025","アキレス腱部"],["BA-DISP-027","後足部"],["BA-DISP-028","足底中部・内側縦足弓"],["BA-DISP-029","前足部"]];assert.deepEqual(REGIONS.map(x=>[x.id,x.name]),expected);for(const [id,name] of expected)assert.ok(appSource.includes('id:"'+id+'",name:"'+name+'",friendly:"'+name+'"'),id);});
+test("body and current result preserve all approved anatomical names",()=>{const expected=[["BA-DISP-014","股関節部"],["BA-DISP-015","殿部"],["BA-DISP-016","大腿前面"],["BA-DISP-018","大腿後面"],["BA-DISP-019","膝蓋大腿関節部"],["BA-DISP-021","脛骨部"],["BA-DISP-023","下腿後面"],["BA-DISP-024","足関節部"],["BA-DISP-025","アキレス腱部"],["BA-DISP-027","後足部"],["BA-DISP-028","足底中部・内側縦足弓"],["BA-DISP-029","前足部"]];assert.deepEqual(REGIONS.map(x=>[x.id,x.name]),expected);assert.deepEqual(OFFICIAL_NAMES,expected);assert.ok(appSource.includes('resultExperience.OFFICIAL_NAMES'));});
 
 test('12 selected body regions are summarized with a reversible show-all control, not dropped',()=>{
  const ui=makeUi();for(const r of REGIONS)toggleRegion(ui,r.id);
