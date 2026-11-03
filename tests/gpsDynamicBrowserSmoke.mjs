@@ -53,13 +53,13 @@ try{
     import('/ui/gpsLiveMap.js'),import('/ui/gpxImport.js'),import('/ui/gpsDynamicResult.js')
    ]);
    const map=segmentPaths([{lat:0,lon:179.999,breakBefore:true},{lat:0,lon:-179.999}],worldPoint(0,-179.999,16),360,260,16);
-   const mapCoords=[...map.matchAll(/[-+]?\\d+\\.\\d+/g)].map(x=>Number(x[0]));
+   const mapCoords=[...map.matchAll(/[-+]?\d+\.\d+/g)].map(x=>Number(x[0]));
    const route=[{lat:0,lon:179.9,km:0},{lat:.04,lon:-179.9,km:22},{lat:.08,lon:-179.8,km:33}];
    const feature={name:'境界',kind:'trk',segments:[route.map(p=>({...p,ele:null}))],distanceKm:33,points:3,elevationPoints:0,elevationStatus:'none',gapCount:0};
    const mid=projectToRoute(feature,11);
    const shape=renderGpxVisual(feature,11,25);
    const path=shape.match(/<path d="(M[^"]+)" fill="none" stroke="#030e1b"/)?.[1]||'';
-   const y=[...path.matchAll(/[ML](-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)/g)].map(x=>Number(x[2]));
+   const y=[...path.matchAll(/[ML](-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)].map(x=>Number(x[2]));
    const geom=routeGeometry(route);
    const xs=route.map(p=>geom.coords(p)[0]);
    const marker=geom.coords({lat:route[1].lat,lon:route[1].lon})[0];
