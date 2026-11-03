@@ -46,6 +46,31 @@ try{
   const errors=[];page.on('pageerror',err=>errors.push(String(err)));
   await page.addInitScript(()=>localStorage.setItem('runload-v2-introduction-preview-v1',JSON.stringify({completed:true,language:'ja',formalTermsAccepted:false})));
   await page.goto('http://127.0.0.1:4189/#/history',{waitUntil:'networkidle'});
+  // Real-browser date-line acceptance: the map, GPX schematic and V2
+  // dynamic marker must use nearby longitude copies without altering samples.
+  const dateline=await page.evaluate(async()=>{
+   const [{segmentPaths,worldPoint},{projectToRoute,renderGpxVisual},{routeGeometry}]=await Promise.all([
+    import('/ui/gpsLiveMap.js'),import('/ui/gpxImport.js'),import('/ui/gpsDynamicResult.js')
+   ]);
+   const map=segmentPaths([{lat:0,lon:179.999,breakBefore:true},{lat:0,lon:-179.999}],worldPoint(0,-179.999,16),360,260,16);
+   const mapCoords=[...map.matchAll(/[-+]?\\d+\\.\\d+/g)].map(x=>Number(x[0]));
+   const route=[{lat:0,lon:179.9,km:0},{lat:.04,lon:-179.9,km:22},{lat:.08,lon:-179.8,km:33}];
+   const feature={name:'境界',kind:'trk',segments:[route.map(p=>({...p,ele:null}))],distanceKm:33,points:3,elevationPoints:0,elevationStatus:'none',gapCount:0};
+   const mid=projectToRoute(feature,11);
+   const shape=renderGpxVisual(feature,11,25);
+   const path=shape.match(/<path d="(M[^"]+)" fill="none" stroke="#030e1b"/)?.[1]||'';
+   const y=[...path.matchAll(/[ML](-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)/g)].map(x=>Number(x[2]));
+   const geom=routeGeometry(route);
+   const xs=route.map(p=>geom.coords(p)[0]);
+   const marker=geom.coords({lat:route[1].lat,lon:route[1].lon})[0];
+   return {mapCoords,mid:mid?.lon,verticalExtent:y.length?Math.max(...y)-Math.min(...y):0,xs,marker};
+  });
+  assert.equal(dateline.mapCoords.length,4,engineName+' map has one two-point path');
+  assert.ok(dateline.mapCoords.every(x=>x>-500&&x<900),engineName+' live map wraps date-line points');
+  assert.ok(Math.abs(Math.abs(dateline.mid)-180)<.01,engineName+' GPX midpoint follows the short arc');
+  assert.ok(dateline.verticalExtent>50,engineName+' GPX route does not flatten due to a fake 360-degree span');
+  assert.ok(dateline.xs[0]<dateline.xs[1]&&dateline.xs[1]<dateline.xs[2],engineName+' V2 replay follows the short arc');
+  assert.ok(Math.abs(dateline.marker-dateline.xs[1])<1e-7,engineName+' flag and route share coordinates');
   await page.evaluate(async()=>{
    const id='gps-v2-00000000-0000-4000-8000-000000000001',t=1700000000000;
    const db=await new Promise((resolve,reject)=>{
