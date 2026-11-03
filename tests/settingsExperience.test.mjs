@@ -17,3 +17,31 @@ test('purpose selector is one native, accessible select without tiled radios',()
  assert.ok(!html.includes('s3-purpose-choices'));
  assert.ok(!html.includes('type="radio" name="purpose"'));
 });
+
+test('malformed stored settings are protected; writes are checked afterwards (035)',()=>{
+ const s=memory(),badProfile='{broken',badDisplay='{"textSize":"huge","motion":"reduce"}';
+ s.setItem(PROFILE_KEY,badProfile);s.setItem(DISPLAY_KEY,badDisplay);
+ assert.equal(saveProfile(s,{nickname:'上書き不可'}).ok,false);
+ assert.equal(saveDisplay(s,{textSize:'large',motion:'reduce'}).ok,false);
+ assert.equal(s.getItem(PROFILE_KEY),badProfile);
+ assert.equal(s.getItem(DISPLAY_KEY),badDisplay);
+ const fresh=memory(),ignored={getItem:k=>fresh.getItem(k),setItem(){}};
+ assert.equal(saveProfile(ignored,{nickname:'記録'}).ok,false);
+ assert.equal(saveDisplay(ignored,{textSize:'large'}).ok,false);
+ assert.equal(fresh.getItem(PROFILE_KEY),null);
+ assert.equal(fresh.getItem(DISPLAY_KEY),null);
+});
+test('stale settings snapshot cannot overwrite a newer tab (035)',()=>{
+ const s=memory();
+ const profile=saveProfile(s,{nickname:'最初の状態'});assert.equal(profile.ok,true);
+ const display=saveDisplay(s,{textSize:'standard',motion:'system'});assert.equal(display.ok,true);
+ const firstProfile=profile.raw,firstDisplay=display.raw;
+ const updatedProfile=saveProfile(s,{nickname:'別タブの変更'},firstProfile);assert.equal(updatedProfile.ok,true);
+ const updatedDisplay=saveDisplay(s,{textSize:'large',motion:'reduce'},firstDisplay);assert.equal(updatedDisplay.ok,true);
+ assert.equal(saveProfile(s,{nickname:'古い画面の保存'},firstProfile).ok,false);
+ assert.equal(saveDisplay(s,{textSize:'standard',motion:'system'},firstDisplay).ok,false);
+ assert.equal(s.getItem(PROFILE_KEY),updatedProfile.raw);
+ assert.equal(s.getItem(DISPLAY_KEY),updatedDisplay.raw);
+ assert.equal(saveProfile(s,{nickname:'更新後'},updatedProfile.raw).ok,true);
+ assert.equal(saveDisplay(s,{textSize:'standard'},updatedDisplay.raw).ok,true);
+});
