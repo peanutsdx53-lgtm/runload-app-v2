@@ -94,8 +94,8 @@ test('S06 calendar auto resolution matches condition midnight principle and does
  assert.equal(setExerciseClockTime(d,'end','00:15'),true);
  assert.equal(d.exerciseTimingDraft.endedLocal,'2026-11-01T00:15');
  assert.equal(d.exerciseTimingDraft.endDayOffset,1);
- assert.equal(setExerciseClockTime(d,'end','00:15','same'),true);
- assert.equal(d.exerciseTimingDraft.endedLocal,'2026-10-31T00:15');
+ assert.equal(setExerciseClockTime(d,'end','00:15','same'),false,'same-day end earlier than start is invalid');
+ assert.equal(d.exerciseTimingDraft.endedLocal,'2026-11-01T00:15','rejected input does not corrupt prior valid timestamps');
  assert.equal(setExerciseClockTime(d,'end','00:15','next'),true);
  assert.equal(d.exerciseTimingDraft.endedLocal,'2026-11-01T00:15');
  assert.equal(setExerciseClockTime(d,'start',''),true);
@@ -132,4 +132,38 @@ test('S06: selected score 10 is grouped at the exact parenthetical boundary too'
  const d={rofBefore:10,rofAfter:null},html=rofPage(d,createRofUiState());
  assert.match(html,/data-rof-v4-meaning><span class="rv4-description-main">完全な疲労困憊<\/span><span class="rv4-description-detail">（何も残っていない状態）<\/span>/);
  assert.equal(d.rofBefore,10);
+});
+
+test('changing ROF-J timing preserves original input timestamp and never invents a new answer (031)',()=>{
+ const d={rofBefore:null,rofAfter:null};
+ const captured='2026-10-30T01:00:00.000Z';
+ assert.equal(recordRofInput(d,'before',0,captured),true);
+ assert.equal(d.rofEntryEvidence.before.capturedAt,captured);
+ assert.equal(setRofTiming(d,'before','RECALLED','2026-10-29T16:00'),true);
+ assert.equal(d.rofEntryEvidence.before.capturedAt,captured);
+ assert.equal(d.rofEntryEvidence.before.timeBasis,'RECALLED');
+ assert.notEqual(d.rofEntryEvidence.before.assessedAt,captured);
+ assert.equal(setRofTiming(d,'before','AT_ENTRY'),true);
+ assert.deepEqual(d.rofEntryEvidence.before,{capturedAt:captured,assessedAt:captured,timeBasis:'AT_ENTRY'});
+ assert.equal(setRofTiming(d,'before','UNKNOWN'),true);
+ assert.deepEqual(d.rofEntryEvidence.before,{capturedAt:captured,assessedAt:null,timeBasis:'UNKNOWN'});
+ assert.equal(d.rofBefore,0,'the original zero score is never rewritten');
+ const legacy={rofBefore:6,rofAfter:null};
+ assert.equal(setRofTiming(legacy,'before','AT_ENTRY'),false,'old scores without a capture time cannot be relabelled as now');
+ assert.equal(setRofTiming(legacy,'before','RECALLED','2026-10-29T16:00'),false,'old scores cannot gain fabricated provenance');
+ assert.equal(setRofTiming(legacy,'before','UNKNOWN'),true);
+ assert.equal(legacy.rofEntryEvidence.before.capturedAt,null);
+});
+test('same-day reverse clocks fail without overwriting a previously accepted exercise period (032)',()=>{
+ const d={date:'2026-11-01'};
+ assert.equal(setExerciseClockTime(d,'start','23:40'),true);
+ assert.equal(setExerciseClockTime(d,'end','00:10','auto'),true);
+ const accepted=structuredClone(d.exerciseTimingDraft);
+ assert.equal(setExerciseClockTime(d,'end','00:10','same'),false);
+ assert.deepEqual(d.exerciseTimingDraft,accepted);
+ assert.equal(setExerciseClockTime(d,'end','00:10','next'),true);
+ assert.equal(d.exerciseTimingDraft.endDayOffset,1);
+ const result=resolveExerciseTimes(d.date,'23:40','00:10','same');
+ assert.equal(result.ok,false);
+ assert.match(result.reason,/終了時刻が開始時刻より前/);
 });
