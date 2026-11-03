@@ -509,7 +509,15 @@ function recordExtras(){
  if(page==="simulation"){
   const savedGps=gpsStore.readGpsRuns();
   const chosen=savedGps.ok?savedGps.records.find(r=>r.id===simulationUi.gpsId):null;
-  simulationUi.gpsFeature=chosen?gpsStore.gpsRecordToFeature(chosen):simulationUi.gpsId?.startsWith('gps-v2-')?simulationUi.gpsFeature:null;
+  const v2Selected=simulationUi.gpsId?.startsWith('gps-v2-');
+  const stillAvailable=v2Selected&&gpsV2Cache.ok&&gpsV2Cache.records.some(r=>r.id===simulationUi.gpsId&&r.detailSaved);
+  if(chosen){
+   simulationUi.gpsFeature=gpsStore.gpsRecordToFeature(chosen);
+   simulationUi.gpsFeatureId=simulationUi.gpsFeature?chosen.id:'';
+  }else if(!stillAvailable||simulationUi.gpsFeatureId!==simulationUi.gpsId){
+   // Never show geometry from a different ID or a removed saved record.
+   simulationUi.gpsFeature=null;simulationUi.gpsFeatureId='';
+  }
   if(simulationUi.source==='gps'&&simulationUi.gpsFeature)simulationUi.distance=String(simulationUi.gpsFeature.distanceKm);
   return simulationExperience.renderSimulation(simulationUi,{
   presets:coursePresets.readCoursePresets(onboardStorage),
@@ -621,11 +629,25 @@ function recordExtras(){
    panel?.addEventListener("sim-redraw",()=>{
      const y=window.scrollY,active=document.activeElement;
      const source=active?.getAttribute?.("data-sm-source"),field=active?.getAttribute?.("data-sm-field");
+     const selectedV2=simulationUi.source==='gps'&&simulationUi.gpsId?.startsWith('gps-v2-')
+       &&simulationUi.gpsFeatureId!==simulationUi.gpsId;
      render();window.scrollTo(0,y);
      // A simulation source or saved-record selection replaces this entire screen.
      // Restore focus to the same control without moving the scroll position.
      const current=source?app.querySelector('[data-sm-source="'+source+'"]'):field?app.querySelector('[data-sm-field="'+field+'"]'):null;
      current?.focus({preventScroll:true});
+     if(selectedV2){
+      // Fetch the selected V2 record on demand; late responses cannot replace
+      // a newer selection. No extra GPS data is shared or transmitted.
+      void simulationExperience.resolveGpsV2CourseSelection(simulationUi,{
+       readDetail:gpsV2.readGpsV2Detail,toFeature:gpsV2.gpsV2DetailToFeature
+      }).then(result=>{
+       if(result.stale||currentPage()!=='simulation')return;
+       const scroll=window.scrollY,focus=document.activeElement?.getAttribute?.('data-sm-field');
+       render();window.scrollTo(0,scroll);
+       if(focus)app.querySelector('[data-sm-field="'+focus+'"]')?.focus({preventScroll:true});
+      });
+     }
    });
  }
  if(page==="history"){
@@ -1229,7 +1251,7 @@ function recordExtras(){
       render();return;
     }
     const gpsUse=event.target.closest('[data-gps-use]');
-    if(gpsUse){simulationUi.source='gps';simulationUi.gpsId=gpsUse.dataset.gpsUse;location.hash='#/simulation';return;}
+    if(gpsUse){simulationUi.source='gps';simulationExperience.beginGpsCourseSelection(simulationUi,gpsUse.dataset.gpsUse);location.hash='#/simulation';return;}
     const gpsDelete=event.target.closest('[data-gps-delete],[data-gps-confirm-delete],[data-gps-cancel-delete]');
     if(gpsDelete){if(gpsDelete.hasAttribute('data-gps-cancel-delete'))pendingGpsDelete='';else if(gpsDelete.hasAttribute('data-gps-delete'))pendingGpsDelete=gpsDelete.dataset.gpsDelete;else if(pendingGpsDelete===gpsDelete.dataset.gpsConfirmDelete){const res=await gpsStore.removeGpsRun(pendingGpsDelete);state.toast=res.ok?'GPS記録を削除しました':res.reason;pendingGpsDelete='';}render();return;}
     const gpsConsentChoice=event.target.closest('[data-gps-consent-confirm],[data-gps-consent-cancel]');
@@ -1258,8 +1280,9 @@ function recordExtras(){
      if(!saved.ok){state.toast=saved.reason;render();return;}
      const feature=gpsV2.gpsV2DetailToFeature(saved.summary,saved.detail);
      if(!feature){state.toast='コースを読み込めませんでした';render();return;}
-     simulationUi.source='gps';simulationUi.gpsId=saved.summary.id;
-     simulationUi.gpsFeature=feature;simulationUi.distance=String(feature.distanceKm);
+     simulationUi.source='gps';simulationExperience.beginGpsCourseSelection(simulationUi,saved.summary.id);
+     simulationUi.gpsFeature=feature;simulationUi.gpsFeatureId=saved.summary.id;
+     simulationUi.distance=String(feature.distanceKm);
      location.hash='#/simulation';return;
     }
     const gpsV2Delete=event.target.closest('[data-gps-v2-delete],[data-gps-v2-confirm-delete],[data-gps-v2-cancel-delete]');
