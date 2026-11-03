@@ -59,7 +59,7 @@ test('date-line GPX interpolation and route shape use the short longitude arc (0
  ]],distanceKm:33,points:3,elevationPoints:0,elevationStatus:'none',gapCount:0};
  const halfway=projectToRoute(dateline,11);
  assert.ok(Math.abs(Math.abs(halfway.lon)-180)<.01,'midpoint remains at the date line: '+halfway.lon);
- const reverse={...dateline,segments:[[...dateline.segments[0]].reverse().map((p,i)=>({...p,km:i===0?0:i===1?22:33}))]};
+ const reverse={...dateline,segments:[dateline.segments[0].map(p=>({...p,lon:-p.lon}))]};
  assert.ok(Math.abs(Math.abs(projectToRoute(reverse,11).lon)-180)<.01);
  const html=renderGpxVisual(dateline,11,25,'b');
  const route=html.match(/<path d="(M[^"]+)" fill="none" stroke="#030e1b"/);
