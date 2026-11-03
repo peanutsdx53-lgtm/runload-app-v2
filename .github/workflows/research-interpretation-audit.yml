@@ -4,6 +4,7 @@ on:
     branches:
       - main
   pull_request:
+    branches: [main]
     paths:
       - 'ui/resultExperience.js'
       - 'styles.css'
@@ -16,6 +17,21 @@ on:
       - 'sw.js'
       - 'tests/interpretationBrowserSmoke.mjs'
       - '.github/workflows/research-interpretation-audit.yml'
+      - 'ui/resultExperience.css'
+      - 'ui/rofExperience.js'
+      - 'ui/rofExperience.css'
+      - 'ui/rofJScale.js'
+      - 'ui/recordExperience.js'
+      - 'ui/recordReviewExperience.js'
+      - 'ui/recordDraftReview.js'
+      - 'ui/manualRunStore.js'
+      - 'ui/measurementExperience.js'
+      - 'ui/interpretationView.js'
+      - 'ui/interpretationRules.js'
+      - 'tests/rofExperience.test.mjs'
+      - 'tests/resultExperience.test.mjs'
+      - 'tests/recordExperience.test.mjs'
+      - 'tests/researchInterpretationAcceptance.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
