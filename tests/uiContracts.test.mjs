@@ -20,11 +20,26 @@ test("PWA PNG icons have valid signatures and dimensions",()=>{
  assert.equal(file.readUInt32BE(16),n);assert.equal(file.readUInt32BE(20),n);
  }
 });
-test("SW precaches all offline-critical resources",()=>{
- const sw=read("sw.js");
- for(const file of ["index.html","styles.css","app.js","pwa.js","assets/bodyRegionVisuals.js","manifest.webmanifest","icon-192.png","icon-512.png"])
- assert.ok(sw.includes(file),file);
- assert.ok(sw.includes("mode===\"navigate\""),"offline navigation fallback");
+test("SW precaches exact current index asset and app import URLs, including all query revisions (002,006)",()=>{
+ const sw=read("sw.js"),html=read("index.html"),app=read("app.js");
+ const match=sw.match(/const ASSETS=(\\[[^\\n]+\\]);/);
+ assert.ok(match,"precache list must be a parseable asset manifest");
+ const assets=JSON.parse(match[1]);
+ const fromHtml=[...html.matchAll(/(?:src|href)=["'](\\.[^"']+)["']/g)].map(x=>x[1]);
+ const fromApp=[...app.matchAll(/(?:import\\s*\\(\\s*["']([^"']+)["']\\s*\\)|import\\s+(?:[^;\\n]*?\\s+from\\s+)?["']([^"']+)["'])/g)]
+  .map(x=>x[1]||x[2]);
+ const required=[...new Set([...fromHtml,...fromApp].filter(u=>u.startsWith("./")))];
+ assert.ok(required.filter(u=>u.includes("?v=")).length>=30,"check the real cache-busted links");
+ assert.equal(new Set(assets).size,assets.length,"cache keys must be unique");
+ for(const url of required)assert.ok(assets.includes(url),"missing exact offline resource: "+url);
+ for(const asset of assets){
+  assert.ok(asset.startsWith("./"),"offline asset is in application scope: "+asset);
+  assert.ok(existsSync(new URL("../"+asset.slice(2).split("?")[0],import.meta.url)),"precache target exists: "+asset);
+ }
+ const missingOne=required.find(url=>url.includes("?v="));
+ const mutated=new Set(assets.filter(url=>url!==missingOne));
+ assert.equal(required.every(url=>mutated.has(url)),false,"dropping one active query revision must break the manifest contract");
+ assert.ok(sw.includes('mode==="navigate"'),"offline navigation fallback");
 });
 test("all 12 official region IDs come from the active result and scientific registry, not app mocks",async()=>{
  const {OFFICIAL_NAMES}=await import("../ui/resultExperience.js");
