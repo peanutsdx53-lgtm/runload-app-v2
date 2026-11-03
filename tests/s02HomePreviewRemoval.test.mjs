@@ -1,17 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const source=readFileSync(new URL("../app.js",import.meta.url),"utf8");
-test("S02 design sample toggle is absent from the production home page",()=>{
- assert.doesNotMatch(source,/data-home-preview/);
- assert.doesNotMatch(source,/表示例を見る|表示例を終了/);
+const app=readFileSync(new URL("../app.js",import.meta.url),"utf8");
+const home=readFileSync(new URL("../ui/homeExperience.js",import.meta.url),"utf8");
+
+test("production home has no obsolete preview state, toggle, banner or fixture (029)",()=>{
+ assert.doesNotMatch(app,/homeUi\.preview|preview:false|data-home-preview|data-preview-home|hx-preview-banner/);
+ assert.doesNotMatch(home,/demoEntries\(|function sample\(|preview\?|if\(preview\)|hx-demo-activity|42\.0|7\.20|表示例/);
+ assert.match(app,/homeExperience\.latestCard\(/);
+ assert.match(app,/homeExperience\.conditionCard\(/);
+ assert.match(app,/homeExperience\.achievementCard\(/);
+ assert.match(app,/homeExperience\.trendCard\(/);
 });
 
-test("production Home never enables unreachable sample data without a design decision (029)",()=>{
- assert.match(source,/homeUi=\{preview:false,/,'production Home starts without sample preview');
- assert.doesNotMatch(source,/homeUi\.preview\s*=\s*true\b/,'no production handler may enable sample data');
- assert.doesNotMatch(source,/data-home-preview|data-preview-home/,'no sample data toggle is exposed');
- assert.match(source,/homeUi\.preview=false/,'navigating Home also restores normal record mode');
- // The demonstration fixtures remain isolated in the currently unreachable
- // preview branch until a separate approved design decision is made.
+test("saved-only home still distinguishes missing records and unreadable storage (029)",()=>{
+ assert.match(home,/保存済みの手入力走行/);
+ assert.match(home,/走行記録はまだありません/);
+ assert.match(home,/走行記録を確認できません/);
+ assert.match(home,/直近7日の記録はまだありません/);
+ assert.match(home,/生活記録を確認できません/);
+ assert.match(home,/保存済み手入力走行のみを集計します/);
+ assert.match(home,/記録しない日を失敗と判定しません/);
 });
