@@ -130,3 +130,28 @@ test("global double-tap suppression preserves accessible pinch zoom and approved
  assert.match(sw,/back-symmetry-v2/);
  assert.match(sw,/\.\/ui\/gpsReplayReference\.js/);
 });
+
+test("main-direct CI covers GPS engine, PWA assets and real two-run continuity [015,019,020,021]",()=>{
+ const gps=read(".github/workflows/gps-rof-review-acceptance.yml");
+ const browser=read(".github/workflows/ui-browser.yml");
+ const science=read(".github/workflows/research-interpretation-audit.yml");
+ const twoRuns=read(".github/workflows/p0-two-run-continuity.yml");
+ assert.ok(gps.includes("  push:")&&gps.includes("branches: [main]"));
+ for(const path of ["ui/gpsMeasurementCore.js","ui/gpsMeasurementStore.js","ui/gpsIndexedDbStore.js","ui/gpsPlatform.js","ui/gpsLiveMap.js","ui/gpsReplayIndexedDbStore.js"])
+  assert.ok(gps.includes("- '"+path+"'"),"GPS main push must launch specialist acceptance: "+path);
+ const uiPush=browser.split("\n  push:\n")[1]?.split("\npermissions:")[0]||"";
+ for(const path of ["pwa.js","sw.js","assets/**","tests/offlineShellBrowserSmoke.mjs","tests/uiContracts.test.mjs"])
+  assert.ok(uiPush.includes("- '"+path+"'"),"UI browser main push must cover "+path);
+ assert.ok(science.includes("  push:\n    branches:\n      - main"),"research interpretation always runs on a main push");
+ assert.ok(twoRuns.includes("  push:\n    branches: [main]"),"P0 two-run acceptance is a main-push gate");
+ for(const path of ["app.js","ui/manualRunStore.js","ui/resultExperience.js"])
+  assert.ok(twoRuns.includes("- '"+path+"'"),"P0 push path must cover "+path);
+ // PR-only trigger requests do not justify creating a branch in this main-direct workflow.
+});
+test("PWA registration uses secure contexts and offline tests do not manually bypass the app [003]",()=>{
+ const pwa=read("pwa.js"),offline=read("tests/offlineShellBrowserSmoke.mjs");
+ assert.ok(pwa.includes('window.isSecureContext&&/^https?:$/.test(location.protocol)'));
+ assert.ok(!pwa.includes('location.protocol==="https:"'));
+ assert.ok(offline.includes("navigator.serviceWorker.getRegistration('./')"));
+ assert.ok(!offline.includes("navigator.serviceWorker.register("),"offline smoke must use app registration");
+});
