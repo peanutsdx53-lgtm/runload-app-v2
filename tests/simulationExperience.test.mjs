@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newSimulationUi,computeSteady,computeRunWalk,reachTime,computeComparison,renderSimulation,renderSimulationResults,courseDescription,eligibleRunningPaceRecord} from '../ui/simulationExperience.js';
+import {newSimulationUi,beginGpsCourseSelection,resolveGpsV2CourseSelection,computeSteady,computeRunWalk,reachTime,computeComparison,renderSimulation,renderSimulationResults,courseDescription,eligibleRunningPaceRecord} from '../ui/simulationExperience.js';
 test('a steady scenario is distance from an explicitly assumed pace',()=>{
  assert.equal(computeSteady(30,7).distanceKm,30/7);
  assert.equal(computeSteady(30,0),null);
@@ -90,4 +90,61 @@ test('reference RUN pace uses only confirmed running-only records and handoff do
 test('short measured GPS course (10–100 m) is still a valid what-if route',()=>{
  const ui=newSimulationUi();ui.source='gps';ui.gpsFeature={distanceKm:0.029,segments:[]};ui.distance='0.029';
  const output=computeComparison(ui);assert.equal(output.ok,true);assert.ok(output.a.finish>0);assert.ok(output.b.finish>0);
+});
+
+test('GPS V2 selection resolves the chosen saved route and does not retain old geometry (017)',async()=>{
+ const ui=newSimulationUi();ui.source='gps';
+ const older={kind:'gps',name:'前の保存軌跡',distanceKm:4.2,segments:[]};
+ ui.gpsId='gps-v2-previous';ui.gpsFeatureId=ui.gpsId;ui.gpsFeature=older;
+ const id='gps-v2-current1';
+ beginGpsCourseSelection(ui,id);
+ assert.equal(ui.gpsFeature,null,'old route is cleared before async read');
+ assert.equal(ui.gpsFeatureId,'');
+ const result=await resolveGpsV2CourseSelection(ui,{
+  readDetail:async selected=>({ok:true,summary:{id:selected},detail:{route:[]}}),
+  toFeature:(summary)=>({kind:'gps',name:'現在の保存軌跡',distanceKm:1.25,segments:[],savedId:summary.id})
+ });
+ assert.equal(result.ok,true);
+ assert.equal(ui.gpsFeatureId,id);
+ assert.equal(ui.gpsFeature.savedId,id);
+ assert.equal(ui.distance,'1.25','distance updates only when selected route is ready');
+ assert.equal(ui.notice,'');
+});
+test('a delayed V2 load cannot replace a subsequent selection or different source (017)',async()=>{
+ const ui=newSimulationUi();ui.source='gps';
+ let deliver;
+ beginGpsCourseSelection(ui,'gps-v2-first000');
+ const pending=resolveGpsV2CourseSelection(ui,{
+  readDetail:()=>new Promise(resolve=>{deliver=resolve;}),
+  toFeature:()=>({kind:'gps',name:'obsolete',distanceKm:9,segments:[]})
+ });
+ beginGpsCourseSelection(ui,'gps-v2-second00');
+ deliver({ok:true,summary:{id:'gps-v2-first000'},detail:{}});
+ const stale=await pending;
+ assert.equal(stale.stale,true);
+ assert.equal(ui.gpsFeature,null);
+ const current=await resolveGpsV2CourseSelection(ui,{
+  readDetail:async id=>({ok:true,summary:{id},detail:{}}),
+  toFeature:()=>({kind:'gps',name:'new',distanceKm:2.5,segments:[]})
+ });
+ assert.equal(current.ok,true);
+ assert.equal(ui.gpsFeatureId,'gps-v2-second00');
+ beginGpsCourseSelection(ui,'gps-v1-legacy00');
+ assert.equal(ui.gpsFeature,null,'selecting legacy V1 never retains a V2 feature');
+ assert.equal(ui.gpsFeatureId,'');
+});
+test('V2 read failures leave no route and show a visible error (017)',async()=>{
+ const ui=newSimulationUi();ui.source='gps';
+ beginGpsCourseSelection(ui,'gps-v2-missing00');
+ const result=await resolveGpsV2CourseSelection(ui,{
+  readDetail:async()=>({ok:false,reason:'GPS記録が見つかりません'}),
+  toFeature:()=>{throw Error('must not fabricate a feature');}
+ });
+ assert.equal(result.ok,false);
+ assert.equal(ui.gpsFeature,null);
+ assert.equal(ui.gpsFeatureId,'');
+ const html=renderSimulation(ui,{presets:{ok:true,records:[]},manualRuns:{ok:true,records:[]},gpsRuns:{ok:true,records:[]}});
+ assert.match(html,/GPS記録が見つかりません/);
+ assert.match(html,/role="alert"/);
+ assert.equal(computeComparison(ui).goal,null,'no phantom course distance');
 });
