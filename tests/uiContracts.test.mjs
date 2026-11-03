@@ -22,11 +22,11 @@ test("PWA PNG icons have valid signatures and dimensions",()=>{
 });
 test("SW precaches exact current index asset and app import URLs, including all query revisions (002,006)",()=>{
  const sw=read("sw.js"),html=read("index.html"),app=read("app.js");
- const match=sw.match(/const ASSETS=(\\[[^\\n]+\\]);/);
+ const match=sw.match(/const ASSETS=(\[[^\n]+\]);/);
  assert.ok(match,"precache list must be a parseable asset manifest");
  const assets=JSON.parse(match[1]);
- const fromHtml=[...html.matchAll(/(?:src|href)=["'](\\.[^"']+)["']/g)].map(x=>x[1]);
- const fromApp=[...app.matchAll(/(?:import\\s*\\(\\s*["']([^"']+)["']\\s*\\)|import\\s+(?:[^;\\n]*?\\s+from\\s+)?["']([^"']+)["'])/g)]
+ const fromHtml=[...html.matchAll(/(?:src|href)=["'](\.[^"']+)["']/g)].map(x=>x[1]);
+ const fromApp=[...app.matchAll(/(?:import\s*\(\s*["']([^"']+)["']\s*\)|import\s+(?:[^;\n]*?\s+from\s+)?["']([^"']+)["'])/g)]
   .map(x=>x[1]||x[2]);
  const required=[...new Set([...fromHtml,...fromApp].filter(u=>u.startsWith("./")))];
  assert.ok(required.filter(u=>u.includes("?v=")).length>=30,"check the real cache-busted links");
