@@ -71,6 +71,10 @@ export async function readGpxFile(file){
  return parseGpxText(await file.text());
 }
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
+// Longitudes are circular. Calculations use the shortest adjacent longitude
+// step; presentation points remain in standard [-180,180] coordinates.
+export const shortestLongitudeDelta=(from,to)=>((to-from+540)%360+360)%360-180;
+export const normalizeLongitude=lon=>((lon+180)%360+360)%360-180;
 function pointAt(feature,km){
  const goal=clamp(km,0,feature.distanceKm);
  for(const seg of feature.segments){
@@ -79,7 +83,7 @@ function pointAt(feature,km){
    if(point.km>=goal){
     if(!prev||point.km===prev.km)return point;
     const t=clamp((goal-prev.km)/(point.km-prev.km),0,1);
-    return {lat:prev.lat+(point.lat-prev.lat)*t,lon:prev.lon+(point.lon-prev.lon)*t,
+    return {lat:prev.lat+(point.lat-prev.lat)*t,lon:normalizeLongitude(prev.lon+shortestLongitudeDelta(prev.lon,point.lon)*t),
      ele:prev.ele===null||point.ele===null?null:prev.ele+(point.ele-prev.ele)*t,km:goal};
    }
   }
@@ -97,12 +101,22 @@ export function renderGpxVisual(feature,aKm,bKm,focus='a'){
  if(!feature)return '';
  const sourceLabel=feature.kind==='gps'?'GPS':'GPX';
  const pts=feature.segments.flat();
- const bounds={minLat:Math.min(...pts.map(p=>p.lat)),maxLat:Math.max(...pts.map(p=>p.lat)),minLon:Math.min(...pts.map(p=>p.lon)),maxLon:Math.max(...pts.map(p=>p.lon))};
+ // Unwrap each saved point without connecting GPS/GPX segment gaps. The world
+ // copy is chosen for drawing only; original longitude samples are unchanged.
+ const unwrapped=new Map();let lastLongitude=null;
+ for(const seg of feature.segments)for(const p of seg){
+  const lon=lastLongitude===null?p.lon:p.lon+Math.round((lastLongitude-p.lon)/360)*360;
+  unwrapped.set(p,lon);lastLongitude=lon;
+ }
+ const allLon=[...unwrapped.values()];
+ const bounds={minLat:Math.min(...pts.map(p=>p.lat)),maxLat:Math.max(...pts.map(p=>p.lat)),minLon:Math.min(...allLon),maxLon:Math.max(...allLon)};
+ const lonCenter=(bounds.minLon+bounds.maxLon)/2;
+ const displayLongitude=p=>unwrapped.get(p)??p.lon+Math.round((lonCenter-p.lon)/360)*360;
  const cos=Math.max(.05,Math.cos((bounds.minLat+bounds.maxLat)/2*Math.PI/180));
  const spanX=Math.max(.00004,(bounds.maxLon-bounds.minLon)*cos),spanY=Math.max(.00004,bounds.maxLat-bounds.minLat);
  const scale=Math.min(450/spanX,185/spanY);
  const ox=26+(450-spanX*scale)/2,oy=17+(185-spanY*scale)/2;
- const xy=p=>[(ox+(p.lon-bounds.minLon)*cos*scale).toFixed(1),(oy+(bounds.maxLat-p.lat)*scale).toFixed(1)];
+ const xy=p=>[(ox+(displayLongitude(p)-bounds.minLon)*cos*scale).toFixed(1),(oy+(bounds.maxLat-p.lat)*scale).toFixed(1)];
  const paths=feature.segments.map(seg=>svgPath(sample(seg),p=>xy(p).join(' '))).join(' ');
  const marks=[['a',aKm],['b',bKm]].filter(([,km])=>valid(km,0,1e6)).map(([id,km])=>{
    const [x,y]=xy(pointAt(feature,km)); const chosen=focus===id;
