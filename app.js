@@ -437,32 +437,8 @@ function recordExtras(){
   const recordCompare=()=>gaitExperience.gaitPage(state.recordDraft),recordReflection=()=>bodyExperience.renderScreen(state.recordDraft,bodyUi);
   function recordEnvironment(){return environmentExperience.environmentPage(state.recordDraft,environmentUi);}
   
-    function result(){
- const current=regionData(state.region),v=current.value,prev=current.prev;
- const comparison=valid(v)&&valid(prev)?pct(v-prev):"—";
- const mobileDetail=`<div class="mobile-detail-feature">
-   <div class="mobile-detail-headline">
-      <div class="mobile-big-value ${status(v)}">${valid(v)?v.toFixed(1):"—"}</div>
-      <div class="mobile-baseline-chip">基準比 <b>${valid(v)?pct(v-100):"—"}</b></div>
-      <div class="mobile-past-stats"><div><small>前回の値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回から</small><strong class="${status(v)}">${comparison}</strong></div></div>
-   </div>
-   <div class="mobile-inline-trend"><h3>最近の推移</h3>${miniTrendChart(current)}</div>
- </div>`;
- return `<section class="result-top card"><div class="result-heading"><div><div class="eyebrow">RUN REPORT</div><h1>結果</h1><p class="lead">走りを振り返り、自分のペースで次へつなげる。</p></div><div class="result-top-signals"><div class="signal-box"><span class="signal-icon">▥</span><span><small>数値あり</small><strong>11/12</strong></span></div><div class="signal-box"><span class="signal-icon">⇄</span><span><small>前回の参考値</small><strong>あり</strong></span></div><div class="signal-box warm"><span class="signal-icon">⌁</span><span><small>疲労感の変化</small><strong>+2</strong></span></div></div></div>
- <div class="run-facts"><span class="run-fact-date">◫　10月22日</span><span class="run-fact"><small>距離</small><strong>8.20</strong><em>km</em></span><span class="run-fact"><small>時間</small><strong>45</strong><em>分</em></span><span class="run-fact"><small>平均ペース</small><strong>5:29</strong><em>/km</em></span><span class="run-fact-course">⌁　コース情報なし</span></div></section>
- <section class="result-primary">
- <div class="card anatomy-card"><div class="section-title"><h2>速度と身体の反応</h2><a href="#/body-part-detail" class="help-link">部位の見方　ⓘ</a></div><div class="body-map-row">${BODY_REGION_VIEWS.map(svgBody).join("")}</div>${legend()}<p class="chart-caption">色は各部位自身の基準100との関係を示します。</p></div>
- <div class="card regions-card"><div class="section-title"><h2>部位の一覧</h2><div class="segmented"><button data-result-mode="all" class="${state.resultMode==="all"?"is-active":""}">全体</button><button data-result-mode="focus" class="${state.resultMode==="focus"?"is-active":""}">注目</button></div></div><div class="region-grid">${regionTiles()}</div>${mobileRegionRows()}<p class="chart-caption regions-guidance">部位を選ぶと、人体図と詳細が連動します。</p></div>
- </section>
- <section class="result-lower"><div class="card region-detail-card" id="selected-detail"><div class="section-title"><div class="detail-head"><h2>選択部位の詳細</h2><span class="selected-name">${regionPictogram(current.id,current.value)}${esc(current.friendly)}</span></div>${buttonLink("body-part-detail","部位の詳細")}</div><div class="detail-metrics"><div class="highlight-detail"><small>今回の数値</small><strong>${valid(v)?v.toFixed(1):"—"}</strong></div><div><small>基準値</small><strong>100</strong></div><div><small>基準からの差</small><strong class="${status(v)}">${valid(v)?pct(v-100):"—"}</strong></div><div><small>前回の数値</small><strong>${valid(prev)?prev.toFixed(1):"—"}</strong></div><div><small>前回からの変化</small><strong class="${status(v)}">${comparison}</strong></div></div>
- ${mobileDetail}<h3 class="detail-chart-title">${esc(current.friendly)}の推移</h3><div class="chart-card">${historyChart(current)}</div>
- <p class="reference-note">ⓘ 各部位自身の基準を100とする文献由来の参考値です。実測した筋負荷・健康状態・傷害リスクを表すものではありません。</p></div>
- <div class="support-stack">
- <div class="card fatigue-panel"><div class="section-title"><h2>運動前後の疲労感 <small>(ROF-J)</small></h2></div><div class="fatigue-flex"><div class="fatigue-cell"><small>運動前</small><strong>6</strong><span class="scale blue"></span></div><span class="fatigue-arrow" aria-hidden="true">→</span><div class="fatigue-cell"><small>運動後</small><strong>8</strong><span class="scale orange"></span></div><div class="fatigue-cell difference"><small>変化</small><strong>+2</strong></div></div><p class="chart-caption">本人が回答した0〜10の主観的な疲労感。</p></div>
- <div class="card radar-panel"><div class="section-title"><h2>走行プロフィール <small>(参考)</small></h2></div>${radarChart()}<div class="map-legend"><span><i class="dot" style="background:#0891b2"></i>今回</span><span><i class="dot missing"></i>比較する記録</span></div><p class="chart-caption">6つの走行指標の形。身体能力の判定ではありません。</p></div>
- <div class="result-actions">${buttonLink("exploration-tree","探究へ",true)}${buttonLink("history","履歴を見る")}</div></div>
- </section>`;
-}
+    // The current result is mounted exclusively by resultExperience.mountResult
+    // with explicit saved input and the approved three-tab presentation.
     // History records are intentionally not sourced from the unsaved input draft.
     // Saved-history repository integration is a separate protected milestone.
     // Running history retains its approved, independent visual structure.
@@ -525,8 +501,15 @@ function recordExtras(){
   gpsRuns:savedGps.ok?{ok:true,records:[...savedGps.records,...(gpsV2Cache.ok?gpsV2Cache.records.filter(r=>r.detailSaved).map(r=>({...r,track:[{},{}]})):[])]}:savedGps
  });}
  if(page==="consultation")return consultationExperience.renderConsultation();
- const cur=regionData(state.region);
- return top+`<section class="grid-2"><div class="card stack"><h2>${esc(cur.name===cur.friendly?cur.name:cur.name+"（"+cur.friendly+"）")}</h2><div class="detail-value">${valid(cur.value)?cur.value.toFixed(1):"—"}</div><div class="info-note">この部位自身の文献基準を100とした参考値であり、実測した身体負荷・傷害リスクではありません。</div><div class="chart-card">${historyChart(cur)}</div></div><div class="card stack"><h2>ほかの部位を見る</h2><div class="region-grid">${regionTiles()}</div>${buttonLink("result","全12部位へ戻る")}</div></section>`;
+ // The legacy body-part detail hash must never display fixed demo numbers as
+ // if they came from a saved run. The real 12-region evidence lives in Result.
+ const params=new URLSearchParams(location.hash.split('?')[1]||'');
+ const recordId=params.get('record');
+ const regionId=params.get('region');
+ const selected=regionId&&resultExperience.OFFICIAL_NAMES.find(([id])=>id===regionId);
+ const label=selected?'<p>確認したい部位：'+esc(selected[1])+'</p>':'';
+ const link=recordId?'#/result?record='+encodeURIComponent(recordId):'#/result';
+ return top+`<section class="card stack" data-body-detail-source="saved-only"><h2>部位ごとの参考値を確認する</h2>${label}<p>以前の表示例は実際の保存記録ではありません。部位別の数値・適用条件・文献の根拠は、保存済みの走行結果画面で確認してください。未保存の入力や活動種別が不明な記録から数値を推定しません。</p><p>文献由来の参考値は、本人の身体組織負荷・健康状態・傷害リスクの実測ではありません。</p><a class="btn primary" href="${esc(link)}">走行結果で確認する</a><a class="btn" href="#/history">保存済みの履歴を見る</a></section>`;
 }
     let stopHomeDrag=null;
     function render(){
@@ -534,6 +517,8 @@ function recordExtras(){
       if(stopHomeDrag){stopHomeDrag();stopHomeDrag=null;}
       const previousConditionStrip=app.querySelector("[data-cj-chart]");
       if(previousConditionStrip&&conditionUi.scrollLeft!==null)conditionUi.scrollLeft=previousConditionStrip.scrollLeft;
+      // Dispose the old consultation resize listener before replacing its host.
+      app.querySelector('#runload-consultation')?._consultationAbort?.abort();
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
@@ -989,7 +974,10 @@ function recordExtras(){
       const phase=event.target.matches('[data-rof-run-start]')?'start':'end';
       const value=isDayRule?app.querySelector('[data-rof-run-end]')?.value||'':event.target.value;
       const ok=rofExperience.setExerciseClockTime(state.recordDraft,phase,value,dayRule);
-      if(!ok)return;
+      if(!ok){
+        state.toast='入力した終了時刻が開始時刻より前です。終了日を翌日にするか、時刻を確認してください。';
+        rofUi.metaOpen=true;const y=window.scrollY;render();window.scrollTo(0,y);return;
+      }
       if(isDayRule){
         rofUi.metaOpen=true;
         const y=window.scrollY;render();window.scrollTo(0,y);return;
