@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {consultationSources, periodRecords,trendSvg,renderConsultation,reportRecordContext,reportRofInterpretation} from '../ui/consultationExperience.js';
+import {consultationSources,gpsV2ConsultationOverview,periodRecords,trendSvg,renderConsultation,reportRecordContext,reportRofInterpretation} from '../ui/consultationExperience.js';
 const saved=(id,date,distanceKm,extra={})=>({id,date,distanceKm,source:'manual',durationSeconds:1800,createdAt:date+'T12:00:00Z',...extra});
 test('read-only reporting uses only validated saved records and does not mutate inputs',()=>{
  const records=[saved('real','2026-10-25',5),saved('bad','2026-10-24',NaN)];
@@ -104,4 +104,45 @@ test('consultation resize listener is aborted before old report host is replaced
  assert.match(consultation,/window\.addEventListener\('resize',updateScale,\{signal:hostSignal\(host\)\}\)/);
  assert.match(app,/app\.querySelector\('#runload-consultation'\)\?\._consultationAbort\?\.abort\(\)/);
  assert.match(app,/consultationExperience\.mountConsultation/);
+});
+
+test('GPS V2 sharing exposes only six validated summary fields and never auto-enrolls (027)',()=>{
+ const regions=Array.from({length:12},(_,i)=>({regionId:'R'+String(i+1).padStart(2,'0'),value:null,calculationState:'NOT_CALCULABLE'}));
+ const raw={schema:2,id:'gps-v2-abcde1234567',date:'2026-10-27',createdAt:'2026-10-27T12:00:00.000Z',
+  activity:'RUNNING',distanceKm:5.32,activeSeconds:1900,accepted:10,rejected:0,detailSaved:true,
+  energyEstimate:null,finalReference:{regions},experience:{source:'USER_REPORTED',rofBefore:2,rofAfter:7,
+   beforeCapturedAt:null,afterCapturedAt:null,memo:'SECRET-EXPERIENCE-001'},
+  route:[{lat:40,lon:140,km:0,t:1,breakBefore:true}],flags:[{note:'SECRET-FLAG-001'}],
+  privateNote:'SECRET-USER-NOTE-001'};
+ const sanitized=gpsV2ConsultationOverview(raw);
+ assert.deepEqual(Object.keys(sanitized).sort(),
+  ['source','id','date','createdAt','activity','distanceKm','activeSeconds'].sort());
+ assert.equal(sanitized.source,'gps-v2');
+ for(const forbidden of ['experience','route','flags','privateNote','finalReference','energyEstimate','rofBefore','rofAfter','memo'])
+  assert.equal(forbidden in sanitized,false,forbidden);
+ const a=consultationSources({manual:{ok:true,records:[]},gps:{ok:true,records:[]},
+  gpsV2:{ok:true,records:[raw]},conditions:{canSave:true,entries:[]}});
+ assert.deepEqual(a.records,[],'GPS V2 must never join the report by default');
+ assert.deepEqual(a.v2Records,[sanitized],'only the vetted, stripped overview is available to opt-in');
+ assert.doesNotMatch(JSON.stringify(a),/SECRET-EXPERIENCE|SECRET-FLAG|SECRET-USER-NOTE/);
+ assert.match(reportRecordContext(sanitized,'single'),/GPS V2保存概要/);
+ assert.doesNotMatch(reportRecordContext(sanitized,'single'),/記録ID|abcde1234567/);
+ const invalid={...raw,date:'2026-02-30'};
+ assert.equal(gpsV2ConsultationOverview(invalid),null,'invalid stored calendar dates do not enter sharing');
+ const corrupt=consultationSources({manual:{ok:true,records:[]},gps:{ok:true,records:[]},
+  gpsV2:{ok:false,reason:'読み取りエラー'},conditions:{canSave:true,entries:[]}});
+ assert.deepEqual(corrupt.v2Records,[]);
+ assert.match(corrupt.errors.join(''),/読み取りエラー/);
+});
+test('GPS V2 sharing must require an explicit unchecked option and never request route detail (027)',()=>{
+ const src=readFileSync(new URL('../ui/consultationExperience.js',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(src,/includeGpsV2:false/);
+ assert.match(src,/setAttribute\('data-consultation-gps-v2',''\)/);
+ assert.match(src,/check\.addEventListener\('change'/);
+ assert.match(src,/gpsV2Records|v2Records/);
+ assert.match(src,/r\.source==='gps-v2'\?'GPS V2概要のみ'/);
+ assert.match(src,/GPS V2の部位別参考値は含めません/);
+ assert.match(app,/gpsV2:gpsV2Cache/);
+ assert.doesNotMatch(src,/readGpsV2Detail\(|gpsV2DetailToFeature\(/);
 });
