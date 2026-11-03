@@ -27,13 +27,12 @@ test("invalid entries and corrupt bytes are fail-closed",()=>{
 });
 test("home never claims unearned or medically inferred score",()=>{
  const s=store();
- const empty=conditionCard(s,false);
+ const empty=conditionCard(s);
  assert.match(empty,/未入力/);
  assert.ok(!empty.includes("78\/100"));
- assert.match(achievementCard(false),/記録を保存すると実績を確認できます/);
- const preview=achievementCard(true);
- assert.match(preview,/表示例/);
- assert.match(preview,/42\.0/);
+ assert.match(achievementCard(),/記録を保存すると実績を確認できます/);
+ assert.doesNotMatch(achievementCard(),/獲得 2 件|42\.0|表示例/);
+ assert.doesNotMatch(conditionCard(s),/表示例|睡眠 6時間40分/);
 });
 
 test("bedtime and wake time compute date rollover without inventing sleep",()=>{
@@ -79,12 +78,12 @@ test("legacy entries persist alongside new v2 entries and edit without forced co
  assert.equal(out.canSave,true);
  assert.deepEqual(out.entries[0],legacy,"old structure preserved byte-for-byte as object");
  assert.equal(out.entries[1].sleepSource,"clock");
- const historicalPanel=conditionPanel(s,false,"2026-10-22");
+ const historicalPanel=conditionPanel(s,"2026-10-22");
  assert.match(historicalPanel,/data-sleep-mode="duration"/);
  assert.match(historicalPanel,/name="durationHours"[^>]*value="6"/);
  assert.match(historicalPanel,/name="durationMinutes"[^>]*value="40"/);
  assert.doesNotMatch(historicalPanel,/name="bedTime" value="23:20"/);
- const newPanel=conditionPanel(s,false,"2026-10-23");
+ const newPanel=conditionPanel(s,"2026-10-23");
  assert.match(newPanel,/data-sleep-mode="clock"/);
  assert.match(newPanel,/name="wakeTime" value="06:00"/);
 });
@@ -92,12 +91,12 @@ test("legacy entries persist alongside new v2 entries and edit without forced co
 // Minutes-only home display must agree with the editor; persistence and pace stay unchanged.
 test("latest saved manual run displays minutes without appended seconds",()=>{
  const record={id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:5,durationSeconds:2100};
- const card=latestCard(false,record);
+ const card=latestCard(record);
  assert.match(card,/35分/);
  assert.doesNotMatch(card,/35分00秒|35分0秒/);
  assert.match(card,/7:00/);
  assert.match(card,/5\.00/);
- const fractional=latestCard(false,{...record,durationSeconds:1950});
+ const fractional=latestCard({...record,durationSeconds:1950});
  assert.match(fractional,/32\.5分/);
  assert.doesNotMatch(fractional,/30秒/);
  assert.match(fractional,/6:30/);
@@ -107,18 +106,18 @@ test("achievements read only confirmed saved manual runs and distinguish broken 
  const rows=[{source:'manual',type:'run',id:'run-1',distanceKm:5,durationSeconds:2100},{source:'manual',type:'run',id:'run-2',distanceKm:46,durationSeconds:900}];
  const good={ok:true,records:rows};const a=achievementSummary(good);
  assert.deepEqual(a.achieved,[true,true,true,false]);assert.equal(a.count,3);assert.equal(a.distance,51);
- assert.match(achievementCard(false,good),/51.0/);assert.match(achievementPanel(false,good),/30分以上の走行記録を保存（達成）/);
- assert.match(achievementPanel(false,good),/累計100 km（未達成）/);
+ assert.match(achievementCard(good),/51.0/);assert.match(achievementPanel(good),/30分以上の走行記録を保存（達成）/);
+ assert.match(achievementPanel(good),/累計100 km（未達成）/);
  assert.deepEqual(achievementSummary({ok:true,records:[]}).achieved,[false,false,false,false]);
- assert.match(achievementCard(false,{ok:false,records:rows,reason:'破損'}),/実績を確認できません/);
- assert.doesNotMatch(achievementPanel(false,{ok:false,records:rows,reason:'破損'}),/51.0/);
+ assert.match(achievementCard({ok:false,records:rows,reason:'破損'}),/実績を確認できません/);
+ assert.doesNotMatch(achievementPanel({ok:false,records:rows,reason:'破損'}),/51.0/);
  assert.equal(achievementSummary({ok:true,records:[{source:'gps',type:'run',id:'gps-1',distanceKm:200,durationSeconds:5000}]}).count,0);
 });
 
 // Stage 11 / F09: an unselected feeling must not be saved as an invented neutral report.
 test("new lifestyle entry requires an explicit feeling; legacy choices remain intact",()=>{
  const s=store(),day=todayLocal();
- const initial=conditionPanel(s,false,day);
+ const initial=conditionPanel(s,day);
  assert.match(initial,/起床時の調子（保存時に選択）/);
  assert.match(initial,/<option value="" disabled selected>選択してください（未回答）<\/option>/);
  assert.doesNotMatch(initial,/<option value="ふつう" selected>/);
@@ -130,28 +129,28 @@ test("new lifestyle entry requires an explicit feeling; legacy choices remain in
  const stated=conditionEntryFromForm({...base,feeling:"ふつう"});
  assert.equal(stated.ok,true);
  assert.equal(saveCondition(s,stated.entry).ok,true);
- const editing=conditionPanel(s,false,day);
+ const editing=conditionPanel(s,day);
  assert.match(editing,/<option value="ふつう" selected>ふつう<\/option>/);
  assert.doesNotMatch(editing,/<option value="" disabled selected>/);
- const otherDay=conditionPanel(s,false,"2026-10-12");
+ const otherDay=conditionPanel(s,"2026-10-12");
  assert.match(otherDay,/<option value="" disabled selected>/);
  assert.equal(readConditions(s).entries[0].feeling,"ふつう");
 });
 
 test("S02 contextual recording entry never invents records or conceals read failures",()=>{
- const empty=latestCard(false,null,{ok:true,records:[]});
+ const empty=latestCard(null,{ok:true,records:[]});
  assert.ok(empty.includes('href="#/record-start"'));
  assert.match(empty,/走行記録はまだありません/);
- const failed=latestCard(false,null,{ok:false,reason:"読み取り失敗"});
+ const failed=latestCard(null,{ok:false,reason:"読み取り失敗"});
  assert.ok(!failed.includes('href="#/record-start"'));
  assert.match(failed,/読み取り失敗/);
- const withRun=latestCard(false,{id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:3,durationSeconds:1000},{ok:true,records:[]});
+ const withRun=latestCard({id:"run-v1-11111111-1111-4111-8111-111111111111",source:"manual",type:"run",distanceKm:3,durationSeconds:1000},{ok:true,records:[]});
  assert.ok(!withRun.includes('href="#/record-start"'));
 });
 
 test("S02 achievement detail groups counts and four labeled milestone states without fictitious success",()=>{
  const rows=[{source:'manual',type:'run',id:'run-1',distanceKm:5,durationSeconds:2100}];
- const html=achievementPanel(false,{ok:true,records:rows});
+ const html=achievementPanel({ok:true,records:rows});
  assert.match(html,/hx-ach-summary/);
  assert.match(html,/hx-ach-milestones/);
  assert.equal((html.match(/role="listitem"/g)||[]).length,4);
@@ -160,7 +159,18 @@ test("S02 achievement detail groups counts and four labeled milestone states wit
  assert.match(html,/30分以上の走行記録を保存（達成）/);
  assert.match(html,/累計100 km（未達成）/);
  assert.match(html,/健康状態・走力の判定や達成の推奨ではありません/);
- const bad=achievementPanel(false,{ok:false,reason:'読み取り失敗'});
+ const bad=achievementPanel({ok:false,reason:'読み取り失敗'});
  assert.match(bad,/読み取り失敗/);
  assert.doesNotMatch(bad,/hx-ach-milestones/);
+});
+
+test('live home cards never synthesize template figures from an empty or corrupt store (029)',()=>{
+ const empty=store(),bad=store({[CONDITION_KEY]:'{bad json'});
+ for(const html of [conditionCard(empty),conditionCard(bad),
+  latestCard(null,{ok:true,records:[]}),achievementCard({ok:true,records:[]}),
+  achievementPanel({ok:true,records:[]})]){
+  assert.doesNotMatch(html,/7\.20|5:50|42\.0|獲得 2 件|表示例|サンプル値/);
+ }
+ assert.match(conditionCard(empty),/直近7日の記録はまだありません/);
+ assert.match(conditionCard(bad),/生活記録を確認できません/);
 });
