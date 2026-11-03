@@ -31,7 +31,8 @@ function showAppUpdateNotice(){
  dismiss.addEventListener("click",()=>banner.remove());
  banner.append(label,refresh,dismiss);document.body.append(banner);
 }
-if("serviceWorker" in navigator&&location.protocol==="https:"){
+// HTTPS Pages and trustworthy localhost/127.0.0.1 HTTP can register; ordinary HTTP cannot.
+if("serviceWorker" in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol)){
  window.addEventListener("load",async()=>{
   const wasControlled=Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(wasControlled)showAppUpdateNotice()});
