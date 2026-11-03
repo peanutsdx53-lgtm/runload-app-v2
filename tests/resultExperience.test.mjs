@@ -167,3 +167,24 @@ test('UIUX batch03 S09: tab/view redraw restores keyboard focus without changing
  assert.match(js,/\['body','身体'\],\['fatigue','疲労感'\],\['radar','過去と比較'\]/);
  assert.match(js,/compareBodyReferenceRows/);
 });
+
+test('legacy result markup is retired; standalone body detail never displays mock numbers (001,004)',()=>{
+ const app=read('app.js');
+ assert.doesNotMatch(app,/function result\(\)\{/,'the retired full result renderer must not be reachable');
+ assert.match(app,/data-body-detail-source="saved-only"/,'direct links must clearly route to the saved-result view');
+ assert.match(app,/resultExperience\.mountResult/,'the active three-tab results stay in the scientific component');
+ assert.match(app,/resultExperience\.OFFICIAL_NAMES/,'metadata comes from the official body region registry');
+ assert.doesNotMatch(app,/value:101\.7|value:112\.4|value:106\.3/,'fixed scientific-looking numbers are removed');
+ assert.doesNotMatch(app,/11\/12<\/strong>/,'unverified fixed region availability is removed');
+});
+test('official science test targets actual result/reference sources rather than legacy demo rows (005)',()=>{
+ const app=read('app.js'),result=read('ui/resultExperience.js');
+ const parity=read('tests/scienceEngineParity.test.mjs');
+ assert.equal(OFFICIAL_NAMES.length,12);
+ assert.match(result,/calculateActivityReference\(options\.record\)/);
+ assert.match(result,/bodyReferenceRow\(reference\?\.rows/);
+ assert.match(app,/REGIONS=resultExperience\.OFFICIAL_NAMES\.map/);
+ assert.match(parity,/calculateActivityReference\(record\)/);
+ assert.match(parity,/expected\.reference100/);
+ assert.ok(!app.includes('value:101.7'),'legacy sample references must not serve as test oracle');
+});
