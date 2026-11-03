@@ -48,10 +48,10 @@ test('B F09: deliberate single-day deletion re-enables recording and preserves o
  s.setItem(CONDITION_KEY,JSON.stringify(days.map(entry)));
  const before=readConditions(s).entries;
  const day=days[200];
- const screen=conditionPanel(s,false,day);
+ const screen=conditionPanel(s,day);
  assert.match(screen,/data-condition-delete-start/);
  assert.doesNotMatch(screen,/data-condition-delete-confirm/);
- const confirm=conditionPanel(s,false,day,day);
+ const confirm=conditionPanel(s,day,day);
  assert.match(confirm,/data-condition-delete-confirm/);
  assert.match(confirm,/その他|関連する気づき/);
  assert.equal(deleteCondition(s,'2027-01-01').ok,false);
