@@ -30,7 +30,16 @@ try{
   page.on('download',download=>console.log('P0 NAV DOWNLOAD',engineName,mode.name,download.suggestedFilename()));
   page.on('request',request=>console.log('P0 NAV REQUEST',engineName,request.url()));
   page.on('requestfailed',request=>console.log('P0 NAV REQUESTFAILED',engineName,request.url(),request.failure()?.errorText));
-  const firstResponse=await page.goto("http://127.0.0.1:4190/index.html",{waitUntil:"load"});
+  // A WebKit runner may resolve its first about:blank navigation without a request.
+  // Retry navigation only: never seed localStorage or relax the real-origin assertion.
+  const expectedOrigin="http://127.0.0.1:4190";
+  let firstResponse;
+  for(let attempt=0;attempt<3;attempt++){
+   firstResponse=await page.goto(expectedOrigin+"/?p0-entry="+attempt,{waitUntil:"domcontentloaded"});
+   if(new URL(page.url()).origin===expectedOrigin)break;
+   console.log("P0 NAV RETRY",engineName,mode.name,attempt+1,page.url());
+   if(attempt<2)await page.waitForTimeout(200);
+  }
   console.log('P0 NAV SERVER',engineName,mode.name,'url',page.url());
   console.log('P0 NAV',engineName,mode.name,JSON.stringify({response:firstResponse?.status(),requested:firstResponse?.url(),playwrightPageUrl:page.url()}));
   const localEnv=await page.evaluate(()=>({origin:location.origin,href:location.href,ready:document.readyState,localStorage:(()=>{try{return !!localStorage}catch(e){return e.name}})()}));
