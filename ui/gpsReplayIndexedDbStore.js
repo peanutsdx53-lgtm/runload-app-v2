@@ -1,7 +1,7 @@
 /* GPS v2: opt-in replay details. Legacy gpsRuns database is never opened for writes.
  * One transaction contains v2 summary and optional route/speed/flag detail.
  */
-import {prepareGpsRun,GPS_RECORD_LIMIT} from './gpsMeasurementStore.js';
+import {prepareGpsRun,GPS_RECORD_LIMIT,validGpsCalendarDate,validGpsCreatedAt} from './gpsMeasurementStore.js';
 import {estimateGpsEnergy} from './gpsEnergyDisplay.js';
 import {checkReplayPoints,evaluateGpsReplayReference} from './gpsReplayReference.js';
 export const GPS_V2_DB='runload-v2-gps-dynamic-v2';
@@ -64,15 +64,22 @@ export function prepareGpsExperience(x){
   memo:x.memo??''};
  return validGpsExperience(e)?{ok:true,experience:e}:{ok:false,reason:'GPSの疲労感・本人メモの内容を確認してください'};
 }
+const validSummaryRegions=regions=>Array.isArray(regions)&&regions.length===12&&
+ new Set(regions.map(r=>r?.regionId)).size===12&&regions.every(r=>
+  r&&/^R(0[1-9]|1[0-2])$/.test(r.regionId)&&
+  (r.calculationState==='CALCULATED'?good(r.value):r.calculationState==='NOT_CALCULABLE'&&r.value===null));
+// A displayed estimate must always be a finite number or be explicitly unavailable.
+const validEnergy=energy=>energy==null||
+ (energy&&energy.ok===true&&finite(energy.estimatedKcal,0,1e9));
 export function validGpsV2Summary(s){
  return !!s&&s.schema===2&&/^gps-v2-[0-9a-z-]{8,64}$/.test(s.id)
-  &&/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&allowedActivity(s.activity)
+  &&validGpsCalendarDate(s.date)&&allowedActivity(s.activity)
   &&finite(s.distanceKm,.01,1000)&&finite(s.activeSeconds,1,1e6)
   &&finite(s.accepted,2,1e7)&&finite(s.rejected,0,1e7)
-  &&typeof s.createdAt==='string'&&typeof s.detailSaved==='boolean'
+  &&validGpsCreatedAt(s.createdAt)&&typeof s.detailSaved==='boolean'&&validEnergy(s.energyEstimate)
   &&(s.experience===undefined||validGpsExperience(s.experience))
   &&s.finalReference&&typeof s.finalReference==='object'
-  &&Array.isArray(s.finalReference.regions)&&s.finalReference.regions.length===12;
+  &&validSummaryRegions(s.finalReference.regions);
 }
 const validRoutePoint=p=>p&&finite(p.lat,-90,90)&&finite(p.lon,-180,180)
  &&finite(p.km,0,1000)&&Number.isSafeInteger(p.t)&&p.t>0
@@ -86,10 +93,18 @@ export function validGpsV2Detail(d){
  return !!d&&/^gps-v2-[0-9a-z-]{8,64}$/.test(d.id)&&d.schema===2
  &&Array.isArray(d.route)&&d.route.length>=2&&d.route.length<=2000
  &&d.route.every(validRoutePoint)
+ &&d.route.every((p,i)=>i===0||(p.t>d.route[i-1].t&&p.km>=d.route[i-1].km))
  &&Array.isArray(d.speedPoints)&&checkReplayPoints(d.speedPoints).ok
+ &&Math.abs(d.speedPoints.at(-1).km-d.route.at(-1).km)<=0.00011
  &&Array.isArray(d.flags)&&d.flags.length<=500&&d.flags.every(validFlag)
  &&typeof d.trackSimplified==='boolean';
 }
+// Verify that an optional saved route belongs to the same summary and ends
+// at the same recorded distance. Never replace missing/malformed data with estimates.
+export const validGpsV2Pair=(summary,detail)=>validGpsV2Summary(summary)&&
+ summary.detailSaved&&validGpsV2Detail(detail)&&summary.id===detail.id&&
+ Math.abs(detail.route.at(-1).km-summary.distanceKm)<=0.00011&&
+ Math.abs(detail.speedPoints.at(-1).km-summary.distanceKm)<=0.00011;
 const shortRows=rows=>rows.map(r=>({
  regionId:r.regionId,value:r.calculationState==='CALCULATED'&&good(r.value)?r.value:null,
  calculationState:r.calculationState,reasonCode:r.reasonCode||null
@@ -131,7 +146,7 @@ export function prepareGpsV2Run(session,{saveDetails=false,date=new Date().toISO
   flags:flags.map(f=>({id:f.id,t:f.t,km:f.km,lat:f.lat,lon:f.lon,note:f.note||'',...(f.activeMs===undefined?{}:{activeMs:f.activeMs})})),
   trackSimplified:old.trackSimplified
  };
- if(!validGpsV2Detail(detail))return {ok:false,reason:'詳細データが不正です'};
+ if(!validGpsV2Pair(summary,detail))return {ok:false,reason:'詳細データが不正です'};
  return {ok:true,summary,detail};
 }
 export async function readGpsV2Summaries(){
@@ -150,7 +165,7 @@ export async function readGpsV2Detail(id){
   const summary=await result(tx.objectStore(GPS_V2_SUMMARIES).get(id));
   const detail=await result(tx.objectStore(GPS_V2_DETAILS).get(id));
   await done;
-  if(!validGpsV2Summary(summary)||!summary.detailSaved||!validGpsV2Detail(detail))
+  if(!validGpsV2Pair(summary,detail))
    return {ok:false,reason:'動的結果の保存データを確認できません'};
   return {ok:true,summary,detail};
  }catch{return {ok:false,reason:FAIL};}
@@ -186,7 +201,8 @@ export async function exportGpsV2Backup(){
   const summaries=await result(tx.objectStore(GPS_V2_SUMMARIES).getAll());
   const details=await result(tx.objectStore(GPS_V2_DETAILS).getAll());await done;
   if(!summaries.every(validGpsV2Summary)||!details.every(validGpsV2Detail)||
-   !summaries.every(s=>s.detailSaved===details.some(d=>d.id===s.id)))
+   !summaries.every(s=>s.detailSaved===details.some(d=>d.id===s.id))||
+   !summaries.filter(s=>s.detailSaved).every(s=>validGpsV2Pair(s,details.find(d=>d.id===s.id))))
    return {ok:false,reason:FAIL};
   const text=JSON.stringify({format:GPS_V2_BACKUP_FORMAT,version:2,summaries,details});
   if(text.length>50_000_000)return {ok:false,reason:'バックアップが50MBを超えています。分割保存が必要です'};
@@ -203,7 +219,8 @@ export function inspectGpsV2Backup(text){
  const keys=new Set(data.summaries.map(x=>x.id));
  const dkeys=new Set(data.details.map(x=>x.id));
  if(keys.size!==data.summaries.length||dkeys.size!==data.details.length||
-    !data.details.every(d=>keys.has(d.id))||!data.summaries.every(s=>s.detailSaved===dkeys.has(s.id)))
+    !data.details.every(d=>keys.has(d.id))||!data.summaries.every(s=>s.detailSaved===dkeys.has(s.id))||
+    !data.summaries.filter(s=>s.detailSaved).every(s=>validGpsV2Pair(s,data.details.find(d=>d.id===s.id))))
   return {ok:false,reason:'バックアップ内の記録IDに重複・不整合があります'};
  return {ok:true,summaries:data.summaries,details:data.details,count:data.summaries.length,detailCount:data.details.length};
 }
@@ -228,7 +245,7 @@ export async function importGpsV2Backup(text){
 
 /** Reuse a saved v2 route in the existing simulation course interface. */
 export function gpsV2DetailToFeature(summary,detail){
- if(!validGpsV2Summary(summary)||!summary.detailSaved||!validGpsV2Detail(detail)||detail.id!==summary.id)return null;
+ if(!validGpsV2Pair(summary,detail))return null;
  const segments=[];let group=[];
  for(const p of detail.route){
   if(p.breakBefore&&group.length){segments.push(group);group=[];}
