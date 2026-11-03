@@ -263,7 +263,7 @@ try{
  // Stage 8: a genuine saved-result UI correction appends history without changing the ID.
  await page.goto(host+'#/result?record='+encodeURIComponent(sameDayB),{waitUntil:'networkidle'});
  await page.locator('[data-tab="fatigue"]').click();
- await page.locator('.rv4-rof-audit summary').first().click();
+ await page.locator('.rv4-fatigue-method > summary').click();
  await page.locator('[data-rof-correct-phase]').selectOption('before');
  await page.locator('[data-rof-correct-score]').fill('0');
  await page.locator('[data-rof-correct-basis]').selectOption('AT_ENTRY');
@@ -282,7 +282,7 @@ try{
  assert.equal(revised.rofCorrections[0].next.assessedAt,revised.rofCorrections[0].next.capturedAt);
  await page.reload({waitUntil:'networkidle'});
  await page.locator('[data-tab="fatigue"]').click();
- await page.locator('.rv4-rof-audit summary').first().click();
+ await page.locator('.rv4-fatigue-method > summary').click();
  assert.match(await page.locator('.rv4-rof-audit').innerText(),/訂正履歴 1件/);
  await page.locator('[data-rof-correct-phase]').selectOption('before');
  await page.locator('[data-rof-correct-score]').fill('');
