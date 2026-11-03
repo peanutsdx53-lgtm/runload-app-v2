@@ -31,6 +31,28 @@ test('sample preview is opt-in and clearly labeled',()=>{
  assert.match(r,/表示例/);assert.match(r,/表示例/);assert.match(r,/表示例を終了/);
  assert.equal((r.match(/ex-node is-related/g)||[]).length,2);
 });
+test('field terminology names seven fields and makes relevance explicit without star metaphors',()=>{
+ const u=makeUi(memory()),ctx={categories,draft:{},conditions:{entries:[]}};
+ const plain=render(u,ctx);
+ assert.match(plain,/気になる分野を選んでみましょう/);
+ assert.match(plain,/どの分野からでも自由に始められます/);
+ assert.match(plain,/aria-label="7つの分野から探す"/);
+ assert.match(plain,/強調表示の例を見る/);
+ assert.doesNotMatch(plain,/星/);
+ u.modal='field-help';const help=render(u,ctx);
+ assert.match(help,/強調表示は、現在入力している情報/);
+ assert.match(help,/優先順位や身体への負担の大きさを示すものではありません/);
+ assert.doesNotMatch(help,/星/);
+ u.modal='';const linked=render(u,{...ctx,draft:{distance:'5'}});
+ assert.match(linked,/強調表示は、入力や記録と関連する分野を示します/);
+ assert.doesNotMatch(linked,/星/);
+ u.sample=true;const sample=render(u,ctx);
+ assert.match(sample,/強調表示は説明用の例です/);
+ assert.doesNotMatch(sample,/星/);
+ u.modal='learn-help';const sourceHelp=render(u,ctx);
+ assert.match(sourceHelp,/分野の強調表示は、入力・保存記録との関連を示す目印です/);
+ assert.doesNotMatch(sourceHelp,/星/);
+});
 test('theme catalog expansion is data-driven without fixed 28-topic cap',()=>{
  const ui=makeUi(memory());ui.tab='catalog';const extended=categories.map(c=>({...c,topics:[...c.topics]}));
  extended[2].topics.push('コース選び','地形と路面');const r=render(ui,{categories:extended,draft:{},conditions:{entries:[]}});
