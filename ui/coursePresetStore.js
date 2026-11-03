@@ -35,11 +35,11 @@ export function readCoursePresets(storage){
  if(!opts(storage))return {ok:false,reason:'この端末の保存領域にアクセスできません',revision:0,records:[]};
  try{
   const raw=storage.getItem(COURSE_PRESET_KEY);
-  if(raw===null)return {ok:true,revision:0,records:[]};
+  if(raw===null)return {ok:true,revision:0,records:[],raw:null};
   if(raw.length>MAX_BYTES)throw Error('oversize');
   const data=JSON.parse(raw);
   if(!data||data.version!==1||!Number.isSafeInteger(data.revision)||data.revision<0||!Array.isArray(data.records)||data.records.length>MAX_PRESETS||!data.records.every(validPreset)||new Set(data.records.map(r=>r.id)).size!==data.records.length)throw Error('invalid');
-  return {ok:true,revision:data.revision,records:data.records};
+  return {ok:true,revision:data.revision,records:data.records,raw};
  }catch{return {ok:false,reason:'保存コースを安全に読み取れません。元のデータは変更しません',revision:0,records:[]};}
 }
 export function snapshotCourse(draft,ui){
@@ -78,7 +78,13 @@ const persist=(storage,saved,records)=>{
  try{
   const text=JSON.stringify({version:1,revision:saved.revision+1,records});
   if(text.length>MAX_BYTES)return {ok:false,reason:'保存できるデータ容量を超えました'};
+  // Reject a stale snapshot before writing and verify that the write took effect.
+  // localStorage is not an atomic cross-tab compare-and-swap; do not claim full exclusion.
+  if(storage.getItem(COURSE_PRESET_KEY)!==saved.raw)
+   return {ok:false,reason:'ほかの画面で保存コースが変更されています。再読込してください'};
   storage.setItem(COURSE_PRESET_KEY,text);
+  if(storage.getItem(COURSE_PRESET_KEY)!==text)
+   return {ok:false,reason:'保存した内容を確認できませんでした。再読込してください'};
   return {ok:true,records,revision:saved.revision+1};
  }catch{return {ok:false,reason:'保存領域に書き込めませんでした。元のコースを確認してください'};}
 };
