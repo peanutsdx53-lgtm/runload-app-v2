@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRofUiState,rofPage,setExerciseClockTime,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput,anchorDescriptionMarkup} from '../ui/rofExperience.js';
+import {createRofUiState,rofPage,setExerciseClockTime,resolveExerciseTimes,nearestAnchorIndex,setRofScore,setRofPhase,adjustRofScore,clearRofScore,focusRofAnchor,setRofTiming,recordRofInput,anchorDescriptionMarkup} from '../ui/rofExperience.js';
 const fresh=()=>({rofBefore:null,rofAfter:null});
 test('approved 11 integer inputs and five non-numeric representative anchors',()=>{
  assert.deepEqual(Array.from({length:11},(_,i)=>nearestAnchorIndex(i)),[0,1,1,1,2,2,2,3,3,4,4]);
