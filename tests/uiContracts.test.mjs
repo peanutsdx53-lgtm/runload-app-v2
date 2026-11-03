@@ -26,10 +26,13 @@ test("SW precaches all offline-critical resources",()=>{
  assert.ok(sw.includes(file),file);
  assert.ok(sw.includes("mode===\"navigate\""),"offline navigation fallback");
 });
-test("12 official region IDs remain present",()=>{
- const js=read("app.js");
- const ids=[...js.matchAll(/id:"(BA-DISP-\d{3})"/g)].map(m=>m[1]);
+test("all 12 official region IDs come from the active result and scientific registry, not app mocks",async()=>{
+ const {OFFICIAL_NAMES}=await import("../ui/resultExperience.js");
+ const {REGIONS}=await import("../ui/bodyContextExperience.js");
+ const ids=OFFICIAL_NAMES.map(([id])=>id);
  assert.equal(ids.length,12);assert.equal(new Set(ids).size,12);
+ assert.deepEqual(REGIONS.map(r=>r.id),ids);
+ assert.ok(read("app.js").includes("REGIONS=resultExperience.OFFICIAL_NAMES.map"));
  assert.ok(read("assets/bodyRegionVisuals.js").includes("BODY_REGION_VIEWS"));
  for(const id of ids)assert.ok(read("assets/bodyRegionVisuals.js").includes(id),id);
 });
