@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
- prepareGpsV2Run,prepareGpsExperience,validGpsExperience,validGpsV2Summary,validGpsV2Detail,validGpsV2Pair,
+ prepareGpsV2Run,prepareGpsExperience,validGpsExperience,validGpsV2Summary,validGpsV2Detail,validGpsV2Pair,gpsV2DetailToFeature,
  inspectGpsV2Backup,readGpsV2Summaries,saveGpsV2Run,
  GPS_V2_DB,GPS_V2_BACKUP_FORMAT
 } from '../ui/gpsReplayIndexedDbStore.js';
@@ -164,4 +164,24 @@ test('an unexpected V2 IDB closure permits a new connection attempt without touc
  }finally{
   if(previous)Object.defineProperty(globalThis,'indexedDB',previous);else delete globalThis.indexedDB;
  }
+});
+
+test('saved V2 course reports complete, partial and absent altitude honestly (023)',()=>{
+ const saved=prepareGpsV2Run(session(),{saveDetails:true,date:'2026-10-27'});
+ assert.equal(saved.ok,true,saved.reason);
+ const {summary,detail}=saved;
+ const missing=gpsV2DetailToFeature(summary,detail);
+ assert.equal(missing.elevationStatus,'none');
+ assert.equal(missing.elevationPoints,0);
+ const full=structuredClone(detail);
+ full.route.forEach((p,i)=>{p.ele=150+i*5;});
+ const complete=gpsV2DetailToFeature(summary,full);
+ assert.ok(complete);
+ assert.equal(complete.elevationStatus,'complete','all stored points have altitude');
+ assert.equal(complete.elevationPoints,full.route.length);
+ const partial=structuredClone(full);partial.route[1].ele=null;
+ const partly=gpsV2DetailToFeature(summary,partial);
+ assert.ok(partly);
+ assert.equal(partly.elevationStatus,'partial','a missing altitude must not be presented as complete');
+ assert.equal(partly.elevationPoints,full.route.length-1);
 });
