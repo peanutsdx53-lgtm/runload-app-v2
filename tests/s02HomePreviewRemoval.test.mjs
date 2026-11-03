@@ -19,6 +19,6 @@ test("saved-only home still distinguishes missing records and unreadable storage
  assert.match(home,/走行記録を確認できません/);
  assert.match(home,/直近7日の記録はまだありません/);
  assert.match(home,/生活記録を確認できません/);
- assert.match(home,/保存済み手入力走行のみを集計します/);
+ assert.match(home,/保存済みの手入力走行のみを集計します/);
  assert.match(home,/記録しない日を失敗と判定しません/);
 });
