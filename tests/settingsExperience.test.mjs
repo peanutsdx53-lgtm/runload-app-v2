@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {loadProfile,saveProfile,loadDisplay,saveDisplay,renderSettings,PROFILE_KEY,DISPLAY_KEY} from '../ui/settingsExperience.js';
 const memory=()=>{const entries=new Map();return {getItem:key=>entries.has(key)?entries.get(key):null,setItem:(key,value)=>entries.set(key,value),dump:()=>entries}};
 test('Japanese and dark stay the only active language/theme',()=>{const st=memory(),d=loadDisplay(st);assert.deepEqual(d,{textSize:'standard',motion:'system',language:'ja',theme:'dark'});const html=renderSettings({profile:loadProfile(st),display:d});assert.match(html,/English — 対応予定/);assert.match(html,/ライト.*対応予定/s);assert.ok(!/data-settings-language|data-settings-theme|data-backup-execute|data-delete-all/.test(html));});
