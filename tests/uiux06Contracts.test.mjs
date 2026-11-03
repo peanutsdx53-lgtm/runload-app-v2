@@ -40,8 +40,9 @@ test('UIUX06 S20: exported PNG does not falsely assert timestamp absence',()=>{
  const app=readFileSync(new URL('../app.js',import.meta.url),'utf8'),sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8'),html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
  assert.match(app,/resultExperience\.js\?v=20261102-uiux-batch06-v1/);
  assert.match(sw,/resultExperience\.js\?v=20261102-uiux-batch06-v1/);
- assert.match(html,/app\.js\?v=20261102-uiux-batch06-v2/);
- assert.match(sw,/app\.js\?v=20261102-uiux-batch06-v2/);
+ const appEntry=html.match(/src="(\.\/app\.js\?v=[^"]+)"/)?.[1];
+ assert.ok(appEntry,'entrypoint must use a versioned app.js URL');
+ assert.ok(sw.includes('"'+appEntry+'"'),'offline assets must match the current app.js entrypoint');
  assert.match(html,/simulationExperience\.css\?v=20261102-uiux-batch06-v2/);
  assert.match(sw,/simulationExperience\.css\?v=20261102-uiux-batch06-v2/);
 });
