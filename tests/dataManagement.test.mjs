@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {DATA_KEYS,RESET_KEYS,PORTABLE_FORMAT,PORTABLE_VERSION,inspectLocalStorage,
  inspectPortableBackup,planPortableRestore,restorePortableBackup,exportPortableBackup,portableUtf8Bytes} from "../ui/dataManagement.js";
-import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagementUi.js";
+import {makeDataUi,renderDataBackup,renderDataDelete,fieldTitles} from "../ui/dataManagementUi.js";
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
 import {REST_DAY_KEY,readRestDays,saveRestDay} from "../ui/restDayStore.js";
@@ -295,4 +295,13 @@ test('portable JSON byte checks use UTF-8 for Japanese and emoji (012)',async()=
  assert.equal(backup.ok,true,backup.reason);
  assert.equal(portableUtf8Bytes(backup.text),new Blob([backup.text]).size);
  assert.equal(inspectPortableBackup(backup.text).ok,true);
+});
+
+test("portable restore preview names all ten data keys in the correct order (009)",()=>{
+ assert.equal(DATA_KEYS.length,10);
+ const expected=["手入力の運動記録","休養日の記録","日々の体調・睡眠","保存コース","コンディションの振り返り","探究メモ","確認事項","ホームの表示設定","プロフィール","表示設定"];
+ assert.deepEqual(DATA_KEYS.map(key=>fieldTitles[key]),expected);
+ const html=renderDataBackup({includeGps:false,busy:false,preview:{ok:true,hasExisting:false,parsed:{counts:Object.fromEntries(DATA_KEYS.map(key=>[key,1])),gpsCount:0}}});
+ for(const label of expected)assert.ok(html.includes(label),label+" should appear in the restore preview");
+ assert.doesNotMatch(html,/<span>undefined<\/span>/);
 });
