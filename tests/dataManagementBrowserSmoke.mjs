@@ -18,10 +18,10 @@ const server=createServer(async(req,res)=>{
   res.end(await readFile(real));
  }catch{res.statusCode=404;res.end("Not found");}
 });
-await new Promise(ok=>server.listen(4190,"127.0.0.1",ok));
+await new Promise(ok=>server.listen(4176,"127.0.0.1",ok));
 const browserType=engineName==='webkit'?webkit:chromium;
 const browser=await browserType.launch({headless:true,...(engineName==='chromium'&&process.env.RUNLOAD_CHROME?{executablePath:process.env.RUNLOAD_CHROME}:{})});
-const url="http://127.0.0.1:4190/#/settings";
+const url="http://127.0.0.1:4176/#/settings";
 try{
  await mkdir(resolve(root,"screenshots"),{recursive:true});
  for(const mode of [{name:"narrow",width:320,height:740},{name:"mobile",width:390,height:844},{name:"desktop",width:1440,height:900}]){
@@ -32,7 +32,7 @@ try{
   page.on('requestfailed',request=>console.log('P0 NAV REQUESTFAILED',engineName,request.url(),request.failure()?.errorText));
   // A WebKit runner may resolve its first about:blank navigation without a request.
   // Retry navigation only: never seed localStorage or relax the real-origin assertion.
-  const expectedOrigin="http://127.0.0.1:4190";
+  const expectedOrigin="http://127.0.0.1:4176";
   let firstResponse;
   for(let attempt=0;attempt<3;attempt++){
    firstResponse=await page.goto(expectedOrigin+"/?p0-entry="+attempt,{waitUntil:"domcontentloaded"});
@@ -44,7 +44,7 @@ try{
   console.log('P0 NAV',engineName,mode.name,JSON.stringify({response:firstResponse?.status(),requested:firstResponse?.url(),playwrightPageUrl:page.url()}));
   const localEnv=await page.evaluate(()=>({origin:location.origin,href:location.href,ready:document.readyState,localStorage:(()=>{try{return !!localStorage}catch(e){return e.name}})()}));
   console.log('P0 BACKUP ORIGIN',engineName,mode.name,JSON.stringify(localEnv));
-  assert.equal(localEnv.origin,'http://127.0.0.1:4190','test must be on an actual trusted local server before seeding the backup');
+  assert.equal(localEnv.origin,'http://127.0.0.1:4176','test must be on an actual trusted local server before seeding the backup');
   await page.evaluate(()=>{
    localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));
    localStorage.setItem("runload-v2-user-profile-v1",JSON.stringify({nickname:"テスト",purpose:"health",heightCm:172,weightKg:65,ageBand:"18-29"}));
@@ -117,7 +117,7 @@ try{
   await ctx.close();
   const importCtx=await browser.newContext({viewport:{width:mode.width,height:mode.height},acceptDownloads:true,reducedMotion:"reduce"});
   const importPage=await importCtx.newPage();const importErrors=[];importPage.on("pageerror",x=>importErrors.push(x.message));
-  await importPage.goto("http://127.0.0.1:4190/");
+  await importPage.goto("http://127.0.0.1:4176/");
   await importPage.evaluate(()=>{localStorage.setItem("runload-v2-introduction-preview-v1",JSON.stringify({completed:true,language:"ja"}));});
   await importPage.goto(url,{waitUntil:"domcontentloaded"});await importPage.locator("[data-settings-v2]").waitFor();
   const restoreBlock=importPage.locator(".s2-item").filter({hasText:"バックアップ・復元"}).first();
