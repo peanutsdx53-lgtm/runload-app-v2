@@ -35,3 +35,22 @@ test('backup creation refuses malformed records instead of silently omitting the
  const broken=example();broken.track[1].ele=NaN;
  assert.equal(createGpsBackupText([broken]).ok,false);
 });
+
+test('GPS V1 rejects impossible days and malformed creation times without modifying records (036)',()=>{
+ const valid=example();
+ assert.equal(isValidGpsRecord(valid),true);
+ const leap={...valid,date:'2024-02-29',createdAt:'2024-02-29T12:00:00.000Z'};
+ assert.equal(isValidGpsRecord(leap),true,'a real leap day remains valid');
+ for(const invalid of ['2026-02-31','2026-13-99','2026-11-31']){
+  const changed={...valid,date:invalid};
+  assert.equal(isValidGpsRecord(changed),false,invalid);
+  assert.equal(createGpsBackupText([changed]).ok,false,invalid);
+ }
+ for(const bad of ['not-a-time','2026-02-31T12:00:00Z']){
+  assert.equal(isValidGpsRecord({...valid,createdAt:bad}),false,bad);
+ }
+ const backup=JSON.parse(createGpsBackupText([valid]).text);
+ backup.records[0].createdAt='not-a-time';
+ assert.equal(inspectGpsBackup(JSON.stringify(backup)).ok,false);
+ assert.equal(isValidGpsRecord(valid),true,'the original object remains unchanged');
+});
