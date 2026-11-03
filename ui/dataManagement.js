@@ -15,6 +15,8 @@ import * as gpsV2 from "./gpsReplayIndexedDbStore.js?v=20261027-measurement-poli
 export const PORTABLE_FORMAT="running-data-portable-backup";
 export const PORTABLE_VERSION=1;
 export const PORTABLE_MAX_BYTES=80_000_000;
+// Portable JSON limits are measured in UTF-8 bytes, not UTF-16 string length.
+export const portableUtf8Bytes=text=>new Blob([text]).size;
 export const RECORD_KEYS=Object.freeze([MANUAL_RUN_KEY,REST_DAY_KEY,CONDITION_KEY,COURSE_PRESET_KEY,CONDITION_INSIGHTS_KEY,EXPLORATION_NOTE_KEY]);
 export const OPTION_KEYS=Object.freeze([ACTION_INTENT_KEY,HOME_DASHBOARD_KEY,PROFILE_KEY,DISPLAY_KEY]);
 export const DATA_KEYS=Object.freeze([...RECORD_KEYS,...OPTION_KEYS]);
@@ -39,7 +41,7 @@ const legalNote="同意記録、利用開始時の案内の完了状態及びブ
 
 function checkLocal(key,raw){
  if(raw===null)return {ok:true,data:null,count:0};
- if(typeof raw!=="string"||raw.length>PORTABLE_MAX_BYTES)return {ok:false,reason:"保存データが大きすぎるか、形式が正しくありません"};
+ if(typeof raw!=="string"||portableUtf8Bytes(raw)>PORTABLE_MAX_BYTES)return {ok:false,reason:"保存データが大きすぎるか、形式が正しくありません"};
  let data;try{data=JSON.parse(raw);}catch{return {ok:false,reason:"保存データを読み取れません"};}
  const storage=storeFor(key,raw);
  if(key===MANUAL_RUN_KEY){if(!readManualRuns(storage).ok)return {ok:false,reason:"手入力の記録形式が正しくありません"};}
@@ -109,7 +111,7 @@ function validateEnvelope(o){
  return {ok:true,data:{...o,local:{...o.local,[REST_DAY_KEY]:o.local[REST_DAY_KEY]??null}},counts,gpsCount:(o.gpsLegacy?.records?.length||0)+(o.gpsCurrent?.summaries?.length||0)};
 }
 export function inspectPortableBackup(text){
- if(typeof text!=="string"||new Blob([text]).size>PORTABLE_MAX_BYTES)return {ok:false,reason:"80MB以内のJSONファイルを選択してください"};
+ if(typeof text!=="string"||portableUtf8Bytes(text)>PORTABLE_MAX_BYTES)return {ok:false,reason:"80MB以内のJSONファイルを選択してください"};
  let o;try{o=JSON.parse(text);}catch{return {ok:false,reason:"バックアップファイルを読み取れません"};}
  return validateEnvelope(o);
 }
@@ -135,7 +137,7 @@ export async function exportPortableBackup(storage,{includeGps=false}={}){
  const data={format:PORTABLE_FORMAT,version:PORTABLE_VERSION,exportedAt:new Date().toISOString(),
   local:snap.local,gpsLegacy:legacy,gpsCurrent:current};
  const text=encoded(data);
- if(text.length>PORTABLE_MAX_BYTES)return {ok:false,reason:"ファイルが80MBを超えます。GPS記録は履歴画面から個別に保存してください"};
+ if(portableUtf8Bytes(text)>PORTABLE_MAX_BYTES)return {ok:false,reason:"ファイルが80MBを超えます。GPS記録は履歴画面から個別に保存してください"};
  return {ok:true,text,counts:snap.counts,gpsCount:(legacy?.records.length||0)+(current?.summaries.length||0),includesGps:includeGps};
 }
 function mergeLocal(key,oldRaw,incomingRaw){
