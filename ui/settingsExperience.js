@@ -7,23 +7,55 @@ const purposeOptions=Object.freeze([['','選択しない'],['health','健康の�
 const ageOptions=Object.freeze([['','回答しない'],['under18','18歳未満'],['18-29','18〜29歳'],['30-39','30〜39歳'],['40-49','40〜49歳'],['50-59','50〜59歳'],['60plus','60歳以上']]);
 const within=(value,min,max)=>{const n=Number(value);return value!==''&&Number.isFinite(n)&&n>=min&&n<=max?n:null};
 function parse(storage,key){try{const v=JSON.parse(storage?.getItem(key)||'null');return v&&typeof v==='object'&&!Array.isArray(v)?v:null}catch{return null}}
+const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const validProfile=x=>plain(x)&&Object.keys(x).every(k=>['nickname','purpose','heightCm','weightKg','ageBand'].includes(k))&&
+ typeof x.nickname==='string'&&x.nickname.length<=40&&purposeOptions.some(([v])=>v===x.purpose)&&
+ [x.heightCm,x.weightKg].every((v,i)=>v===null||typeof v==='number'&&Number.isFinite(v)&&v>=(i===0?80:15)&&v<=(i===0?250:400))&&
+ ageOptions.some(([v])=>v===x.ageBand);
+const validDisplay=x=>plain(x)&&Object.keys(x).every(k=>['textSize','motion'].includes(k))&&
+ ['standard','large'].includes(x.textSize)&&['system','reduce'].includes(x.motion);
+// Best-effort compare-and-save. localStorage does not offer atomic cross-tab CAS.
+const saveVerified=(storage,key,data,valid,expectedRaw)=>{
+ try{
+  if(!storage||typeof storage.getItem!=='function'||typeof storage.setItem!=='function')throw Error('unavailable');
+  const previous=storage.getItem(key);
+  if(expectedRaw!==undefined&&previous!==expectedRaw)
+   return {ok:false,message:'別の画面で設定が変更されています。再読込してから保存してください。'};
+  if(previous!==null){
+   let stored;try{stored=JSON.parse(previous);}catch{return {ok:false,message:'保存済みの設定が破損しています。元のデータを保護しました。'};}
+   if(!valid(stored))return {ok:false,message:'保存済みの設定形式を確認できません。元のデータを保護しました。'};
+  }
+  if(storage.getItem(key)!==previous)
+   return {ok:false,message:'保存中に別の変更がありました。元の情報は上書きしていません。'};
+  const next=JSON.stringify(data);
+  storage.setItem(key,next);
+  if(storage.getItem(key)!==next)
+   return {ok:false,message:'保存した内容を確認できませんでした。再読込してください。'};
+  return {ok:true,raw:next};
+ }catch{return {ok:false,message:'保存領域に書き込めませんでした。以前の内容を再確認してください。'};}
+};
 export function loadProfile(storage,legacy={}){
  const saved=parse(storage,PROFILE_KEY)||{};
  const nickname=String(saved.nickname??legacy.nickname??'').slice(0,40);
  const purpose=purposeOptions.some(x=>x[0]===saved.purpose)?saved.purpose:(purposeOptions.some(x=>x[0]===legacy.purpose)?legacy.purpose:'');
  return {nickname,purpose,heightCm:within(saved.heightCm??'',80,250),weightKg:within(saved.weightKg??'',15,400),ageBand:ageOptions.some(x=>x[0]===saved.ageBand)?saved.ageBand:'',};
 }
-export function saveProfile(storage,raw){
+export function saveProfile(storage,raw,expectedRaw=undefined){
  const nickname=String(raw.nickname??'').trim();
  if(nickname.length>40)return {ok:false,message:'表示名は40文字以内にしてください。'};
  const height=String(raw.heightCm??'').trim(),weight=String(raw.weightKg??'').trim();
  if(height!==''&&within(height,80,250)===null)return {ok:false,message:'身長は80〜250cmの範囲で入力してください。'};
  if(weight!==''&&within(weight,15,400)===null)return {ok:false,message:'体重は15〜400kgの範囲で入力してください。'};
  const profile={nickname,purpose:purposeOptions.some(x=>x[0]===raw.purpose)?raw.purpose:'',heightCm:height===''?null:Number(height),weightKg:weight===''?null:Number(weight),ageBand:ageOptions.some(x=>x[0]===raw.ageBand)?raw.ageBand:''};
- try{if(!storage)throw Error('unavailable');storage.setItem(PROFILE_KEY,JSON.stringify(profile));return {ok:true,value:profile}}catch{return {ok:false,message:'端末内に保存できませんでした。保存領域を確認してください。'}}
+ const result=saveVerified(storage,PROFILE_KEY,profile,validProfile,expectedRaw);
+ return result.ok?{...result,value:profile}:result;
 }
 export function loadDisplay(storage){const s=parse(storage,DISPLAY_KEY)||{};return {textSize:s.textSize==='large'?'large':'standard',motion:s.motion==='reduce'?'reduce':'system',language:'ja',theme:'dark'};}
-export function saveDisplay(storage,settings){const data={textSize:settings.textSize==='large'?'large':'standard',motion:settings.motion==='reduce'?'reduce':'system'};try{if(!storage)throw Error('unavailable');storage.setItem(DISPLAY_KEY,JSON.stringify(data));return {ok:true,value:{...data,language:'ja',theme:'dark'}}}catch{return {ok:false,message:'表示設定を保存できませんでした。'}}}
+export function saveDisplay(storage,settings,expectedRaw=undefined){
+ const data={textSize:settings.textSize==='large'?'large':'standard',motion:settings.motion==='reduce'?'reduce':'system'};
+ const result=saveVerified(storage,DISPLAY_KEY,data,validDisplay,expectedRaw);
+ return result.ok?{...result,value:{...data,language:'ja',theme:'dark'}}:result;
+}
 export function applyDisplay(settings,root){if(!root)return;root.classList.toggle('rl-text-large',settings.textSize==='large');root.classList.toggle('rl-reduce-motion',settings.motion==='reduce');}
 export const PURPOSE_OPTIONS=purposeOptions;
 export const AGE_OPTIONS=ageOptions;
