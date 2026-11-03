@@ -158,8 +158,11 @@ function mergeLocal(key,oldRaw,incomingRaw){
   }else{known.set(item[id],item);add.push(item);}
  }
  if(known.size>limits[key])return {ok:false,reason:"復元後の記録件数が上限を超えます"};
+ if(add.length===0)return {ok:true,raw:oldRaw,added:0};
  const joined=prior.concat(add);
- const data=field===null?joined:{...a.data,revision:Math.max(a.data.revision,b.data.revision)+1,[field]:joined};
+ // Rest days use a fixed storage-format revision (1), not a revision counter.
+ // Valid, distinct-day backups must remain readable after merging.
+ const data=field===null?joined:{...a.data,revision:key===REST_DAY_KEY?1:Math.max(a.data.revision,b.data.revision)+1,[field]:joined};
  const raw=encoded(data);
  const verified=checkLocal(key,raw);
  if(!verified.ok)return {ok:false,reason:verified.reason};

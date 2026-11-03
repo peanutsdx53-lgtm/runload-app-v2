@@ -5,6 +5,7 @@ import {DATA_KEYS,RESET_KEYS,PORTABLE_FORMAT,PORTABLE_VERSION,inspectLocalStorag
 import {makeDataUi,renderDataBackup,renderDataDelete} from "../ui/dataManagementUi.js";
 import {CONDITION_KEY} from "../ui/homeExperience.js";
 import {PROFILE_KEY} from "../ui/settingsExperience.js";
+import {REST_DAY_KEY,readRestDays,saveRestDay} from "../ui/restDayStore.js";
 import {LEGAL_CONSENT_KEY} from "../ui/legalDocuments.js";
 import {saveManualRun,correctSavedRof,readManualRuns,MANUAL_RUN_KEY} from "../ui/manualRunStore.js";
 const fake=(entries={})=>{
@@ -51,6 +52,44 @@ test("restoration merges different day records without overwriting existing days
  assert.equal(rejected.ok,false);
  assert.match(rejected.reason,/異なる内容/);
  assert.deepEqual(JSON.parse(old.getItem(CONDITION_KEY)),[day("2026-10-10")]);
+});
+test("rest-day backup merges distinct days with fixed revision and idempotent re-restore (034)",async()=>{
+ const original=fake(),incoming=fake();
+ const rest=(date,memo)=>({date,memo,bodyObservation:"",environmentNote:"",shoeName:""});
+ assert.equal(saveRestDay(original,rest("2026-10-30","休養A")).ok,true);
+ assert.equal(saveRestDay(incoming,rest("2026-10-31","休養B")).ok,true);
+ const before=original.getItem(REST_DAY_KEY),backup=file(incoming);
+ const plan=planPortableRestore(original,backup);
+ assert.equal(plan.ok,true,plan.reason);
+ assert.equal(plan.additions[REST_DAY_KEY],1);
+ assert.equal(JSON.parse(plan.writes[REST_DAY_KEY]).revision,1,"rest-day storage format revision remains 1");
+ assert.equal(original.getItem(REST_DAY_KEY),before,"preflight must never mutate existing rest days");
+ const restored=await restorePortableBackup(original,backup);
+ assert.equal(restored.ok,true,restored.reason);
+ const merged=readRestDays(original);
+ assert.equal(merged.ok,true,merged.reason);
+ assert.deepEqual(merged.records.map(r=>r.date),["2026-10-30","2026-10-31"]);
+ assert.deepEqual(merged.records.map(r=>r.memo),["休養A","休養B"]);
+ assert.equal(JSON.parse(original.getItem(REST_DAY_KEY)).revision,1);
+ const identical=planPortableRestore(original,backup);
+ assert.equal(identical.ok,true,identical.reason);
+ assert.equal(identical.additions[REST_DAY_KEY],0);
+ assert.equal(Object.hasOwn(identical.writes,REST_DAY_KEY),false,"idempotent restore does not rewrite existing rest days");
+});
+test("rest-day restore rejects conflicting same-day data and accepts older backup without rest key (034)",()=>{
+ const current=fake(),conflict=fake(),rest=(date,memo)=>({date,memo});
+ assert.equal(saveRestDay(current,rest("2026-10-31","本人の休養")).ok,true);
+ assert.equal(saveRestDay(conflict,rest("2026-10-31","異なる記録")).ok,true);
+ const before=current.getItem(REST_DAY_KEY),rejected=planPortableRestore(current,file(conflict));
+ assert.equal(rejected.ok,false);
+ assert.match(rejected.reason,/異なる内容/);
+ assert.equal(current.getItem(REST_DAY_KEY),before);
+ const old=JSON.parse(file(conflict));delete old.local[REST_DAY_KEY];
+ const accepted=planPortableRestore(current,JSON.stringify(old));
+ assert.equal(accepted.ok,true,accepted.reason);
+ assert.equal(accepted.additions[REST_DAY_KEY],0);
+ assert.equal(Object.hasOwn(accepted.writes,REST_DAY_KEY),false);
+ assert.equal(current.getItem(REST_DAY_KEY),before);
 });
 test("existing settings are not silently overwritten and irrelevant local keys are untouched",()=>{
  const current=fake({[PROFILE_KEY]:JSON.stringify({nickname:"A",purpose:"",heightCm:null,weightKg:null,ageBand:""}),random_web_key:"preserve"});

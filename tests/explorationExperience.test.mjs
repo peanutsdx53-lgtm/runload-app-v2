@@ -43,6 +43,35 @@ test('notes are opt-in, persisted only to isolated key, deletion works',()=>{
  const loaded=makeUi(storage);assert.equal(loaded.notes[0].text,'次回は上り坂を確認する');
  assert.equal(deleteNote(loaded,loaded.notes[0].id),true);assert.equal(loaded.notes.length,0);
 });
+test('last-note deletion permits a new note before and after reload (026)',()=>{
+ const storage=memory(),ui=makeUi(storage);
+ const first=saveNote(ui,'最初の気づき');assert.equal(first.ok,true,first.reason);
+ assert.equal(deleteNote(ui,ui.notes[0].id),true);
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),'[]');
+ const second=saveNote(ui,'次に確かめたいこと');
+ assert.equal(second.ok,true,second.reason);
+ assert.equal(ui.notes.length,1);
+ const loaded=makeUi(storage);assert.equal(deleteNote(loaded,loaded.notes[0].id),true);
+ const reopened=makeUi(storage);assert.equal(reopened.notes.length,0);
+ assert.equal(saveNote(reopened,'読み直した後の気づき').ok,true);
+ assert.equal(makeUi(storage).notes[0].text,'読み直した後の気づき');
+ const legacy=memory();legacy.setItem(EXPLORATION_NOTE_KEY,' [ ] ');
+ const legacyUi=makeUi(legacy);assert.equal(legacyUi.canSave,true);
+ assert.equal(saveNote(legacyUi,'以前の空配列を保持した端末でも保存').ok,true);
+ assert.equal(makeUi(legacy).notes.length,1);
+});
+test('a stale empty-note view never overwrites another view after deletion (026)',()=>{
+ const storage=memory(),stale=makeUi(storage),other=makeUi(storage);
+ assert.equal(saveNote(other,'本人の最初の記録').ok,true);
+ assert.equal(deleteNote(other,other.notes[0].id),true);
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),'[]');
+ const rejected=saveNote(stale,'古い画面からの書き込み');
+ assert.equal(rejected.ok,false,'a stale missing-key snapshot must not silently accept another view changing the key');
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),'[]');
+ const reopened=makeUi(storage);storage.map.delete(EXPLORATION_NOTE_KEY);
+ assert.equal(saveNote(reopened,'別の画面がキーを消した').ok,false);
+ assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),null);
+});
 test('corrupted notes are not overwritten and concurrency is protected',()=>{
  const storage=memory();storage.setItem(EXPLORATION_NOTE_KEY,'broken');const ui=makeUi(storage);
  assert.equal(ui.canSave,false);assert.equal(saveNote(ui,'text').ok,false);assert.equal(storage.getItem(EXPLORATION_NOTE_KEY),'broken');

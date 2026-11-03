@@ -19,7 +19,7 @@ const meta={
 };
 const isProvided=x=>x!==null&&x!==undefined&&String(x).trim()!=="";
 export function makeUi(storage){
- const ui={selected:"03",topic:"",search:"",tab:"field",sample:false,notes:[],storage,canSave:true,notice:"",modal:"",trialDistance:5,trialMinutes:30,toolChoice:"up",bodyChoice:"hip",lifeA:"",lifeB:"",followup:"",editingNoteId:null,deletingNoteId:null};
+ const ui={selected:"03",topic:"",search:"",tab:"field",sample:false,notes:[],emptyNotesRaw:null,storage,canSave:true,notice:"",modal:"",trialDistance:5,trialMinutes:30,toolChoice:"up",bodyChoice:"hip",lifeA:"",lifeB:"",followup:"",editingNoteId:null,deletingNoteId:null};
  if(!storage){ui.canSave=false;return ui;}
  try{
   const raw=storage.getItem(EXPLORATION_NOTE_KEY);
@@ -27,6 +27,9 @@ export function makeUi(storage){
   const list=JSON.parse(raw);
   if(!Array.isArray(list)||list.length>LIMIT||list.some(n=>!n||typeof n!=="object"||typeof n.id!=="string"||typeof n.category!=="string"||typeof n.text!=="string"||!n.text.trim()||n.text.length>500||!/^[A-Za-z0-9_-]{1,32}$/.test(n.category)||n.id.length>80||typeof n.createdAt!=="string"||(n.topicId!==undefined&&typeof n.topicId!=="string")||(n.recordId!==undefined&&!isRunId(n.recordId))||(n.continuedFromNoteId!==undefined&&(typeof n.continuedFromNoteId!=='string'||!n.continuedFromNoteId||n.continuedFromNoteId.length>80))||(n.updatedAt!==undefined&&(typeof n.updatedAt!=='string'||Number.isNaN(Date.parse(n.updatedAt))))||(n.revisions!==undefined&&(!Array.isArray(n.revisions)||n.revisions.length>50||n.revisions.some(v=>!v||typeof v.text!=='string'||!v.text.trim()||v.text.length>500||typeof v.editedAt!=='string'||Number.isNaN(Date.parse(v.editedAt)))))))throw Error("invalid notes");
   ui.notes=list;
+  // Preserve the exact empty-array snapshot left by a prior last-note deletion.
+  // A missing key (null) remains distinct for cross-tab write protection.
+  ui.emptyNotesRaw=list.length===0?raw:null;
  }catch{ui.canSave=false;ui.notice="メモを読み取れません。保存済みのデータは変更していません。";}
  return ui;
 }
@@ -315,8 +318,8 @@ export function saveNote(ui,text,{focusRunId=null,manualRuns=null}={}){
  const link=resolveOptionalNoteRunLink(focusRunId,manualRuns);
  if(!link.ok)return link;
  if(ui.sample&&link.recordId)return {ok:false,reason:'説明用の表示例では、実際の走行記録にメモを関連づけられません'};if(!ui.canSave||!ui.storage)return {ok:false,reason:"保存領域が利用できません"};const value=String(text??"").trim();if(!value||value.length>500)return {ok:false,reason:"1〜500文字で入力してください"};const time=new Date().toISOString();const id=`${time}-${Math.random().toString(36).slice(2,12)}`;const key=LEARNING_TOPICS[ui.selected+"|"+ui.topic]||EXPLORATION_DRAFT_GUIDES[ui.selected+"|"+ui.topic]?.id;if(ui.notes.length>=LIMIT)return {ok:false,reason:"保存上限の50件に達しています。既存メモを自動削除しません。必要なら本人が選んで削除してください"};
- const next=[{id,category:ui.selected,text:value,createdAt:time,...(key?{topicId:key}:{}),...(link.recordId?{recordId:link.recordId}:{})},...ui.notes];try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);const expected=JSON.stringify(next);if(old!==(ui.notes.length?JSON.stringify(ui.notes):null)){ui.canSave=false;return {ok:false,reason:"他の画面で変更されています。元のデータを保護しました"};}ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)return {ok:false,reason:"保存を確認できませんでした"};ui.notes=next;return {ok:true};}catch{return {ok:false,reason:"保存できませんでした"}}}
-export function deleteNote(ui,id){if(!ui.canSave||!ui.storage)return false;const oldList=ui.notes;const next=oldList.filter(n=>n.id!==id);if(next.length===oldList.length)return false;try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);if(old!==JSON.stringify(oldList)){ui.canSave=false;return false;}ui.storage.setItem(EXPLORATION_NOTE_KEY,JSON.stringify(next));if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==JSON.stringify(next))return false;ui.notes=next;return true}catch{return false}}
+ const next=[{id,category:ui.selected,text:value,createdAt:time,...(key?{topicId:key}:{}),...(link.recordId?{recordId:link.recordId}:{})},...ui.notes];try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);const expected=JSON.stringify(next);if(old!==(ui.notes.length?JSON.stringify(ui.notes):ui.emptyNotesRaw)){ui.canSave=false;return {ok:false,reason:"他の画面で変更されています。元のデータを保護しました"};}ui.storage.setItem(EXPLORATION_NOTE_KEY,expected);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==expected)return {ok:false,reason:"保存を確認できませんでした"};ui.notes=next;ui.emptyNotesRaw=null;return {ok:true};}catch{return {ok:false,reason:"保存できませんでした"}}}
+export function deleteNote(ui,id){if(!ui.canSave||!ui.storage)return false;const oldList=ui.notes;const next=oldList.filter(n=>n.id!==id);if(next.length===oldList.length)return false;try{const old=ui.storage.getItem(EXPLORATION_NOTE_KEY);if(old!==JSON.stringify(oldList)){ui.canSave=false;return false;}const nextRaw=JSON.stringify(next);ui.storage.setItem(EXPLORATION_NOTE_KEY,nextRaw);if(ui.storage.getItem(EXPLORATION_NOTE_KEY)!==nextRaw)return false;ui.notes=next;ui.emptyNotesRaw=next.length===0?nextRaw:null;return true}catch{return false}}
 
 /** Explicit revision: old text and identity are retained, including the
  * original record link and any continuation chain. No silent migration. */
