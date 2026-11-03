@@ -148,11 +148,6 @@ export function deleteCondition(storage,date){
   return {ok:true};
  }catch{return {ok:false,reason:"削除できませんでした。保存領域を確認してください"}}
 }
-function demoEntries(){
- const sleeps=[320,410,null,460,345,null,400],out=[];
- for(let offset=6;offset>=0;offset--){const n=sleeps[6-offset];if(n!==null)out.push({date:pastDay(offset),sleepMinutes:n,feeling:offset===0?"ふつう":"良い",memo:""});}
- return out;
-}
 function escape(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function icon(which){
  const shape={
@@ -171,7 +166,6 @@ function icon(which){
 function head(title,which,extra){
  return '<div class="hx-head"><span class="hx-symbol">'+icon(which)+'</span><h2>'+title+'</h2>'+(extra||"")+'</div>';
 }
-function sample(){return '<span class="hx-sample">表示例</span>';}
 function sleepText(minutes){return Number.isInteger(minutes)?Math.floor(minutes/60)+'時間'+String(minutes%60).padStart(2,"0")+'分':"未入力";}
 function sevenBars(entries){
  const map=new Map(entries.map(x=>[x.date,x])), pieces=[];
@@ -182,36 +176,35 @@ function sevenBars(entries){
  }
  return '<div class="hx-bars" role="img" aria-label="直近7日間の睡眠・就床の記録時間。未入力日は棒を表示しません">'+pieces.join("")+'</div>';
 }
-export function latestCard(preview,record=null,savedRuns=null){
- const recent=!preview&&record?.source==='manual'&&record?.type==='run'&&typeof record?.id==='string'&&Number.isFinite(record.distanceKm)&&Number.isInteger(record.durationSeconds)?record:null;
+export function latestCard(record=null,savedRuns=null){
+ const recent=record?.source==='manual'&&record?.type==='run'&&typeof record?.id==='string'&&Number.isFinite(record.distanceKm)&&Number.isInteger(record.durationSeconds)?record:null;
  const secs=recent?Math.round(recent.durationSeconds/recent.distanceKm):0;
  const pace=secs?Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0'):'—';
  // The manual editor accepts minutes (including decimals); preserve that unit on Home.
  // A rounded seconds store must not produce a misleading "35分00秒" label.
  const time=recent?String(Number((recent.durationSeconds/60).toFixed(2)))+'分':'—';
- const body=preview ? '<div class="hx-latest-fig"><div><small>距離</small><strong>7.20 <em>km</em></strong></div><div><small>時間</small><strong>42 <em>分</em></strong></div><div><small>平均ペース</small><strong>5:50 <em>/km</em></strong></div></div>'
-  :recent?'<div class="hx-latest-fig"><div><small>距離</small><strong>'+escape(recent.distanceKm.toFixed(2))+' <em>km</em></strong></div><div><small>時間</small><strong>'+escape(time)+'</strong></div><div><small>平均ペース</small><strong>'+escape(pace)+' <em>/km</em></strong></div></div><a class="hx-condition-explore" href="#/result?record='+encodeURIComponent(recent.id)+'">保存した走行の結果を見る <span aria-hidden="true">›</span></a>'
-  :!preview&&savedRuns&&(!savedRuns.ok||!Array.isArray(savedRuns.records))?
+ const body=recent?'<div class="hx-latest-fig"><div><small>距離</small><strong>'+escape(recent.distanceKm.toFixed(2))+' <em>km</em></strong></div><div><small>時間</small><strong>'+escape(time)+'</strong></div><div><small>平均ペース</small><strong>'+escape(pace)+' <em>/km</em></strong></div></div><a class="hx-condition-explore" href="#/result?record='+encodeURIComponent(recent.id)+'">保存した走行の結果を見る <span aria-hidden="true">›</span></a>'
+  :savedRuns&&(!savedRuns.ok||!Array.isArray(savedRuns.records))?
    '<div class="hx-latest-empty" role="alert"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録を確認できません</strong><p>'+escape(savedRuns.reason||'保存済みの記録を読み取れません。端末の保存領域を確認してください。')+'</p><p>記録が0件という意味ではありません。元の記録は変更していません。</p></div></div>'
   : '<div class="hx-latest-empty"><span class="hx-runmark">'+icon("run")+'</span><div><strong>走行記録はまだありません</strong><p>手入力した走行を保存すると、ここに表示されます。</p></div></div>';
  // Offer an optional record entry only in a readable empty state.
  // Do not override saved dashboard layout or show this when reads fail.
- const emptyRecordAction=!preview&&!recent&&savedRuns?.ok===true&&Array.isArray(savedRuns.records)
+ const emptyRecordAction=!recent&&savedRuns?.ok===true&&Array.isArray(savedRuns.records)
   ?'<div class="home-latest-action"><p>記録は自分のペースで始められます。</p><a href="#/record-start">走行を記録する <span aria-hidden="true">›</span></a><small>手入力またはGPSを選択</small></div>':'';
- return '<section class="hx-card hx-latest'+(emptyRecordAction?' hx-latest--start':'')+'">'+head("最新の走行","run",preview?sample():recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+emptyRecordAction+'<div class="hx-orbit" aria-hidden="true"></div></section>';
+ return '<section class="hx-card hx-latest'+(emptyRecordAction?' hx-latest--start':'')+'">'+head("最新の走行","run",recent?'<span class="hx-right">端末に保存した記録</span>':"")+body+emptyRecordAction+'<div class="hx-orbit" aria-hidden="true"></div></section>';
 }
-export function conditionCard(storage,preview){
- const state=readConditions(storage),entries=preview?demoEntries():state.entries,map=new Map(entries.map(x=>[x.date,x])),today=map.get(todayLocal());
+export function conditionCard(storage){
+ const state=readConditions(storage),entries=state.entries,map=new Map(entries.map(x=>[x.date,x])),today=map.get(todayLocal());
  const count=Array.from({length:7},(_,i)=>pastDay(i)).filter(d=>map.has(d)).length;
  const sleep= sleepText(today?.sleepMinutes),feeling=today?.feeling||"未入力",sleepLabel=today?.sleepSource==="clock"?"就床時間":"睡眠";
  const stat='<div class="hx-condition-stats"><div><small>'+sleepLabel+'</small><strong>'+escape(sleep)+'</strong>'+(today?.sleepSource==="clock"?'<span class="hx-wake-time">起床 '+escape(today.wakeTime)+'</span>':'')+'</div><div><small>起床時の調子</small><strong>'+escape(feeling)+'</strong></div><div><small>直近7日の入力</small><strong>'+count+'<em> / 7日</em></strong></div></div>';
  return '<section class="hx-card hx-condition">'+
- '<button type="button" class="hx-title-button" data-condition-open aria-label="コンディションの入力と詳細を開く">'+head("コンディション","moon",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+
+ '<button type="button" class="hx-title-button" data-condition-open aria-label="コンディションの入力と詳細を開く">'+head("コンディション","moon",'<span class="hx-right">開く ›</span>')+'</button>'+
  stat+'<div class="hx-chart-label">睡眠・就床の記録 <span>直近7日</span></div>'+
  (count===0?'<div class="hx-condition-empty" role="status"><strong>'+(state.canSave?'直近7日の記録はまだありません':'生活記録を確認できません')+'</strong><p>'+(state.canSave?'未記録日は0時間として扱いません。':'保存領域の状態を確認してください。')+'</p></div>'
  :sevenBars(entries)+'<p class="hx-condition-source">記録した日のみ表示します。未記録日は空欄です。</p>')+
  '<a class="hx-condition-explore" href="#/condition" aria-label="コンディションの歩みを開き、長期の変化とメモを確認">コンディションの歩みを見る <span aria-hidden="true">›</span></a>'+
- (!state.canSave&&!preview?'<p class="hx-warning">'+escape(state.reason)+'</p>':"")+'</section>';
+ (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':"")+'</section>';
 }
 // Derived display-only milestones. The only source is a successfully read, saved
 // manual run collection; no new storage key or scientific inference is used.
@@ -223,15 +216,14 @@ export function achievementSummary(savedRuns){
  return {ok:true,runs:runs.length,distance,achieved,count:achieved.filter(Boolean).length,
   target:distance<50?50:100,progress:Math.min(100,Math.round(distance/(distance<50?50:100)*100))};
 }
-export function achievementCard(preview,savedRuns={ok:true,records:[]}){
+export function achievementCard(savedRuns={ok:true,records:[]}){
  const result=achievementSummary(savedRuns);
- const track=preview?'<div class="hx-ach-main"><div class="hx-medal" aria-hidden="true">★</div><div class="hx-ach-data"><small>獲得 2 件 · 次の目標</small><strong>42.0 <em>/ 50 km</em></strong><div class="hx-progress"><span style="width:84%"></span></div><small>累計走行距離　84%</small></div></div><div class="hx-awards" aria-label="獲得済み2件、未獲得2件"><span class="won">★</span><span class="won">✦</span><span class="locked">◇</span><span class="locked">◇</span></div>'
- :!result.ok?'<div class="hx-ach-main"><div class="hx-medal hx-unearned" aria-hidden="true">☆</div><div class="hx-ach-data"><strong>実績を確認できません</strong><small>'+escape(result.reason)+'</small></div></div>'
+ const track=!result.ok?'<div class="hx-ach-main"><div class="hx-medal hx-unearned" aria-hidden="true">☆</div><div class="hx-ach-data"><strong>実績を確認できません</strong><small>'+escape(result.reason)+'</small></div></div>'
  :'<div class="hx-ach-main"><div class="hx-medal '+(result.count?'':'hx-unearned')+'" aria-hidden="true">'+(result.count?'★':'☆')+'</div><div class="hx-ach-data"><small>保存済み手入力走行から確認 · '+result.count+' / 4 項目</small><strong>'+result.distance.toFixed(1)+' <em>/ '+result.target+' km</em></strong><div class="hx-progress" role="progressbar" aria-label="累計走行距離の節目" aria-valuemin="0" aria-valuemax="'+result.target+'" aria-valuenow="'+Math.min(result.distance,result.target).toFixed(1)+'"><span style="width:'+result.progress+'%"></span></div><small>'+(result.runs?'累計走行距離 '+result.distance.toFixed(1)+' km':'記録を保存すると実績を確認できます')+'</small></div></div><div class="hx-awards" role="list" aria-label="保存済み走行による実績4項目">'+result.achieved.map((yes,i)=>
  '<div class="hx-award-item '+(yes?'won':'locked')+'" role="listitem" aria-label="'+['初回の走行','30分以上の走行','累計50 km','累計100 km'][i]+' '+(yes?'達成':'未達成')+'">'+
  '<span class="hx-award-symbol" aria-hidden="true">'+(yes?'★':'◇')+'</span><div class="hx-award-copy"><strong>'+['初回の走行','30分以上','累計50 km','累計100 km'][i]+'</strong><small>'+(yes?'達成':'未達成')+'</small></div></div>'
  ).join('')+'</div><p class="hx-ach-source">保存済みの手入力走行のみを集計します。記録しない日を失敗と判定しません。</p>';
- return '<section class="hx-card hx-achievement"><button type="button" class="hx-title-button" data-achievement-open aria-label="実績の詳細を開く">'+head("実績","trophy",preview?sample():'<span class="hx-right">開く ›</span>')+'</button>'+track+'</section>';
+ return '<section class="hx-card hx-achievement"><button type="button" class="hx-title-button" data-achievement-open aria-label="実績の詳細を開く">'+head("実績","trophy",'<span class="hx-right">開く ›</span>')+'</button>'+track+'</section>';
 }
 export function shortcutsCard(){
  const links=[["course","コース設計","map"],["simulation","条件を変えて考える","sim"],["consultation","相談・共有","share"]];
@@ -240,10 +232,8 @@ export function shortcutsCard(){
 /** C F18: optional trend reads only confirmed, saved manual running records.
  * Each point is a recorded run (not a day); unrecorded days have no zero.
  * An inaccessible save is an error, never a zero-run history. */
-export function trendCard(preview,savedRuns={ok:true,records:[]}){
- const shell=head("記録の移り変わり","chart",preview?sample():"");
- if(preview)return '<section class="hx-card hx-optional">'+shell+
-   '<div class="hx-demo-activity">'+[24,50,32,68,45,80,65].map(v=>'<span style="height:'+v+'%"></span>').join("")+'</div><p>保存済み走行の表示例です。あなたの記録ではありません。</p></section>';
+export function trendCard(savedRuns={ok:true,records:[]}){
+ const shell=head("記録の移り変わり","chart");
  if(!savedRuns?.ok||!Array.isArray(savedRuns.records))
   return '<section class="hx-card hx-optional">'+shell+
    '<p role="alert">走行履歴を確認できません。記録が0件という意味ではありません。'+escape(savedRuns?.reason||'保存領域を確認してください。')+'</p></section>';
@@ -268,8 +258,8 @@ export function discoveryCard(notes=[]){
   +(latest?'<p class="hx-discovery-note">'+escape(latest.text.slice(0,140))+'</p><p class="hx-discovery-date">'+escape(latest.createdAt.slice(0,10))+'に自分で残した気づき</p>':'<p>気になるテーマを自由に調べられます。メモは任意です。</p>')
   +'<a class="hx-condition-explore" href="#/exploration-tree">探究を開く ›</a></section>';
 }
-export function conditionPanel(storage,preview,selectedDate=todayLocal(),deletePendingDate=null){
- const state=readConditions(storage),chartEntries=preview?demoEntries():state.entries;
+export function conditionPanel(storage,selectedDate=todayLocal(),deletePendingDate=null){
+ const state=readConditions(storage),chartEntries=state.entries;
  state.deletePendingDate=deletePendingDate;
  const existing=state.entries.find(x=>x.date===selectedDate);
  const mode=existing?.sleepSource==="clock"||!existing?"clock":"duration";
@@ -288,8 +278,7 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal(),deleteP
   '<label class="hx-day-radio"><input type="radio" name="bedDayRule" value="'+v+'"'+(dayRule===v?' checked':'')+'><span>'+label+'</span></label>').join("");
  return '<div class="hx-overlay" data-home-overlay><section class="hx-dialog hx-condition-dialog" role="dialog" aria-modal="true" aria-labelledby="hx-dialog-label">'+
  '<div class="hx-dialog-head"><h2 id="hx-dialog-label">コンディション</h2><button data-home-close aria-label="閉じる" type="button">×</button></div>'+
- (preview?'<p class="hx-dialog-notice">グラフは表示例です。以下の入力は実際の記録として保存されます。</p>':'')+
- 
+
  '<form data-condition-form novalidate><h3>任意の生活記録</h3>'+
  '<label class="hx-date-row"><span>日付</span><span class="rl-date-control"><span class="rl-date-value" data-date-display aria-hidden="true">'+selectedDate.replaceAll("-", "/")+'</span><svg class="rl-date-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><input type="date" name="date" required value="'+selectedDate+'" aria-label="生活記録の日付"></span></label>'+
  '<section class="hx-sleep-section" aria-label="睡眠の記録"><div class="hx-sleep-head"><h3>睡眠の記録</h3></div>'+
@@ -316,12 +305,11 @@ export function conditionPanel(storage,preview,selectedDate=todayLocal(),deleteP
  '<div class="hx-dialog-trend"><h3>睡眠・就床の記録推移</h3>'+bars+'</div>'+
  (!state.canSave?'<p class="hx-warning">'+escape(state.reason)+'</p>':'')+'</section></div>';
 }
-export function achievementPanel(preview,savedRuns={ok:true,records:[]}){
+export function achievementPanel(savedRuns={ok:true,records:[]}){
  const r=achievementSummary(savedRuns);
  const labels=['初回の走行記録を保存','30分以上の走行記録を保存','累計50 km','累計100 km'];
  const shortLabels=['初回の走行','30分以上の走行','累計50 km','累計100 km'];
- const body=preview?'<p>表示例：獲得2件、累計42.0 / 50 km（84%）</p><div class="hx-ach-grid"><span>★ 走行を始めた</span><span>✦ 初めての30分</span><span>◇ 累計50 km（未達成）</span><span>◇ 累計100 km（未達成）</span></div><p>※ サンプル値です。正式な達成条件・実績判定とは連動していません。</p>'
- :!r.ok?'<p role="alert">'+escape(r.reason)+'。元のデータは変更しません。</p>'
+ const body=!r.ok?'<p role="alert">'+escape(r.reason)+'。元のデータは変更しません。</p>'
  :'<div class="hx-ach-summary" aria-label="保存済み手入力走行の集計"><div><small>保存済み手入力走行</small><strong>'+r.runs+' 件</strong></div><div><small>累計走行距離</small><strong>'+r.distance.toFixed(1)+' km</strong></div></div>'+
  '<h3 class="hx-ach-section-title">4つの節目</h3>'+
  '<div class="hx-ach-grid hx-ach-milestones" role="list" aria-label="走行記録に基づく4つの節目">'+labels.map((label,i)=>
