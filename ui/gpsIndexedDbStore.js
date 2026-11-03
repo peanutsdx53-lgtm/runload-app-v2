@@ -27,6 +27,9 @@ function openDatabase(){
    const db=req.result;if(settled){db.close();return;}
    settled=true;clearTimeout(clock);
    db.onversionchange=()=>{db.close();opening=null;cache=errorResult('GPS保存領域が変更されました。アプリを開き直してください');};
+   // Unexpected IndexedDB closure invalidates the cached connection and cached
+   // list; a later explicit reload may reopen the DB without changing records.
+   db.onclose=()=>{opening=null;cache=errorResult('GPS保存領域との接続が切れました。再読込してください');};
    resolve(db);
   };
  });
