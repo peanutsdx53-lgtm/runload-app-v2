@@ -3,7 +3,7 @@ import * as restDayStore from './ui/restDayStore.js';
   "use strict";
   const dashboardPrefs=await import("./ui/homeDashboardLayout.js");
   const dashboardDrag=await import("./ui/homeDashboardDrag.js");
-  const homeExperience=await import("./ui/homeExperience.js?v=20261028-reflection-ux-v1");
+  const homeExperience=await import("./ui/homeExperience.js?v=20261103-real-data-only-v1");
   const rofScale=await import("./ui/rofJScale.js");
   const rofExperience=await import("./ui/rofExperience.js?v=20261102-s05s08-copy-v1");
   const reviewDraft=await import("./ui/recordDraftReview.js");
@@ -57,7 +57,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const homePreferenceStorage=(()=>{try{return window.localStorage}catch{return null}})();
   const homePreferenceState=dashboardPrefs.loadHomeDashboardLayout(homePreferenceStorage);
   const homeEditState={editing:false,draft:null,notice:""};
-  const homeUi={preview:false,guideOpen:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal(),deletePendingDate:null};
+  const homeUi={guideOpen:false,conditionOpen:false,achievementOpen:false,conditionDate:homeExperience.todayLocal(),deletePendingDate:null};
   let gpsController=null;
   const emptyGpsReport=()=>({rofBefore:null,rofAfter:null,beforeCapturedAt:null,afterCapturedAt:null,memo:'',saveRoute:false});
   let gpsSelfReport=emptyGpsReport();
@@ -200,11 +200,11 @@ import * as restDayStore from './ui/restDayStore.js';
  const names=dashboardPrefs.HOME_DASHBOARD_WIDGETS;
  const savedRunState=manualRunStore.readManualRuns(onboardStorage);
  const cards={
-  latest:homeExperience.latestCard(homeUi.preview,savedRunState.ok?savedRunState.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''))[0]||null:null,savedRunState),
-  condition:homeExperience.conditionCard(homePreferenceStorage,homeUi.preview),
-  topics:homeExperience.achievementCard(homeUi.preview,savedRunState),
+  latest:homeExperience.latestCard(savedRunState.ok?savedRunState.records.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''))[0]||null:null,savedRunState),
+  condition:homeExperience.conditionCard(homePreferenceStorage),
+  topics:homeExperience.achievementCard(savedRunState),
   shortcuts:homeExperience.shortcutsCard(),
-  trend:homeExperience.trendCard(homeUi.preview,savedRunState),
+  trend:homeExperience.trendCard(savedRunState),
   discovery:homeExperience.discoveryCard(explorationUi.notes)
  };
  const storedLayout=pref||dashboardPrefs.defaultHomeDashboardLayout();
@@ -227,15 +227,14 @@ import * as restDayStore from './ui/restDayStore.js';
  <button type="button" class="hx-help-toggle" data-home-guide-toggle aria-expanded="${homeUi.guideOpen}" aria-controls="home-screen-guide">？ この画面の使い方</button>
  <button type="button" class="btn dashboard-edit-trigger" data-home-edit aria-pressed="${editing}" ${!homePreferenceState.canSave?"disabled":""}>${editing?"編集を終了":"編集"}</button>
  </div></section>
- ${homeUi.preview?'<div class="hx-preview-banner" role="status">表示例：走行・実績・睡眠は説明用の数字です。あなたの記録には保存されません。</div>':""}
  ${homeEditState.notice?`<div class="dashboard-edit-notice" role="status">${esc(homeEditState.notice)}</div>`:""}
  ${!homePreferenceState.canSave?`<p class="dashboard-storage-warning" role="alert">${esc(homePreferenceState.reason)}</p>`:""}
  ${controls}
  ${homeScreenGuide()}
  <div class="dashboard-custom-grid ${editing?"dashboard-custom-grid--editing":""}" aria-label="ホームの表示">${widgets}</div>
   ${(()=>{const r=actionIntentStore.loadIntent(onboardStorage);const conditions=homeExperience.readConditions(onboardStorage);const insights=conditionInsights.loadConditionInsights(onboardStorage);return conditionJourney.renderHomeConditionFollowup(r.intent,conditions,insights,r.ok?"":r.reason,conditionUi.notice);})()}
- ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.preview,homeUi.conditionDate,homeUi.deletePendingDate):""}
- ${homeUi.achievementOpen?homeExperience.achievementPanel(homeUi.preview,savedRunState):""}
+ ${homeUi.conditionOpen?homeExperience.conditionPanel(homePreferenceStorage,homeUi.conditionDate,homeUi.deletePendingDate):""}
+ ${homeUi.achievementOpen?homeExperience.achievementPanel(savedRunState):""}
  </div>`;
 }
     function rofPanel(){
@@ -944,7 +943,7 @@ function recordExtras(){
       if(msg){msg.hidden=false;msg.textContent=saved.reason;}return;
     }
     homeEditState.notice="生活記録を保存しました";
-    homeUi.preview=false;homeUi.conditionOpen=false;homeUi.deletePendingDate=null;
+    homeUi.conditionOpen=false;homeUi.deletePendingDate=null;
     render();app.querySelector("[data-condition-open]")?.focus({preventScroll:true});
   });
   app.addEventListener("click",async(event)=>{
