@@ -86,6 +86,54 @@ try{
   assert.match(await page.locator('[data-output-section="body"] .cp-info-note').innerText(),/期間内の1記録.*記録ID：run-v1-/);
   assert.match(await page.locator('.cp-trend-holder').last().locator('svg').getAttribute('aria-label'),/距離km/);
   assert.equal(await page.locator('.cp-body-view').count(),3);
+  // GPS V2 is never added to a report without a fresh user opt-in.
+  const v2Id='gps-v2-browser-fixture27';
+  await page.evaluate(async id=>{
+   const m=await import('/ui/gpsReplayIndexedDbStore.js');
+   const regions=Array.from({length:12},(_,i)=>({regionId:'R'+String(i+1).padStart(2,'0'),value:null,calculationState:'NOT_CALCULABLE'}));
+   const summary={id,schema:2,date:'2026-10-27',createdAt:'2026-10-27T12:00:00.000Z',
+    activity:'RUNNING',distanceKm:6.5,activeSeconds:2400,accepted:20,rejected:0,detailSaved:false,
+    energyEstimate:null,finalReference:{regions},
+    experience:{source:'USER_REPORTED',rofBefore:4,rofAfter:5,beforeCapturedAt:null,afterCapturedAt:null,memo:'PRIVATE_V2_MEMO_NEVER_SHARE'},
+    privateRoute:{lat:37.123,lon:139.234},flags:[{note:'PRIVATE_V2_FLAG_NEVER_SHARE'}]};
+   if(!m.validGpsV2Summary(summary))throw Error('Invalid V2 fixture');
+   const db=await new Promise((resolve,reject)=>{
+    const req=indexedDB.open(m.GPS_V2_DB,1);
+    req.onupgradeneeded=()=>{
+     if(!req.result.objectStoreNames.contains(m.GPS_V2_SUMMARIES))req.result.createObjectStore(m.GPS_V2_SUMMARIES,{keyPath:'id'});
+     if(!req.result.objectStoreNames.contains(m.GPS_V2_DETAILS))req.result.createObjectStore(m.GPS_V2_DETAILS,{keyPath:'id'});
+    };
+    req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+   });
+   await new Promise((resolve,reject)=>{
+    const tx=db.transaction(m.GPS_V2_SUMMARIES,'readwrite');
+    tx.objectStore(m.GPS_V2_SUMMARIES).put(summary);
+    tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+   });db.close();
+  },v2Id);
+  await page.reload({waitUntil:'networkidle'});
+  const v2Optin=page.locator('input[data-consultation-gps-v2]');
+  assert.equal(await v2Optin.count(),1,name+' V2 opt-in visible');
+  assert.equal(await v2Optin.isChecked(),false,name+' no default permission');
+  assert.equal(await page.locator('#cp-target option[value="'+v2Id+'"]').count(),0,'V2 not selectable by default');
+  await v2Optin.check();
+  assert.equal(await page.locator('#cp-target option[value="'+v2Id+'"]').count(),1,'V2 available after opt-in');
+  await page.locator('#cp-target').selectOption(v2Id);
+  assert.match(await page.locator('[data-activity-source]').innerText(),/GPS V2保存概要/);
+  assert.match(await page.locator('[data-metric2-val]').first().innerText(),/6\.50 km/);
+  assert.match(await page.locator('[data-source-note="course"]').innerText(),/GPS V2保存概要/);
+  const overview=await page.locator('#cp-report').innerText();
+  assert.doesNotMatch(overview,/PRIVATE_V2_MEMO|PRIVATE_V2_FLAG|37\.123|139\.234|browser-fixture27/);
+  if(!useWebKit){
+   await page.emulateMedia({media:'print'});
+   const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
+   assert.ok(pdf.length>10000,'V2 overview PDF is produced after opt-in');
+   await page.emulateMedia({media:'screen'});
+  }
+  await v2Optin.uncheck();
+  assert.equal(await page.locator('#cp-target option[value="'+v2Id+'"]').count(),0,'revoked V2 opt-in removes the record');
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await page.locator('input[data-consultation-gps-v2]').isChecked(),false,'permission never persists');
   if(name==='mobile')await page.locator('[data-switch="preview"]').click();
   if(!useWebKit){const pdf=await page.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});assert.ok(pdf.length>10000,`${name}: PDF file size`);}
 
