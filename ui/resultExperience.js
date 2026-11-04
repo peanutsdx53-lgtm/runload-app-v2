@@ -121,7 +121,7 @@ export function mountResult(host,inputDraft={},options={}){
     +'<div class="rv4-big-score" data-reference-region="'+clean(r.id)+'">'+(r.value===null?'—':format(r.value,1))+'</div>'
     +(r.value!==null?'<div class="rv4-value-diff">部位内基準100との差 <strong>'+delta+'</strong></div>':'')
      +(r.value===null?'<div class="rv4-score-caption">この部位の参考値は算出できません</div>':
-      '<div class="rv4-scale" style="background-image:'+BODY_REFERENCE_GRADIENT+';background-color:#66C4B5" role="img" aria-label="左端60の青色から中央100の緑色を経て右端140の赤色へと変わる配色">'+
+      '<div class="rv4-scale" style="background-image:'+BODY_REFERENCE_GRADIENT+';background-color:#66C4B5" role="img" aria-label="部位ごとの文献参考値の色目盛り。左端60、中央は文献基準100、右端140。色は数値の相対的な違いを示します。">'+
       '<span class="rv4-scale-ref"></span>'+(scale?'<span class="rv4-scale-current" style="left:'+scale.position.toFixed(2)+'%"></span>':'')+'</div>'+
       '<div class="rv4-scale-labels"><span>60</span><span>100</span><span>140</span></div>'+
       (scale?.clipped?'<div class="rv4-scale-note">現在値は配色表示範囲（60〜140）の外側です。数値はそのまま表示しています。</div>':''))
