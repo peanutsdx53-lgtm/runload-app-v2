@@ -80,7 +80,7 @@ test('continuous reference palette remains navy-compatible and is identical acro
  assert.deepEqual(BODY_REFERENCE_COLOR_STOPS.map(x=>x.value),[60,80,92,100,108,120,140]);
  assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:100}).fill,'rgb(102,196,181)');
  assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:60}).fill,'#4776A6');
- assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:140}).fill,'#CA7D8B');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:140}).fill,'#ADDFD9');
  for(const sample of [60,70,80,91,92,94,98,99,100,101,107,108,119,120,131,139,140]){
   const row={calculationState:'CALCULATED',value:sample};
   const tint=bodyReferenceColor(row);
@@ -97,11 +97,16 @@ test('continuous reference palette remains navy-compatible and is identical acro
  assert.equal(outsideLow.position,0);assert.equal(outsideLow.clipped,'low');
  assert.equal(outsideHigh.position,100);assert.equal(outsideHigh.clipped,'high');
  assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:42}).fill,'#4776A6');
- assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:175}).fill,'#CA7D8B');
+ assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:175}).fill,'#ADDFD9');
  assert.equal(bodyReferenceScale(NaN),null);
  assert.equal(bodyReferenceColor({calculationState:'NOT_CALCULABLE',value:130}).state,'missing');
  assert.equal(bodyReferenceColor({calculationState:'CALCULATED',value:null}).state,'missing');
  assert.match(BODY_REFERENCE_GRADIENT,/linear-gradient/);
+ for(const stop of BODY_REFERENCE_COLOR_STOPS.filter(stop=>stop.value>=100)){
+   const [red,green,blue]=[1,3,5].map(i=>parseInt(stop.hex.slice(i,i+2),16));
+   assert.ok(green>=red&&blue>=red,'above-reference display colors avoid dominant red: '+stop.hex);
+ }
+ assert.deepEqual(BODY_REFERENCE_COLOR_STOPS.map(x=>x.value),[60,80,92,100,108,120,140],'palette does not alter numerical scale');
 });
 test('continuous palette has stable minimum separation from navy background',()=>{
  const luminance=hex=>{

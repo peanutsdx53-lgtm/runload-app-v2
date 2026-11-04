@@ -149,7 +149,7 @@
 @media(max-width:620px){.rv4-hero-report{padding:13px 15px}.rv4-compare-card>div{gap:8px}}
 
 
-/* Result body polish 2026-11-02; scientific color stops and methods unchanged. */
+/* Result body polish; palette is presentational, scientific methods unchanged. */
 .rv4-export-menu{min-width:0}
 .rv4-export-menu>summary{justify-content:center;gap:10px;min-height:39px;min-width:108px;padding:8px 13px;line-height:1.35;white-space:nowrap}
 .rv4-export-menu>summary::after{content:none!important;display:none!important}
@@ -158,7 +158,7 @@
 .rv4-body .rv4-scale{opacity:1;filter:none;background-repeat:no-repeat;background-size:100% 100%;box-shadow:none;border-color:#99cada70}
 .rv4-body .rv4-scale-labels span:first-child{color:#90bfe0}
 .rv4-body .rv4-scale-labels span:nth-child(2){color:#8dd8cd}
-.rv4-body .rv4-scale-labels span:last-child{color:#e2aab1}
+.rv4-body .rv4-scale-labels span:last-child{color:#b5e8df}
 .rv4-body .rv4-region-selection{display:flex;justify-content:flex-end;margin-top:13px;padding-top:13px;border-top:1px solid #326e7e65}
 .rv4-body .rv4-region-selection .rv4-picker{margin:0;max-width:325px;min-height:43px;padding:10px 14px;align-items:center;gap:12px;line-height:1.4;background:linear-gradient(130deg,#104354,#0c3042);border-color:#428c99}
 .rv4-body .rv4-region-selection .rv4-picker span:last-child{margin-left:auto;font-size:15px;line-height:1}

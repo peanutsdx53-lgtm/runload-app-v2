@@ -88,8 +88,9 @@ try{
   assert.ok(visual.pickerTop>=Math.max(visual.figureBottom,visual.readingBottom)-2,'region picker follows both figure and reading '+JSON.stringify(visual));
   assert.equal(visual.methodOpen,false,'expanded scientific limitations remain optional');
   if(width<=800)assert.equal(visual.alignItems,'center','mobile reading card is not stretched to figure height');
-  const blue=visual.gradient.indexOf('rgb(71, 118, 166)'),green=visual.gradient.indexOf('rgb(102, 196, 181)'),red=visual.gradient.indexOf('rgb(202, 125, 139)');
-  assert.ok(blue>=0&&green>blue&&red>green,'single blue-green-red scale direction '+visual.gradient);
+  const blue=visual.gradient.indexOf('rgb(71, 118, 166)'),green=visual.gradient.indexOf('rgb(102, 196, 181)'),lightTeal=visual.gradient.indexOf('rgb(173, 223, 217)');
+  assert.ok(blue>=0&&green>blue&&lightTeal>green,'single continuous cool-hue reference scale '+visual.gradient);
+  assert.match(await result.locator('.rv4-scale').getAttribute('aria-label'),/文献基準100.*相対的な違い/,'scale must describe its numerical meaning without relying on color names');
   await page.screenshot({path:resolve(root,'screenshots',prefix+'-compact-body.png'),fullPage:true,animations:'disabled'});
   await result.locator('.rv4-method-disclosure summary').click();
   assert.match(await result.locator('.rv4-method-disclosure').innerText(),/危険度や部位間の順位ではありません/);
