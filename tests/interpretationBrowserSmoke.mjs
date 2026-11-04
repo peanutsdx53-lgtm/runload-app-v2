@@ -70,12 +70,13 @@ try{
    await panel.waitFor({state:'visible'});
    assert.equal(await panel.getAttribute('data-rof-time-status'),'unverified');
    const caption=panel.locator('.rv4-fatigue-caption');
-   assert.match(await caption.innerText(),/本人が記録した疲労感です。運動による変化とは断定できません/);
+   assert.match(await caption.innerText(),/本人が申告した疲労感です。/,'foreground the actual self-report');
    const size=await caption.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
    assert.ok(size>=12,'approved understated ROF-J caption remains readable: '+size);
    const method=panel.locator('.rv4-fatigue-method');
-   assert.equal(await method.getAttribute('open'),null,'detail is optional; essential caution remains visible');
-   const vals=await panel.locator('.rv4-fatigue-numbers strong').allInnerTexts();
+   assert.equal(await method.getAttribute('open'),null,'detail is optional; causality and timing caution remains accessible');
+   assert.match(await method.locator('summary').innerText(),/回答時点と解釈上の注意を確認|回答時刻・訂正履歴を確認・訂正/,'the disclosure tells users what they can check');
+    const vals=await panel.locator('.rv4-fatigue-numbers strong').allInnerTexts();
    const expected=state==='answers-two-five'?['2','5']:state==='answers-zero-six'?['0','6']:['0','—'];
    assert.deepEqual(vals,expected,'show only reported before/after scores; never invent a computed difference');
    const shape=await panel.evaluate(el=>{const rect=el.getBoundingClientRect();return{left:rect.left,right:rect.right,viewport:innerWidth,document:document.documentElement.scrollWidth}});
