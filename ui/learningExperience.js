@@ -39,7 +39,7 @@ export function splitPractice(firstMin){
  return {first:firstMin,second:12-firstMin,average:paceLabel(paceSecondsPerKm(2,720))};
 }
 export function evaluateQuiz(answers){
- return QUIZ.map(item=>({id:item.id,correct:Number(answers[item.id])===item.correct,explanation:item.explanation}));
+ return QUIZ.map(item=>({id:item.id,correct:answers[item.id]!==null&&answers[item.id]!==undefined&&answers[item.id]!==""&&Number(answers[item.id])===item.correct,explanation:item.explanation}));
 }
 function catalogue(){
  return '<section class="lr-hero"><p class="lr-eyebrow">RUNLOAD LEARNING</p><h1>学習</h1><p>ランニングの知識を、基礎から段階的に学ぶ。学習の後には復習を用意しています。自分の走行情報との照合は「探究」で行います。</p></section>'+
@@ -62,7 +62,7 @@ function reviewMarkup(){
 function lesson(){
  return '<div class="lr-lesson"><a href="#/learning" class="lr-back">‹ 学習の一覧へ</a>'+
   '<header class="lr-hero"><p class="lr-eyebrow">走行データの基礎 · 第1単元</p><h1>平均ペースと区間ペース</h1><p>一つの平均値だけでは、走っている途中の変化まで分かりません。数値の意味を、図と例題で確かめます。</p><p class="lr-goal"><strong>この授業の目標：</strong>平均ペースを計算し、平均値と区間ごとの違いを区別できる。</p></header>'+
-  '<nav class="lr-lesson-index" aria-label="授業内の移動"><a href="#lr-basics">基礎</a><a href="#lr-example">例題</a><a href="#lr-try">体験</a><a href="#lr-review">復習</a><a href="#lr-explore">探究へ</a></nav>'+
+  '<nav class="lr-lesson-index" aria-label="授業内の移動"><button type="button" data-lr-jump="lr-basics">基礎</button><button type="button" data-lr-jump="lr-example">例題</button><button type="button" data-lr-jump="lr-try">体験</button><button type="button" data-lr-jump="lr-review">復習</button><button type="button" data-lr-jump="lr-explore">探究へ</button></nav>'+
   '<section class="lr-panel" id="lr-basics"><p class="lr-eyebrow">01 · 基礎</p><h2>平均ペースとは</h2>'+
   '<p>「ペース」は1 km進むのにかかった時間を表し、通常「分/km」で示します。走行全体の平均ペースは、記録した時間を総距離で割って求めます。</p>'+
   '<div class="lr-formula" role="note">平均ペース ＝ 走行の合計時間 ÷ 総距離</div>'+
@@ -92,6 +92,7 @@ export function mountLearning(host,params){
  const selected=params?.get("lesson");
  host.innerHTML=selected===READY_LESSON.id?lesson():selected?'<section class="lr-panel"><h1>この授業はまだ利用できません</h1><p>未公開の教材や不明なリンクを、別の授業へ置き換えずにお知らせします。</p><a href="#/learning">学習の一覧へ戻る</a></section>':catalogue();
  if(selected!==READY_LESSON.id)return;
+ host.querySelectorAll("[data-lr-jump]").forEach(button=>button.addEventListener("click",()=>host.querySelector("#"+button.dataset.lrJump)?.scrollIntoView({block:"start",behavior:"auto"})));
  const slider=host.querySelector("#lr-first");
  const refresh=()=>{
   const state=splitPractice(Number(slider.value));
