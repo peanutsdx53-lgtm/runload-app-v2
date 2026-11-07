@@ -170,7 +170,7 @@ import * as restDayStore from './ui/restDayStore.js';
    result:'<rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="3" width="4" height="18" rx="1"/><rect x="17" y="12" width="4" height="9" rx="1"/>',
    history:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4.5 3"/>',
    learning:'<path d="M3 5h7c2 0 3 1 3 3v13c0-2-2-3-4-3H3z"/><path d="M21 5h-7c-2 0-3 1-3 3v13c0-2 2-3 4-3h6z"/>',
-   "exploration-tree":'<path d="M4 10c2-5 6-6 8-1 2-5 6-4 8 1-1 5-5 6 0-3-4-7-5-8-10z"/><path d="M12 20V10"/>',
+   "exploration-tree":'<path d="M4 10c2-5 6-6 8-1 2-5 6-4 8 1-1 5-5 6-8 10-3-4-7-5-8-10z"/><path d="M12 20V10"/>',
    settings:'<circle cx="12" cy="12" r="3"/><path d="m9 2 1 3h4l1-3 4 2-1 3 3 3-1 4 3 1-2 5-3-1-3 2-1 3H9l-1-3-3-2-3 1-2-5 3-1-1-4 3-3-1-3z"/>'
   };
   return `<svg class="nav-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${shapes[name]||shapes.home}</svg>`;
