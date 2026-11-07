@@ -1,0 +1,48 @@
+name: RunLoad learning foundation acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'ui/learningExperience.js'
+      - 'ui/learningExperience.css'
+      - 'tests/learningFoundation.test.mjs'
+      - 'tests/learningFoundationBrowser.mjs'
+      - '.github/workflows/learning-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  learning-logic-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Learning and routing syntax
+        run: |
+          node --check app.js
+          node --check ui/learningExperience.js
+          node --check tests/learningFoundation.test.mjs
+          node --check tests/learningFoundationBrowser.mjs
+          node --check sw.js
+      - name: Deterministic learning foundation checks
+        run: node --test tests/learningFoundation.test.mjs
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Lesson, review, mobile and offline browser acceptance
+        run: node tests/learningFoundationBrowser.mjs
+      - name: Save learning screenshots for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runload-learning-first-lesson-visuals
+          path: screenshots/learning-*-lesson.png
+          if-no-files-found: ignore
+          retention-days: 14
