@@ -17,13 +17,13 @@ export const READY_LESSON=Object.freeze({id:"pace-basics",version:"0.1",title:"�
 export const QUIZ=Object.freeze([
  {id:"q1",prompt:"6 kmを33分で走った場合、平均ペースについて正しいのは？",
  choices:["すべての区間を5分30秒/kmで走った。","走行全体の平均は5分30秒/kmだった。","疲労感が小さかった。"],
- correct:1,explanation:"平均ペースは全体の時間÷距離です。各区間の速さも疲労感も、この二つの数値からは分かりません。"},
+ correct:1,explanation:"平均ペースは全体の時間÷距離です。各区間の速さも疲労感も、この二つの数値からは分かりません。",rationales:["各区間の値は記録していません。平均ペースが5分30秒/kmでも、途中が一定とは限りません。","正しいです。33分÷6km＝5分30秒/km。これは全体の平均値です。","疲労感は本人の申告など別の情報が必要です。距離と時間からは確定できません。"]},
  {id:"q2",prompt:"4 kmを24分で走ったとき、平均ペースは？",
  choices:["4分00秒/km","6分00秒/km","24分00秒/km"],
- correct:1,explanation:"24分÷4 km＝6分/km。単位を忘れず、距離と時間のどちらを割るか確認します。"},
+ correct:1,explanation:"24分÷4 km＝6分/km。単位を忘れず、距離と時間のどちらを割るか確認します。",rationales:["4は距離（km）です。分/kmを求めるには合計24分を4kmで割ります。","正しいです。24分÷4km＝6分00秒/kmです。","24分は全体4kmの所要時間です。1km当たりでは24÷4＝6分です。"]},
  {id:"q3",prompt:"2 kmを12分で走ったAとB。Aは1 kmごとに6分、Bは5分と7分。正しいのは？",
  choices:["平均ペースは同じでも、区間ごとのペースは違う。","Bの方が疲労が大きかったと確定できる。","平均が同じなので走り方は全く同じだった。"],
- correct:0,explanation:"両方とも平均6分/kmですが、区間ごとの時間は違います。この例だけでは疲労感は分かりません。"}
+ correct:0,explanation:"両方とも平均6分/kmですが、区間ごとの時間は違います。この例だけでは疲労感は分かりません。",rationales:["正しいです。Aは6分＋6分、Bは5分＋7分で、ともに全体2km・12分です。","区間の所要時間の違いだけでは疲労感を確定できません。疲労については別の情報が必要です。","両者の区間ごとの所要時間は異なります。平均が同じことは、走り方が同じことを意味しません。"]}
 ]);
 export function paceSecondsPerKm(distanceKm,seconds){
  if(!Number.isFinite(distanceKm)||distanceKm<=0||!Number.isFinite(seconds)||seconds<=0)return null;
@@ -39,7 +39,7 @@ export function splitPractice(firstMin){
  return {first:firstMin,second:12-firstMin,average:paceLabel(paceSecondsPerKm(2,720))};
 }
 export function evaluateQuiz(answers){
- return QUIZ.map(item=>({id:item.id,correct:answers[item.id]!==null&&answers[item.id]!==undefined&&answers[item.id]!==""&&Number(answers[item.id])===item.correct,explanation:item.explanation}));
+ return QUIZ.map(item=>{const chosen=answers?.[item.id];return {id:item.id,correct:chosen!==null&&chosen!==undefined&&chosen!==""&&Number(chosen)===item.correct,explanation:item.rationales?.[Number(chosen)]||item.explanation};});
 }
 function catalogue(){
  return '<section class="lr-hero"><p class="lr-eyebrow">RUNLOAD LEARNING</p><h1>学習</h1><p>ランニングの知識を、基礎から段階的に学ぶ。学習の後には復習を用意しています。自分の走行情報との照合は「探究」で行います。</p></section>'+
