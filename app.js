@@ -34,6 +34,7 @@ import * as restDayStore from './ui/restDayStore.js';
   const legalDocuments=await import("./ui/legalDocuments.js?v=20261028-first-use-v1");
   const consultationExperience=await import("./ui/consultationExperience.js?v=20261102-uiux-batch05-v1");
   const explorationExperience=await import("./ui/explorationExperience.js?v=20261103-field-wrap-v2");
+  const learningExperience=await import("./ui/learningExperience.js?v=20261107-first-lesson-v2");
   const interpretationExperience=await import("./ui/interpretationView.js?v=20261026-interpret-v14");
   const interpretationRules=await import("./ui/interpretationRules.js?v=20261026-interpret-v14");
   const actionIntentStore=await import("./ui/actionIntentStore.js?v=20261026-interpret-v14");
@@ -158,9 +159,9 @@ import * as restDayStore from './ui/restDayStore.js';
   const hasPriorLegalRecord=(()=>{try{return !!onboardStorage?.getItem(legalDocuments.LEGAL_CONSENT_KEY)}catch{return false}})();
   const needsLegalReconfirmation=!!introStored?.completed&&hasPriorLegalRecord&&!legalDocuments.readLegalConsent(onboardStorage);
   const onboardingState={open:!introStored?.completed||needsLegalReconfirmation,step:needsLegalReconfirmation?1:0,reconsentOnly:needsLegalReconfirmation,replay:false,language:"ja",termsAccepted:false,privacyConfirmed:false,error:"",nickname:settingsUi.profile.nickname,purpose:settingsUi.profile.purpose,heightCm:String(settingsUi.profile.heightCm??""),weightKg:String(settingsUi.profile.weightKg??""),ageBand:settingsUi.profile.ageBand};
-  const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",settings:"設定",measurement:"測定","gps-review":"GPS記録内容の確認","gps-rof":"GPSの疲労感",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
-  const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
-  const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
+  const pageLabels={condition:"コンディションの歩み",home:"ホーム",record:"記録","record-start":"記録を始める","record-review":"記録内容の確認","record-course":"コース・走行条件","record-rof":"運動前後の疲労感","record-more":"追加情報","record-compare":"歩数・走り方","record-reflection":"身体・使用品・メモ","record-environment":"環境",result:"結果","dynamic-result":"動的結果",history:"履歴","exploration-tree":"探究",learning:"学習",settings:"設定",measurement:"測定","gps-review":"GPS記録内容の確認","gps-rof":"GPSの疲労感",course:"コース設計",simulation:"シミュレーション",consultation:"相談・共有","body-part-detail":"部位詳細"};
+  const desktopNav=[["home","⌂","ホーム"],["record","✎","記録"],["result","▥","結果"],["learning","▣","学習"],["history","◷","履歴"],["exploration-tree","⚭","探究"],["settings","⚙","設定"]];
+  const mobileNav=[["home","⌂","ホーム"],["record-start","✎","記録"],["learning","▣","学習"],["exploration-tree","⚭","探究"],["history","◷","履歴"],["settings","⚙","設定"]];
   const currentPage=()=>{const raw=location.hash.replace(/^#\/?/,"");const path=raw.split("?")[0];return path==="history"&&raw.includes("life=1")?"condition":pageLabels[path]?path:"home"};
   const navIcon=function navIcon(name){
   const shapes={
@@ -168,6 +169,7 @@ import * as restDayStore from './ui/restDayStore.js';
    record:'<path d="M7 3h10v3H7zM5 6h14v15H5z"/><path d="M9 11h6M9 15h6"/>',
    result:'<rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="3" width="4" height="18" rx="1"/><rect x="17" y="12" width="4" height="9" rx="1"/>',
    history:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4.5 3"/>',
+   learning:'<path d="M3 5h7c2 0 3 1 3 3v13c0-2-2-3-4-3H3z"/><path d="M21 5h-7c-2 0-3 1-3 3v13c0-2 2-3 4-3h6z"/>',
    "exploration-tree":'<path d="M4 10c2-5 6-6 8-1 2-5 6-4 8 1-1 5-5 6-8 10-3-4-7-5-8-10z"/><path d="M12 20V10"/>',
    settings:'<circle cx="12" cy="12" r="3"/><path d="m9 2 1 3h4l1-3 4 2-1 3 3 3-1 4 3 1-2 5-3-1-3 2-1 3H9l-1-3-3-2-3 1-2-5 3-1-1-4 3-3-1-3z"/>'
   };
@@ -420,7 +422,7 @@ function recordExtras(){
       const existingRof=app.querySelector(".rof-editor-details");if(existingRof)state.rofEditorOpen=existingRof.open;
       const openedRecordSections=app.querySelectorAll(".record-extra-section[open]");
       if(openedRecordSections.length||app.querySelector(".record-extra-section"))state.recordOpenSections=[...openedRecordSections].map(el=>el.dataset.recordSection);
- const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',"dynamic-result":()=>'<section data-gps-dynamic aria-label="GPS動的結果"><p class="gd-empty">動的結果を読み込んでいます…</p></section>',history,"exploration-tree":explore,settings,"record-start":recordStart,"record-course":recordCourse,course:()=>recordCourse(true),"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
+ const page=currentPage(),content={home,condition,record,"record-review":recordReview,result:()=>'<section id="runload-result-v4" aria-label="走行結果"></section>',"dynamic-result":()=>'<section data-gps-dynamic aria-label="GPS動的結果"><p class="gd-empty">動的結果を読み込んでいます…</p></section>',history,"exploration-tree":explore,learning:()=>'<section id="runload-learning" class="lr-root" aria-label="学習"></section>',settings,"record-start":recordStart,"record-course":recordCourse,course:()=>recordCourse(true),"record-rof":recordRof,"record-more":recordMore,"record-compare":recordCompare,"record-reflection":recordReflection,"record-environment":recordEnvironment}[page]?.()||secondary(page);
  const navPage=page==="condition"?"home":page==="result"||page==="dynamic-result"?"result":["measurement","gps-review"].includes(page)?"record":["record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","gps-rof"].includes(page)?"record":page;
  // Return links to the common confirmation when a detail was opened from that screen.
  const detailPages=["record-course","record-rof","record-more","record-compare","record-environment","record-reflection"];
@@ -429,6 +431,9 @@ function recordExtras(){
  const gpsConsentMarkup=gpsConsentAction&&page==="measurement"
    ?`<div class="gps-consent-backdrop" data-gps-consent-overlay><section class="gps-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="gps-consent-title" aria-describedby="gps-consent-description gps-consent-interruption"><div class="gps-consent-symbol" aria-hidden="true">⌖</div><h2 id="gps-consent-title">${gpsConsentAction==="resume"?"位置情報の取得を再開しますか？":"位置情報を使用しますか？"}</h2><p id="gps-consent-description">現在地・経路・取得可能な標高を計測に使います。地図の表示範囲はOpenStreetMapへ伝わります。経路の保存は終了後に選択します。</p><div class="gps-consent-interruption" id="gps-consent-interruption" role="note"><strong>画面ロック・アプリ切り替え時の動作</strong><p>ロック・アプリ切り替えで<b>タイマーとGPSは自動で一時停止</b>します。戻っても自動再開せず、再開時に再確認が必要です。停止中の時間・距離は加算しません。</p></div><div class="gps-consent-actions"><button type="button" data-gps-consent-cancel class="gps-v2-button gps-v2-secondary">使用しない</button><button type="button" data-gps-consent-confirm class="gps-v2-button gps-v2-primary">${gpsConsentAction==="resume"?"許可して再開":"許可して開始"}</button></div></section></div>` : "";
  app.innerHTML=`<div class="app-shell ${page==="consultation"?"cp-app":""}" data-mobile-view="edit" data-mode-preview="single"><aside class="sidebar"><nav class="side-nav" aria-label="メニュー">${navHtml(desktopNav,navPage,false)}</nav></aside><div class="main-frame"><header class="topbar"><div class="topbar-title" aria-hidden="true"></div><div class="topbar-right"><button type="button" class="icon-install" data-install-app aria-label="アプリをホーム画面に追加">⇩</button></div></header><main class="main-content">${state.toast?`<div class="toast-notice">${esc(state.toast)}</div>`:""}${detailContent}</main></div><nav class="mobile-nav" aria-label="スマートフォンのメニュー">${navHtml(mobileNav,page==="condition"?"home":["record","record-start","record-review","record-course","record-rof","record-more","record-compare","record-reflection","record-environment","measurement","gps-review","gps-rof"].includes(page)?"record-start":page,true)}</nav></div>${onboardingState.open?onboardingView():""}${gpsConsentMarkup}`;
+ if(page==="learning"){
+  learningExperience.mountLearning(app.querySelector("#runload-learning"),new URLSearchParams(location.hash.split("?")[1]||""));
+ }
  if(page==="consultation"){
   consultationExperience.mountConsultation(app.querySelector('#runload-consultation'),consultationExperience.consultationSources({
    manual:manualRunStore.readManualRuns(onboardStorage),gps:gpsStore.readGpsRuns(),gpsV2:gpsV2Cache,conditions:homeExperience.readConditions(onboardStorage)
