@@ -100,6 +100,7 @@ function lesson(){
   '<p>授業の計算例と、本人の記録の数値は別です。探究では記録に実際に残っている情報だけを確認します。</p>'+
   '<p>区間ごとのペースが保存されていない記録から、その変化を作り出すことはしません。記録がなくても学習・復習できます。</p>'+
   '<div class="lr-actions"><a class="lr-action" href="#/exploration-tree?category=01&topic=%E8%B7%9D%E9%9B%A2%E3%83%BB%E6%99%82%E9%96%93%E3%83%BB%E3%83%9A%E3%83%BC%E3%82%B9">探究で確認する</a><a class="lr-action lr-secondary" href="#/history">履歴で走行を選ぶ</a></div></section>'+
+  '<section class="lr-panel" id="lr-next"><p class="lr-eyebrow">次に学ぶ知識 · 準備中</p><h2>距離と時間はどこから来た数値？</h2><p>この授業で平均の計算に使った距離・時間には、入力された情報、測定された情報、記録が存在しない情報という違いがあります。出所や欠測を区別する授業を準備しています。</p><p class="lr-source">現在この次の授業は公開されていません。学習や復習をしなくても、記録・結果・探究は引き続き利用できます。</p></section>'+ 
   '<p class="lr-note">この試行版は授業・復習の進捗を保存しません。既存の走行記録・メモに変更を加えません。</p></div>';
 }
 export function mountLearning(host,params){
