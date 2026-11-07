@@ -27,6 +27,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4333/#/learning',{waitUntil:'networkidle'});
   await page.locator('.lr-root .lr-catalog').waitFor();
+  const previousStore=await page.evaluate(()=>({notes:localStorage.getItem('runload-v2-exploration-notes-v1'),manual:localStorage.getItem('runload-v2-manual-runs-v2')}));
   assert.equal(await page.locator('.lr-course').count(),8);
   assert.equal(await page.locator('.lr-coming').count(),7);
   assert.equal(await page.locator('a[href="#/learning?lesson=pace-basics"]').count(),1);
@@ -60,8 +61,7 @@ try{
   await page.locator('[data-ex-learning="distance-time-pace"]').waitFor();
   assert.match(await page.locator('.ex-learning-head').first().innerText(),/知ってみよう/);
   const noMutation=await page.evaluate(()=>({notes:localStorage.getItem('runload-v2-exploration-notes-v1'),manual:localStorage.getItem('runload-v2-manual-runs-v2')}));
-  assert.equal(noMutation.notes,null,'learning and discovery must not write historical notes');
-  assert.equal(noMutation.manual,null,'learning and discovery must not invent a saved run');
+  assert.deepEqual(noMutation,previousStore,'learning and discovery must not mutate saved runs or old notes');
   await page.goto('http://127.0.0.1:4333/#/learning?lesson=unknown',{waitUntil:'networkidle'});
   assert.match(await page.locator('#runload-learning').innerText(),/この授業はまだ利用できません/);
   assert.deepEqual(errors,[],'browser errors '+width+' '+JSON.stringify(errors));
